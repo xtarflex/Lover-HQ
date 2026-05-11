@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { TopBar } from './components/TopBar';
 import { BottomNav } from './components/BottomNav';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { InstallPrompt } from './components/InstallPrompt';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAppContext, useAppDispatch } from './contexts/AppContext';
 import { supabase } from './lib/supabase';
 
@@ -23,7 +25,7 @@ function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-brand-slate pb-16">
       <TopBar />
-      <main className="flex-grow container mx-auto px-4 overflow-y-auto">
+      <main className="flex-grow container mx-auto px-4 overflow-y-auto pt-16">
         <Suspense fallback={<LoadingSpinner className="h-full mt-20" />}>
           <Outlet />
         </Suspense>
@@ -80,54 +82,58 @@ export default function App() {
 
   return (
     <Router>
-      <Routes>
-        <Route
-          path="/auth"
-          element={
-            user ? (
-              <Navigate to="/onboarding" replace />
-            ) : (
-              <Suspense fallback={<LoadingSpinner />}>
-                <Auth />
-              </Suspense>
-            )
-          }
-        />
+      <div className="min-h-screen bg-brand-slate">
+        <OfflineIndicator />
+        <Routes>
+          <Route
+            path="/auth"
+            element={
+              user ? (
+                <Navigate to="/onboarding" replace />
+              ) : (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Auth />
+                </Suspense>
+              )
+            }
+          />
 
-        <Route
-          path="/onboarding"
-          element={
-            !user ? (
-              <Navigate to="/auth" replace />
-            ) : (
-              <Suspense fallback={<LoadingSpinner />}>
-                <Onboarding />
-              </Suspense>
-            )
-          }
-        />
+          <Route
+            path="/onboarding"
+            element={
+              !user ? (
+                <Navigate to="/auth" replace />
+              ) : (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Onboarding />
+                </Suspense>
+              )
+            }
+          />
 
-        {/* Main application routes wrapped in layout and protection */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="/fridge" replace />} />
-          <Route path="fridge" element={<Fridge />} />
-          <Route path="music" element={<Music />} />
-          <Route path="games" element={<Games />} />
-          <Route path="reveal" element={<Reveal />} />
-          <Route path="board" element={<Board />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
+          {/* Main application routes wrapped in layout and protection */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/fridge" replace />} />
+            <Route path="fridge" element={<Fridge />} />
+            <Route path="music" element={<Music />} />
+            <Route path="games" element={<Games />} />
+            <Route path="reveal" element={<Reveal />} />
+            <Route path="board" element={<Board />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
 
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <InstallPrompt />
+      </div>
     </Router>
   );
 }
