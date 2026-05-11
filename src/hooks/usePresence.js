@@ -24,14 +24,9 @@ export function usePresence(roomName) {
         const state = channel.presenceState();
         // Extract presence state and update global context
         // This is a simplified implementation; adjust based on actual state structure
-        let hasPartner = false;
-        Object.values(state).forEach((presences) => {
-          presences.forEach((p) => {
-            if (p.user_id !== user.id) {
-              hasPartner = true;
-            }
-          });
-        });
+        const hasPartner = Object.values(state).some((presences) =>
+          presences.some((p) => p.user_id !== user.id)
+        );
 
         dispatch({
           type: 'SET_PRESENCE',
