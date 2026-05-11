@@ -53,8 +53,10 @@ export default function Onboarding() {
     setError(null);
 
     try {
-      // Generate random 6-digit code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate random 6-digit code securely
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      const code = Math.floor(100000 + (array[0] / 4294967296) * 900000).toString();
 
       const { error: updateError } = await supabase
         .from('users')
