@@ -1,12 +1,14 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { TopBar } from './components/TopBar';
 import { BottomNav } from './components/BottomNav';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { useAppContext } from './contexts/AppContext';
+import { useAppContext, useAppDispatch } from './contexts/AppContext';
+import { supabase } from './lib/supabase';
 
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
+const Onboarding = lazy(() => import('./features/auth/Onboarding'));
 const Fridge = lazy(() => import('./features/fridge/Fridge'));
 const Music = lazy(() => import('./features/music/Music'));
 const Games = lazy(() => import('./features/games/Games'));
@@ -19,7 +21,7 @@ const Profile = lazy(() => import('./features/profile/Profile'));
  */
 function MainLayout() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 pb-16">
+    <div className="flex flex-col min-h-screen bg-brand-slate pb-16">
       <TopBar />
       <main className="flex-grow container mx-auto px-4 overflow-y-auto">
         <Suspense fallback={<LoadingSpinner className="h-full mt-20" />}>
@@ -35,31 +37,59 @@ function MainLayout() {
  * Protected route wrapper
  */
 function ProtectedRoute({ children }) {
-  // We'll bring back user destructuring when actual auth is implemented
-  useAppContext();
+  const { user, pairingStatus } = useAppContext();
 
-  // Example simple auth check. Replace with actual logic.
-  // if (!user) {
-  //   return <Navigate to="/auth" replace />;
-  // }
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // If user is logged in but not paired, redirect to onboarding
+  if (pairingStatus !== 'paired') {
+    return <Navigate to="/onboarding" replace />;
+  }
 
   return children;
 }
 
 export default function App() {
+  const { user } = useAppContext();
+  const dispatch = useAppDispatch();
+
+  // Listen for Supabase Auth changes
+  useEffect(() => {
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        dispatch({ type: 'SET_USER', payload: session.user });
+      }
+    });
+
+    // Auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        dispatch({ type: 'SET_USER', payload: session.user });
+      } else {
+        dispatch({ type: 'RESET_STATE' });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [dispatch]);
+
   return (
     <Router>
       <Routes>
-        <Route
-          path="/auth"
-          element={
-            <Suspense fallback={<LoadingSpinner className="h-screen" />}>
-              <Auth />
-            </Suspense>
-          }
+        <Route 
+          path="/auth" 
+          element={user ? <Navigate to="/onboarding" replace /> : <Suspense fallback={<LoadingSpinner />}><Auth /></Suspense>} 
+        />
+        
+        <Route 
+          path="/onboarding" 
+          element={!user ? <Navigate to="/auth" replace /> : <Suspense fallback={<LoadingSpinner />}><Onboarding /></Suspense>} 
         />
 
-        {/* Main application routes wrapped in layout */}
+        {/* Main application routes wrapped in layout and protection */}
         <Route
           path="/"
           element={

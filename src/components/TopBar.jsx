@@ -1,28 +1,47 @@
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
+import Avatar from './Avatar';
 
 export function TopBar() {
   const { user, partner, presence } = useAppContext();
 
   return (
-    <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 sticky top-0 z-10">
+    <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-50">
       <div className="flex items-center space-x-2">
-        <h1 className="text-xl font-bold text-gray-800">OurSpace</h1>
+        <div className="text-2xl">🏠</div>
+        <h1 className="text-xl font-heading font-bold text-white tracking-tight">Lover-HQ</h1>
       </div>
-      <div className="flex items-center space-x-4">
+      
+      <div className="flex items-center space-x-3">
+        {/* Current User */}
         {user && (
-          <div className="flex items-center space-x-2">
-            <div className="text-sm font-medium text-gray-700">{user.name || user.email}</div>
-            <div
-              className={`w-3 h-3 rounded-full ${presence.user === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}
+          <div className="flex items-center bg-brand-slate/40 pr-3 pl-1 py-1 rounded-full border border-gray-800">
+            <Avatar 
+              src={user.avatar_url?.startsWith('http') ? user.avatar_url : null} 
+              fallback={!user.avatar_url?.startsWith('http') ? user.avatar_url : '👤'}
+              isOnline={presence.user === 'online'} 
+              size="sm" 
             />
+            <span className="text-xs font-bold text-gray-300 ml-2 max-w-[80px] truncate">
+              {user.name || 'You'}
+            </span>
           </div>
         )}
+
+        {/* Love Connection Icon */}
+        <div className="text-secondary animate-pulse text-sm">❤️</div>
+
+        {/* Partner */}
         {partner && (
-          <div className="flex items-center space-x-2">
-            <div className="text-sm font-medium text-gray-700">{partner.name || partner.email}</div>
-            <div
-              className={`w-3 h-3 rounded-full ${presence.partner === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}
+          <div className="flex items-center bg-brand-slate/40 pl-3 pr-1 py-1 rounded-full border border-gray-800">
+            <span className="text-xs font-bold text-gray-300 mr-2 max-w-[80px] truncate">
+              {partner.name || 'Partner'}
+            </span>
+            <Avatar 
+              src={partner.avatar_url?.startsWith('http') ? partner.avatar_url : null} 
+              fallback={!partner.avatar_url?.startsWith('http') ? partner.avatar_url : '👤'}
+              isOnline={presence.partner === 'online'} 
+              size="sm" 
             />
           </div>
         )}
