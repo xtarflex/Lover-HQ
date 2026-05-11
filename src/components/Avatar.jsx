@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * Reusable Avatar component with online status indicators.
- * 
+ *
  * @param {Object} props
  * @param {string} [props.src] - Image URL for the avatar
  * @param {string} [props.fallback] - Fallback emoji or initial
@@ -24,8 +24,8 @@ const Avatar = ({ src, fallback, isOnline, size = 'md', className = '' }) => {
       {isOnline && (
         <div className="absolute inset-0 rounded-full animate-pulse bg-primary/30 blur-md" />
       )}
-      
-      <div 
+
+      <div
         className={`
           ${sizeClasses[size]}
           rounded-full border-2 overflow-hidden flex items-center justify-center bg-brand-surface
@@ -34,11 +34,7 @@ const Avatar = ({ src, fallback, isOnline, size = 'md', className = '' }) => {
         `}
       >
         {src ? (
-          <img 
-            src={src} 
-            alt="User Avatar" 
-            className="w-full h-full object-cover"
-          />
+          <img src={src} alt="User Avatar" className="w-full h-full object-cover" />
         ) : (
           <span className="select-none">{fallback || '👤'}</span>
         )}

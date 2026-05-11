@@ -8,9 +8,9 @@ import Avatar from '../../components/Avatar';
  * Handles profile setup and pairing code generation/entry.
  */
 export default function Onboarding() {
-  const { user, pairingStatus } = useAppContext();
+  const { user } = useAppContext();
   const dispatch = useAppDispatch();
-  
+
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('🦊');
@@ -35,11 +35,11 @@ export default function Onboarding() {
 
       if (updateError) throw updateError;
 
-      dispatch({ 
-        type: 'SET_USER', 
-        payload: { ...user, name: name.trim(), avatar_url: selectedEmoji } 
+      dispatch({
+        type: 'SET_USER',
+        payload: { ...user, name: name.trim(), avatar_url: selectedEmoji },
       });
-      
+
       setStep(2);
     } catch (err) {
       setError(err.message);
@@ -55,7 +55,7 @@ export default function Onboarding() {
     try {
       // Generate random 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-      
+
       const { error: updateError } = await supabase
         .from('users')
         .update({ pairing_code: code })
@@ -125,7 +125,7 @@ export default function Onboarding() {
         <form onSubmit={handleProfileSubmit} className="space-y-6">
           <div className="text-center">
             <h1 className="text-3xl font-heading font-bold text-gray-800">Welcome Home</h1>
-            <p className="text-gray-500 mt-2">Let's set up your profile first</p>
+            <p className="text-gray-500 mt-2">Let&apos;s set up your profile first</p>
           </div>
 
           <div className="flex flex-col items-center space-y-4">
@@ -137,7 +137,9 @@ export default function Onboarding() {
                   type="button"
                   onClick={() => setSelectedEmoji(emoji)}
                   className={`text-2xl p-2 rounded-lg transition-all ${
-                    selectedEmoji === emoji ? 'bg-primary/20 scale-110 shadow-sm' : 'hover:bg-gray-100'
+                    selectedEmoji === emoji
+                      ? 'bg-primary/20 scale-110 shadow-sm'
+                      : 'hover:bg-gray-100'
                   }`}
                 >
                   {emoji}
@@ -158,7 +160,9 @@ export default function Onboarding() {
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>
+          )}
 
           <button
             type="submit"
@@ -179,13 +183,15 @@ export default function Onboarding() {
             <div className="p-6 bg-brand-slate/5 rounded-2xl border border-dashed border-gray-300 flex flex-col items-center">
               <h2 className="font-bold text-gray-700">Invite them</h2>
               <p className="text-xs text-gray-500 mb-4">Generate a code to share</p>
-              
+
               {user.pairing_code ? (
                 <div className="text-center">
                   <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-white px-6 py-3 rounded-xl shadow-inner border border-gray-100">
                     {user.pairing_code}
                   </div>
-                  <p className="text-xs text-primary mt-4 animate-pulse">Waiting for them to join...</p>
+                  <p className="text-xs text-primary mt-4 animate-pulse">
+                    Waiting for them to join...
+                  </p>
                 </div>
               ) : (
                 <button
@@ -212,7 +218,7 @@ export default function Onboarding() {
                 <h2 className="font-bold text-gray-700">Enter their code</h2>
                 <p className="text-xs text-gray-500 mb-4">If they already have one</p>
               </div>
-              
+
               <input
                 type="text"
                 maxLength="6"
@@ -222,7 +228,9 @@ export default function Onboarding() {
                 className="w-full text-center text-2xl font-mono tracking-widest px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
               />
 
-              {error && <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>}
+              {error && (
+                <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>
+              )}
 
               <button
                 type="submit"

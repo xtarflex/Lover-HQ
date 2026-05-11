@@ -11,16 +11,16 @@ export function TopBar() {
         <div className="text-2xl">🏠</div>
         <h1 className="text-xl font-heading font-bold text-white tracking-tight">Lover-HQ</h1>
       </div>
-      
+
       <div className="flex items-center space-x-3">
         {/* Current User */}
         {user && (
           <div className="flex items-center bg-brand-slate/40 pr-3 pl-1 py-1 rounded-full border border-gray-800">
-            <Avatar 
-              src={user.avatar_url?.startsWith('http') ? user.avatar_url : null} 
+            <Avatar
+              src={user.avatar_url?.startsWith('http') ? user.avatar_url : null}
               fallback={!user.avatar_url?.startsWith('http') ? user.avatar_url : '👤'}
-              isOnline={presence.user === 'online'} 
-              size="sm" 
+              isOnline={presence.user === 'online'}
+              size="sm"
             />
             <span className="text-xs font-bold text-gray-300 ml-2 max-w-[80px] truncate">
               {user.name || 'You'}
@@ -37,11 +37,11 @@ export function TopBar() {
             <span className="text-xs font-bold text-gray-300 mr-2 max-w-[80px] truncate">
               {partner.name || 'Partner'}
             </span>
-            <Avatar 
-              src={partner.avatar_url?.startsWith('http') ? partner.avatar_url : null} 
+            <Avatar
+              src={partner.avatar_url?.startsWith('http') ? partner.avatar_url : null}
               fallback={!partner.avatar_url?.startsWith('http') ? partner.avatar_url : '👤'}
-              isOnline={presence.partner === 'online'} 
-              size="sm" 
+              isOnline={presence.partner === 'online'}
+              size="sm"
             />
           </div>
         )}

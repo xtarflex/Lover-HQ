@@ -16,7 +16,7 @@ export default function Auth() {
     setError(null);
 
     try {
-      const { data, error: authError } = isLogin 
+      const { data, error: authError } = isLogin
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
 
@@ -43,14 +43,16 @@ export default function Auth() {
             {isLogin ? 'Welcome Back' : 'Create Your Space'}
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            {isLogin ? "Ready to see what they've left you?" : "Start your shared journey today"}
+            {isLogin ? "Ready to see what they've left you?" : 'Start your shared journey today'}
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleAuth}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Email address</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                Email address
+              </label>
               <input
                 type="email"
                 required
@@ -61,7 +63,9 @@ export default function Auth() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Password</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                Password
+              </label>
               <input
                 type="password"
                 required
@@ -95,7 +99,7 @@ export default function Auth() {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm font-medium text-primary hover:text-amber-400 transition-colors"
           >
-            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
           </button>
         </div>
       </div>

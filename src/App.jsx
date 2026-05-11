@@ -65,7 +65,9 @@ export default function App() {
     });
 
     // Auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         dispatch({ type: 'SET_USER', payload: session.user });
       } else {
@@ -79,14 +81,30 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/auth" 
-          element={user ? <Navigate to="/onboarding" replace /> : <Suspense fallback={<LoadingSpinner />}><Auth /></Suspense>} 
+        <Route
+          path="/auth"
+          element={
+            user ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
+              <Suspense fallback={<LoadingSpinner />}>
+                <Auth />
+              </Suspense>
+            )
+          }
         />
-        
-        <Route 
-          path="/onboarding" 
-          element={!user ? <Navigate to="/auth" replace /> : <Suspense fallback={<LoadingSpinner />}><Onboarding /></Suspense>} 
+
+        <Route
+          path="/onboarding"
+          element={
+            !user ? (
+              <Navigate to="/auth" replace />
+            ) : (
+              <Suspense fallback={<LoadingSpinner />}>
+                <Onboarding />
+              </Suspense>
+            )
+          }
         />
 
         {/* Main application routes wrapped in layout and protection */}

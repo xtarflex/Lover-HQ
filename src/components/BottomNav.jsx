@@ -19,8 +19,8 @@ export function BottomNav() {
               to={item.path}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center w-full h-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
-                  isActive 
-                    ? 'text-primary scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                  isActive
+                    ? 'text-primary scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]'
                     : 'text-gray-500 hover:text-gray-300'
                 }`
               }
