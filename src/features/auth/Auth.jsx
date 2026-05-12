@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
+import { Heart, Sparkles, Home } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -52,7 +53,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] bg-pink-50 dark:bg-brand-slate overflow-hidden flex flex-col">
+    <div className="fixed inset-0 w-full h-[100dvh] bg-background overflow-hidden flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-12 pt-8 relative flex flex-col items-center justify-center">
         {/* Animated Background Elements - Floating Hearts */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -68,7 +69,7 @@ export default function Auth() {
                 animationDuration: heart.animationDuration,
               }}
             >
-              ❤️
+              <Heart className="fill-current w-full h-full" />
             </div>
           ))}
         </div>
@@ -81,7 +82,7 @@ export default function Auth() {
         ></div>
 
         {/* Main Card */}
-        <div className="max-w-md w-full space-y-8 bg-white/60 dark:bg-brand-surface/40 backdrop-blur-2xl p-10 rounded-3xl border-2 border-pink-100 dark:border-white/5 relative z-10 animate-slide-up">
+        <div className="max-w-md w-full space-y-8 bg-surface/60 backdrop-blur-2xl p-10 rounded-3xl border-2 border-surface-border relative z-10 animate-slide-up">
           {/* House Icon with Pulsing Glow */}
           <div className="text-center">
             <div className="mx-auto h-20 w-20 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center text-4xl relative">
@@ -89,11 +90,11 @@ export default function Auth() {
               <LoverHQLogo className="text-white w-10 h-10 relative z-10" />
             </div>
 
-            <h2 className="mt-6 text-3xl font-heading font-bold text-slate-800 dark:text-white animate-fade-in">
+            <h2 className="mt-6 text-3xl font-heading font-bold text-text-main animate-fade-in">
               {isLogin ? 'Welcome Home' : 'Build Your Space'}
             </h2>
 
-            <p className="mt-3 text-slate-600 dark:text-slate-300 font-handwriting text-lg animate-fade-in-delay">
+            <p className="mt-3 text-text-muted font-handwriting text-lg animate-fade-in-delay">
               {isLogin ? "they've been waiting for you..." : 'create a home for two hearts'}
             </p>
           </div>
@@ -102,14 +103,14 @@ export default function Auth() {
             <div className="space-y-5">
               {/* Email Input with Focus Effects */}
               <div className="group relative">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 mb-2 block group-focus-within:text-primary transition-colors duration-300">
+                <label className="text-xs font-bold text-text-muted uppercase tracking-wider ml-1 mb-2 block group-focus-within:text-primary transition-colors duration-300">
                   Your email
                 </label>
                 <div className="relative">
                   <input
                     type="email"
                     required
-                    className="appearance-none relative block w-full px-5 py-4 bg-white dark:bg-brand-slate/50 border-2 border-pink-200 dark:border-slate-700 placeholder-slate-400 dark:placeholder-slate-500 text-slate-800 dark:text-white rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 text-base"
+                    className="appearance-none relative block w-full px-5 py-4 bg-surface/80 border-2 border-surface-border placeholder-text-muted/60 text-text-main rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 text-base"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -120,14 +121,14 @@ export default function Auth() {
 
               {/* Password Input with Focus Effects */}
               <div className="group relative">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 mb-2 block group-focus-within:text-primary transition-colors duration-300">
+                <label className="text-xs font-bold text-text-muted uppercase tracking-wider ml-1 mb-2 block group-focus-within:text-primary transition-colors duration-300">
                   Password
                 </label>
                 <div className="relative">
                   <input
                     type="password"
                     required
-                    className="appearance-none relative block w-full px-5 py-4 bg-white dark:bg-brand-slate/50 border-2 border-pink-200 dark:border-slate-700 placeholder-slate-400 dark:placeholder-slate-500 text-slate-800 dark:text-white rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 text-base"
+                    className="appearance-none relative block w-full px-5 py-4 bg-surface/80 border-2 border-surface-border placeholder-text-muted/60 text-text-main rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 text-base"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -137,10 +138,15 @@ export default function Auth() {
               </div>
             </div>
 
-            {/* Error Message with Slide Animation */}
+            {/* Romantic Error Message */}
             {error && (
-              <div className="bg-red-900/30 border-2 border-red-900/50 text-red-300 p-4 rounded-xl text-sm text-center backdrop-blur-sm animate-shake">
-                <span className="font-handwriting text-base">{error}</span>
+              <div className="absolute top-4 left-4 right-4 z-50 animate-slide-down-fade">
+                <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center gap-3">
+                  <Heart className="w-5 h-5 text-error-bg shrink-0" />
+                  <span className="font-handwriting text-lg text-error-bg leading-tight">
+                    {error}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -161,7 +167,17 @@ export default function Auth() {
                       opening the door...
                     </>
                   ) : (
-                    <>{isLogin ? '✨ Enter Your Home' : '🏠 Create Your Space'}</>
+                    <>
+                      {isLogin ? (
+                        <>
+                          <Sparkles className="w-5 h-5" /> Enter Your Home
+                        </>
+                      ) : (
+                        <>
+                          <Home className="w-5 h-5" /> Create Your Space
+                        </>
+                      )}
+                    </>
                   )}
                 </span>
               </button>

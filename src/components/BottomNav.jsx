@@ -13,7 +13,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="bg-brand-surface/90 backdrop-blur-lg border-t border-gray-800 fixed bottom-0 w-full h-20 z-50 px-4">
+    <nav className="bg-surface/90 backdrop-blur-lg border-t border-surface-border fixed bottom-0 w-full h-20 z-50 px-4">
       <ul className="flex items-center justify-around h-full max-w-lg mx-auto">
         {navItems.map((item) => {
           if (item.isHome) {
@@ -22,7 +22,7 @@ export function BottomNav() {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `absolute -top-6 w-14 h-14 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center border-4 border-pink-50 dark:border-brand-slate shadow-lg transition-transform duration-300 ${
+                    `absolute -top-6 w-14 h-14 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center border-4 border-background shadow-lg transition-transform duration-300 ${
                       isActive
                         ? 'scale-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]'
                         : 'hover:scale-105'
@@ -31,7 +31,7 @@ export function BottomNav() {
                 >
                   <LoverHQLogo className="text-white w-7 h-7" />
                 </NavLink>
-                <span className="absolute bottom-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                <span className="absolute bottom-2 text-[10px] font-bold uppercase tracking-wider text-text-muted">
                   {item.name}
                 </span>
               </li>
@@ -47,7 +47,7 @@ export function BottomNav() {
                   `flex flex-col items-center justify-center w-full h-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
                     isActive
                       ? 'text-primary scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                      : 'text-gray-500 hover:text-gray-300'
+                      : 'text-text-muted hover:text-text-main'
                   }`
                 }
               >
