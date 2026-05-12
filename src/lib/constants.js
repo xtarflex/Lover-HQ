@@ -43,3 +43,9 @@ export const PAIRING_STATUS = {
   PENDING: 'pending',
   PAIRED: 'paired',
 };
+
+export const ICON_SIZES = {
+  sm: 16,
+  md: 24,
+  lg: 32,
+};

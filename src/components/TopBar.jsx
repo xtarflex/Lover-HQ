@@ -1,14 +1,16 @@
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import Avatar from './Avatar';
+import { LoverHQLogo, Heart } from '../lib/icons';
+import { ICON_SIZES } from '../lib/constants';
 
 export function TopBar() {
   const { user, partner, presence } = useAppContext();
 
   return (
     <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-50">
-      <div className="flex items-center space-x-2">
-        <div className="text-2xl">🏠</div>
+      <div className="flex items-center space-x-2 text-primary">
+        <LoverHQLogo size={ICON_SIZES.md} className="stroke-current" />
         <h1 className="text-xl font-heading font-bold text-white tracking-tight">Lover-HQ</h1>
       </div>
 
@@ -29,7 +31,9 @@ export function TopBar() {
         )}
 
         {/* Love Connection Icon */}
-        <div className="text-secondary animate-pulse text-sm">❤️</div>
+        <div className="text-secondary animate-pulse flex items-center justify-center">
+          <Heart size={ICON_SIZES.sm} className="stroke-current fill-current text-red-500" />
+        </div>
 
         {/* Partner */}
         {partner && (
