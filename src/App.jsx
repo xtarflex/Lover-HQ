@@ -57,6 +57,19 @@ export default function App() {
   const { user } = useAppContext();
   const dispatch = useAppDispatch();
 
+  // Capture pairing code from URL if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pairCode = params.get('pair');
+    if (pairCode) {
+      sessionStorage.setItem('lover_hq_pairing_code', pairCode);
+      // Clean up URL without triggering a reload
+      const newUrl =
+        window.location.protocol + '//' + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: newUrl }, '', newUrl);
+    }
+  }, []);
+
   // Listen for Supabase Auth changes
   useEffect(() => {
     // Initial session check

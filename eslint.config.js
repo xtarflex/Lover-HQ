@@ -33,7 +33,7 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
       'react/prop-types': 'off', // We use JSDoc for types
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-refresh/only-export-components': ['off', { allowConstantExport: true }],
       'prettier/prettier': 'error',
       'no-unused-vars': ['error', { varsIgnorePattern: '^React$', argsIgnorePattern: '^_|error' }],
     },

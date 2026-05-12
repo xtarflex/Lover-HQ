@@ -56,21 +56,21 @@ export function AppProvider({ children }) {
 /**
  * @returns {import('../types').AppState}
  */
-export function useAppContext() {
+export const useAppContext = () => {
   const context = useContext(AppContext);
   if (context === null) {
     throw new Error('useAppContext must be used within an AppProvider');
   }
   return context;
-}
+};
 
 /**
  * @returns {React.Dispatch<import('../types').AppAction>}
  */
-export function useAppDispatch() {
+export const useAppDispatch = () => {
   const context = useContext(AppDispatchContext);
   if (context === null) {
     throw new Error('useAppDispatch must be used within an AppProvider');
   }
   return context;
-}
+};
