@@ -11,6 +11,7 @@ import { supabase } from './lib/supabase';
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
 const Onboarding = lazy(() => import('./features/auth/Onboarding'));
+const Home = lazy(() => import('./features/home/Home'));
 const Fridge = lazy(() => import('./features/fridge/Fridge'));
 const Music = lazy(() => import('./features/music/Music'));
 const Games = lazy(() => import('./features/games/Games'));
@@ -133,7 +134,8 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/fridge" replace />} />
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="home" element={<Home />} />
             <Route path="fridge" element={<Fridge />} />
             <Route path="music" element={<Music />} />
             <Route path="games" element={<Games />} />
