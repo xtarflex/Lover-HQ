@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import Avatar from './Avatar';
+import { LoverHQLogo } from '../assets/Logo';
 
 export function TopBar() {
   const { user, partner, presence } = useAppContext();
@@ -8,7 +9,7 @@ export function TopBar() {
   return (
     <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-50">
       <div className="flex items-center space-x-2">
-        <div className="text-2xl">🏠</div>
+        <LoverHQLogo className="text-primary w-8 h-8" />
         <h1 className="text-xl font-heading font-bold text-white tracking-tight">Lover-HQ</h1>
       </div>
 

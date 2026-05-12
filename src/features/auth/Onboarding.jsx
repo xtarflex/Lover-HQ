@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 import Avatar from '../../components/Avatar';
+import { LoverHQLogo } from '../../assets/Logo';
 
 /**
  * Onboarding component for new users.
@@ -13,8 +14,12 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('🦊');
-  const [pairingCode, setPairingCode] = useState('');
+  const [pairingCode, setPairingCode] = useState(
+    () => sessionStorage.getItem('lover_hq_pairing_code') || ''
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -30,14 +35,23 @@ export default function Onboarding() {
     try {
       const { error: updateError } = await supabase
         .from('users')
-        .update({ name: name.trim(), avatar_url: selectedEmoji })
+        .update({
+          name: name.trim(),
+          avatar_url: selectedEmoji,
+          phone_number: phoneNumber.trim() || null,
+        })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
       dispatch({
         type: 'SET_USER',
-        payload: { ...user, name: name.trim(), avatar_url: selectedEmoji },
+        payload: {
+          ...user,
+          name: name.trim(),
+          avatar_url: selectedEmoji,
+          phone_number: phoneNumber.trim() || null,
+        },
       });
 
       setStep(2);
@@ -58,14 +72,23 @@ export default function Onboarding() {
       window.crypto.getRandomValues(array);
       const code = Math.floor(100000 + (array[0] / 4294967296) * 900000).toString();
 
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
       const { error: updateError } = await supabase
         .from('users')
-        .update({ pairing_code: code })
+        .update({
+          pairing_code: code,
+          pairing_code_expires_at: expiresAt.toISOString(),
+        })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      dispatch({ type: 'SET_USER', payload: { ...user, pairing_code: code } });
+      dispatch({
+        type: 'SET_USER',
+        payload: { ...user, pairing_code: code, pairing_code_expires_at: expiresAt.toISOString() },
+      });
       dispatch({ type: 'SET_PAIRING_STATUS', payload: 'pending' });
     } catch (err) {
       setError(err.message);
@@ -82,15 +105,16 @@ export default function Onboarding() {
     setError(null);
 
     try {
-      // Find the partner with this code
+      // Find the partner with this code and check expiration
       const { data: partner, error: findError } = await supabase
         .from('users')
         .select('*')
         .eq('pairing_code', pairingCode)
+        .gt('pairing_code_expires_at', new Date().toISOString())
         .single();
 
       if (findError || !partner) {
-        throw new Error('Invalid pairing code. Please check and try again.');
+        throw new Error('Invalid or expired pairing code. Please check and try again.');
       }
 
       if (partner.id === user.id) {
@@ -100,17 +124,20 @@ export default function Onboarding() {
       // Link both users
       const { error: linkError } = await supabase
         .from('users')
-        .update({ partner_id: partner.id, pairing_code: null })
+        .update({ partner_id: partner.id, pairing_code: null, pairing_code_expires_at: null })
         .eq('id', user.id);
 
       if (linkError) throw linkError;
 
       const { error: partnerLinkError } = await supabase
         .from('users')
-        .update({ partner_id: user.id, pairing_code: null })
+        .update({ partner_id: user.id, pairing_code: null, pairing_code_expires_at: null })
         .eq('id', partner.id);
 
       if (partnerLinkError) throw partnerLinkError;
+
+      // Clear session storage code
+      sessionStorage.removeItem('lover_hq_pairing_code');
 
       dispatch({ type: 'SET_PARTNER', payload: partner });
       dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
@@ -121,11 +148,40 @@ export default function Onboarding() {
     }
   };
 
+  const handleShareLink = async () => {
+    if (!user.pairing_code) return;
+
+    const shareUrl = window.location.origin + '/auth?pair=' + user.pairing_code;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join me on Lover-HQ',
+          text: 'Use my code to pair our accounts!',
+          url: shareUrl,
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(shareUrl);
+          alert('Link copied to clipboard!');
+        }
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const isExpired = user.pairing_code_expires_at
+    ? new Date(user.pairing_code_expires_at) < new Date()
+    : false;
+
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
       {step === 1 ? (
         <form onSubmit={handleProfileSubmit} className="space-y-6">
           <div className="text-center">
+            <LoverHQLogo className="text-primary w-12 h-12 mx-auto mb-4" />
             <h1 className="text-3xl font-heading font-bold text-gray-800">Welcome Home</h1>
             <p className="text-gray-500 mt-2">Let&apos;s set up your profile first</p>
           </div>
@@ -162,6 +218,19 @@ export default function Onboarding() {
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 ml-1">
+              Phone Number (Optional)
+            </label>
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="+1 (555) 000-0000"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+            />
+          </div>
+
           {error && (
             <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>
           )}
@@ -177,6 +246,7 @@ export default function Onboarding() {
       ) : (
         <div className="space-y-8">
           <div className="text-center">
+            <LoverHQLogo className="text-primary w-12 h-12 mx-auto mb-4" />
             <h1 className="text-3xl font-heading font-bold text-gray-800">Find Your Partner</h1>
             <p className="text-gray-500 mt-2">Lover-HQ is best enjoyed by two</p>
           </div>
@@ -187,14 +257,34 @@ export default function Onboarding() {
               <p className="text-xs text-gray-500 mb-4">Generate a code to share</p>
 
               {user.pairing_code ? (
-                <div className="text-center">
-                  <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-white px-6 py-3 rounded-xl shadow-inner border border-gray-100">
-                    {user.pairing_code}
+                isExpired ? (
+                  <div className="text-center w-full">
+                    <p className="text-sm text-red-500 mb-4 font-bold">Code Expired</p>
+                    <button
+                      onClick={handleGenerateCode}
+                      disabled={loading}
+                      className="bg-white border-2 border-primary text-primary font-bold py-2 px-6 rounded-xl hover:bg-primary/5 transition-all disabled:opacity-50 w-full"
+                    >
+                      {loading ? 'Creating...' : 'Generate New Code'}
+                    </button>
                   </div>
-                  <p className="text-xs text-primary mt-4 animate-pulse">
-                    Waiting for them to join...
-                  </p>
-                </div>
+                ) : (
+                  <div className="text-center w-full flex flex-col items-center">
+                    <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-white px-6 py-3 rounded-xl shadow-inner border border-gray-100">
+                      {user.pairing_code}
+                    </div>
+                    <button
+                      onClick={handleShareLink}
+                      className="mt-4 bg-primary text-white font-bold py-2 px-6 rounded-xl shadow-md hover:brightness-110 active:scale-[0.98] transition-all w-full flex items-center justify-center gap-2"
+                    >
+                      <span>Share Link</span>
+                      <span>🔗</span>
+                    </button>
+                    <p className="text-xs text-primary mt-4 animate-pulse">
+                      Waiting for them to join... (Expires in 24h)
+                    </p>
+                  </div>
+                )
               ) : (
                 <button
                   onClick={handleGenerateCode}

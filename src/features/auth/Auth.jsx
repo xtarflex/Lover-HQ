@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch } from '../../contexts/AppContext';
+import { LoverHQLogo } from '../../assets/Logo';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -84,7 +85,7 @@ export default function Auth() {
         <div className="text-center">
           <div className="mx-auto h-20 w-20 bg-gradient-to-br from-[#F59E0B] to-[#EC4899] rounded-2xl flex items-center justify-center text-4xl shadow-[0_0_40px_rgba(245,158,11,0.4)] animate-pulse-glow relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B] to-[#EC4899] rounded-2xl blur-xl opacity-60 animate-pulse"></div>
-            <span className="relative z-10">🏠</span>
+            <LoverHQLogo className="text-white w-10 h-10 relative z-10" />
           </div>
 
           <h2 className="mt-6 text-3xl font-heading font-bold bg-gradient-to-r from-[#F8FAFC] to-[#CBD5E1] bg-clip-text text-transparent animate-fade-in">
