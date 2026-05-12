@@ -2,13 +2,15 @@ import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import Avatar from './Avatar';
 import { LoverHQLogo } from '../assets/Logo';
+import { Heart } from '../lib/icons';
+import { ICON_SIZES } from '../lib/constants';
 
 export function TopBar() {
   const { user, partner, presence } = useAppContext();
 
   return (
     <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-50">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 text-primary">
         <LoverHQLogo className="text-primary w-8 h-8" />
         <h1 className="text-xl font-heading font-bold text-white tracking-tight">Lover-HQ</h1>
       </div>
