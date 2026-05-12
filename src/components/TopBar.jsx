@@ -30,7 +30,9 @@ export function TopBar() {
         )}
 
         {/* Love Connection Icon */}
-        <div className="text-secondary animate-pulse text-sm">❤️</div>
+        <div className="text-secondary animate-pulse flex items-center justify-center">
+          <Heart size={ICON_SIZES.sm} className="stroke-current fill-current text-red-500" />
+        </div>
 
         {/* Partner */}
         {partner && (
