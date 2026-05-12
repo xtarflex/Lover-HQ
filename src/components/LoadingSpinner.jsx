@@ -10,7 +10,7 @@ export function LoadingSpinner({ size = 'md', className = '' }) {
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <div
-        className={`${sizeClasses[size]} border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin`}
+        className={`${sizeClasses[size]} border-4 border-brand-surface border-t-primary rounded-full animate-spin`}
         role="status"
         aria-label="loading"
       />

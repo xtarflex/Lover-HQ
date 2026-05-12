@@ -1,4 +1,4 @@
-<!doctype html>
+content = """<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -26,4 +26,7 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
-</html>
+</html>"""
+
+with open('index.html', 'w') as f:
+    f.write(content)
