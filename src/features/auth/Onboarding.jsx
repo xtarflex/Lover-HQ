@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch, useAppContext } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
@@ -15,6 +15,7 @@ import {
   Star,
   Moon,
   Sun,
+  X,
 } from 'lucide-react';
 import Avatar from '../../components/Avatar';
 
@@ -45,6 +46,25 @@ export default function Onboarding() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  // Auto-skip Step 1 if profile exists
+  useEffect(() => {
+    if (user?.name && step === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStep(2);
+
+      setName(user.name);
+      if (user.phone_number) setPhoneNumber(user.phone_number);
+      if (user.avatar_url) setSelectedAvatarId(user.avatar_url);
+    }
+  }, [user, step]);
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -126,16 +146,27 @@ export default function Onboarding() {
     setError(null);
 
     try {
-      // Find the partner with this code and check expiration
+      // 1. Find the partner with this code (remove strict SQL date check to avoid timezone bugs)
       const { data: partner, error: findError } = await supabase
         .from('users')
         .select('*')
         .eq('pairing_code', pairingCode)
-        .gt('pairing_code_expires_at', new Date().toISOString())
         .single();
 
       if (findError || !partner) {
-        throw new Error('Invalid or expired pairing code. Please check and try again.');
+        console.error('Supabase lookup error:', findError);
+        throw new Error('Invalid pairing code. Please check and try again.');
+      }
+
+      // 2. Validate expiration date in JavaScript to bypass Postgres timezone strictness
+      if (partner.pairing_code_expires_at) {
+        const expiresAt = new Date(partner.pairing_code_expires_at);
+        const now = new Date();
+        if (expiresAt < now) {
+          throw new Error(
+            'This pairing code has expired. Please ask your partner to generate a new one.'
+          );
+        }
       }
 
       if (partner.id === user.id) {
@@ -260,11 +291,20 @@ export default function Onboarding() {
               {/* Romantic Error Message */}
               {error && (
                 <div className="absolute top-4 left-4 right-4 z-50 animate-slide-down-fade">
-                  <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center gap-3">
-                    <Heart className="w-5 h-5 text-error-bg shrink-0" />
-                    <span className="font-handwriting text-lg text-error-bg leading-tight">
-                      {error}
-                    </span>
+                  <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Heart className="w-5 h-5 text-error-bg shrink-0" />
+                      <span className="font-handwriting text-lg text-error-bg leading-tight">
+                        {error}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setError(null)}
+                      className="text-error-bg/70 hover:text-error-bg transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               )}

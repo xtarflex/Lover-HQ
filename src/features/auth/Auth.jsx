@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
-import { Heart, Sparkles, Home } from 'lucide-react';
+import { Heart, Sparkles, Home, X } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,6 +11,13 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const floatingHearts = useMemo(() => {
     return [...Array(8)].map((_, i) => {
@@ -141,11 +148,20 @@ export default function Auth() {
             {/* Romantic Error Message */}
             {error && (
               <div className="absolute top-4 left-4 right-4 z-50 animate-slide-down-fade">
-                <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center gap-3">
-                  <Heart className="w-5 h-5 text-error-bg shrink-0" />
-                  <span className="font-handwriting text-lg text-error-bg leading-tight">
-                    {error}
-                  </span>
+                <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Heart className="w-5 h-5 text-error-bg shrink-0" />
+                    <span className="font-handwriting text-lg text-error-bg leading-tight">
+                      {error}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setError(null)}
+                    className="text-error-bg/70 hover:text-error-bg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             )}
