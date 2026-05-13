@@ -93,3 +93,21 @@
 .animate-fade-in-delay-3 { animation: fade-in-delay-3 0.8s ease-out 0.6s both; }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 .animate-shake { animation: shake 0.3s ease-in-out; }
+
+/* Loading Spinner Animations */
+.draw-path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 2.5s ease-in-out infinite;
+}
+.draw-path-delayed {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 2.5s ease-in-out infinite;
+  animation-delay: -1.25s; /* Staggered exactly half a cycle behind */
+}
+@keyframes draw {
+  0% { stroke-dashoffset: 100; }
+  40%, 60% { stroke-dashoffset: 0; } /* Hold full drawing for a moment */
+  100% { stroke-dashoffset: -100; }
+}
