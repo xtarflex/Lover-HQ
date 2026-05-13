@@ -11,6 +11,7 @@ import { supabase } from './lib/supabase';
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
 const Onboarding = lazy(() => import('./features/auth/Onboarding'));
+const Home = lazy(() => import('./features/home/Home'));
 const Fridge = lazy(() => import('./features/fridge/Fridge'));
 const Music = lazy(() => import('./features/music/Music'));
 const Games = lazy(() => import('./features/games/Games'));
@@ -23,7 +24,7 @@ const Profile = lazy(() => import('./features/profile/Profile'));
  */
 function MainLayout() {
   return (
-    <div className="flex flex-col min-h-screen bg-brand-slate pb-16">
+    <div className="flex flex-col min-h-screen bg-background pb-16">
       <TopBar />
       <main className="flex-grow container mx-auto px-4 overflow-y-auto pt-16">
         <Suspense fallback={<LoadingSpinner className="h-full mt-20" />}>
@@ -54,7 +55,7 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
-  const { user } = useAppContext();
+  const { user, pairingStatus } = useAppContext();
   const dispatch = useAppDispatch();
 
   // Capture pairing code from URL if present
@@ -70,12 +71,46 @@ export default function App() {
     }
   }, []);
 
-  // Listen for Supabase Auth changes
+  // Listen for Supabase Auth changes and Fetch Profile
   useEffect(() => {
+    const fetchProfile = async (authUser) => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error);
+        }
+
+        const mergedUser = { ...authUser, ...(profile || {}) };
+        dispatch({ type: 'SET_USER', payload: mergedUser });
+
+        if (profile?.partner_id) {
+          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
+          // Fetch partner data
+          const { data: partner } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', profile.partner_id)
+            .single();
+          if (partner) dispatch({ type: 'SET_PARTNER', payload: partner });
+        } else if (profile?.pairing_code) {
+          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'pending' });
+        } else {
+          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'unpaired' });
+        }
+      } catch (err) {
+        console.error('Profile sync failed:', err);
+      }
+    };
+
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        dispatch({ type: 'SET_USER', payload: session.user });
+        fetchProfile(session.user);
       }
     });
 
@@ -84,7 +119,7 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        dispatch({ type: 'SET_USER', payload: session.user });
+        fetchProfile(session.user);
       } else {
         dispatch({ type: 'RESET_STATE' });
       }
@@ -95,14 +130,18 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-brand-slate">
+      <div className="min-h-screen bg-background">
         <OfflineIndicator />
         <Routes>
           <Route
             path="/auth"
             element={
               user ? (
-                <Navigate to="/onboarding" replace />
+                pairingStatus === 'paired' ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Navigate to="/onboarding" replace />
+                )
               ) : (
                 <Suspense fallback={<LoadingSpinner />}>
                   <Auth />
@@ -116,6 +155,8 @@ export default function App() {
             element={
               !user ? (
                 <Navigate to="/auth" replace />
+              ) : pairingStatus === 'paired' ? (
+                <Navigate to="/home" replace />
               ) : (
                 <Suspense fallback={<LoadingSpinner />}>
                   <Onboarding />
@@ -133,7 +174,8 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/fridge" replace />} />
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="home" element={<Home />} />
             <Route path="fridge" element={<Fridge />} />
             <Route path="music" element={<Music />} />
             <Route path="games" element={<Games />} />

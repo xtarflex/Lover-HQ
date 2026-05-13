@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
-import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import Avatar from '../../components/Avatar';
+import { useAppDispatch, useAppContext } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
+import {
+  Link as LinkIcon,
+  Heart,
+  Cat,
+  Dog,
+  Rabbit,
+  Bird,
+  Turtle,
+  Leaf,
+  Flower2,
+  Star,
+  Moon,
+  Sun,
+  X,
+} from 'lucide-react';
+import Avatar from '../../components/Avatar';
 
-/**
- * Onboarding component for new users.
- * Handles profile setup and pairing code generation/entry.
- */
+const avatarOptions = [
+  { id: 'cat', icon: Cat },
+  { id: 'dog', icon: Dog },
+  { id: 'rabbit', icon: Rabbit },
+  { id: 'bird', icon: Bird },
+  { id: 'turtle', icon: Turtle },
+  { id: 'leaf', icon: Leaf },
+  { id: 'flower', icon: Flower2 },
+  { id: 'star', icon: Star },
+  { id: 'moon', icon: Moon },
+  { id: 'sun', icon: Sun },
+];
+
 export default function Onboarding() {
   const { user } = useAppContext();
   const dispatch = useAppDispatch();
@@ -15,7 +39,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('🦊');
+  const [selectedAvatarId, setSelectedAvatarId] = useState('cat');
   const [pairingCode, setPairingCode] = useState(
     () => sessionStorage.getItem('lover_hq_pairing_code') || ''
   );
@@ -23,7 +47,24 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const emojis = ['🦊', '🐰', '🐼', '🐨', '🐯', '🦁', '🐸', '🐧', '🐱', '🐶'];
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  // Auto-skip Step 1 if profile exists
+  useEffect(() => {
+    if (user?.name && step === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStep(2);
+
+      setName(user.name);
+      if (user.phone_number) setPhoneNumber(user.phone_number);
+      if (user.avatar_url) setSelectedAvatarId(user.avatar_url);
+    }
+  }, [user, step]);
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +78,7 @@ export default function Onboarding() {
         .from('users')
         .update({
           name: name.trim(),
-          avatar_url: selectedEmoji,
+          avatar_url: selectedAvatarId,
           phone_number: phoneNumber.trim() || null,
         })
         .eq('id', user.id);
@@ -49,7 +90,7 @@ export default function Onboarding() {
         payload: {
           ...user,
           name: name.trim(),
-          avatar_url: selectedEmoji,
+          avatar_url: selectedAvatarId,
           phone_number: phoneNumber.trim() || null,
         },
       });
@@ -105,16 +146,27 @@ export default function Onboarding() {
     setError(null);
 
     try {
-      // Find the partner with this code and check expiration
+      // 1. Find the partner with this code (remove strict SQL date check to avoid timezone bugs)
       const { data: partner, error: findError } = await supabase
         .from('users')
         .select('*')
         .eq('pairing_code', pairingCode)
-        .gt('pairing_code_expires_at', new Date().toISOString())
         .single();
 
       if (findError || !partner) {
-        throw new Error('Invalid or expired pairing code. Please check and try again.');
+        console.error('Supabase lookup error:', findError);
+        throw new Error('Invalid pairing code. Please check and try again.');
+      }
+
+      // 2. Validate expiration date in JavaScript to bypass Postgres timezone strictness
+      if (partner.pairing_code_expires_at) {
+        const expiresAt = new Date(partner.pairing_code_expires_at);
+        const now = new Date();
+        if (expiresAt < now) {
+          throw new Error(
+            'This pairing code has expired. Please ask your partner to generate a new one.'
+          );
+        }
       }
 
       if (partner.id === user.id) {
@@ -177,164 +229,200 @@ export default function Onboarding() {
     : false;
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
-      {step === 1 ? (
-        <form onSubmit={handleProfileSubmit} className="space-y-6">
-          <div className="text-center">
-            <LoverHQLogo className="text-primary w-12 h-12 mx-auto mb-4" />
-            <h1 className="text-3xl font-heading font-bold text-gray-800">Welcome Home</h1>
-            <p className="text-gray-500 mt-2">Let&apos;s set up your profile first</p>
-          </div>
+    <div className="fixed inset-0 w-full h-[100dvh] bg-background overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-12 pt-8 relative flex flex-col items-center justify-center">
+        <div className="max-w-md w-full p-6 bg-surface/60 backdrop-blur-2xl rounded-3xl border-2 border-surface-border relative z-10">
+          {step === 1 ? (
+            <form onSubmit={handleProfileSubmit} className="space-y-6">
+              <div className="text-center">
+                <LoverHQLogo className="text-primary w-12 h-12 mx-auto mb-4" />
+                <h1 className="text-3xl font-heading font-bold text-text-main">Welcome Home</h1>
+                <p className="text-text-muted mt-2">Let&apos;s set up your profile first</p>
+              </div>
 
-          <div className="flex flex-col items-center space-y-4">
-            <Avatar fallback={selectedEmoji} size="xl" />
-            <div className="grid grid-cols-5 gap-2">
-              {emojis.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setSelectedEmoji(emoji)}
-                  className={`text-2xl p-2 rounded-lg transition-all ${
-                    selectedEmoji === emoji
-                      ? 'bg-primary/20 scale-110 shadow-sm'
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
+              <div className="flex flex-col items-center space-y-4">
+                <Avatar fallback={selectedAvatarId} size="xl" />
+                <div className="grid grid-cols-5 gap-2">
+                  {avatarOptions.map((opt) => {
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setSelectedAvatarId(opt.id)}
+                        className={`p-3 rounded-full transition-all flex items-center justify-center ${
+                          selectedAvatarId === opt.id
+                            ? 'bg-primary/20 text-primary scale-110 shadow-sm'
+                            : 'text-text-muted hover:bg-text-main/5 hover:text-text-main'
+                        }`}
+                      >
+                        <Icon size={24} strokeWidth={selectedAvatarId === opt.id ? 2.5 : 2} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 ml-1">Your Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="What should they call you?"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-            />
-          </div>
+              <div className="space-y-2 group">
+                <label className="text-sm font-medium text-text-main ml-1">Your Name</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="What should they call you?"
+                  className="w-full px-5 py-4 bg-surface/80 border-2 border-surface-border placeholder-text-muted/60 text-text-main rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 text-base"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 ml-1">
-              Phone Number (Optional)
-            </label>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="+1 (555) 000-0000"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-            />
-          </div>
+              <div className="space-y-2 group">
+                <label className="text-sm font-medium text-text-main ml-1">
+                  Phone Number (Optional)
+                </label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                  className="w-full px-5 py-4 bg-surface/80 border-2 border-surface-border placeholder-text-muted/60 text-text-main rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300 text-base"
+                />
+              </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            {loading ? 'Saving...' : 'Next Step'}
-          </button>
-        </form>
-      ) : (
-        <div className="space-y-8">
-          <div className="text-center">
-            <LoverHQLogo className="text-primary w-12 h-12 mx-auto mb-4" />
-            <h1 className="text-3xl font-heading font-bold text-gray-800">Find Your Partner</h1>
-            <p className="text-gray-500 mt-2">Lover-HQ is best enjoyed by two</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="p-6 bg-brand-slate/5 rounded-2xl border border-dashed border-gray-300 flex flex-col items-center">
-              <h2 className="font-bold text-gray-700">Invite them</h2>
-              <p className="text-xs text-gray-500 mb-4">Generate a code to share</p>
-
-              {user.pairing_code ? (
-                isExpired ? (
-                  <div className="text-center w-full">
-                    <p className="text-sm text-red-500 mb-4 font-bold">Code Expired</p>
-                    <button
-                      onClick={handleGenerateCode}
-                      disabled={loading}
-                      className="bg-white border-2 border-primary text-primary font-bold py-2 px-6 rounded-xl hover:bg-primary/5 transition-all disabled:opacity-50 w-full"
-                    >
-                      {loading ? 'Creating...' : 'Generate New Code'}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-center w-full flex flex-col items-center">
-                    <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-white px-6 py-3 rounded-xl shadow-inner border border-gray-100">
-                      {user.pairing_code}
+              {/* Romantic Error Message */}
+              {error && (
+                <div className="absolute top-4 left-4 right-4 z-50 animate-slide-down-fade">
+                  <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Heart className="w-5 h-5 text-error-bg shrink-0" />
+                      <span className="font-handwriting text-lg text-error-bg leading-tight">
+                        {error}
+                      </span>
                     </div>
                     <button
-                      onClick={handleShareLink}
-                      className="mt-4 bg-primary text-white font-bold py-2 px-6 rounded-xl shadow-md hover:brightness-110 active:scale-[0.98] transition-all w-full flex items-center justify-center gap-2"
+                      type="button"
+                      onClick={() => setError(null)}
+                      className="text-error-bg/70 hover:text-error-bg transition-colors"
                     >
-                      <span>Share Link</span>
-                      <span>🔗</span>
+                      <X className="w-5 h-5" />
                     </button>
-                    <p className="text-xs text-primary mt-4 animate-pulse">
-                      Waiting for them to join... (Expires in 24h)
-                    </p>
                   </div>
-                )
-              ) : (
-                <button
-                  onClick={handleGenerateCode}
-                  disabled={loading}
-                  className="bg-white border-2 border-primary text-primary font-bold py-2 px-6 rounded-xl hover:bg-primary/5 transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Creating...' : 'Generate Code'}
-                </button>
-              )}
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200"></span>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-400">Or</span>
-              </div>
-            </div>
-
-            <form onSubmit={handleEnterCode} className="space-y-4">
-              <div className="text-center">
-                <h2 className="font-bold text-gray-700">Enter their code</h2>
-                <p className="text-xs text-gray-500 mb-4">If they already have one</p>
-              </div>
-
-              <input
-                type="text"
-                maxLength="6"
-                value={pairingCode}
-                onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="000000"
-                className="w-full text-center text-2xl font-mono tracking-widest px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-              />
-
-              {error && (
-                <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">{error}</p>
+                </div>
               )}
 
               <button
                 type="submit"
-                disabled={loading || pairingCode.length !== 6}
-                className="w-full bg-secondary text-white font-bold py-4 rounded-xl shadow-lg shadow-secondary/30 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                disabled={loading}
+                className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {loading ? 'Pairing...' : 'Complete Pairing'}
+                {loading ? 'Saving...' : 'Next Step'}
               </button>
             </form>
-          </div>
+          ) : (
+            <div className="space-y-8">
+              <div className="text-center">
+                <LoverHQLogo className="text-primary w-12 h-12 mx-auto mb-4" />
+                <h1 className="text-3xl font-heading font-bold text-text-main">
+                  Find Your Partner
+                </h1>
+                <p className="text-text-muted mt-2">Lover-HQ is best enjoyed by two</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-6 bg-surface/40 backdrop-blur-2xl rounded-2xl border-2 border-surface-border flex flex-col items-center">
+                  <h2 className="font-bold text-text-main">Invite them</h2>
+                  <p className="text-xs text-text-muted mb-4">Generate a code to share</p>
+
+                  {user.pairing_code ? (
+                    isExpired ? (
+                      <div className="text-center w-full">
+                        <p className="text-sm text-red-500 mb-4 font-bold">Code Expired</p>
+                        <button
+                          onClick={handleGenerateCode}
+                          disabled={loading}
+                          className="bg-white border-2 border-primary text-primary font-bold py-2 px-6 rounded-xl hover:bg-primary/5 transition-all disabled:opacity-50 w-full"
+                        >
+                          {loading ? 'Creating...' : 'Generate New Code'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center w-full flex flex-col items-center">
+                        <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-surface/80 px-6 py-3 rounded-xl border-2 border-surface-border shadow-inner">
+                          {user.pairing_code}
+                        </div>
+                        <button
+                          onClick={handleShareLink}
+                          className="mt-4 bg-primary text-white font-bold py-2 px-6 rounded-xl shadow-md hover:brightness-110 active:scale-[0.98] transition-all w-full flex items-center justify-center gap-2"
+                        >
+                          <span>Share Link</span>
+                          <LinkIcon size={18} />
+                        </button>
+                        <p className="text-xs text-primary mt-4 animate-pulse">
+                          Waiting for them to join... (Expires in 24h)
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    <button
+                      onClick={handleGenerateCode}
+                      disabled={loading}
+                      className="bg-white border-2 border-primary text-primary font-bold py-2 px-6 rounded-xl hover:bg-primary/5 transition-all disabled:opacity-50"
+                    >
+                      {loading ? 'Creating...' : 'Generate Code'}
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-surface-border"></span>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-transparent px-2 text-text-muted bg-surface/60 backdrop-blur-2xl">
+                      Or
+                    </span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleEnterCode} className="space-y-4">
+                  <div className="text-center">
+                    <h2 className="font-bold text-text-main">Enter their code</h2>
+                    <p className="text-xs text-text-muted mb-4">If they already have one</p>
+                  </div>
+
+                  <input
+                    type="text"
+                    maxLength="6"
+                    value={pairingCode}
+                    onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    className="w-full text-center text-2xl font-mono tracking-widest px-5 py-4 bg-surface/80 border-2 border-surface-border placeholder-text-muted/60 text-text-main rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-300"
+                  />
+
+                  {/* Romantic Error Message */}
+                  {error && (
+                    <div className="absolute top-4 left-4 right-4 z-50 animate-slide-down-fade">
+                      <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center gap-3">
+                        <Heart className="w-5 h-5 text-error-bg shrink-0" />
+                        <span className="font-handwriting text-lg text-error-bg leading-tight">
+                          {error}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading || pairingCode.length !== 6}
+                    className="w-full bg-secondary text-white font-bold py-4 rounded-xl shadow-lg shadow-secondary/30 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'Pairing...' : 'Complete Pairing'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
