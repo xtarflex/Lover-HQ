@@ -88,6 +88,7 @@ export default function App() {
         const mergedUser = { ...authUser, ...(profile || {}) };
         dispatch({ type: 'SET_USER', payload: mergedUser });
 
+        // Determine pairing status
         if (profile?.partner_id) {
           dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
           // Fetch partner data

@@ -54,13 +54,11 @@ export default function Onboarding() {
     }
   }, [error]);
 
-  // Auto-skip Step 1 if profile exists
+  // Auto-skip Step 1 if onboarding is already completed
   useEffect(() => {
-    if (user?.name && step === 1) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (user?.onboarding_completed && step === 1) {
       setStep(2);
-
-      setName(user.name);
+      setName(user.name || '');
       if (user.phone_number) setPhoneNumber(user.phone_number);
       if (user.avatar_url) setSelectedAvatarId(user.avatar_url);
     }
@@ -80,6 +78,7 @@ export default function Onboarding() {
           name: name.trim(),
           avatar_url: selectedAvatarId,
           phone_number: phoneNumber.trim() || null,
+          onboarding_completed: true,
         })
         .eq('id', user.id);
 
@@ -92,6 +91,7 @@ export default function Onboarding() {
           name: name.trim(),
           avatar_url: selectedAvatarId,
           phone_number: phoneNumber.trim() || null,
+          onboarding_completed: true,
         },
       });
 

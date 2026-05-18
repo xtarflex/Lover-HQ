@@ -1,31 +1,33 @@
 # 🎨 Lover-HQ Branding Guidelines
 
-## Color Palette
+## Color Palettes
 
-### Dark Theme (Default)
-```css
---background: #0F172A;      /* Deep Slate */
---surface: #1E293B;         /* Charcoal */
---primary: #F59E0B;         /* Warm Gold */
---text-primary: #F8FAFC;    /* Off-white */
---text-secondary: #CBD5E1;  /* Light Slate */
---border: #334155;          /* Medium Slate */
-```
+### 1. Eternal Noir (Luxury & Intimacy)
+This palette is designed for a premium, concierge-style experience. It feels exclusive, mature, and deeply romantic. It works best with high-contrast serif typography and plenty of whitespace.
 
-### Light Theme (Future)
-```css
---background: #FFFFFF;      /* Pure White */
---surface: #F1F5F9;         /* Light Slate */
---primary: #EC4899;         /* Soft Pink */
---text-primary: #0F172A;    /* Deep Slate */
---text-secondary: #64748B;  /* Medium Slate */
---border: #E2E8F0;          /* Border Slate */
-```
+| Role | Color Name | Hex Code | Visual Vibe |
+| :--- | :--- | :--- | :--- |
+| Primary | Deep Bordeaux | `#4A0E0E` | Rich, wine-colored passion. |
+| Secondary | Champagne Gold | `#D4AF37` | Luxury and high-value accents. |
+| Background | Obsidian Silk | `#121212` | Deep, immersive, and intimate. |
+| Surface | Smoke Grey | `#2C2C2C` | Subtle depth for cards and inputs. |
+| Text | Soft Parchment | `#F5F5DC` | Warm, readable, and elegant. |
+
+### 2. Blushing Petal (Soft & Dreamy)
+This is a classic, approachable romantic palette. It feels light, airy, and optimistic. 
+
+| Role | Color Name | Hex Code | Visual Vibe |
+| :--- | :--- | :--- | :--- |
+| Primary | Dusty Rose | `#E29595` | Soft, nurturing, and empathetic. |
+| Secondary | Sage Whisper | `#B5C99A` | Grounded, organic, and fresh. |
+| Background | Morning Mist | `#F7F9FB` | Clean, bright, and hopeful. |
+| Surface | Pure Alabaster | `#FFFFFF` | Crisp and professional. |
+| Text | Charcoal Plum | `#3D348B` | A softer alternative to pure black. |
 
 ## Typography
 
 ### Font Families
-- **Headers/Titles**: Nunito (weights: 400, 600, 700)
+- **Headers/Titles**: Playfair Display (High-contrast Serif) or Cinzel
 - **Body/UI**: Inter (weights: 400, 500, 600)
 - **Handwritten Notes**: Caveat (weight: 400)
 
