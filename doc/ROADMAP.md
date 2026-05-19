@@ -72,7 +72,7 @@
 
 ### Deliverables
 - [ ] Presence channel subscription
-- [ ] Avatar glow effect (online = gold, offline = grayscale)
+- [ ] Avatar ring effect (online = gold, offline = grayscale)
 - [ ] TopBar center text updates based on partner activity
 - [ ] Room navigation tracking
 

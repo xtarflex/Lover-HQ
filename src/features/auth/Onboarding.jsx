@@ -29,6 +29,48 @@ const slideTransition = {
 };
 
 /**
+ * Formats a raw input string into standard international phone format.
+ * Automatically adds the '+' prefix if missing and groups digits.
+ *
+ * @param {string} input - The raw input phone number string.
+ * @returns {string} The formatted phone number string.
+ */
+const formatPhone = (input) => {
+  if (!input) return '';
+  let cleaned = input.replace(/[^\d+]/g, '');
+  if (!cleaned.startsWith('+')) {
+    cleaned = '+' + cleaned.replace(/\+/g, '');
+  } else {
+    cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+  }
+  if (cleaned === '+') return '+';
+  const digits = cleaned.slice(1);
+  if (digits.startsWith('2') && digits.length > 3) {
+    const country = digits.slice(0, 3);
+    const rest = digits.slice(3);
+    let formatted = `+${country}`;
+    if (rest.length > 0) {
+      formatted += ` ${rest.slice(0, 3)}`;
+    }
+    if (rest.length > 3) {
+      formatted += ` ${rest.slice(3, 6)}`;
+    }
+    if (rest.length > 6) {
+      formatted += ` ${rest.slice(6, 10)}`;
+    }
+    return formatted;
+  }
+  let formatted = '+';
+  for (let i = 0; i < digits.length; i++) {
+    if (i > 0 && (i === 3 || i === 6 || i === 10)) {
+      formatted += ' ';
+    }
+    formatted += digits[i];
+  }
+  return formatted;
+};
+
+/**
  * Onboarding component for user profile initialization and partner pairing.
  * Allows users to set their name, phone number, birthday, avatar, and pair with their partner.
  *
@@ -40,7 +82,9 @@ export default function Onboarding() {
 
   const [[step, direction], setStep] = useState([1, 0]);
   const [name, setName] = useState(user?.name || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || '');
+  const [phoneNumber, setPhoneNumber] = useState(() =>
+    user?.phone_number ? formatPhone(user.phone_number) : '+2'
+  );
   const [birthday, setBirthday] = useState(user?.birthday || '');
   const defaultAvatar = '/avatars/509010-avatar-thinking.svg';
   const [selectedAvatarId, setSelectedAvatarId] = useState(() =>
@@ -99,6 +143,29 @@ export default function Onboarding() {
     await supabase.auth.signOut();
   };
 
+  /**
+   * Handles changes to the phone number input, applying formatting.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
+  const handlePhoneChange = (e) => {
+    const inputVal = e.target.value;
+    
+    // If user cleared it entirely, let them clear it
+    if (inputVal === '') {
+      setPhoneNumber('');
+      return;
+    }
+    
+    // If they typed something and it doesn't start with '+', add '+'
+    let newVal = inputVal;
+    if (!newVal.startsWith('+')) {
+      newVal = '+' + newVal;
+    }
+    
+    setPhoneNumber(formatPhone(newVal));
+  };
+
   const handleProfileSubmit = async (e) => {
     e?.preventDefault();
     if (!name.trim()) return;
@@ -106,13 +173,16 @@ export default function Onboarding() {
     setLoading(true);
     setError(null);
 
+    const trimmedPhone = phoneNumber.trim();
+    const finalPhone = (trimmedPhone === '+2' || trimmedPhone === '+' || !trimmedPhone) ? null : trimmedPhone;
+
     try {
       const { error: updateError } = await supabase
         .from('users')
         .update({
           name: name.trim(),
           avatar_url: selectedAvatarId,
-          phone_number: phoneNumber.trim() || null,
+          phone_number: finalPhone,
           birthday: birthday || null,
           onboarding_completed: true,
         })
@@ -126,7 +196,7 @@ export default function Onboarding() {
           ...user,
           name: name.trim(),
           avatar_url: selectedAvatarId,
-          phone_number: phoneNumber.trim() || null,
+          phone_number: finalPhone,
           birthday: birthday || null,
           onboarding_completed: true,
         },
@@ -388,8 +458,8 @@ export default function Onboarding() {
                       <input
                         type="tel"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="+1 (555) 000-0000"
+                        onChange={handlePhoneChange}
+                        placeholder="+234 803 123 4567"
                         className="w-full bg-transparent text-xl md:text-2xl placeholder-text-muted/50 text-text-main focus:outline-none"
                         autoFocus
                       />
