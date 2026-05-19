@@ -5,6 +5,12 @@ import { LoverHQLogo } from '../../assets/Logo';
 import { Heart, Mail, Lock, Eye, EyeOff, Sparkles, Home } from 'lucide-react';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 
+/**
+ * Auth component for user authentication (Login and Sign Up).
+ * Renders the login/signup form and handles integration with Supabase auth.
+ *
+ * @returns {React.ReactElement} The rendered Auth component.
+ */
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -153,7 +159,7 @@ export default function Auth() {
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
-                  <LoadingSpinner className="w-6 h-6 text-white" />
+                  <LoadingSpinner className="w-8 h-8 text-white" />
                   <span>Preparing space...</span>
                 </div>
               ) : (

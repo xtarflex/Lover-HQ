@@ -2,40 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch, useAppContext } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
-import {
-  Link as LinkIcon,
-  Heart,
-  Cat,
-  Dog,
-  Rabbit,
-  Bird,
-  Turtle,
-  Leaf,
-  Flower2,
-  Star,
-  Moon,
-  Sun,
-  X,
-  ChevronRight,
-  ArrowLeft,
-  Sparkles,
-} from 'lucide-react';
+import { Link as LinkIcon, X, ChevronRight, ArrowLeft, Heart, Sparkles } from 'lucide-react';
 import Avatar from '../../components/Avatar';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const avatarOptions = [
-  { id: 'cat', icon: Cat },
-  { id: 'dog', icon: Dog },
-  { id: 'rabbit', icon: Rabbit },
-  { id: 'bird', icon: Bird },
-  { id: 'turtle', icon: Turtle },
-  { id: 'leaf', icon: Leaf },
-  { id: 'flower', icon: Flower2 },
-  { id: 'star', icon: Star },
-  { id: 'moon', icon: Moon },
-  { id: 'sun', icon: Sun },
-];
+import avatarManifest from '../../assets/avatars_manifest.json';
 
 const slideVariants = {
   enter: (direction) => ({
@@ -57,7 +28,6 @@ const slideTransition = {
   ease: [0.4, 0, 0.2, 1],
 };
 
-
 /**
  * Onboarding component for user profile initialization and partner pairing.
  * Allows users to set their name, phone number, birthday, avatar, and pair with their partner.
@@ -72,7 +42,10 @@ export default function Onboarding() {
   const [name, setName] = useState(user?.name || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || '');
   const [birthday, setBirthday] = useState(user?.birthday || '');
-  const [selectedAvatarId, setSelectedAvatarId] = useState(user?.avatar_url || 'cat');
+  const defaultAvatar = '/avatars/509010-avatar-thinking.svg';
+  const [selectedAvatarId, setSelectedAvatarId] = useState(() =>
+    user?.avatar_url && user.avatar_url.includes('/') ? user.avatar_url : defaultAvatar
+  );
   const [pairingCode, setPairingCode] = useState(
     () => sessionStorage.getItem('lover_hq_pairing_code') || ''
   );
@@ -113,6 +86,14 @@ export default function Onboarding() {
       setStep([5, 1]);
     }
   }, [user, step]);
+
+  // Sync avatar selection when user object loads
+  useEffect(() => {
+    if (user?.avatar_url && user.avatar_url.includes('/')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedAvatarId(user.avatar_url);
+    }
+  }, [user?.avatar_url]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -304,7 +285,6 @@ export default function Onboarding() {
         </div>
 
         <div className="flex items-center space-x-4 md:space-x-6">
-
           <button
             onClick={handleSignOut}
             className="text-xs font-semibold uppercase tracking-widest text-text-muted hover:text-text-main transition-colors"
@@ -363,7 +343,7 @@ export default function Onboarding() {
                       01 / 05
                     </span>
                     <h2 className="font-heading text-4xl md:text-5xl leading-tight font-bold text-text-main">
-                      Welcome Home. First, what should we call you?
+                      First, what should we call you?
                     </h2>
                   </div>
                   <div className="border-b-2 border-surface-border focus-within:border-primary transition-colors py-4">
@@ -493,24 +473,27 @@ export default function Onboarding() {
 
                   <div className="flex flex-col items-center space-y-6 py-4">
                     <Avatar fallback={selectedAvatarId} size="xl" />
-                    <div className="grid grid-cols-5 gap-3">
-                      {avatarOptions.map((opt) => {
-                        const Icon = opt.icon;
-                        return (
+                    <div className="w-full max-w-md max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid grid-cols-5 gap-3 p-1">
+                        {avatarManifest.map((opt) => (
                           <button
-                            key={opt.id}
+                            key={opt.url}
                             type="button"
-                            onClick={() => setSelectedAvatarId(opt.id)}
-                            className={`p-3 rounded-full transition-all flex items-center justify-center ${
-                              selectedAvatarId === opt.id
-                                ? 'bg-primary/20 text-primary scale-110 shadow-sm border border-primary/30'
-                                : 'text-text-muted hover:bg-surface-border border border-transparent'
+                            onClick={() => setSelectedAvatarId(opt.url)}
+                            className={`aspect-square rounded-full transition-all flex items-center justify-center border-2 overflow-hidden bg-brand-surface ${
+                              selectedAvatarId === opt.url
+                                ? 'border-primary bg-primary/10 scale-110 shadow-md z-10'
+                                : 'border-surface-border hover:border-text-muted hover:scale-105'
                             }`}
                           >
-                            <Icon size={24} strokeWidth={selectedAvatarId === opt.id ? 2.5 : 2} />
+                            <img
+                              src={opt.url}
+                              alt={opt.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
                   </div>
 

@@ -1,14 +1,41 @@
 import React from 'react';
 
+/**
+ * LoadingSpinner component that displays an animated double-heart loader.
+ *
+ * @param {Object} props - The component props.
+ * @param {'sm'|'md'|'lg'} [props.size] - The pre-defined size of the spinner.
+ * @param {string} [props.className] - Additional CSS classes to style the spinner.
+ * @param {boolean} [props.fullScreen] - Whether the spinner should cover the full screen.
+ * @returns {React.ReactElement} The rendered LoadingSpinner component.
+ */
 export function LoadingSpinner({ size, className = '', fullScreen = false }) {
-  let sizeClass = 'w-16 h-16';
+  const hasWidthClass = className.split(' ').some((c) => c.startsWith('w-'));
+  const hasHeightClass = className.split(' ').some((c) => c.startsWith('h-'));
 
-  if (size === 'sm') sizeClass = 'w-8 h-8';
-  else if (size === 'md') sizeClass = 'w-16 h-16';
-  else if (size === 'lg') sizeClass = 'w-32 h-32';
-  else if (fullScreen) sizeClass = 'w-32 h-32'; // Default to large for full screen
+  let defaultWidth = 'w-16';
+  let defaultHeight = 'h-16';
 
-  const finalClassName = `${sizeClass} text-primary ${className}`.trim();
+  if (size === 'sm') {
+    defaultWidth = 'w-8';
+    defaultHeight = 'h-8';
+  } else if (size === 'md') {
+    defaultWidth = 'w-16';
+    defaultHeight = 'h-16';
+  } else if (size === 'lg') {
+    defaultWidth = 'w-32';
+    defaultHeight = 'h-32';
+  } else if (fullScreen) {
+    defaultWidth = 'w-32';
+    defaultHeight = 'h-32';
+  }
+
+  const widthClass = hasWidthClass ? '' : defaultWidth;
+  const heightClass = hasHeightClass ? '' : defaultHeight;
+
+  const finalClassName = `${widthClass} ${heightClass} text-primary ${className}`
+    .replace(/\s+/g, ' ')
+    .trim();
 
   const spinner = (
     <svg
