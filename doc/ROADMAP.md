@@ -8,24 +8,24 @@
 - Configure Supabase project
 
 ### Deliverables
-- [ ] Vite + React project initialized
-- [ ] Tailwind CSS configured with design tokens
-- [ ] Supabase project created with database schema
-- [ ] Error boundary implemented
-- [ ] Global state management (Context + Reducer)
-- [ ] Custom hooks for real-time subscriptions
-- [ ] ESLint + Prettier configured
-- [ ] Netlify deployment pipeline active
+- [x] Vite + React project initialized
+- [x] Tailwind CSS configured with design tokens
+- [x] Supabase project created with database schema
+- [x] Error boundary implemented
+- [x] Global state management (Context + Reducer)
+- [x] Custom hooks for real-time subscriptions
+- [x] ESLint + Prettier configured
+- [x] Netlify deployment pipeline active
 
 ### Jules PR Sequence
-1. **PR #0.1**: Initialize Vite project with dependencies
-2. **PR #0.2**: Configure Tailwind with custom design tokens
-3. **PR #0.3**: Set up Supabase singleton client
-4. **PR #0.4**: Implement AppContext with reducer
-5. **PR #0.5**: Create reusable hooks (useRealtimeSubscription, useAsyncData)
-6. **PR #0.6**: Build Error Boundary component
-7. **PR #0.7**: Configure ESLint/Prettier strict rules
-8. **PR #0.8**: Set up PWA configuration (manifest + service worker)
+1. **PR #0.1**: Initialize Vite project with dependencies (Completed)
+2. **PR #0.2**: Configure Tailwind with custom design tokens (Completed)
+3. **PR #0.3**: Set up Supabase singleton client (Completed)
+4. **PR #0.4**: Implement AppContext with reducer (Completed)
+5. **PR #0.5**: Create reusable hooks (useRealtimeSubscription, useAsyncData) (Completed)
+6. **PR #0.6**: Build Error Boundary component (Completed)
+7. **PR #0.7**: Configure ESLint/Prettier strict rules (Completed)
+8. **PR #0.8**: Set up PWA configuration (manifest + service worker) (Completed)
 
 ---
 
@@ -37,29 +37,29 @@
 - Set up user profiles in database
 
 ### Deliverables
-- [ ] Onboarding UI (name, avatar upload/selection)
-- [ ] Pairing code generation and validation
+- [x] Onboarding UI (name, avatar upload/selection)
+- [x] Pairing code generation and validation
 - [ ] Database triggers for partner linking
-- [ ] Auth session management
-- [ ] Initial app shell (TopBar, BottomNav)
+- [x] Auth session management
+- [x] Initial app shell (TopBar, BottomNav)
 
 ### Jules PR Sequence
-1. **PR #1.1**: Create Onboarding component with form validation
+1. **PR #1.1**: Create Onboarding component with form validation (Completed)
 2. **PR #1.2**: Implement avatar upload to Supabase Storage (1MB limit)
-3. **PR #1.3**: Build pre-made avatar picker (emoji-based)
-4. **PR #1.4**: Create pairing code generation logic
-5. **PR #1.5**: Implement code validation and partner linking
-6. **PR #1.6**: Build TopBar with logo and avatar slot
-7. **PR #1.7**: Build BottomNav with elevated Home button
-8. **PR #1.8**: Add route protection (redirect to onboarding if unpaired)
+3. **PR #1.3**: Build pre-made avatar picker (svg-based) (Completed)
+4. **PR #1.4**: Create pairing code generation logic (Completed)
+5. **PR #1.5**: Implement code validation and partner linking (Completed)
+6. **PR #1.6**: Build TopBar with logo and avatar slot (Completed)
+7. **PR #1.7**: Build BottomNav with elevated Home button (Completed)
+8. **PR #1.8**: Add route protection (redirect to onboarding if unpaired) (Completed)
 
 ### Testing Checklist
-- [ ] User A generates code successfully
-- [ ] User B can enter code and pair
-- [ ] Both users see each other as partners
-- [ ] Invalid codes show error message
+- [x] User A generates code successfully
+- [x] User B can enter code and pair
+- [x] Both users see each other as partners
+- [x] Invalid codes show error message
 - [ ] Avatar upload respects 1MB limit
-- [ ] Session persists after browser restart
+- [x] Session persists after browser restart
 
 ---
 
