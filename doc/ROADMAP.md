@@ -86,7 +86,7 @@
 
 ### Testing Checklist
 - [ ] Opening app in second browser shows user as online
-- [ ] Avatar changes from grayscale to gold when partner connects
+- [ ] Avatar changes from grayscale to themed color when partner connects
 - [ ] TopBar shows "They're in the Music Room" when partner navigates
 - [ ] Closing tab/browser updates presence to offline
 - [ ] Network disconnect shows warning banner

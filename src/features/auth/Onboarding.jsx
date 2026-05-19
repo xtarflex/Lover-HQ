@@ -57,6 +57,7 @@ const slideTransition = {
   ease: [0.4, 0, 0.2, 1],
 };
 
+
 /**
  * Onboarding component for user profile initialization and partner pairing.
  * Allows users to set their name, phone number, birthday, avatar, and pair with their partner.
@@ -301,12 +302,16 @@ export default function Onboarding() {
             Lover-HQ
           </span>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="text-xs font-semibold uppercase tracking-widest text-text-muted hover:text-text-main transition-colors"
-        >
-          Sign Out
-        </button>
+
+        <div className="flex items-center space-x-4 md:space-x-6">
+
+          <button
+            onClick={handleSignOut}
+            className="text-xs font-semibold uppercase tracking-widest text-text-muted hover:text-text-main transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
       </header>
 
       {/* Progress Track */}

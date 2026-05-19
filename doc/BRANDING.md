@@ -95,7 +95,7 @@ This is a classic, approachable romantic palette. It feels light, airy, and opti
 - Shape: Circle
 - Border: 2px solid (gold/pink when online, gray when offline)
 - Sizes: sm (32px), md (48px), lg (64px)
-- Glow effect when online: box-shadow with primary color
+- Ring effect when online: outer ring with primary color
 
 ## Animation Guidelines
 
@@ -118,7 +118,6 @@ This is a classic, approachable romantic palette. It feels light, airy, and opti
 
 ### Custom Animations
 - **Heart Scale Hover**: Avoid generic hover states on buttons (like simple floating or scaling). Instead, use a custom "heart scale" animation where a heart shape starts at the center of the button and scales up until it covers the entire button. This provides a delightful, thematic micro-interaction.
-- **Liquid Wave Animation**: Alternatively, use a smooth, overlapping SVG liquid wave animation for button hover states. This creates an organic, fluid dynamics effect by stacking multiple wave paths moving at different speeds when the user hovers over an interactive element.
 
 ## Iconography
 
