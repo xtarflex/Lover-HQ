@@ -25,3 +25,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local agent & dev assets
+.agents/
+skills-lock.json
+dev-dist/
+avatar batch.html

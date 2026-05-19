@@ -1,8 +1,22 @@
 import React from 'react';
 
-export function LoadingSpinner({ className = 'w-16 h-16 text-primary', fullScreen = false }) {
+export function LoadingSpinner({ size, className = '', fullScreen = false }) {
+  let sizeClass = 'w-16 h-16';
+
+  if (size === 'sm') sizeClass = 'w-8 h-8';
+  else if (size === 'md') sizeClass = 'w-16 h-16';
+  else if (size === 'lg') sizeClass = 'w-32 h-32';
+  else if (fullScreen) sizeClass = 'w-32 h-32'; // Default to large for full screen
+
+  const finalClassName = `${sizeClass} text-primary ${className}`.trim();
+
   const spinner = (
-    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={finalClassName}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
         {/* Mask creates the negative "padding space" around the small heart */}
         <mask id="overlap-cutout">
@@ -46,7 +60,7 @@ export function LoadingSpinner({ className = 'w-16 h-16 text-primary', fullScree
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-pink-50/90 dark:bg-[#0F172A]/90 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-md">
         {spinner}
       </div>
     );

@@ -144,7 +144,7 @@ export default function App() {
                   <Navigate to="/onboarding" replace />
                 )
               ) : (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <Auth />
                 </Suspense>
               )
@@ -159,7 +159,7 @@ export default function App() {
               ) : pairingStatus === 'paired' ? (
                 <Navigate to="/home" replace />
               ) : (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <Onboarding />
                 </Suspense>
               )

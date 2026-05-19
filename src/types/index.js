@@ -31,12 +31,17 @@
  */
 
 /**
+ * @typedef {'eternalNoir' | 'blushingPetal'} ThemeType
+ */
+
+/**
  * @typedef {Object} AppState
  * @property {User | null} user - The currently authenticated user.
  * @property {Partner | null} partner - The user's partner.
  * @property {Presence} presence - The presence status of both users.
  * @property {RoomType | null} currentRoom - The currently active feature/room.
  * @property {PairingStatus} pairingStatus - The pairing status between the user and partner.
+ * @property {ThemeType} theme - The currently active visual theme.
  */
 
 /**

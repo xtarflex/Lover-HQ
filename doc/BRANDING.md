@@ -29,7 +29,7 @@ This is a classic, approachable romantic palette. It feels light, airy, and opti
 ### Font Families
 - **Headers/Titles**: Playfair Display (High-contrast Serif) or Cinzel
 - **Body/UI**: Inter (weights: 400, 500, 600)
-- **Handwritten Notes**: Caveat (weight: 400)
+- **Handwritten Notes (Strictly for P2P text input/messages, not for app UI text)**: Caveat (weight: 400)
 
 ### Font Sizes (Mobile-First)
 ```css
@@ -80,12 +80,9 @@ This is a classic, approachable romantic palette. It feels light, airy, and opti
 - **Secondary**: Transparent, border, current theme color
 - **Ghost**: No border, subtle hover state
 
-### Cards
-- Background: Surface color
-- Border: 1px solid border color
-- Border radius: 0.75rem (rounded-xl)
-- Padding: 1rem
-- Shadow: subtle (0 1px 3px rgba(0,0,0,0.1))
+### Cards & Layout
+- **Minimal Card Usage**: Avoid wrapping entire pages or large sections in card containers. Place content directly on the background to maintain a clean, mobile-native aesthetic.
+- **Glassmorphism**: Use glassmorphism (`bg-surface/10 backdrop-blur-md`) selectively for smaller interactive elements like headers, inputs, and buttons, rather than for large wrapper cards.
 
 ### Inputs
 - Background: Surface color
@@ -118,6 +115,10 @@ This is a classic, approachable romantic palette. It feels light, airy, and opti
 2. **Page transitions**: Fade + slight slide (300ms)
 3. **New content**: Fade in from top (250ms)
 4. **Loading**: Gentle skeleton pulse
+
+### Custom Animations
+- **Heart Scale Hover**: Avoid generic hover states on buttons (like simple floating or scaling). Instead, use a custom "heart scale" animation where a heart shape starts at the center of the button and scales up until it covers the entire button. This provides a delightful, thematic micro-interaction.
+- **Liquid Wave Animation**: Alternatively, use a smooth, overlapping SVG liquid wave animation for button hover states. This creates an organic, fluid dynamics effect by stacking multiple wave paths moving at different speeds when the user hovers over an interactive element.
 
 ## Iconography
 
@@ -168,6 +169,8 @@ This is a classic, approachable romantic palette. It feels light, airy, and opti
 
 ## Don'ts
 
+❌ No unnecessary card wrappers (place content directly on the background to keep the mobile look)
+❌ No generic float or scale hover effects (use shaped liquid fills instead)
 ❌ No gradients (keep flat colors)  
 ❌ No drop shadows (subtle box-shadows only)  
 ❌ No emojis in UI chrome (reserve for user content)  
