@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch, useAppContext } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
-import { Link as LinkIcon, X, ChevronRight, ArrowLeft, Heart, Sparkles } from 'lucide-react';
+import { Link as LinkIcon, ChevronRight, ArrowLeft, Heart, Sparkles } from 'lucide-react';
 import Avatar from '../../components/Avatar';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { Notification } from '../../components/Notification';
 import { motion, AnimatePresence } from 'framer-motion';
 import avatarManifest from '../../assets/avatars_manifest.json';
 
@@ -28,46 +29,81 @@ const slideTransition = {
   ease: [0.4, 0, 0.2, 1],
 };
 
+const COUNTRIES = [
+  { code: '+234', flag: '🇳🇬', name: 'Nigeria' },
+  { code: '+254', flag: '🇰🇪', name: 'Kenya' },
+  { code: '+27', flag: '🇿🇦', name: 'South Africa' },
+  { code: '+233', flag: '🇬🇭', name: 'Ghana' },
+  { code: '+20', flag: '🇪🇬', name: 'Egypt' },
+  { code: '+250', flag: '🇷🇼', name: 'Rwanda' },
+  { code: '+256', flag: '🇺🇬', name: 'Uganda' },
+  { code: '+255', flag: '🇹🇿', name: 'Tanzania' },
+  { code: '+212', flag: '🇲🇦', name: 'Morocco' },
+  { code: '+216', flag: '🇹🇳', name: 'Tunisia' },
+  { code: '+1', flag: '🇺🇸', name: 'United States' },
+  { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+  { code: '+33', flag: '🇫🇷', name: 'France' },
+  { code: '+49', flag: '🇩🇪', name: 'Germany' },
+  { code: '+91', flag: '🇮🇳', name: 'India' },
+  { code: '+81', flag: '🇯🇵', name: 'Japan' },
+  { code: '+86', flag: '🇨🇳', name: 'China' },
+  { code: '+55', flag: '🇧🇷', name: 'Brazil' },
+  { code: '+52', flag: '🇲🇽', name: 'Mexico' },
+  { code: '+61', flag: '🇦🇺', name: 'Australia' },
+];
+
 /**
- * Formats a raw input string into standard international phone format.
- * Automatically adds the '+' prefix if missing and groups digits.
+ * Formats a local phone number string with spaces.
+ * E.g., "8031234567" -> "803 123 4567"
  *
- * @param {string} input - The raw input phone number string.
- * @returns {string} The formatted phone number string.
+ * @param {string} input - The raw input digits.
+ * @returns {string} The formatted local number.
  */
-const formatPhone = (input) => {
-  if (!input) return '';
-  let cleaned = input.replace(/[^\d+]/g, '');
-  if (!cleaned.startsWith('+')) {
-    cleaned = '+' + cleaned.replace(/\+/g, '');
+const formatLocalNumber = (input) => {
+  const digits = input.replace(/\D/g, '');
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 6) {
+    return `${digits.slice(0, 3)} ${digits.slice(3)}`;
   } else {
-    cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 10)}`;
   }
-  if (cleaned === '+') return '+';
-  const digits = cleaned.slice(1);
-  if (digits.startsWith('2') && digits.length > 3) {
-    const country = digits.slice(0, 3);
-    const rest = digits.slice(3);
-    let formatted = `+${country}`;
-    if (rest.length > 0) {
-      formatted += ` ${rest.slice(0, 3)}`;
-    }
-    if (rest.length > 3) {
-      formatted += ` ${rest.slice(3, 6)}`;
-    }
-    if (rest.length > 6) {
-      formatted += ` ${rest.slice(6, 10)}`;
-    }
-    return formatted;
+};
+
+/**
+ * Helper to convert country code (e.g. 'US') to flag emoji.
+ *
+ * @param {string} countryCode - Two letter country code.
+ * @returns {string} The country flag emoji.
+ */
+const getFlagEmoji = (countryCode) => {
+  if (!countryCode) return '🌍';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
+
+/**
+ * Parses a full phone number into its country code object and local number.
+ *
+ * @param {string} fullNumber - The full phone number including country code.
+ * @param {Array<Object>} [countries=COUNTRIES] - The list of countries.
+ * @returns {{country: Object, local: string}} The parsed country object and local number.
+ */
+const parsePhoneNumber = (fullNumber, countries = COUNTRIES) => {
+  if (!fullNumber) {
+    return { country: countries[0], local: '' };
   }
-  let formatted = '+';
-  for (let i = 0; i < digits.length; i++) {
-    if (i > 0 && (i === 3 || i === 6 || i === 10)) {
-      formatted += ' ';
-    }
-    formatted += digits[i];
+  const cleanNumber = fullNumber.replace(/\s+/g, '');
+  const sortedCountries = [...countries].sort((a, b) => b.code.length - a.code.length);
+  const matchedCountry = sortedCountries.find((c) => cleanNumber.startsWith(c.code));
+  if (matchedCountry) {
+    const local = fullNumber.slice(matchedCountry.code.length).trim();
+    return { country: matchedCountry, local };
   }
-  return formatted;
+  return { country: countries[0], local: fullNumber };
 };
 
 /**
@@ -82,9 +118,20 @@ export default function Onboarding() {
 
   const [[step, direction], setStep] = useState([1, 0]);
   const [name, setName] = useState(user?.name || '');
-  const [phoneNumber, setPhoneNumber] = useState(() =>
-    user?.phone_number ? formatPhone(user.phone_number) : '+2'
-  );
+  const [countriesList, setCountriesList] = useState(COUNTRIES);
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    if (user?.phone_number) {
+      return parsePhoneNumber(user.phone_number, countriesList).country;
+    }
+    return countriesList[0];
+  });
+  const [localNumber, setLocalNumber] = useState(() => {
+    if (user?.phone_number) {
+      return parsePhoneNumber(user.phone_number, countriesList).local;
+    }
+    return '';
+  });
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [birthday, setBirthday] = useState(user?.birthday || '');
   const defaultAvatar = '/avatars/509010-avatar-thinking.svg';
   const [selectedAvatarId, setSelectedAvatarId] = useState(() =>
@@ -123,6 +170,43 @@ export default function Onboarding() {
     }
   }, [error]);
 
+  // Fetch country calling code based on IP Geolocation on mount
+  useEffect(() => {
+    if (!user?.phone_number) {
+      fetch('https://ipapi.co/json/')
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to fetch country info');
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.country_calling_code) {
+            const callingCode = data.country_calling_code.startsWith('+')
+              ? data.country_calling_code
+              : `+${data.country_calling_code}`;
+            // Find matched country in static list
+            const matched = COUNTRIES.find((c) => c.code === callingCode);
+            if (matched) {
+              setSelectedCountry(matched);
+            } else {
+              const newCountry = {
+                code: callingCode,
+                flag: getFlagEmoji(data.country_code) || '🌍',
+                name: data.country_name || 'Detected Country',
+              };
+              setCountriesList((prev) => {
+                if (prev.some((c) => c.code === callingCode)) return prev;
+                return [newCountry, ...prev];
+              });
+              setSelectedCountry(newCountry);
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn('Geolocation failed, falling back to default:', err);
+        });
+    }
+  }, [user]);
+
   // Auto-skip to Step 5 if onboarding is already completed
   useEffect(() => {
     if (user?.onboarding_completed && step < 5) {
@@ -144,26 +228,23 @@ export default function Onboarding() {
   };
 
   /**
-   * Handles changes to the phone number input, applying formatting.
+   * Handles selecting a country from the dropdown.
+   *
+   * @param {Object} country - The country object.
+   */
+  const handleSelectCountry = (country) => {
+    setSelectedCountry(country);
+    setShowCountryDropdown(false);
+  };
+
+  /**
+   * Handles changes to the local phone number input.
    *
    * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
    */
-  const handlePhoneChange = (e) => {
+  const handleLocalNumberChange = (e) => {
     const inputVal = e.target.value;
-    
-    // If user cleared it entirely, let them clear it
-    if (inputVal === '') {
-      setPhoneNumber('');
-      return;
-    }
-    
-    // If they typed something and it doesn't start with '+', add '+'
-    let newVal = inputVal;
-    if (!newVal.startsWith('+')) {
-      newVal = '+' + newVal;
-    }
-    
-    setPhoneNumber(formatPhone(newVal));
+    setLocalNumber(formatLocalNumber(inputVal));
   };
 
   const handleProfileSubmit = async (e) => {
@@ -173,8 +254,8 @@ export default function Onboarding() {
     setLoading(true);
     setError(null);
 
-    const trimmedPhone = phoneNumber.trim();
-    const finalPhone = (trimmedPhone === '+2' || trimmedPhone === '+' || !trimmedPhone) ? null : trimmedPhone;
+    const trimmedLocal = localNumber.trim();
+    const finalPhone = trimmedLocal ? `${selectedCountry.code} ${trimmedLocal}` : null;
 
     try {
       const { error: updateError } = await supabase
@@ -373,27 +454,6 @@ export default function Onboarding() {
       </div>
 
       <main className="flex-grow flex items-center justify-center px-6 md:px-8 relative z-10 overflow-y-auto">
-        {/* Romantic Error Message */}
-        {error && (
-          <div className="absolute top-4 left-4 right-4 z-50 animate-slide-down-fade">
-            <div className="mx-auto max-w-sm bg-error-bg/10 backdrop-blur-xl border border-error-bg/30 p-4 rounded-2xl shadow-xl shadow-error-bg/5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-error-bg shrink-0" />
-                <span className="font-handwriting text-lg text-error-bg leading-tight">
-                  {error}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setError(null)}
-                className="text-error-bg/70 hover:text-error-bg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className="w-full max-w-md relative z-10 min-h-[480px] flex items-center">
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
@@ -451,18 +511,63 @@ export default function Onboarding() {
                     </h2>
                   </div>
                   <div className="space-y-6">
-                    <div className="border-b-2 border-surface-border focus-within:border-primary transition-colors py-4 group">
+                    <div className="border-b-2 border-surface-border focus-within:border-primary transition-colors py-4 group flex flex-col">
                       <label className="text-xs font-bold uppercase tracking-widest text-text-muted group-focus-within:text-primary transition-colors block mb-2">
                         Phone Number (Optional)
                       </label>
-                      <input
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={handlePhoneChange}
-                        placeholder="+234 803 123 4567"
-                        className="w-full bg-transparent text-xl md:text-2xl placeholder-text-muted/50 text-text-main focus:outline-none"
-                        autoFocus
-                      />
+                      <div className="flex items-center relative">
+                        {/* Country Selector Dropdown */}
+                        <div className="relative mr-3 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-surface/40 hover:bg-surface/70 border border-surface-border/50 text-text-main transition-colors text-lg"
+                          >
+                            <span className="text-xl leading-none">{selectedCountry.flag}</span>
+                            <span className="font-bold text-sm leading-none">
+                              {selectedCountry.code}
+                            </span>
+                            <span className="text-[10px] text-text-muted">▼</span>
+                          </button>
+
+                          {showCountryDropdown && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setShowCountryDropdown(false)}
+                              />
+                              <div className="absolute top-full left-0 mt-2 w-64 max-h-60 overflow-y-auto bg-surface border border-surface-border rounded-2xl shadow-xl z-50 py-2 custom-scrollbar">
+                                {countriesList.map((c) => (
+                                  <button
+                                    key={c.code}
+                                    type="button"
+                                    onClick={() => handleSelectCountry(c)}
+                                    className="w-full px-4 py-2.5 hover:bg-primary/10 flex items-center space-x-3 text-left transition-colors"
+                                  >
+                                    <span className="text-xl shrink-0">{c.flag}</span>
+                                    <span className="text-sm font-semibold text-text-main shrink-0 w-12">
+                                      {c.code}
+                                    </span>
+                                    <span className="text-xs text-text-muted truncate">
+                                      {c.name}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Phone Number Input */}
+                        <input
+                          type="tel"
+                          value={localNumber}
+                          onChange={handleLocalNumberChange}
+                          placeholder="803 123 4567"
+                          className="w-full bg-transparent text-xl md:text-2xl placeholder-text-muted/30 text-text-main focus:outline-none"
+                          autoFocus
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -697,6 +802,7 @@ export default function Onboarding() {
           </AnimatePresence>
         </div>
       </main>
+      <Notification message={error} onClose={() => setError(null)} />
     </div>
   );
 }

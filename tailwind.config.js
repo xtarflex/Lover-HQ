@@ -17,7 +17,9 @@ export default {
       fontFamily: {
         heading: ['Quicksand', 'Nunito', 'sans-serif'],
         body: ['Inter', 'Roboto', 'sans-serif'],
-        handwriting: ['Caveat', 'Kalam', 'cursive'],
+        handwriting: ['Caveat', 'cursive'],
+        kalam: ['Kalam', 'cursive'],
+        patrick: ['"Patrick Hand"', 'cursive'],
       },
     },
   },

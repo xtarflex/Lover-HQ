@@ -25,16 +25,12 @@ const Avatar = ({ src, fallback, isOnline, size = 'md', className = '' }) => {
 
   return (
     <div className={`relative inline-block ${className}`}>
-      {/* Online Glow Effect */}
-      {isOnline && (
-        <div className="absolute inset-0 rounded-full animate-pulse bg-primary/30 blur-md" />
-      )}
       <div
         className={`
           ${sizeClasses[size]}
           rounded-full border-2 overflow-hidden flex items-center justify-center bg-brand-surface
-          ${isOnline ? 'border-primary grayscale-0' : 'border-slate-600 grayscale'}
-          transition-all duration-500 shadow-lg relative z-10
+          ${isOnline ? 'border-amber-500 grayscale-0' : 'border-slate-600 grayscale'}
+          transition-all duration-500 relative z-10
         `}
       >
         {src || isSvgUrl ? (

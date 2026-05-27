@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
 import { Heart, Mail, Lock, Eye, EyeOff, Sparkles, Home } from 'lucide-react';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { Notification } from '../../components/Notification';
 
 /**
  * Auth component for user authentication (Login and Sign Up).
@@ -19,13 +20,6 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
 
   const floatingHearts = useMemo(() => {
     return [...Array(8)].map((_, i) => {
@@ -142,16 +136,6 @@ export default function Auth() {
               </div>
             </div>
 
-            {/* Romantic Error Message */}
-            {error && (
-              <div className="animate-fade-in">
-                <div className="bg-error-bg/10 backdrop-blur-md border border-error-bg/30 p-3 rounded-xl flex items-center gap-3 text-error-bg text-sm">
-                  <Heart className="w-4 h-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
@@ -260,6 +244,8 @@ export default function Auth() {
           </p>
         </main>
       </div>
+
+      <Notification message={error} onClose={() => setError(null)} />
     </div>
   );
 }

@@ -1,0 +1,33 @@
+/**
+ * @file variables.css
+ * @description Theme-wide CSS custom properties for color tokens, background colors, and typography settings.
+ * Supports light mode by default and dark mode as a system preference fallback.
+ */
+
+@layer base {
+  :root {
+    --background: 253 242 248; /* pink-50 #FDF2F8 */
+    --surface: 255 255 255; /* white */
+    --surface-border: 252 231 243; /* pink-100 */
+    --primary: 236 72 153; /* pink-500 #EC4899 */
+    --primary-hover: 219 39 119; /* pink-600 */
+    --secondary: 245 158 11; /* amber-500 #F59E0B */
+    --text-main: 30 41 59; /* slate-800 */
+    --text-muted: 100 116 139; /* slate-500 */
+    --error-bg: 244 63 94; /* rose-500 */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 15 23 42; /* slate-900 #0F172A */
+      --surface: 30 41 59; /* slate-800 #1E293B */
+      --surface-border: 51 65 85; /* slate-700 */
+      --primary: 245 158 11; /* amber-500 #F59E0B */
+      --primary-hover: 217 119 6; /* amber-600 */
+      --secondary: 225 29 72; /* rose-600 #E11D48 - moody romantic */
+      --text-main: 248 250 252; /* slate-50 */
+      --text-muted: 148 163 184; /* slate-400 */
+      --error-bg: 225 29 72; /* rose-600 */
+    }
+  }
+}

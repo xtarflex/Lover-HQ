@@ -7,6 +7,7 @@ const initialState = {
   presence: {
     user: 'offline',
     partner: 'offline',
+    partnerRoom: null,
   },
   currentRoom: null,
   pairingStatus: 'unpaired',

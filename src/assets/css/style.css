@@ -1,0 +1,15 @@
+/**
+ * @file style.css
+ * @description Main stylesheet entry point. Orchestrates the inclusion of Tailwind CSS layers
+ * and component-based modular CSS partials.
+ */
+
+@import "tailwindcss/base";
+@import "./base/variables.css";
+
+@import "tailwindcss/components";
+@import "./components/animations.css";
+@import "./components/heart.css";
+@import "./components/scrollbar.css";
+
+@import "tailwindcss/utilities";

@@ -1,5 +1,4 @@
 import {
-  Music,
   Gamepad2,
   Lock,
   ClipboardList,
@@ -17,9 +16,10 @@ import {
 import { LoverHQLogo } from '../assets/Logo';
 import { FridgeIcon } from '../assets/FridgeIcon';
 import { GameBoardIcon } from '../assets/GameBoardIcon';
+import { MusicIcon } from '../assets/MusicIcon';
 
 export {
-  Music,
+  MusicIcon as Music,
   Gamepad2,
   Lock,
   ClipboardList,

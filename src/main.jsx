@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-import './index.css';
+import './assets/css/style.css';
 import { validateEnv } from './env.js';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { AppProvider } from './contexts/AppContext.jsx';

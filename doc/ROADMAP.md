@@ -39,7 +39,7 @@
 ### Deliverables
 - [x] Onboarding UI (name, avatar upload/selection)
 - [x] Pairing code generation and validation
-- [ ] Database triggers for partner linking
+- [x] Database triggers for partner linking
 - [x] Auth session management
 - [x] Initial app shell (TopBar, BottomNav)
 
@@ -71,25 +71,25 @@
 - Current room tracking
 
 ### Deliverables
-- [ ] Presence channel subscription
-- [ ] Avatar ring effect (online = gold, offline = grayscale)
-- [ ] TopBar center text updates based on partner activity
-- [ ] Room navigation tracking
+- [x] Presence channel subscription
+- [x] Avatar ring effect (online = gold, offline = grayscale)
+- [x] TopBar center text updates based on partner activity
+- [x] Room navigation tracking
 
 ### Jules PR Sequence
-1. **PR #2.1**: Create usePresence hook with Supabase Presence API
-2. **PR #2.2**: Implement Avatar component with online/offline styles
-3. **PR #2.3**: Build dynamic TopBar breadcrumb logic
-4. **PR #2.4**: Add presence tracking to App.jsx (broadcasts on route change)
-5. **PR #2.5**: Create LoadingSpinner component for async states
-6. **PR #2.6**: Add connection status indicator (lost connection warning)
+1. **PR #2.1**: Create usePresence hook with Supabase Presence API (Completed)
+2. **PR #2.2**: Implement Avatar component with online/offline styles (Completed)
+3. **PR #2.3**: Build dynamic TopBar breadcrumb logic (Completed)
+4. **PR #2.4**: Add presence tracking to App.jsx (broadcasts on route change) (Completed)
+5. **PR #2.5**: Create LoadingSpinner component for async states (Completed)
+6. **PR #2.6**: Add connection status indicator (lost connection warning) (Completed)
 
 ### Testing Checklist
-- [ ] Opening app in second browser shows user as online
-- [ ] Avatar changes from grayscale to themed color when partner connects
-- [ ] TopBar shows "They're in the Music Room" when partner navigates
-- [ ] Closing tab/browser updates presence to offline
-- [ ] Network disconnect shows warning banner
+- [x] Opening app in second browser shows user as online
+- [x] Avatar changes from grayscale to themed color when partner connects
+- [x] TopBar shows "They're in the Music Room" when partner navigates
+- [x] Closing tab/browser updates presence to offline
+- [x] Network disconnect shows warning banner
 
 ---
 
@@ -101,32 +101,32 @@
 - Optimistic UI updates
 
 ### Deliverables
-- [ ] Fridge canvas component
-- [ ] Sticky note creation with handwriting font
-- [ ] Image upload (magnets)
-- [ ] Voice note recording and playback
-- [ ] Real-time drag-and-drop sync
-- [ ] Long-press to edit mode (mobile)
+- [x] Fridge canvas component
+- [x] Sticky note creation with handwriting font
+- [x] Image upload (magnets)
+- [x] Voice note recording and playback
+- [x] Real-time drag-and-drop sync
+- [x] Long-press to edit mode (mobile)
 
 ### Jules PR Sequence
-1. **PR #3.1**: Create Fridge component with absolute-positioned items
-2. **PR #3.2**: Implement FridgeItem component (note/photo/voice variants)
-3. **PR #3.3**: Build sticky note editor with Caveat font
-4. **PR #3.4**: Add image upload with 1MB validation
-5. **PR #3.5**: Implement voice recording (MediaRecorder API, 5MB limit)
-6. **PR #3.6**: Create useFridgeDrag hook with touch/mouse events
-7. **PR #3.7**: Add Supabase Broadcast for real-time drag sync
-8. **PR #3.8**: Implement optimistic UI (local update → server sync → rollback on error)
-9. **PR #3.9**: Add long-press gesture for edit mode (prevent scroll conflict)
-10. **PR #3.10**: Create waveform preview for voice notes (wavesurfer.js)
+1. **PR #3.1**: Create Fridge component with absolute-positioned items (Completed)
+2. **PR #3.2**: Implement FridgeItem component (note/photo/voice variants) (Completed)
+3. **PR #3.3**: Build sticky note editor with Caveat font (Completed)
+4. **PR #3.4**: Add image upload with 1MB validation (Completed)
+5. **PR #3.5**: Implement voice recording (MediaRecorder API, 5MB limit) (Completed)
+6. **PR #3.6**: Create useFridgeDrag hook with touch/mouse events (Completed)
+7. **PR #3.7**: Add Supabase Broadcast for real-time drag sync (Completed)
+8. **PR #3.8**: Implement optimistic UI (local update → server sync → rollback on error) (Completed)
+9. **PR #3.9**: Add long-press gesture for edit mode (prevent scroll conflict) (Completed)
+10. **PR #3.10**: Create waveform preview for voice notes (wavesurfer.js) (Completed)
 
 ### Testing Checklist
-- [ ] Can create sticky note and see it persist
-- [ ] Dragging note in browser A moves it in browser B (real-time)
-- [ ] Image upload compresses to < 1MB
-- [ ] Voice recording stops at 5MB limit
-- [ ] Long-press enters edit mode on mobile
-- [ ] Items load in correct X/Y positions after refresh
+- [x] Can create sticky note and see it persist
+- [x] Dragging note in browser A moves it in browser B (real-time)
+- [x] Image upload compresses to < 1MB
+- [x] Voice recording stops at 5MB limit
+- [x] Long-press enters edit mode on mobile
+- [x] Items load in correct X/Y positions after refresh
 
 ---
 
