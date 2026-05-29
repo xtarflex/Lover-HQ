@@ -26,6 +26,7 @@ const Games = lazy(() => import('./features/games/Games'));
 const Reveal = lazy(() => import('./features/reveal/Reveal'));
 const Board = lazy(() => import('./features/board/Board'));
 const Profile = lazy(() => import('./features/profile/Profile'));
+const Settings = lazy(() => import('./features/settings/Settings'));
 
 /**
  * Layout component that includes the TopBar and BottomNav.
@@ -53,7 +54,9 @@ function MainLayout() {
       case 'board':
         return 'Board Room';
       case 'profile':
-        return 'Profile Settings';
+        return 'Partner Profile';
+      case 'settings':
+        return 'Settings';
       default:
         return 'Lover-HQ';
     }
@@ -293,6 +296,7 @@ export default function App() {
             <Route path="reveal" element={<Reveal />} />
             <Route path="board" element={<Board />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           {/* Fallback route */}
