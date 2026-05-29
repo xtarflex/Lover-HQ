@@ -861,7 +861,6 @@ export default function Profile() {
                 </button>
               </div>
 
-
               {/* Note Font Preference */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">
