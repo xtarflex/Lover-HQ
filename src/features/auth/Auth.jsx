@@ -39,6 +39,24 @@ export default function Auth() {
     });
   }, []);
 
+  const handleOAuth = async (provider) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (authError) throw authError;
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -176,6 +194,8 @@ export default function Auth() {
             <div className="flex gap-4">
               <button
                 type="button"
+                onClick={() => handleOAuth('google')}
+                disabled={loading}
                 className="flex-1 py-4 bg-surface/10 backdrop-blur-md rounded-2xl border border-surface-border/50 hover:bg-surface/20 transition-all flex items-center justify-center text-text-main"
               >
                 <svg
@@ -213,6 +233,8 @@ export default function Auth() {
               </button>
               <button
                 type="button"
+                onClick={() => handleOAuth('apple')}
+                disabled={loading}
                 className="flex-1 py-4 bg-surface/10 backdrop-blur-md rounded-2xl border border-surface-border/50 hover:bg-surface/20 transition-all flex items-center justify-center text-text-main"
               >
                 <svg
