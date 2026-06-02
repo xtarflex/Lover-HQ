@@ -127,6 +127,26 @@ export default function App() {
     }
   }, []);
 
+  // Background speculative preloading of lazy route chunks to ensure instant routing
+  useEffect(() => {
+    const preloadComponent = (importFn) => {
+      importFn().catch((err) => console.warn('Preload failed:', err));
+    };
+
+    const timer = setTimeout(() => {
+      preloadComponent(() => import('./features/home/Home'));
+      preloadComponent(() => import('./features/fridge/Fridge'));
+      preloadComponent(() => import('./features/music/Music'));
+      preloadComponent(() => import('./features/games/Games'));
+      preloadComponent(() => import('./features/reveal/Reveal'));
+      preloadComponent(() => import('./features/board/Board'));
+      preloadComponent(() => import('./features/profile/Profile'));
+      preloadComponent(() => import('./features/settings/Settings'));
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Listen for Supabase Auth changes and Fetch Profile
   useEffect(() => {
     const fetchProfile = async (authUser) => {

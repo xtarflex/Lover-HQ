@@ -82,6 +82,22 @@ export default function Fridge() {
   const [touchStartDist, setTouchStartDist] = useState(0);
   const [touchStartZoom, setTouchStartZoom] = useState(1.0);
 
+  const zoomRef = useRef(zoom);
+  const touchStartDistRef = useRef(touchStartDist);
+  const touchStartZoomRef = useRef(touchStartZoom);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  useEffect(() => {
+    touchStartDistRef.current = touchStartDist;
+  }, [touchStartDist]);
+
+  useEffect(() => {
+    touchStartZoomRef.current = touchStartZoom;
+  }, [touchStartZoom]);
+
   // Modal Open State
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
@@ -1001,32 +1017,49 @@ export default function Fridge() {
    */
   const resetZoom = () => setZoom(1.0);
 
-  // Mobile Pinch-to-zoom handlers
-  const handleTouchStart = (e) => {
-    if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      setTouchStartDist(dist);
-      setTouchStartZoom(zoom);
-    }
-  };
+  // Programmatic non-passive touch listeners for mobile pinch-to-zoom to prevent default browser scaling
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const handleTouchMove = (e) => {
-    if (e.touches.length === 2 && touchStartDist > 0) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const scale = dist / touchStartDist;
-      setZoom(Math.max(0.6, Math.min(1.5, touchStartZoom * scale)));
-    }
-  };
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        setTouchStartDist(dist);
+        setTouchStartZoom(zoomRef.current);
+      }
+    };
 
-  const handleTouchEnd = () => {
-    setTouchStartDist(0);
-  };
+    const onTouchMove = (e) => {
+      if (e.touches.length === 2 && touchStartDistRef.current > 0) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const scale = dist / touchStartDistRef.current;
+        setZoom(Math.max(0.6, Math.min(1.5, touchStartZoomRef.current * scale)));
+      }
+    };
+
+    const onTouchEnd = () => {
+      setTouchStartDist(0);
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: false });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []);
 
   /**
    * Filters the active list of magnets, conditionally hiding items older than the threshold when clean mode is active.
@@ -1215,9 +1248,6 @@ export default function Fridge() {
           ref={scrollContainerRef}
           className="w-full h-full overflow-auto scrollbar-none relative"
           style={{ cursor: 'grab' }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
           {/* Zoomable Canvas Surface */}
           <div
