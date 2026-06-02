@@ -1,0 +1,5 @@
+refactor: strip Profile.jsx to partner showroom and fix routing
+
+- Completely rewrote Profile.jsx to only show the Partner's read-only details and connection widgets, removing the "Your Profile" edit forms and "Fridge Settings". My previous implementation was truncated or failed to overwrite the file properly.
+- Updated TopBar.jsx to properly route the user's avatar to `/settings` instead of `/profile`.
+- Updated App.jsx to properly resolve the route name for `/settings`.

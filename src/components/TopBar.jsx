@@ -68,7 +68,7 @@ export function TopBar() {
         {/* Current User */}
         {user && (
           <Link
-            to="/profile"
+            to="/settings"
             className="flex items-center bg-brand-slate/40 pr-3 pl-1 py-1 rounded-full border border-gray-800 hover:bg-brand-slate/60 hover:border-gray-700 transition-colors"
           >
             <Avatar
