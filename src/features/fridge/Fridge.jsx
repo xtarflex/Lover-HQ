@@ -1055,7 +1055,7 @@ export default function Fridge() {
     }
     if (boardBg === 'image') {
       return {
-        backgroundImage: `url('/board-chat-bg.png')`,
+        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('/board-chat-bg.png')`,
         backgroundRepeat: 'repeat',
         backgroundSize: '384px',
       };
