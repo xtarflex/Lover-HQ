@@ -9,6 +9,7 @@
 
 @import "tailwindcss/components";
 @import "./components/animations.css";
+@import "./components/dialog.css";
 @import "./components/heart.css";
 @import "./components/scrollbar.css";
 

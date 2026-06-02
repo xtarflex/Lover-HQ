@@ -121,6 +121,37 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
     }
   };
 
+  useEffect(() => {
+    if (!isOpen) {
+      // Release microphone stream if recording was active
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setIsRecording(false);
+      clearInterval(timerRef.current);
+
+      // Stop audio playback if playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+
+      // Revoke blob URL to avoid memory leaks
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      setAudioUrl(null);
+      setAudioBlob(null);
+      setDuration(0);
+      setIsSaving(false);
+      setError(null);
+    }
+  }, [isOpen]);
+
   const handlePlayToggle = () => {
     if (!audioRef.current) return;
     if (isPlaying) {

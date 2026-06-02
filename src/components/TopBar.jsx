@@ -93,7 +93,10 @@ export function TopBar() {
         {/* Partner */}
         {partner && (
           <div className="flex flex-col items-center relative">
-            <div className="flex items-center bg-brand-slate/40 pl-3 pr-1 py-1 rounded-full border border-gray-800">
+            <Link
+              to="/profile"
+              className="flex items-center bg-brand-slate/40 pl-3 pr-1 py-1 rounded-full border border-gray-800 hover:bg-brand-slate/60 hover:border-gray-700 transition-colors"
+            >
               <span className="text-xs font-bold text-gray-300 mr-2">
                 {formatName(partner.name || 'Partner')}
               </span>
@@ -103,7 +106,7 @@ export function TopBar() {
                 isOnline={presence.partner === 'online'}
                 size="sm"
               />
-            </div>
+            </Link>
             {/* Speech bubble under the profile card */}
             {presence.partner === 'online' && (
               <div className="absolute top-full mt-1.5 flex flex-col items-center z-50">

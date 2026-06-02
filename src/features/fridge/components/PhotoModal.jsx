@@ -31,6 +31,22 @@ export function PhotoModal({ isOpen, onClose, userId, onSave }) {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
+  React.useEffect(() => {
+    if (!isOpen) {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setIsUploading(false);
+      setUploadProgress(0);
+      setError(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [isOpen]);
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;

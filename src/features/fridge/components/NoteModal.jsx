@@ -57,17 +57,18 @@ export function NoteModal({
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => {
-        setText(initialText);
-        if (initialColor) {
-          const matchingColor = NOTE_COLORS.find((c) => c.id === initialColor);
-          if (matchingColor) setSelectedColor(matchingColor);
-        } else {
-          const defaultColorId = localStorage.getItem('fridge_default_note_color') || 'yellow';
-          const matchingColor = NOTE_COLORS.find((c) => c.id === defaultColorId);
-          setSelectedColor(matchingColor || NOTE_COLORS[0]);
-        }
-      }, 0);
+      setText(initialText);
+      if (initialColor) {
+        const matchingColor = NOTE_COLORS.find((c) => c.id === initialColor);
+        if (matchingColor) setSelectedColor(matchingColor);
+      } else {
+        const defaultColorId = localStorage.getItem('fridge_default_note_color') || 'yellow';
+        const matchingColor = NOTE_COLORS.find((c) => c.id === defaultColorId);
+        setSelectedColor(matchingColor || NOTE_COLORS[0]);
+      }
+    } else {
+      setText('');
+      setError(null);
     }
   }, [isOpen, initialText, initialColor]);
 

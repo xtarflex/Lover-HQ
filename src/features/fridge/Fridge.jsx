@@ -1156,7 +1156,7 @@ export default function Fridge() {
 
             {/* Settings Route Link */}
             <Link
-              to="/profile#fridge-settings"
+              to="/settings?tab=fridge"
               className="p-1.5 text-text-muted hover:text-text-main rounded-md hover:bg-white/5 transition-colors flex-shrink-0"
               title="General Fridge Settings"
             >
@@ -1425,71 +1425,61 @@ export default function Fridge() {
       <Notification message={error} onClose={() => setError(null)} />
 
       {/* Upload/Create Media Modals */}
-      {isNoteOpen && (
-        <NoteModal
-          isOpen={isNoteOpen}
-          onClose={() => setIsNoteOpen(false)}
-          userId={userId}
-          onSave={(newItem) => {
-            playWhiteboardSound('pin');
-            setItems((prev) => [...prev, newItem]);
-          }}
-          addOfflineItem={addOfflineItem}
-        />
-      )}
+      <NoteModal
+        isOpen={isNoteOpen}
+        onClose={() => setIsNoteOpen(false)}
+        userId={userId}
+        onSave={(newItem) => {
+          playWhiteboardSound('pin');
+          setItems((prev) => [...prev, newItem]);
+        }}
+        addOfflineItem={addOfflineItem}
+      />
 
       {/* Edit Note Modal */}
-      {editingItem && (
-        <NoteModal
-          isOpen={!!editingItem}
-          onClose={() => setEditingItem(null)}
-          userId={userId}
-          editItemId={editingItem.id}
-          initialText={editingItem.text}
-          initialColor={editingItem.color}
-          onSave={(updatedItem) => {
-            playWhiteboardSound('pin');
-            setItems((prev) =>
-              prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-            );
-            setEditingItem(null);
-          }}
-          addOfflineItem={addOfflineItem}
-        />
-      )}
+      <NoteModal
+        isOpen={!!editingItem}
+        onClose={() => setEditingItem(null)}
+        userId={userId}
+        editItemId={editingItem ? editingItem.id : null}
+        initialText={editingItem ? editingItem.text : ''}
+        initialColor={editingItem ? editingItem.color : ''}
+        onSave={(updatedItem) => {
+          playWhiteboardSound('pin');
+          setItems((prev) =>
+            prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+          );
+          setEditingItem(null);
+        }}
+        addOfflineItem={addOfflineItem}
+      />
 
-      {isPhotoOpen && (
-        <PhotoModal
-          isOpen={isPhotoOpen}
-          onClose={() => setIsPhotoOpen(false)}
-          userId={userId}
-          onSave={(newItem) => {
-            playWhiteboardSound('pin');
-            setItems((prev) => [...prev, newItem]);
-          }}
-        />
-      )}
+      <PhotoModal
+        isOpen={isPhotoOpen}
+        onClose={() => setIsPhotoOpen(false)}
+        userId={userId}
+        onSave={(newItem) => {
+          playWhiteboardSound('pin');
+          setItems((prev) => [...prev, newItem]);
+        }}
+      />
 
-      {isVoiceOpen && (
-        <VoiceModal
-          isOpen={isVoiceOpen}
-          onClose={() => setIsVoiceOpen(false)}
-          userId={userId}
-          onSave={(newItem) => {
-            playWhiteboardSound('pin');
-            setItems((prev) => [...prev, newItem]);
-          }}
-        />
-      )}
+      <VoiceModal
+        isOpen={isVoiceOpen}
+        onClose={() => setIsVoiceOpen(false)}
+        userId={userId}
+        onSave={(newItem) => {
+          playWhiteboardSound('pin');
+          setItems((prev) => [...prev, newItem]);
+        }}
+      />
 
       {/* Emoji Picker Modal */}
-      {isEmojiPickerOpen && (
-        <EmojiPickerModal
-          isOpen={isEmojiPickerOpen}
-          onClose={() => setIsEmojiPickerOpen(false)}
-          onSelect={handleEmojiSelect}
-        />
-      )}
+      <EmojiPickerModal
+        isOpen={isEmojiPickerOpen}
+        onClose={() => setIsEmojiPickerOpen(false)}
+        onSelect={handleEmojiSelect}
+      />
 
       {/* Magnet Threaded Comments bottom sheet drawer */}
       <AnimatePresence>

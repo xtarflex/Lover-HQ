@@ -66,6 +66,22 @@ export default function Settings() {
     }
   }, [user]);
 
+  // Sync active category with URL param or hash on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab && ['account', 'preferences', 'fridge', 'data'].includes(tab)) {
+      setActiveCategory(tab);
+      setIsMobileDetailView(true);
+    } else if (window.location.hash) {
+      const hash = window.location.hash.replace('#', '');
+      if (['account', 'preferences', 'fridge', 'data'].includes(hash)) {
+        setActiveCategory(hash);
+        setIsMobileDetailView(true);
+      }
+    }
+  }, []);
+
   // --- Fridge Settings State ---
   const [compactDays, setCompactDays] = useState(
     localStorage.getItem('fridge_auto_compact_days') || '90'
@@ -798,7 +814,7 @@ export default function Settings() {
 
         {/* Content Detail */}
         <section
-          className={`col-span-1 md:col-span-8 bg-surface/60 backdrop-blur-xl md:rounded-2xl border md:border-surface-border flex flex-col min-h-0 absolute inset-0 md:relative transition-transform duration-300 z-20 md:z-auto ${isMobileDetailView ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}
+          className={`col-span-1 md:col-span-8 bg-surface/60 backdrop-blur-xl md:rounded-2xl border border-surface-border flex flex-col min-h-0 absolute inset-0 md:relative transition-transform duration-300 z-20 md:z-auto ${isMobileDetailView ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}
         >
           {/* Mobile Header */}
           <div className="flex items-center justify-between p-4 border-b border-surface-border md:hidden bg-surface">
