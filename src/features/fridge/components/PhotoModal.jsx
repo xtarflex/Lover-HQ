@@ -36,16 +36,21 @@ export function PhotoModal({ isOpen, onClose, userId, onSave }) {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedFile(null);
+
       setPreviewUrl(null);
+
       setIsUploading(false);
+
       setUploadProgress(0);
+
       setError(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
-  }, [isOpen]);
+  }, [isOpen, previewUrl]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];

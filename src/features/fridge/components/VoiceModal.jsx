@@ -131,6 +131,7 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
           console.error(e);
         }
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsRecording(false);
       clearInterval(timerRef.current);
 
@@ -138,19 +139,25 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
       if (audioRef.current) {
         audioRef.current.pause();
       }
+
       setIsPlaying(false);
 
       // Revoke blob URL to avoid memory leaks
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
+
       setAudioUrl(null);
+
       setAudioBlob(null);
+
       setDuration(0);
+
       setIsSaving(false);
+
       setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, audioUrl]);
 
   const handlePlayToggle = () => {
     if (!audioRef.current) return;

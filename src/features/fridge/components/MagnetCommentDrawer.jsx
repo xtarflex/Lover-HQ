@@ -424,10 +424,14 @@ export default function MagnetCommentDrawer({
         exit={isDesktop ? { x: '100%', y: 0 } : { y: '100%', x: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         className="fixed bottom-0 left-0 right-0 h-[75vh] md:h-full md:w-96 md:right-0 md:left-auto md:top-0 md:max-w-none md:mx-0 md:rounded-l-[2.5rem] md:rounded-t-none md:border-l md:border-t-0 md:border-r-0 bg-slate-900/90 backdrop-blur-xl border-t border-x border-surface-border/50 rounded-t-[2.5rem] shadow-2xl z-[70] flex flex-col overflow-hidden font-sans"
-        style={!isDesktop ? {
-          bottom: `${keyboardHeight}px`,
-          height: `${viewportHeight * 0.75}px`
-        } : {}}
+        style={
+          !isDesktop
+            ? {
+                bottom: `${keyboardHeight}px`,
+                height: `${viewportHeight * 0.75}px`,
+              }
+            : {}
+        }
       >
         {/* Drag Handle Indicator */}
         <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto my-3 flex-shrink-0 md:hidden" />

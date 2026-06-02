@@ -57,17 +57,22 @@ export function NoteModal({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setText(initialText);
       if (initialColor) {
         const matchingColor = NOTE_COLORS.find((c) => c.id === initialColor);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (matchingColor) setSelectedColor(matchingColor);
       } else {
         const defaultColorId = localStorage.getItem('fridge_default_note_color') || 'yellow';
         const matchingColor = NOTE_COLORS.find((c) => c.id === defaultColorId);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedColor(matchingColor || NOTE_COLORS[0]);
       }
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setText('');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null);
     }
   }, [isOpen, initialText, initialColor]);

@@ -1476,9 +1476,7 @@ export default function Fridge() {
         initialColor={editingItem ? editingItem.color : ''}
         onSave={(updatedItem) => {
           playWhiteboardSound('pin');
-          setItems((prev) =>
-            prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-          );
+          setItems((prev) => prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)));
           setEditingItem(null);
         }}
         addOfflineItem={addOfflineItem}

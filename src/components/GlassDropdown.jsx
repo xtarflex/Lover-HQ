@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
 
@@ -10,7 +10,8 @@ import { ChevronDown, Check } from 'lucide-react';
 
 /**
  * A reusable glassmorphic dropdown selector component.
- * Rendered globally in a viewport portal to prevent parent stacking contexts and z-index overlap issues.
+ * Rendered in a portal to prevent parent stacking contexts and z-index clipping.
+ * Leverages modern CSS Anchor Positioning with an optimized JavaScript fallback.
  *
  * @param {Object} props
  * @param {string|number} props.value - The currently selected value.
@@ -35,32 +36,91 @@ export default function GlassDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef(null);
+  const panelRef = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 });
+
+  // Generate a unique CSS Custom Identifier for CSS Anchor Positioning
+  const uniqueId = useId().replace(/:/g, '');
+  const anchorName = `--dropdown-anchor-${uniqueId}`;
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Position calculation and window/container event tracking
+  // Feature detection for native CSS Anchor Positioning support
+  const [supportsAnchor, setSupportsAnchor] = useState(false);
   useEffect(() => {
-    if (!isOpen || !buttonRef.current) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSupportsAnchor(
+      typeof CSS !== 'undefined' &&
+        CSS.supports &&
+        (CSS.supports('anchor-name: --a') || CSS.supports('top: anchor(bottom)'))
+    );
+  }, []);
 
+  // Optimized position calculations for fallback browsers (throttled via requestAnimationFrame)
+  useEffect(() => {
+    if (!isOpen || supportsAnchor || !buttonRef.current) return;
+
+    let rafId;
     const updateCoords = () => {
+      if (!buttonRef.current) return;
       const rect = buttonRef.current.getBoundingClientRect();
       setCoords({
-        top: rect.bottom, // Viewport-relative bottom
-        left: rect.left, // Viewport-relative left
+        top: rect.bottom, // Viewport-relative coordinates
+        left: rect.left,
         width: rect.width,
         height: rect.height,
       });
     };
 
+    const throttledUpdate = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateCoords);
+    };
+
     updateCoords();
 
-    window.addEventListener('resize', updateCoords);
-    window.addEventListener('scroll', updateCoords, true); // capture phase to handle nested scroll
+    window.addEventListener('resize', throttledUpdate);
+    // Listen to scroll events on capture phase to handle nested scrolling containers
+    window.addEventListener('scroll', throttledUpdate, true);
 
     return () => {
-      window.removeEventListener('resize', updateCoords);
-      window.removeEventListener('scroll', updateCoords, true);
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', throttledUpdate);
+      window.removeEventListener('scroll', throttledUpdate, true);
+    };
+  }, [isOpen, supportsAnchor]);
+
+  // Click outside to dismiss (light dismiss logic)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOutsideClick = (e) => {
+      if (buttonRef.current?.contains(e.target) || panelRef.current?.contains(e.target)) {
+        return;
+      }
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isOpen]);
+
+  // Keyboard accessibility: dismiss on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 
@@ -85,56 +145,65 @@ export default function GlassDropdown({
 
   // Calculate panel placement styles relative to measured trigger coords
   const getPanelStyle = () => {
-    const spacing = size === 'md' ? 8 : 4;
+    const spacing = size === 'md' ? '8px' : '4px';
+
+    if (supportsAnchor) {
+      return {
+        position: 'fixed',
+        anchorName,
+        positionAnchor: anchorName,
+        top: `calc(anchor(bottom) + ${spacing})`,
+        left: align === 'right' ? 'auto' : 'anchor(left)',
+        right: align === 'right' ? 'anchor(right)' : 'auto',
+        width: size === 'md' ? 'anchor-size(width)' : 'auto',
+        minWidth: size === 'sm' ? '110px' : undefined,
+        zIndex: 50,
+      };
+    }
+
+    // Fallback coordinates (viewport-relative, since position is fixed)
+    const spacingVal = size === 'md' ? 8 : 4;
     return {
-      position: 'absolute',
-      top: `${coords.top + spacing}px`,
+      position: 'fixed',
+      top: `${coords.top + spacingVal}px`,
       left: align === 'right' ? 'auto' : `${coords.left}px`,
       right: align === 'right' ? `${window.innerWidth - coords.left - coords.width}px` : 'auto',
       width: size === 'md' ? `${coords.width}px` : 'auto',
       minWidth: size === 'sm' ? '110px' : undefined,
-      zIndex: 10, // Higher than backdrop inside the wrapper
+      zIndex: 50,
     };
   };
 
   const dropdownMenu = (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 99999 }}>
-      <div
-        className="absolute inset-0 bg-transparent pointer-events-auto"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(false);
-        }}
-      />
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={`bg-slate-900/95 dark:bg-slate-950/95 border border-white/10 dark:border-slate-800 backdrop-blur-xl overflow-hidden space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xl pointer-events-auto ${sizeStyles.panel} ${panelClassName}`}
-        style={getPanelStyle()}
-      >
-        {options.map((opt) => {
-          const isSelected = opt.value === value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-              className={`w-full text-left transition-all flex items-center justify-between cursor-pointer ${
-                sizeStyles.option
-              } ${
-                isSelected ? 'bg-primary/20 text-primary' : 'text-text-main hover:bg-white/5'
-              } ${optionClassName}`}
-            >
-              <span>{opt.label}</span>
-              {isSelected && <Check className={`text-primary ${sizeStyles.check}`} />}
-            </button>
-          );
-        })}
-      </div>
+    <div
+      ref={panelRef}
+      onClick={(e) => e.stopPropagation()}
+      className={`bg-slate-900/95 dark:bg-slate-950/95 border border-white/10 dark:border-slate-800 backdrop-blur-xl overflow-hidden space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xl ${sizeStyles.panel} ${panelClassName}`}
+      style={getPanelStyle()}
+    >
+      {options.map((opt) => {
+        const isSelected = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onChange(opt.value);
+              setIsOpen(false);
+            }}
+            className={`w-full text-left transition-all flex items-center justify-between cursor-pointer ${
+              sizeStyles.option
+            } ${
+              isSelected ? 'bg-primary/20 text-primary' : 'text-text-main hover:bg-white/5'
+            } ${optionClassName}`}
+          >
+            <span>{opt.label}</span>
+            {isSelected && <Check className={`text-primary ${sizeStyles.check}`} />}
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -143,6 +212,7 @@ export default function GlassDropdown({
       <button
         ref={buttonRef}
         type="button"
+        style={{ anchorName }}
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
