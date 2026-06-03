@@ -34,15 +34,22 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
     handleCellTap, applyRemoteMove, reset,
   } = useTicTacToeLogic({ userId, partnerId, mySymbol });
 
-  const handleRemoteMove = useCallback(
-    (payload) => {
-      if (payload.type === 'move') {
-        applyRemoteMove(payload);
-        recorder.current.recordMove(partnerId, 'place', { index: payload.index });
-      }
-    },
-    [applyRemoteMove, partnerId]
-  );
+  // Use a ref so we only call useGameSync once but always have the latest callbacks
+  const handlersRef = useRef({ applyRemoteMove, reset, recorder, partnerId, gameId, userId });
+  useEffect(() => {
+    handlersRef.current = { applyRemoteMove, reset, recorder, partnerId, gameId, userId };
+  });
+
+  const handleRemoteMove = useCallback((payload) => {
+    const { applyRemoteMove, reset, recorder, partnerId, gameId, userId } = handlersRef.current;
+    if (payload.type === 'move') {
+      applyRemoteMove(payload);
+      recorder.current.recordMove(partnerId, 'place', { index: payload.index });
+    } else if (payload.type === 'rematch') {
+      reset();
+      recorder.current = new GameRecorder(gameId, userId, partnerId);
+    }
+  }, []); // stable — reads from ref
 
   const broadcastMove = useGameSync(gameId, sessionId, handleRemoteMove);
 
@@ -65,24 +72,7 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
     broadcastMove({ type: 'rematch' });
   };
 
-  // Listen for rematch from partner
-  const handleRemoteWithRematch = useCallback(
-    (payload) => {
-      if (payload.type === 'move') {
-        applyRemoteMove(payload);
-        recorder.current.recordMove(partnerId, 'place', { index: payload.index });
-      } else if (payload.type === 'rematch') {
-        reset();
-        recorder.current = new GameRecorder(gameId, userId, partnerId);
-      }
-    },
-    [applyRemoteMove, partnerId, reset, gameId, userId]
-  );
 
-  // Re-register with combined handler (we can't conditionally call the hook,
-  // so we use the ref pattern and swap inside the callback)
-  // The initial broadcastMove already has access to the channel; we just pass
-  // the combined handler here as our remote move handler.
 
   const result =
     winner === sym

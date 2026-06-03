@@ -92,7 +92,9 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
   };
 
   const endDraw = () => {
+    if (!drawing.current) return;
     drawing.current = false;
+    if (iAmDrawer) broadcastMove({ type: 'stroke_end' });
   };
 
   const clearCanvas = () => {
@@ -178,7 +180,7 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
         )}
         {!iAmDrawer && (
           <p className="text-xs font-bold text-text-muted uppercase tracking-widest text-center">
-            What is {user?.name || 'partner'} drawing?
+            What is {partner?.name || 'partner'} drawing?
           </p>
         )}
 
