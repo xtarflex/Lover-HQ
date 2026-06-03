@@ -70,14 +70,14 @@ export default function Settings() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab && ['account', 'preferences', 'fridge', 'data'].includes(tab)) {
+    if (tab && ['account', 'preferences', 'fridge', 'reveal', 'data'].includes(tab)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveCategory(tab);
 
       setIsMobileDetailView(true);
     } else if (window.location.hash) {
       const hash = window.location.hash.replace('#', '');
-      if (['account', 'preferences', 'fridge', 'data'].includes(hash)) {
+      if (['account', 'preferences', 'fridge', 'reveal', 'data'].includes(hash)) {
         setActiveCategory(hash);
 
         setIsMobileDetailView(true);
@@ -107,6 +107,14 @@ export default function Settings() {
   );
   const [defaultNoteColor, setDefaultNoteColor] = useState(
     () => localStorage.getItem('fridge_default_note_color') || 'yellow'
+  );
+
+  // --- Reveal Q&A Settings State ---
+  const [customQuestionFreq, setCustomQuestionFreq] = useState(
+    () => localStorage.getItem('reveal_custom_question_freq') || '25'
+  );
+  const [revealReminders, setRevealReminders] = useState(
+    () => localStorage.getItem('reveal_reminders_enabled') !== 'false'
   );
 
   const [message, setMessage] = useState(null);
@@ -300,6 +308,12 @@ export default function Settings() {
         label: 'Fridge Board',
         desc: 'Auto-compaction, board visual prefs',
         icon: Database,
+      },
+      {
+        id: 'reveal',
+        label: 'Reveal Q&A',
+        desc: 'Custom question frequency, daily reminders',
+        icon: Sparkles,
       },
       {
         id: 'data',
@@ -702,6 +716,83 @@ export default function Settings() {
                   }
                   size="md"
                 />
+              </div>
+            </div>
+          </div>
+        );
+      case 'reveal':
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div>
+              <h3 className="text-lg font-bold text-text-main">Reveal Q&A Settings</h3>
+              <p className="text-xs text-text-muted mt-1">
+                Configure your daily Q&A rotation and reminders.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* Daily Reminder Toggle */}
+              <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
+                    <Bell className="w-4 h-4 text-primary" />
+                    Daily Q&A Reminders
+                  </span>
+                  <span className="text-xs text-text-muted mt-0.5">
+                    Get notified when today&apos;s new question is active.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handlePreferenceChange(
+                      'reveal_reminders_enabled',
+                      !revealReminders,
+                      setRevealReminders,
+                      null
+                    )
+                  }
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${revealReminders ? 'bg-primary' : 'bg-surface-border'}`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealReminders ? 'translate-x-5' : 'translate-x-0'}`}
+                  />
+                </button>
+              </div>
+
+              {/* Custom Question Freq */}
+              <div className="p-4 bg-surface/50 border border-surface-border rounded-2xl space-y-4">
+                <div>
+                  <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-secondary" />
+                    Custom Question Frequency
+                  </h4>
+                  <p className="text-xs text-text-muted mt-1">
+                    Control how often custom questions made by you/your partner appear in the daily
+                    rotation.
+                  </p>
+                </div>
+                <div className="max-w-xs">
+                  <GlassDropdown
+                    value={customQuestionFreq}
+                    options={[
+                      { value: '0', label: 'Never (0%)' },
+                      { value: '10', label: 'Rarely (10%)' },
+                      { value: '25', label: 'Normal (25%)' },
+                      { value: '50', label: 'Frequently (50%)' },
+                      { value: '100', label: 'Always' },
+                    ]}
+                    onChange={(val) =>
+                      handlePreferenceChange(
+                        'reveal_custom_question_freq',
+                        val,
+                        setCustomQuestionFreq,
+                        'Custom question frequency updated'
+                      )
+                    }
+                    size="md"
+                  />
+                </div>
               </div>
             </div>
           </div>

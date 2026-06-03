@@ -333,41 +333,31 @@ export default function Onboarding() {
     setError(null);
 
     try {
-      const { data: partner, error: findError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('pairing_code', pairingCode)
-        .single();
+      // 1. Query the partner user securely via the get_user_by_pairing_code RPC
+      const { data: partners, error: findError } = await supabase.rpc('get_user_by_pairing_code', {
+        input_code: pairingCode,
+      });
+
+      const partner = partners?.[0];
 
       if (findError || !partner) {
-        throw new Error('Invalid pairing code. Please check and try again.');
-      }
-
-      if (partner.pairing_code_expires_at) {
-        const expiresAt = new Date(partner.pairing_code_expires_at);
-        const now = new Date();
-        if (expiresAt < now) {
-          throw new Error('This pairing code has expired. Please generate a new one.');
-        }
+        throw new Error('Invalid or expired pairing code. Please check and try again.');
       }
 
       if (partner.id === user.id) {
         throw new Error("You can't pair with yourself!");
       }
 
+      // 2. Update current user's profile to link partner.
+      // This will fire the SECURITY DEFINER database trigger "on_partner_id_updated",
+      // which automatically and securely links the partner's record back to this user
+      // and consumes their pairing code within the same atomic transaction.
       const { error: linkError } = await supabase
         .from('users')
         .update({ partner_id: partner.id, pairing_code: null, pairing_code_expires_at: null })
         .eq('id', user.id);
 
       if (linkError) throw linkError;
-
-      const { error: partnerLinkError } = await supabase
-        .from('users')
-        .update({ partner_id: user.id, pairing_code: null, pairing_code_expires_at: null })
-        .eq('id', partner.id);
-
-      if (partnerLinkError) throw partnerLinkError;
 
       sessionStorage.removeItem('lover_hq_pairing_code');
       dispatch({ type: 'SET_PARTNER', payload: partner });
