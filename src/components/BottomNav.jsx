@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FridgeIcon, Music, Gamepad2, ClipboardList, LoverHQLogo } from '../lib/icons';
+import { FridgeIcon, Music, Gamepad2, Heart, LoverHQLogo } from '../lib/icons';
 import { ICON_SIZES } from '../lib/constants';
 import { useAppContext } from '../contexts/AppContext';
 import { supabase } from '../lib/supabase';
@@ -85,7 +85,7 @@ export function BottomNav() {
     { name: 'Music', path: '/music', icon: Music },
     { name: 'Home', path: '/home', isHome: true },
     { name: 'Games', path: '/games', icon: Gamepad2 },
-    { name: 'Board', path: '/board', icon: ClipboardList },
+    { name: 'Reveal', path: '/reveal', icon: Heart },
   ];
 
   return (

@@ -28,6 +28,7 @@ const getShortRoomName = (room) => {
   if (r.includes('fridge')) return 'Fridge';
   if (r.includes('music')) return 'Music';
   if (r.includes('game')) return 'Games';
+  if (r.includes('reveal')) return 'Reveal';
   if (r.includes('board')) return 'Board';
   if (r.includes('profile') || r.includes('setting')) return 'Profile';
   return 'Home';
