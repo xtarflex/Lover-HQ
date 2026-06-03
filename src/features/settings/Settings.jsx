@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { Notification } from '../../components/Notification';
 import Avatar from '../../components/Avatar';
 import avatarManifest from '../../assets/avatars_manifest.json';
-import GlassDropdown from '../../components/GlassDropdown';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 import {
   User,
   LogOut,
@@ -20,7 +20,6 @@ import {
   Volume2,
   VolumeX,
   Grid,
-  Loader,
   Check,
   Pencil,
   Sparkles,
@@ -427,7 +426,7 @@ export default function Settings() {
                   className="px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center gap-2"
                 >
                   {saving ? (
-                    <Loader className="w-4 h-4 animate-spin" />
+                    <LoadingSpinner size="sm" className="text-white w-4 h-4" />
                   ) : (
                     <Check className="w-4 h-4" />
                   )}
@@ -588,7 +587,7 @@ export default function Settings() {
                   className="w-full py-3.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {compacting ? (
-                    <Loader className="w-4 h-4 animate-spin text-primary" />
+                    <LoadingSpinner size="sm" className="text-primary w-4 h-4" />
                   ) : (
                     <Database className="w-4 h-4 text-primary" />
                   )}

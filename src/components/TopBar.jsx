@@ -92,7 +92,7 @@ export function TopBar() {
         </div>
 
         {/* Partner */}
-        {partner && (
+        {partner ? (
           <div className="flex flex-col items-center relative">
             <Link
               to="/profile"
@@ -119,6 +119,16 @@ export function TopBar() {
               </div>
             )}
           </div>
+        ) : (
+          <Link
+            to="/profile"
+            className="flex items-center bg-primary/10 pl-3 pr-2 py-1.5 rounded-full border border-primary/30 hover:bg-primary/20 hover:border-primary/50 transition-colors gap-1.5"
+          >
+            <span className="text-xs font-bold text-primary">Pair Partner</span>
+            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold font-sans">
+              +
+            </div>
+          </Link>
         )}
       </div>
     </header>

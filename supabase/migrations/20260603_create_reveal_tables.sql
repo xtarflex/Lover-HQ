@@ -71,6 +71,17 @@ CREATE TABLE IF NOT EXISTS public.reveal_answers (
 -- Enable RLS on reveal_answers
 ALTER TABLE public.reveal_answers ENABLE ROW LEVEL SECURITY;
 
+-- Helper function to check if user has answered a question, avoiding RLS policy recursion
+CREATE OR REPLACE FUNCTION public.has_user_answered(q_id text, u_id uuid)
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.reveal_answers
+    WHERE question_id = q_id AND user_id = u_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Policy: Select policy (blind reveal):
 -- 1. Users can select their own answers.
 -- 2. Users can select partner's answers only if they have already answered the same question.
@@ -81,10 +92,7 @@ USING (
   user_id = auth.uid()
   OR (
     user_id = (SELECT partner_id FROM public.users WHERE id = auth.uid())
-    AND EXISTS (
-      SELECT 1 FROM public.reveal_answers 
-      WHERE user_id = auth.uid() AND question_id = reveal_answers.question_id
-    )
+    AND public.has_user_answered(question_id, auth.uid())
   )
 );
 

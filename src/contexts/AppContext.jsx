@@ -11,6 +11,7 @@ const initialState = {
   },
   currentRoom: null,
   pairingStatus: 'unpaired',
+  preferences: null,
 };
 
 const AppContext = createContext(null);
@@ -36,6 +37,13 @@ function appReducer(state, action) {
       return { ...state, currentRoom: action.payload };
     case 'SET_PAIRING_STATUS':
       return { ...state, pairingStatus: action.payload };
+    case 'SET_PREFERENCES':
+      return { ...state, preferences: action.payload };
+    case 'UPDATE_PREFERENCE':
+      return {
+        ...state,
+        preferences: state.preferences ? { ...state.preferences, ...action.payload } : action.payload,
+      };
     case 'RESET_STATE':
       return initialState;
     default:

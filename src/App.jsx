@@ -15,6 +15,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAppContext, useAppDispatch } from './contexts/AppContext';
 import { supabase } from './lib/supabase';
 import { usePresence } from './hooks/usePresence';
+import { usePreferences } from './hooks/usePreferences';
 
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
@@ -96,14 +97,14 @@ function MainLayout() {
  * Protected route wrapper
  */
 function ProtectedRoute({ children }) {
-  const { user, pairingStatus } = useAppContext();
+  const { user } = useAppContext();
 
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // If user is logged in but not paired, redirect to onboarding
-  if (pairingStatus !== 'paired') {
+  // If user is logged in but has not completed profile onboarding, redirect to onboarding screen
+  if (!user.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -111,8 +112,31 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
-  const { user, pairingStatus } = useAppContext();
+  const { user, pairingStatus, preferences } = useAppContext();
   const dispatch = useAppDispatch();
+
+  // Load and sync preferences from DB
+  const { prefs } = usePreferences(user?.id);
+
+  // Sync loaded preferences with AppContext
+  useEffect(() => {
+    if (prefs) {
+      dispatch({ type: 'SET_PREFERENCES', payload: prefs });
+    }
+  }, [prefs, dispatch]);
+
+  // Apply theme class (dark or light) dynamically to documentElement
+  useEffect(() => {
+    if (preferences?.theme) {
+      if (preferences.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [preferences?.theme]);
 
   // Capture pairing code from URL if present
   useEffect(() => {
@@ -151,6 +175,18 @@ export default function App() {
   useEffect(() => {
     const fetchProfile = async (authUser) => {
       try {
+        // Clear cached partner and pairing status if switching users
+        const cachedUserStr = localStorage.getItem('lover_hq_user');
+        if (cachedUserStr) {
+          const cachedUser = JSON.parse(cachedUserStr);
+          if (cachedUser && cachedUser.id !== authUser.id) {
+            localStorage.removeItem('lover_hq_partner');
+            localStorage.removeItem('lover_hq_pairing_status');
+            dispatch({ type: 'SET_PARTNER', payload: null });
+            dispatch({ type: 'SET_PAIRING_STATUS', payload: 'unpaired' });
+          }
+        }
+
         const { data: profile, error } = await supabase
           .from('users')
           .select('*')
@@ -160,12 +196,22 @@ export default function App() {
         if (error) {
           if (error.code !== 'PGRST116') {
             console.error('Error fetching profile:', error);
+            return;
           }
-          // If query fails due to offline/network error, keep the cached values and exit
+          // If PGRST116 (new user profile not created/found yet), we should still set the user state so they can onboard
+          const mergedUser = { ...authUser, onboarding_completed: false };
+          dispatch({ type: 'SET_USER', payload: mergedUser });
           return;
         }
 
-        const mergedUser = { ...authUser, ...(profile || {}) };
+        let mergedUser = { ...authUser, ...(profile || {}) };
+
+        // Auto-mark onboarding as completed if a partner is linked in the DB
+        if (profile?.partner_id && !profile.onboarding_completed) {
+          await supabase.from('users').update({ onboarding_completed: true }).eq('id', authUser.id);
+          mergedUser.onboarding_completed = true;
+        }
+
         dispatch({ type: 'SET_USER', payload: mergedUser });
         localStorage.setItem('lover_hq_user', JSON.stringify(mergedUser));
 
@@ -271,7 +317,7 @@ export default function App() {
             path="/auth"
             element={
               user ? (
-                pairingStatus === 'paired' ? (
+                user.onboarding_completed ? (
                   <Navigate to="/home" replace />
                 ) : (
                   <Navigate to="/onboarding" replace />
@@ -289,7 +335,7 @@ export default function App() {
             element={
               !user ? (
                 <Navigate to="/auth" replace />
-              ) : pairingStatus === 'paired' ? (
+              ) : user.onboarding_completed ? (
                 <Navigate to="/home" replace />
               ) : (
                 <Suspense fallback={<LoadingSpinner fullScreen />}>

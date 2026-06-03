@@ -7,10 +7,10 @@ import {
   Pencil,
   Check,
   CheckCheck,
-  Loader2,
   Clock,
   MessageSquare,
 } from 'lucide-react';
+import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
 
 // Map color IDs to CSS styles (8 options)
@@ -291,7 +291,7 @@ export default function FridgeItem({
     if (item.isOfflineQueue) {
       indicatorNode = <Clock className="w-3.5 h-3.5 text-text-muted/60" />;
     } else if (item.isPending) {
-      indicatorNode = <Loader2 className="w-3 h-3 animate-spin text-text-muted/60" />;
+      indicatorNode = <LoadingSpinner size="sm" className="w-3 h-3 text-text-muted/60" />;
     } else if (isRead) {
       indicatorNode = <CheckCheck className="w-3.5 h-3.5 text-blue-500" />;
     } else {

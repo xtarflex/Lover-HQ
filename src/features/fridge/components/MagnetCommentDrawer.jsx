@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, MessageSquare, Clock, Smile, Check, CheckCheck, Loader2 } from 'lucide-react';
+import { X, Send, MessageSquare, Clock, Smile, Check, CheckCheck } from 'lucide-react';
+import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { supabase } from '../../../lib/supabase';
 import { getFridgeComments, createFridgeComment } from '../../../services/fridge';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
@@ -396,7 +397,7 @@ export default function MagnetCommentDrawer({
       return <Clock className="w-2.5 h-2.5 text-text-muted/40" title="Offline queued" />;
     }
     if (isPending) {
-      return <Loader2 className="w-2.5 h-2.5 animate-spin text-text-muted/40" title="Sending..." />;
+      return <LoadingSpinner size="sm" className="w-2.5 h-2.5 text-text-muted/40" title="Sending..." />;
     }
 
     const isRead =

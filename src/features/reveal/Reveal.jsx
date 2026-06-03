@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Heart,
   Sparkles,
@@ -13,12 +14,12 @@ import {
   Star,
   Check,
   Plus,
-  Loader,
 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 import { Notification } from '../../components/Notification';
 import GlassDropdown from '../../components/GlassDropdown';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 import promptsData from './prompts.json';
 
 /**
@@ -43,6 +44,7 @@ export default function Reveal() {
   const { user, partner } = useAppContext();
   const userId = user?.id;
   const partnerId = partner?.id;
+  const navigate = useNavigate();
 
   // Stable couple identifier used for daily active question entries
   const coupleKey = useMemo(() => {
@@ -315,7 +317,10 @@ export default function Reveal() {
 
   // --- Fetch Initial Data ---
   const fetchData = useCallback(async () => {
-    if (!userId || !partnerId || !coupleKey) return;
+    if (!userId || !partnerId || !coupleKey) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
     try {
@@ -738,8 +743,30 @@ export default function Reveal() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader className="w-8 h-8 animate-spin text-primary" />
+        <LoadingSpinner size="md" />
         <span className="text-sm font-semibold text-text-muted">Loading daily Reveal...</span>
+      </div>
+    );
+  }
+
+  if (!partnerId) {
+    return (
+      <div className="max-w-md mx-auto pt-16 pb-24 px-4 flex flex-col items-center text-center space-y-6 animate-slide-up">
+        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+          <Heart className="w-8 h-8 fill-current text-red-500 animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="font-heading text-2xl font-extrabold text-text-main">Pairing Required</h2>
+          <p className="text-sm text-text-muted max-w-xs mx-auto leading-relaxed">
+            The Daily Reveal is a blind Q&A game built for two. Link up with your partner to unlock daily prompts, check their answers, and share comments!
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/profile')}
+          className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover-heart-scale"
+        >
+          Go to Partner Profile
+        </button>
       </div>
     );
   }
@@ -816,7 +843,7 @@ export default function Reveal() {
                       className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5"
                     >
                       {submittingAnswer ? (
-                        <Loader className="w-4.5 h-4.5 animate-spin" />
+                        <LoadingSpinner size="sm" className="text-white w-4.5 h-4.5" />
                       ) : (
                         <Check className="w-4.5 h-4.5" />
                       )}
@@ -1015,7 +1042,7 @@ export default function Reveal() {
                 className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1"
               >
                 {creatingQuestion ? (
-                  <Loader className="w-4.5 h-4.5 animate-spin text-primary" />
+                  <LoadingSpinner size="sm" className="text-primary w-4.5 h-4.5" />
                 ) : (
                   <Check className="w-4.5 h-4.5 text-primary" />
                 )}

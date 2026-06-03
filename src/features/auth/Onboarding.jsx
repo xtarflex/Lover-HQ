@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch, useAppContext } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
-import { Link as LinkIcon, ChevronRight, ArrowLeft, Heart, Sparkles } from 'lucide-react';
+import { Link as LinkIcon, ChevronRight, ArrowLeft, Heart, Sparkles, Copy } from 'lucide-react';
 import Avatar from '../../components/Avatar';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { Notification } from '../../components/Notification';
@@ -207,9 +207,9 @@ export default function Onboarding() {
     }
   }, [user]);
 
-  // Auto-skip to Step 5 if onboarding is already completed
+  // Auto-skip to Step 5 if profile details are already set or onboarding is completed
   useEffect(() => {
-    if (user?.onboarding_completed && step < 5) {
+    if ((user?.onboarding_completed || user?.name) && step < 5) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep([5, 1]);
     }
@@ -265,7 +265,6 @@ export default function Onboarding() {
           avatar_url: selectedAvatarId,
           phone_number: finalPhone,
           birthday: birthday || null,
-          onboarding_completed: true,
         })
         .eq('id', user.id);
 
@@ -279,7 +278,6 @@ export default function Onboarding() {
           avatar_url: selectedAvatarId,
           phone_number: finalPhone,
           birthday: birthday || null,
-          onboarding_completed: true,
         },
       });
 
@@ -354,14 +352,51 @@ export default function Onboarding() {
       // and consumes their pairing code within the same atomic transaction.
       const { error: linkError } = await supabase
         .from('users')
-        .update({ partner_id: partner.id, pairing_code: null, pairing_code_expires_at: null })
+        .update({
+          partner_id: partner.id,
+          pairing_code: null,
+          pairing_code_expires_at: null,
+          onboarding_completed: true,
+        })
         .eq('id', user.id);
 
       if (linkError) throw linkError;
 
       sessionStorage.removeItem('lover_hq_pairing_code');
+      dispatch({
+        type: 'SET_USER',
+        payload: {
+          ...user,
+          partner_id: partner.id,
+          onboarding_completed: true,
+          pairing_code: null,
+          pairing_code_expires_at: null,
+        },
+      });
       dispatch({ type: 'SET_PARTNER', payload: partner });
       dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkipPairing = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      dispatch({
+        type: 'SET_USER',
+        payload: { ...user, onboarding_completed: true },
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -674,10 +709,14 @@ export default function Onboarding() {
                       type="button"
                       onClick={handleProfileSubmit}
                       disabled={loading}
-                      className="bg-text-main text-background hover-heart-scale flex-grow py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all disabled:opacity-50 group"
+                      className="bg-text-main text-background hover-heart-scale flex-grow py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all disabled:opacity-50 group flex items-center justify-center"
                     >
-                      <span className="relative z-10">
-                        {loading ? 'Saving...' : 'Almost There'}
+                      <span className="relative z-10 flex items-center justify-center">
+                        {loading ? (
+                          <LoadingSpinner size="sm" className="text-background" />
+                        ) : (
+                          'Almost There'
+                        )}
                       </span>
                     </button>
                   </div>
@@ -710,25 +749,43 @@ export default function Onboarding() {
                             <button
                               onClick={handleGenerateCode}
                               disabled={loading}
-                              className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50"
+                              className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50 flex items-center justify-center"
                             >
-                              {loading ? 'Creating...' : 'Generate New Code'}
+                              {loading ? (
+                                <LoadingSpinner size="sm" className="text-primary" />
+                              ) : (
+                                'Generate New Code'
+                              )}
                             </button>
                           </div>
                         ) : (
                           <div className="text-center w-full flex flex-col items-center">
-                            <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-surface/40 px-8 py-4 rounded-2xl shadow-inner mb-6">
+                            <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-surface/40 px-8 py-4 rounded-2xl shadow-inner mb-6 select-all">
                               {user.pairing_code}
                             </div>
-                            <button
-                              onClick={handleShareLink}
-                              className="w-full bg-primary text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover-heart-scale group"
-                            >
-                              <span className="relative z-10 flex items-center justify-center gap-2">
-                                <span>Share Link</span>
-                                <LinkIcon size={18} />
-                              </span>
-                            </button>
+                            <div className="flex gap-4 w-full">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(user.pairing_code);
+                                  setError({ text: 'Pairing code copied!', type: 'success' });
+                                }}
+                                className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-text-main text-sm font-bold rounded-full border border-white/5 transition-colors flex items-center justify-center gap-2 hover-heart-scale"
+                              >
+                                <span>Copy Code</span>
+                                <Copy size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleShareLink}
+                                className="flex-grow bg-primary text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover-heart-scale group"
+                              >
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  <span>Share Link</span>
+                                  <LinkIcon size={18} />
+                                </span>
+                              </button>
+                            </div>
                             <p className="text-xs text-primary mt-4 animate-pulse flex items-center gap-1">
                               <Sparkles size={12} />
                               Waiting for them to join...
@@ -739,9 +796,13 @@ export default function Onboarding() {
                         <button
                           onClick={handleGenerateCode}
                           disabled={loading}
-                          className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50"
+                          className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50 flex items-center justify-center"
                         >
-                          {loading ? 'Creating...' : 'Generate Code'}
+                          {loading ? (
+                            <LoadingSpinner size="sm" className="text-primary" />
+                          ) : (
+                            'Generate Code'
+                          )}
                         </button>
                       )}
                     </div>
@@ -785,6 +846,19 @@ export default function Onboarding() {
                         </span>
                       </button>
                     </form>
+
+                    {/* Solo Mode Skip Option */}
+                    <div className="text-center pt-4">
+                      <button
+                        type="button"
+                        onClick={handleSkipPairing}
+                        disabled={loading}
+                        className="text-xs font-bold uppercase tracking-widest text-text-muted hover:text-primary transition-colors py-2.5 px-4 rounded-xl hover:bg-white/5 flex items-center justify-center gap-2 mx-auto"
+                      >
+                        {loading && <LoadingSpinner size="sm" className="text-text-muted w-4 h-4" />}
+                        <span>{user?.pairing_code ? 'Go to Dashboard' : 'Explore in Solo Mode'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -792,7 +866,11 @@ export default function Onboarding() {
           </AnimatePresence>
         </div>
       </main>
-      <Notification message={error} onClose={() => setError(null)} />
+      <Notification
+        message={typeof error === 'object' && error !== null ? error.text : error}
+        type={typeof error === 'object' && error !== null ? error.type : 'error'}
+        onClose={() => setError(null)}
+      />
     </div>
   );
 }
