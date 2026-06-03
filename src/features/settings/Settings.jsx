@@ -6,6 +6,7 @@ import { Notification } from '../../components/Notification';
 import Avatar from '../../components/Avatar';
 import avatarManifest from '../../assets/avatars_manifest.json';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
+import GlassDropdown from '../../components/GlassDropdown';
 import {
   User,
   LogOut,

@@ -112,7 +112,7 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
-  const { user, pairingStatus, preferences } = useAppContext();
+  const { user, preferences } = useAppContext();
   const dispatch = useAppDispatch();
 
   // Load and sync preferences from DB

@@ -1,15 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
-import {
-  Play,
-  Pause,
-  Trash2,
-  Pencil,
-  Check,
-  CheckCheck,
-  Clock,
-  MessageSquare,
-} from 'lucide-react';
+import { Play, Pause, Trash2, Pencil, Check, CheckCheck, Clock, MessageSquare } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
 

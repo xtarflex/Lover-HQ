@@ -42,7 +42,9 @@ function appReducer(state, action) {
     case 'UPDATE_PREFERENCE':
       return {
         ...state,
-        preferences: state.preferences ? { ...state.preferences, ...action.payload } : action.payload,
+        preferences: state.preferences
+          ? { ...state.preferences, ...action.payload }
+          : action.payload,
       };
     case 'RESET_STATE':
       return initialState;

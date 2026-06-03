@@ -18,40 +18,43 @@ export function usePreferences(userId) {
   // Fetch preferences on mount/user change
   useEffect(() => {
     if (!userId) {
-      setPrefs(null);
-      setLoading(false);
-      return;
+      const timer = setTimeout(() => {
+        setPrefs(null);
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
-    setLoading(true);
+    let active = true;
+    const timer = setTimeout(() => {
+      if (active) {
+        setLoading(true);
+        const fetchPrefs = async () => {
+          try {
+            const { data, error } = await supabase
+              .from('user_preferences')
+              .select('*')
+              .eq('user_id', userId)
+              .single();
 
-    const fetchPrefs = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_preferences')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-
-        if (error) {
-          // If preference doesn't exist yet, it will be automatically handled by the database trigger
-          // on user profile creation. In case of delay, fallback to empty object.
-          if (error.code === 'PGRST116') {
-            setPrefs({});
-          } else {
-            console.error('Error fetching preferences:', error);
+            if (error) {
+              if (error.code === 'PGRST116') {
+                setPrefs({});
+              } else {
+                console.error('Error fetching preferences:', error);
+              }
+            } else {
+              setPrefs(data);
+            }
+          } catch (err) {
+            console.error('Error in fetchPrefs:', err);
+          } finally {
+            setLoading(false);
           }
-        } else {
-          setPrefs(data);
-        }
-      } catch (err) {
-        console.error('Error in fetchPrefs:', err);
-      } finally {
-        setLoading(false);
+        };
+        fetchPrefs();
       }
-    };
-
-    fetchPrefs();
+    }, 0);
 
     // Subscribe to real-time changes on the preference record for this user
     const channel = supabase
@@ -73,6 +76,8 @@ export function usePreferences(userId) {
       .subscribe();
 
     return () => {
+      active = false;
+      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [userId]);

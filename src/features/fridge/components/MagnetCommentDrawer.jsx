@@ -397,7 +397,9 @@ export default function MagnetCommentDrawer({
       return <Clock className="w-2.5 h-2.5 text-text-muted/40" title="Offline queued" />;
     }
     if (isPending) {
-      return <LoadingSpinner size="sm" className="w-2.5 h-2.5 text-text-muted/40" title="Sending..." />;
+      return (
+        <LoadingSpinner size="sm" className="w-2.5 h-2.5 text-text-muted/40" title="Sending..." />
+      );
     }
 
     const isRead =

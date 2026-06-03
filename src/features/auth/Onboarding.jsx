@@ -855,8 +855,12 @@ export default function Onboarding() {
                         disabled={loading}
                         className="text-xs font-bold uppercase tracking-widest text-text-muted hover:text-primary transition-colors py-2.5 px-4 rounded-xl hover:bg-white/5 flex items-center justify-center gap-2 mx-auto"
                       >
-                        {loading && <LoadingSpinner size="sm" className="text-text-muted w-4 h-4" />}
-                        <span>{user?.pairing_code ? 'Go to Dashboard' : 'Explore in Solo Mode'}</span>
+                        {loading && (
+                          <LoadingSpinner size="sm" className="text-text-muted w-4 h-4" />
+                        )}
+                        <span>
+                          {user?.pairing_code ? 'Go to Dashboard' : 'Explore in Solo Mode'}
+                        </span>
                       </button>
                     </div>
                   </div>

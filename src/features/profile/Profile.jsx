@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
@@ -57,7 +57,7 @@ export default function Profile() {
   const [inputPairingCode, setInputPairingCode] = useState('');
   const [pairCodeLoading, setPairCodeLoading] = useState(false);
 
-  const fetchHistoryAndRequests = async () => {
+  const fetchHistoryAndRequests = useCallback(async () => {
     if (!user?.id) return;
     try {
       // 1. Fetch pairing history
@@ -77,8 +77,9 @@ export default function Profile() {
 
       if (pastPartnerIds.length > 0) {
         // Fetch profiles of past partners
-        const { data: profiles, error: profError } = await supabase
-          .rpc('get_public_profiles', { user_ids: pastPartnerIds });
+        const { data: profiles, error: profError } = await supabase.rpc('get_public_profiles', {
+          user_ids: pastPartnerIds,
+        });
 
         if (profError) throw profError;
         setHistory(profiles || []);
@@ -95,8 +96,9 @@ export default function Profile() {
 
       if (!incError && incoming?.length > 0) {
         const senderIds = incoming.map((r) => r.sender_id);
-        const { data: senders } = await supabase
-          .rpc('get_public_profiles', { user_ids: senderIds });
+        const { data: senders } = await supabase.rpc('get_public_profiles', {
+          user_ids: senderIds,
+        });
 
         const mappedIncoming = incoming.map((req) => ({
           ...req,
@@ -120,8 +122,9 @@ export default function Profile() {
 
       if (!outError && outgoing?.length > 0) {
         const receiverIds = outgoing.map((r) => r.receiver_id);
-        const { data: receivers } = await supabase
-          .rpc('get_public_profiles', { user_ids: receiverIds });
+        const { data: receivers } = await supabase.rpc('get_public_profiles', {
+          user_ids: receiverIds,
+        });
 
         const mappedOutgoing = outgoing.map((req) => ({
           ...req,
@@ -138,13 +141,22 @@ export default function Profile() {
     } catch (err) {
       console.error('Error fetching history or requests:', err);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
+    let active = true;
     if (!partner) {
-      fetchHistoryAndRequests();
+      const timer = setTimeout(() => {
+        if (active) {
+          fetchHistoryAndRequests();
+        }
+      }, 0);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }
-  }, [user?.id, partner]);
+  }, [partner, fetchHistoryAndRequests]);
 
   const handleSendReconnect = async (receiverId) => {
     try {
@@ -632,7 +644,8 @@ export default function Profile() {
             <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
               <h3 className="font-bold text-text-main text-base">Invite Your Partner</h3>
               <p className="text-xs text-text-muted leading-relaxed">
-                Generate a temporary connection code to send to your partner. It expires in 24 hours.
+                Generate a temporary connection code to send to your partner. It expires in 24
+                hours.
               </p>
 
               {user?.pairing_code ? (
@@ -687,7 +700,11 @@ export default function Profile() {
                   disabled={pairCodeLoading}
                   className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
                 >
-                  {pairCodeLoading ? <LoadingSpinner size="sm" className="text-white" /> : <Sparkles className="w-4 h-4" />}
+                  {pairCodeLoading ? (
+                    <LoadingSpinner size="sm" className="text-white" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
                   Generate Pairing Code
                 </button>
               )}
@@ -715,7 +732,11 @@ export default function Profile() {
                   disabled={pairCodeLoading || inputPairingCode.length !== 6}
                   className="w-full py-3 bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center"
                 >
-                  {pairCodeLoading ? <LoadingSpinner size="sm" className="text-white" /> : 'Connect'}
+                  {pairCodeLoading ? (
+                    <LoadingSpinner size="sm" className="text-white" />
+                  ) : (
+                    'Connect'
+                  )}
                 </button>
               </form>
             </div>
@@ -732,10 +753,15 @@ export default function Profile() {
                 </h3>
                 <div className="space-y-3">
                   {incomingRequests.map((req) => (
-                    <div key={req.id} className="flex items-center justify-between bg-surface/80 border border-surface-border/50 p-3 rounded-2xl">
+                    <div
+                      key={req.id}
+                      className="flex items-center justify-between bg-surface/80 border border-surface-border/50 p-3 rounded-2xl"
+                    >
                       <div className="flex items-center gap-3">
                         <Avatar src={req.sender?.avatar_url} size="sm" fallback="👤" />
-                        <span className="text-sm font-semibold text-text-main">{req.sender?.name}</span>
+                        <span className="text-sm font-semibold text-text-main">
+                          {req.sender?.name}
+                        </span>
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -765,12 +791,19 @@ export default function Profile() {
                 <h3 className="font-bold text-text-main text-base">Sent Reconnect Invites</h3>
                 <div className="space-y-3">
                   {outgoingRequests.map((req) => (
-                    <div key={req.id} className="flex items-center justify-between bg-white/5 border border-surface-border/50 p-3 rounded-2xl">
+                    <div
+                      key={req.id}
+                      className="flex items-center justify-between bg-white/5 border border-surface-border/50 p-3 rounded-2xl"
+                    >
                       <div className="flex items-center gap-3">
                         <Avatar src={req.receiver?.avatar_url} size="sm" fallback="👤" />
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-text-main">{req.receiver?.name}</span>
-                          <span className="text-[10px] text-primary animate-pulse">Waiting for partner...</span>
+                          <span className="text-sm font-semibold text-text-main">
+                            {req.receiver?.name}
+                          </span>
+                          <span className="text-[10px] text-primary animate-pulse">
+                            Waiting for partner...
+                          </span>
                         </div>
                       </div>
                       <button
@@ -793,7 +826,10 @@ export default function Profile() {
                   {history.map((prev) => {
                     const isRequested = outgoingRequests.some((req) => req.receiver_id === prev.id);
                     return (
-                      <div key={prev.id} className="flex items-center justify-between bg-white/5 border border-surface-border/50 p-3 rounded-2xl">
+                      <div
+                        key={prev.id}
+                        className="flex items-center justify-between bg-white/5 border border-surface-border/50 p-3 rounded-2xl"
+                      >
                         <div className="flex items-center gap-3">
                           <Avatar src={prev.avatar_url} size="sm" fallback="👤" />
                           <span className="text-sm font-semibold text-text-main">{prev.name}</span>
@@ -833,7 +869,9 @@ export default function Profile() {
                 Unpair Relationship?
               </h3>
               <p className="text-sm text-text-muted leading-relaxed">
-                This will disconnect your account from <span className="text-primary font-semibold">{partner?.name}</span>. You can reconnect anytime with a code or through connection history.
+                This will disconnect your account from{' '}
+                <span className="text-primary font-semibold">{partner?.name}</span>. You can
+                reconnect anytime with a code or through connection history.
               </p>
             </div>
 
@@ -851,7 +889,8 @@ export default function Profile() {
                     Delete shared data
                   </span>
                   <span className="text-xs text-text-muted leading-relaxed">
-                    Permanently delete all Fridge notes/media and Daily Reveal answers created together.
+                    Permanently delete all Fridge notes/media and Daily Reveal answers created
+                    together.
                   </span>
                 </div>
               </label>

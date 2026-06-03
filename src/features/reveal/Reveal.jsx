@@ -758,7 +758,8 @@ export default function Reveal() {
         <div className="space-y-2">
           <h2 className="font-heading text-2xl font-extrabold text-text-main">Pairing Required</h2>
           <p className="text-sm text-text-muted max-w-xs mx-auto leading-relaxed">
-            The Daily Reveal is a blind Q&A game built for two. Link up with your partner to unlock daily prompts, check their answers, and share comments!
+            The Daily Reveal is a blind Q&A game built for two. Link up with your partner to unlock
+            daily prompts, check their answers, and share comments!
           </p>
         </div>
         <button
