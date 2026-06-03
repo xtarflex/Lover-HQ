@@ -67,11 +67,13 @@ function MainLayout() {
   usePresence(friendlyRoomName);
 
   const isFridgeRoute = location.pathname === '/fridge';
+  const isGamesRoute = location.pathname === '/games';
+  const isFullHeight = isFridgeRoute || isGamesRoute;
 
   return (
     <div
       className={
-        isFridgeRoute
+        isFullHeight
           ? 'flex flex-col h-[100dvh] overflow-hidden bg-background pb-20'
           : 'flex flex-col min-h-screen bg-background pb-24'
       }
@@ -79,7 +81,7 @@ function MainLayout() {
       <TopBar />
       <main
         className={
-          isFridgeRoute
+          isFullHeight
             ? 'flex-grow overflow-hidden flex flex-col relative'
             : 'flex-grow container mx-auto px-4 overflow-y-auto pt-4'
         }

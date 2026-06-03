@@ -1,29 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
+/**
+ * @file Profile.jsx
+ * @description Partner Profile page. Displays and manages partner details when
+ * paired, or shows pairing setup flow when unpaired.
+ */
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 import { Notification } from '../../components/Notification';
 import Avatar from '../../components/Avatar';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
 import avatarManifest from '../../assets/avatars_manifest.json';
 import {
-  User,
   Heart,
   Calendar,
   Phone,
   Sparkles,
   ArrowLeft,
   Info,
-  Check,
-  Pencil,
   Clock,
-  Smile,
   Search,
   Coffee,
-  X,
-  Copy,
+  Smile,
 } from 'lucide-react';
+import { usePairingManager } from './hooks/usePairingManager';
+import PairingSetup from './components/PairingSetup';
+import PartnerDetailsForm from './components/PartnerDetailsForm';
 
+/**
+ * Profile page component — shows partner info when paired, or the pairing
+ * setup UI when no partner is linked.
+ *
+ * @returns {React.ReactElement}
+ */
 export default function Profile() {
   const { user, partner, presence } = useAppContext();
   const dispatch = useAppDispatch();
@@ -31,15 +40,13 @@ export default function Profile() {
 
   const editTarget = partner;
 
-  // Partner Profile Form States (only editable by the user for their partner)
+  // Partner profile edit state
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
   useEffect(() => {
     if (editTarget) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(editTarget.name || '');
-
       setAvatarUrl(editTarget.avatar_url || '');
     }
   }, [editTarget]);
@@ -48,273 +55,34 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // --- Reconnection & Unpairing State ---
-  const [history, setHistory] = useState([]);
-  const [incomingRequests, setIncomingRequests] = useState([]);
-  const [outgoingRequests, setOutgoingRequests] = useState([]);
-  const [showUnpairModal, setShowUnpairModal] = useState(false);
-  const [deleteSharedChoice, setDeleteSharedChoice] = useState(false);
-  const [inputPairingCode, setInputPairingCode] = useState('');
-  const [pairCodeLoading, setPairCodeLoading] = useState(false);
+  // Pairing state & actions via hook
+  const {
+    history,
+    incomingRequests,
+    outgoingRequests,
+    showUnpairModal,
+    setShowUnpairModal,
+    deleteSharedChoice,
+    setDeleteSharedChoice,
+    inputPairingCode,
+    setInputPairingCode,
+    pairCodeLoading,
+    saving: unpairSaving,
+    handleSendReconnect,
+    handleAcceptReconnect,
+    handleDeclineReconnect,
+    handleCancelRequest,
+    handleUnpair,
+    handleGenerateCode,
+    handleEnterCode,
+  } = usePairingManager({ user, partner, dispatch, setMessage });
 
-  const fetchHistoryAndRequests = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      // 1. Fetch pairing history
-      const { data: histData, error: histError } = await supabase
-        .from('pairing_history')
-        .select('*')
-        .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`);
-
-      if (histError) throw histError;
-
-      // Extract unique past partner IDs (exclude current user)
-      const pastPartnerIds = [
-        ...new Set(
-          (histData || []).map((row) => (row.user_a_id === user.id ? row.user_b_id : row.user_a_id))
-        ),
-      ];
-
-      if (pastPartnerIds.length > 0) {
-        // Fetch profiles of past partners
-        const { data: profiles, error: profError } = await supabase.rpc('get_public_profiles', {
-          user_ids: pastPartnerIds,
-        });
-
-        if (profError) throw profError;
-        setHistory(profiles || []);
-      } else {
-        setHistory([]);
-      }
-
-      // 2. Fetch incoming requests
-      const { data: incoming, error: incError } = await supabase
-        .from('reconnect_requests')
-        .select('*')
-        .eq('receiver_id', user.id)
-        .eq('status', 'pending');
-
-      if (!incError && incoming?.length > 0) {
-        const senderIds = incoming.map((r) => r.sender_id);
-        const { data: senders } = await supabase.rpc('get_public_profiles', {
-          user_ids: senderIds,
-        });
-
-        const mappedIncoming = incoming.map((req) => ({
-          ...req,
-          sender: senders?.find((s) => s.id === req.sender_id) || {
-            id: req.sender_id,
-            name: 'Unknown User',
-            avatar_url: '',
-          },
-        }));
-        setIncomingRequests(mappedIncoming);
-      } else {
-        setIncomingRequests([]);
-      }
-
-      // 3. Fetch outgoing requests
-      const { data: outgoing, error: outError } = await supabase
-        .from('reconnect_requests')
-        .select('*')
-        .eq('sender_id', user.id)
-        .eq('status', 'pending');
-
-      if (!outError && outgoing?.length > 0) {
-        const receiverIds = outgoing.map((r) => r.receiver_id);
-        const { data: receivers } = await supabase.rpc('get_public_profiles', {
-          user_ids: receiverIds,
-        });
-
-        const mappedOutgoing = outgoing.map((req) => ({
-          ...req,
-          receiver: receivers?.find((r) => r.id === req.receiver_id) || {
-            id: req.receiver_id,
-            name: 'Unknown User',
-            avatar_url: '',
-          },
-        }));
-        setOutgoingRequests(mappedOutgoing);
-      } else {
-        setOutgoingRequests([]);
-      }
-    } catch (err) {
-      console.error('Error fetching history or requests:', err);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    let active = true;
-    if (!partner) {
-      const timer = setTimeout(() => {
-        if (active) {
-          fetchHistoryAndRequests();
-        }
-      }, 0);
-      return () => {
-        active = false;
-        clearTimeout(timer);
-      };
-    }
-  }, [partner, fetchHistoryAndRequests]);
-
-  const handleSendReconnect = async (receiverId) => {
-    try {
-      const { error } = await supabase
-        .from('reconnect_requests')
-        .insert({ sender_id: user.id, receiver_id: receiverId, status: 'pending' });
-
-      if (error) throw error;
-      setMessage({ type: 'success', text: 'Reconnection request sent!' });
-      fetchHistoryAndRequests();
-    } catch (err) {
-      console.error(err);
-      setMessage({ type: 'error', text: 'Failed to send request: ' + err.message });
-    }
-  };
-
-  const handleAcceptReconnect = async (request) => {
-    try {
-      // 1. Link partner
-      const { error: linkError } = await supabase
-        .from('users')
-        .update({ partner_id: request.sender_id })
-        .eq('id', user.id);
-
-      if (linkError) throw linkError;
-
-      // 2. Clear request
-      await supabase.from('reconnect_requests').delete().eq('id', request.id);
-
-      // 3. Fetch partner profile
-      const { data: partnerProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', request.sender_id)
-        .single();
-
-      dispatch({ type: 'SET_PARTNER', payload: partnerProfile });
-      dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
-      setMessage({ type: 'success', text: 'You are now re-paired!' });
-    } catch (err) {
-      console.error(err);
-      setMessage({ type: 'error', text: 'Failed to accept reconnect request: ' + err.message });
-    }
-  };
-
-  const handleDeclineReconnect = async (requestId) => {
-    try {
-      const { error } = await supabase.from('reconnect_requests').delete().eq('id', requestId);
-
-      if (error) throw error;
-      setMessage({ type: 'success', text: 'Request declined.' });
-      fetchHistoryAndRequests();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleCancelRequest = async (requestId) => {
-    try {
-      const { error } = await supabase.from('reconnect_requests').delete().eq('id', requestId);
-
-      if (error) throw error;
-      fetchHistoryAndRequests();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleUnpair = async () => {
-    try {
-      setSaving(true);
-      const { error } = await supabase.rpc('unpair_user_and_clean_data', {
-        delete_shared: deleteSharedChoice,
-      });
-
-      if (error) throw error;
-
-      dispatch({ type: 'SET_PARTNER', payload: null });
-      dispatch({ type: 'SET_PAIRING_STATUS', payload: 'unpaired' });
-      setShowUnpairModal(false);
-      setMessage({ type: 'success', text: 'Successfully unpaired.' });
-    } catch (err) {
-      console.error('Unpairing failed:', err);
-      setMessage({ type: 'error', text: 'Unpairing failed: ' + err.message });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleGenerateCode = async () => {
-    setPairCodeLoading(true);
-    try {
-      const array = new Uint32Array(1);
-      window.crypto.getRandomValues(array);
-      const code = Math.floor(100000 + (array[0] / 4294967296) * 900000).toString();
-
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
-
-      const { error } = await supabase
-        .from('users')
-        .update({
-          pairing_code: code,
-          pairing_code_expires_at: expiresAt.toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      dispatch({
-        type: 'SET_USER',
-        payload: { ...user, pairing_code: code, pairing_code_expires_at: expiresAt.toISOString() },
-      });
-      dispatch({ type: 'SET_PAIRING_STATUS', payload: 'pending' });
-    } catch (err) {
-      setMessage({ type: 'error', text: 'Failed to generate code: ' + err.message });
-    } finally {
-      setPairCodeLoading(false);
-    }
-  };
-
-  const handleEnterCode = async (e) => {
-    e?.preventDefault();
-    if (inputPairingCode.length !== 6) return;
-
-    setPairCodeLoading(true);
-    try {
-      const { data: partners, error: findError } = await supabase.rpc('get_user_by_pairing_code', {
-        input_code: inputPairingCode,
-      });
-
-      const partner = partners?.[0];
-
-      if (findError || !partner) {
-        throw new Error('Invalid or expired pairing code. Please check and try again.');
-      }
-
-      if (partner.id === user.id) {
-        throw new Error("You can't pair with yourself!");
-      }
-
-      const { error: linkError } = await supabase
-        .from('users')
-        .update({ partner_id: partner.id, pairing_code: null, pairing_code_expires_at: null })
-        .eq('id', user.id);
-
-      if (linkError) throw linkError;
-
-      dispatch({ type: 'SET_PARTNER', payload: partner });
-      dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
-      setMessage({ type: 'success', text: 'You are now paired!' });
-    } catch (err) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setPairCodeLoading(false);
-    }
-  };
-
+  /**
+   * Saves the edited partner profile (name + avatar) to the database.
+   *
+   * @param {React.FormEvent} e - The form submit event.
+   * @returns {Promise<void>}
+   */
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     const targetId = editTarget?.id;
@@ -350,6 +118,12 @@ export default function Profile() {
     }
   };
 
+  /**
+   * Calculates the number of days until the next occurrence of a date.
+   *
+   * @param {string} dateString - ISO date string for the target date.
+   * @returns {number|null} Days until the next occurrence, or null if no date provided.
+   */
   const calculateDaysUntil = (dateString) => {
     if (!dateString) return null;
     const today = new Date();
@@ -416,74 +190,15 @@ export default function Profile() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Left Column: Editable Details */}
             <div className="md:col-span-5 space-y-6">
-              <form
+              <PartnerDetailsForm
+                name={name}
+                setName={setName}
+                avatarUrl={avatarUrl}
+                onOpenAvatarPicker={() => setShowAvatarPicker(true)}
+                presence={presence}
+                saving={saving}
                 onSubmit={handleSaveProfile}
-                className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-text-main text-base">Their Details</h3>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 border border-primary/20 text-primary">
-                    <Pencil className="w-3.5 h-3.5" />
-                    Editable by you
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center justify-center space-y-3 py-2">
-                  <div
-                    className="relative cursor-pointer"
-                    onClick={() => setShowAvatarPicker(true)}
-                  >
-                    <Avatar
-                      src={avatarUrl}
-                      fallback="👤"
-                      isOnline={presence?.partner === 'online'}
-                      size="xl"
-                    />
-                    <div className="absolute bottom-0 right-0 w-8 h-8 bg-primary hover:bg-primary-hover rounded-full flex items-center justify-center shadow-lg border-2 border-background z-20 transition-transform active:scale-90">
-                      <Pencil className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAvatarPicker(true)}
-                    className="text-xs text-primary font-bold hover:underline"
-                  >
-                    Change Partner Avatar
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
-                      Display Name
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-3.5 w-4 h-4 text-text-muted" />
-                      <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-white/5 dark:bg-slate-950/50 border border-surface-border dark:border-slate-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary text-text-main transition-all font-semibold"
-                        placeholder="e.g. Partner Name"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <LoadingSpinner size="sm" className="text-white" />
-                    ) : (
-                      <Check className="w-4 h-4" />
-                    )}
-                    Save
-                  </button>
-                </div>
-              </form>
+              />
 
               {/* Status & Connection Widget */}
               <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
@@ -637,226 +352,22 @@ export default function Profile() {
           </div>
         </>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-slide-up w-full">
-          {/* Left Column: Code Exchange */}
-          <div className="md:col-span-6 space-y-6">
-            {/* Generate Code Box */}
-            <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
-              <h3 className="font-bold text-text-main text-base">Invite Your Partner</h3>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Generate a temporary connection code to send to your partner. It expires in 24
-                hours.
-              </p>
-
-              {user?.pairing_code ? (
-                <div className="text-center w-full flex flex-col items-center pt-2 space-y-3">
-                  <div className="text-3xl font-mono font-bold tracking-[0.3em] text-primary bg-white/5 border border-surface-border/50 px-6 py-3 rounded-2xl shadow-inner w-full select-all">
-                    {user.pairing_code}
-                  </div>
-                  <div className="flex gap-2 w-full">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(user.pairing_code);
-                        setMessage({ type: 'success', text: 'Pairing code copied!' });
-                      }}
-                      className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-text-main text-xs font-bold rounded-xl border border-white/5 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <span>Copy Code</span>
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const shareUrl = window.location.origin + '/auth?pair=' + user.pairing_code;
-                        if (navigator.share) {
-                          try {
-                            await navigator.share({
-                              title: 'Join me on Lover-HQ',
-                              text: 'Use my code to pair our accounts!',
-                              url: shareUrl,
-                            });
-                          } catch (err) {
-                            if (err.name !== 'AbortError') {
-                              navigator.clipboard.writeText(shareUrl);
-                              setMessage({ type: 'success', text: 'Share link copied!' });
-                            }
-                          }
-                        } else {
-                          navigator.clipboard.writeText(shareUrl);
-                          setMessage({ type: 'success', text: 'Share link copied!' });
-                        }
-                      }}
-                      className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl transition-all"
-                    >
-                      Share Link
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleGenerateCode}
-                  disabled={pairCodeLoading}
-                  className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
-                >
-                  {pairCodeLoading ? (
-                    <LoadingSpinner size="sm" className="text-white" />
-                  ) : (
-                    <Sparkles className="w-4 h-4" />
-                  )}
-                  Generate Pairing Code
-                </button>
-              )}
-            </div>
-
-            {/* Enter Code Box */}
-            <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
-              <h3 className="font-bold text-text-main text-base">Enter Their Code</h3>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Have an invitation code from your partner? Enter it here to complete the pairing.
-              </p>
-
-              <form onSubmit={handleEnterCode} className="space-y-4">
-                <input
-                  type="text"
-                  maxLength="6"
-                  required
-                  value={inputPairingCode}
-                  onChange={(e) => setInputPairingCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-white/5 border border-surface-border dark:border-slate-800 rounded-xl text-center text-xl font-mono font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-primary text-text-main transition-all"
-                  placeholder="000000"
-                />
-                <button
-                  type="submit"
-                  disabled={pairCodeLoading || inputPairingCode.length !== 6}
-                  className="w-full py-3 bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center"
-                >
-                  {pairCodeLoading ? (
-                    <LoadingSpinner size="sm" className="text-white" />
-                  ) : (
-                    'Connect'
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Right Column: History & Requests */}
-          <div className="md:col-span-6 space-y-6">
-            {/* Incoming Requests */}
-            {incomingRequests.length > 0 && (
-              <div className="bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 p-6 rounded-3xl shadow-xl space-y-4">
-                <h3 className="font-bold text-text-main text-base flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" />
-                  Incoming Reconnect Invites
-                </h3>
-                <div className="space-y-3">
-                  {incomingRequests.map((req) => (
-                    <div
-                      key={req.id}
-                      className="flex items-center justify-between bg-surface/80 border border-surface-border/50 p-3 rounded-2xl"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar src={req.sender?.avatar_url} size="sm" fallback="👤" />
-                        <span className="text-sm font-semibold text-text-main">
-                          {req.sender?.name}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleAcceptReconnect(req)}
-                          className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-xl transition-colors"
-                          title="Accept"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeclineReconnect(req.id)}
-                          className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-colors flex items-center justify-center"
-                          title="Decline"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Outgoing Requests */}
-            {outgoingRequests.length > 0 && (
-              <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
-                <h3 className="font-bold text-text-main text-base">Sent Reconnect Invites</h3>
-                <div className="space-y-3">
-                  {outgoingRequests.map((req) => (
-                    <div
-                      key={req.id}
-                      className="flex items-center justify-between bg-white/5 border border-surface-border/50 p-3 rounded-2xl"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar src={req.receiver?.avatar_url} size="sm" fallback="👤" />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-text-main">
-                            {req.receiver?.name}
-                          </span>
-                          <span className="text-[10px] text-primary animate-pulse">
-                            Waiting for partner...
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleCancelRequest(req.id)}
-                        className="text-xs text-text-muted hover:text-red-500 font-bold px-3 py-1.5 hover:bg-red-500/10 rounded-xl transition-all"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Previous Connections History */}
-            <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
-              <h3 className="font-bold text-text-main text-base">Previous Connections</h3>
-              {history.length > 0 ? (
-                <div className="space-y-3">
-                  {history.map((prev) => {
-                    const isRequested = outgoingRequests.some((req) => req.receiver_id === prev.id);
-                    return (
-                      <div
-                        key={prev.id}
-                        className="flex items-center justify-between bg-white/5 border border-surface-border/50 p-3 rounded-2xl"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar src={prev.avatar_url} size="sm" fallback="👤" />
-                          <span className="text-sm font-semibold text-text-main">{prev.name}</span>
-                        </div>
-                        <button
-                          disabled={isRequested}
-                          onClick={() => handleSendReconnect(prev.id)}
-                          className={`text-xs font-bold px-4 py-2 rounded-xl transition-all ${
-                            isRequested
-                              ? 'bg-white/5 text-text-muted cursor-not-allowed border border-white/5'
-                              : 'bg-primary hover:bg-primary-hover text-white shadow-md'
-                          }`}
-                        >
-                          {isRequested ? 'Requested' : 'Reconnect'}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-xs text-text-muted italic leading-relaxed py-2">
-                  No previous pairings recorded. Connect with a code above to start your history!
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+        <PairingSetup
+          user={user}
+          history={history}
+          incomingRequests={incomingRequests}
+          outgoingRequests={outgoingRequests}
+          inputPairingCode={inputPairingCode}
+          setInputPairingCode={setInputPairingCode}
+          pairCodeLoading={pairCodeLoading}
+          onGenerateCode={handleGenerateCode}
+          onEnterCode={handleEnterCode}
+          onSendReconnect={handleSendReconnect}
+          onAcceptReconnect={handleAcceptReconnect}
+          onDeclineReconnect={handleDeclineReconnect}
+          onCancelRequest={handleCancelRequest}
+          setMessage={setMessage}
+        />
       )}
 
       {/* Unpair Confirmation Modal */}
@@ -900,10 +411,10 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={handleUnpair}
-                disabled={saving}
+                disabled={unpairSaving}
                 className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
               >
-                {saving && <LoadingSpinner size="sm" className="text-white" />}
+                {unpairSaving && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                 Unpair Now
               </button>
               <button

@@ -22,6 +22,21 @@ export default {
         kalam: ['Kalam', 'cursive'],
         patrick: ['"Patrick Hand"', 'cursive'],
       },
+      keyframes: {
+        'confetti-fall': {
+          '0%': { transform: 'translateY(-10%) rotate(0deg)', opacity: '1' },
+          '100%': { transform: 'translateY(110vh) rotate(720deg)', opacity: '0' },
+        },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-6px)' },
+          '75%': { transform: 'translateX(6px)' },
+        },
+      },
+      animation: {
+        'confetti-fall': 'confetti-fall 2.5s ease-in forwards',
+        shake: 'shake 0.3s ease-in-out',
+      },
     },
   },
   plugins: [],
