@@ -138,11 +138,11 @@
 - Archive ("Memory Lane")
 
 ### Deliverables
-- [ ] Daily prompt rotation (JSON bank)
-- [ ] Answer submission form
-- [ ] Blur effect until both answered
-- [ ] Archive view with past questions
-- [ ] Nudge notification
+- [x] Daily prompt rotation (JSON bank)
+- [x] Answer submission form
+- [x] Blur effect until both answered
+- [x] Archive view with past questions
+- [x] Nudge notification
 
 ### Jules PR Sequence
 1. **PR #4.1**: Create prompts.json with 100+ questions
