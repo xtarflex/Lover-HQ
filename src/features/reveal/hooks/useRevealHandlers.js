@@ -5,7 +5,7 @@
  * favorites, reactions, comments, and nudging).
  */
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 /**
@@ -76,6 +76,47 @@ export function useRevealHandlers({
   favorites,
   partnerAnswer,
 }) {
+  const syncRevealOffline = useCallback(async () => {
+    if (!navigator.onLine) return;
+    try {
+      const queue = JSON.parse(localStorage.getItem('reveal_offline_queue') || '[]');
+      if (queue.length === 0) return;
+
+      const remaining = [];
+      for (const action of queue) {
+        try {
+          if (action.type === 'answer') {
+            await supabase.from('reveal_answers').insert(action.data);
+          } else if (action.type === 'custom_question') {
+            await supabase.from('reveal_questions').insert(action.data);
+          }
+        } catch (err) {
+          console.error('Failed to sync offline reveal action:', err);
+          remaining.push(action);
+        }
+      }
+      localStorage.setItem('reveal_offline_queue', JSON.stringify(remaining));
+      
+      // If we synced successfully, refresh data to get correct IDs/states
+      if (queue.length > remaining.length) {
+        fetchData();
+      }
+    } catch (e) {
+      console.error('Failed to sync reveal offline queue:', e);
+    }
+  }, [fetchData]);
+
+  useEffect(() => {
+    window.addEventListener('online', syncRevealOffline);
+    const timer = setTimeout(() => {
+      syncRevealOffline();
+    }, 500);
+    return () => {
+      window.removeEventListener('online', syncRevealOffline);
+      clearTimeout(timer);
+    };
+  }, [syncRevealOffline]);
+
   /**
    * Submits the user's answer for today's daily question.
    * Triggers confetti + reveal if the partner has already answered.
@@ -88,15 +129,53 @@ export function useRevealHandlers({
       e.preventDefault();
       if (!userAnswerInput.trim() || !dailyQuestion) return;
       setSubmittingAnswer(true);
+
+      const answerText = userAnswerInput.trim();
+      const ansPayload = {
+        question_id: dailyQuestion.question_id,
+        user_id: userId,
+        answer: answerText,
+      };
+
+      const mockAns = {
+        id: `offline-${Date.now()}`,
+        ...ansPayload,
+        created_at: new Date().toISOString(),
+      };
+
+      // Optimistic update
+      setUserAnswer(mockAns);
+      setUserAnswerInput('');
+
+      // Check offline state
+      if (!navigator.onLine) {
+        try {
+          const queue = JSON.parse(localStorage.getItem('reveal_offline_queue') || '[]');
+          queue.push({ type: 'answer', data: ansPayload });
+          localStorage.setItem('reveal_offline_queue', JSON.stringify(queue));
+          localStorage.setItem('reveal_user_answer_cache', JSON.stringify(mockAns));
+
+          setMessage({ type: 'success', text: 'Answer saved offline! Will sync when connection returns.' });
+          if (partnerAnswer) {
+            setRevealedToday(true);
+          }
+        } catch (err) {
+          console.error('Failed to queue offline answer:', err);
+        } finally {
+          setSubmittingAnswer(false);
+        }
+        return;
+      }
+
       try {
         const { data: ans, error } = await supabase
           .from('reveal_answers')
-          .insert({ question_id: dailyQuestion.question_id, user_id: userId, answer: userAnswerInput.trim() })
+          .insert(ansPayload)
           .select()
           .single();
         if (error) throw error;
         setUserAnswer(ans);
-        setUserAnswerInput('');
+        localStorage.setItem('reveal_user_answer_cache', JSON.stringify(ans));
         setMessage({ type: 'success', text: 'Answer submitted! Your partner is next.' });
         if (partnerAnswer) { setRevealedToday(true); setShowConfetti(true); fetchData(); }
       } catch (err) {
@@ -121,15 +200,50 @@ export function useRevealHandlers({
       e.preventDefault();
       if (!newQuestionText.trim()) return;
       setCreatingQuestion(true);
+
+      const questionText = newQuestionText.trim();
+      const qPayload = {
+        user_id: userId,
+        content: questionText,
+        category: newQuestionCategory,
+      };
+
+      const mockQ = {
+        id: `offline-${Date.now()}`,
+        ...qPayload,
+        created_at: new Date().toISOString(),
+      };
+
+      // Optimistic update
+      setCustomQuestions((prev) => [mockQ, ...prev]);
+      setNewQuestionText('');
+
+      if (!navigator.onLine) {
+        try {
+          const queue = JSON.parse(localStorage.getItem('reveal_offline_queue') || '[]');
+          queue.push({ type: 'custom_question', data: qPayload });
+          localStorage.setItem('reveal_offline_queue', JSON.stringify(queue));
+
+          const cachedCustomQ = JSON.parse(localStorage.getItem('reveal_custom_questions_cache') || '[]');
+          localStorage.setItem('reveal_custom_questions_cache', JSON.stringify([mockQ, ...cachedCustomQ]));
+
+          setMessage({ type: 'success', text: 'Question saved offline! Will sync when connection returns.' });
+        } catch (err) {
+          console.error('Failed to queue offline custom question:', err);
+        } finally {
+          setCreatingQuestion(false);
+        }
+        return;
+      }
+
       try {
         const { data: newQ, error } = await supabase
           .from('reveal_questions')
-          .insert({ user_id: userId, content: newQuestionText.trim(), category: newQuestionCategory })
+          .insert(qPayload)
           .select()
           .single();
         if (error) throw error;
         setCustomQuestions((prev) => [newQ, ...prev]);
-        setNewQuestionText('');
         setMessage({ type: 'success', text: 'Custom question added to rotation queue!' });
       } catch (err) {
         console.error('Create custom question failed:', err);

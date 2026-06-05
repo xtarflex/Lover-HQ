@@ -31,6 +31,10 @@ export default function GameHeader({
   partnerScore = 0,
   timeLeft,
   onBack,
+  activeUserBubble = '',
+  activePartnerBubble = '',
+  userEmojis = [],
+  partnerEmojis = [],
 }) {
   return (
     <div className="w-full bg-surface/80 backdrop-blur-lg border-b border-surface-border/60 px-4 py-3 flex items-center justify-between gap-2 z-10 relative">
@@ -45,10 +49,23 @@ export default function GameHeader({
 
       {/* Player A (You) */}
       <div
-        className={`flex flex-col items-center gap-1 min-w-[60px] transition-all ${
+        className={`flex flex-col items-center gap-1 min-w-[60px] relative transition-all ${
           isMyTurn ? 'opacity-100 scale-105' : 'opacity-50 scale-95'
         }`}
       >
+        {/* Floating Emojis */}
+        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 pointer-events-none w-16 h-24 overflow-visible flex items-end justify-center">
+          {userEmojis.map((item) => (
+            <span
+              key={item.id}
+              style={{ left: `${item.xOffset}%` }}
+              className="absolute text-xl animate-float-up pointer-events-none"
+            >
+              {item.emoji}
+            </span>
+          ))}
+        </div>
+
         <div className="relative">
           <Avatar src={user?.avatar_url} fallback="👤" size="sm" isOnline={true} />
           {isMyTurn && (
@@ -59,6 +76,13 @@ export default function GameHeader({
           You
         </span>
         <span className="text-lg font-extrabold text-text-main leading-none">{userScore}</span>
+
+        {/* Chat Bubble */}
+        {activeUserBubble && (
+          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-primary/30 text-white text-[11px] font-bold px-2 py-1 rounded-xl shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
+            {activeUserBubble}
+          </div>
+        )}
       </div>
 
       {/* Centre: game name + timer */}
@@ -89,10 +113,23 @@ export default function GameHeader({
 
       {/* Player B (Partner) */}
       <div
-        className={`flex flex-col items-center gap-1 min-w-[60px] transition-all ${
+        className={`flex flex-col items-center gap-1 min-w-[60px] relative transition-all ${
           !isMyTurn ? 'opacity-100 scale-105' : 'opacity-50 scale-95'
         }`}
       >
+        {/* Floating Emojis */}
+        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 pointer-events-none w-16 h-24 overflow-visible flex items-end justify-center">
+          {partnerEmojis.map((item) => (
+            <span
+              key={item.id}
+              style={{ left: `${item.xOffset}%` }}
+              className="absolute text-xl animate-float-up pointer-events-none"
+            >
+              {item.emoji}
+            </span>
+          ))}
+        </div>
+
         <div className="relative">
           <Avatar src={partner?.avatar_url} fallback="👤" size="sm" isOnline={true} />
           {!isMyTurn && (
@@ -103,6 +140,13 @@ export default function GameHeader({
           {partner?.name || 'Partner'}
         </span>
         <span className="text-lg font-extrabold text-text-main leading-none">{partnerScore}</span>
+
+        {/* Chat Bubble */}
+        {activePartnerBubble && (
+          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-secondary/30 text-white text-[11px] font-bold px-2 py-1 rounded-xl shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
+            {activePartnerBubble}
+          </div>
+        )}
       </div>
 
       {/* Spacer to balance back button */}

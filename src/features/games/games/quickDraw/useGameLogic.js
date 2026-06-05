@@ -58,6 +58,11 @@ export function useQuickDrawLogic({ userId, partnerId, iAmDrawer }) {
     }
   }, [gameOver]);
 
+  const forceWinner = useCallback((winnerId) => {
+    setWinner(winnerId);
+    setGameOver(true);
+  }, []);
+
   const winnerId = winner;
 
   return {
@@ -69,5 +74,6 @@ export function useQuickDrawLogic({ userId, partnerId, iAmDrawer }) {
     iAmDrawer,
     submitGuess,
     handleTimeout,
+    forceWinner,
   };
 }

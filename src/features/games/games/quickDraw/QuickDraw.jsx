@@ -13,6 +13,8 @@ import { useGameTimer } from '../../hooks/useGameTimer';
 import { useQuickDrawLogic } from './useGameLogic';
 import { GameRecorder } from '../../lib/gameRecorder';
 import { generateSessionId } from '../../lib/gameEngine';
+import ForfeitModal from '../../components/ForfeitModal';
+import QuickReactionTray from '../../components/QuickReactionTray';
 
 const ROUND_SECONDS = 60;
 
@@ -35,10 +37,15 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
   const drawing = useRef(false);
   const [guessInput, setGuessInput] = useState('');
   const [guessResult, setGuessResult] = useState(null); // 'correct' | 'wrong'
+  const [showForfeitModal, setShowForfeitModal] = useState(false);
+  const [activeUserBubble, setActiveUserBubble] = useState('');
+  const [activePartnerBubble, setActivePartnerBubble] = useState('');
+  const [userEmojis, setUserEmojis] = useState([]);
+  const [partnerEmojis, setPartnerEmojis] = useState([]);
 
   const {
     targetWord, guesses, gameOver, winner, winnerId,
-    submitGuess, handleTimeout,
+    submitGuess, handleTimeout, forceWinner,
   } = useQuickDrawLogic({ userId, partnerId, iAmDrawer });
 
   const { seconds } = useGameTimer(ROUND_SECONDS, handleTimeout, true);
@@ -104,41 +111,107 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
     broadcastMove({ type: 'clear' });
   };
 
+  const handlersRef = useRef({ submitGuess, partnerId, iAmDrawer, forceWinner, userId, setUserEmojis, setPartnerEmojis, setActivePartnerBubble });
+  useEffect(() => {
+    handlersRef.current = { submitGuess, partnerId, iAmDrawer, forceWinner, userId, setUserEmojis, setPartnerEmojis, setActivePartnerBubble };
+  });
+
   // Remote events
-  const handleRemoteMove = useCallback(
-    (payload) => {
-      if (payload.type === 'stroke' && !iAmDrawer) {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const x = payload.x * canvas.width;
-        const y = payload.y * canvas.height;
-        if (!drawing.current) {
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          drawing.current = true;
-        }
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = '#a78bfa';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-      } else if (payload.type === 'stroke_end') {
-        drawing.current = false;
-      } else if (payload.type === 'clear') {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      } else if (payload.type === 'guess') {
-        submitGuess(payload.text, partnerId);
-        recorder.current.recordMove(partnerId, 'guess', { text: payload.text });
+  const handleRemoteMove = useCallback((payload) => {
+    const { submitGuess, partnerId, iAmDrawer, forceWinner, userId, setUserEmojis, setPartnerEmojis, setActivePartnerBubble } = handlersRef.current;
+    if (payload.type === 'stroke' && !iAmDrawer) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const x = payload.x * canvas.width;
+      const y = payload.y * canvas.height;
+      if (!drawing.current) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        drawing.current = true;
       }
-    },
-    [iAmDrawer, submitGuess, partnerId]
-  );
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = '#a78bfa';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    } else if (payload.type === 'stroke_end') {
+      drawing.current = false;
+    } else if (payload.type === 'clear') {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    } else if (payload.type === 'guess') {
+      submitGuess(payload.text, partnerId);
+      recorder.current.recordMove(partnerId, 'guess', { text: payload.text });
+    } else if (payload.type === 'forfeit') {
+      forceWinner(userId);
+      recorder.current.recordMove(partnerId, 'forfeit', {});
+    } else if (payload.type === 'reaction') {
+      const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+      if (!reactionsEnabled) return;
+      const id = Date.now() + Math.random();
+      const xOffset = Math.floor(Math.random() * 60) - 30;
+      setPartnerEmojis((prev) => [...prev, { id, emoji: payload.emoji, xOffset }]);
+      setTimeout(() => {
+        setPartnerEmojis((prev) => prev.filter((item) => item.id !== id));
+      }, 2500);
+    } else if (payload.type === 'chat') {
+      const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+      if (!reactionsEnabled) return;
+      setActivePartnerBubble(payload.text);
+      setTimeout(() => {
+        setActivePartnerBubble('');
+      }, 4000);
+    }
+  }, []); // stable — reads from ref
 
   const broadcastMove = useGameSync(gameId, sessionId, handleRemoteMove);
+
+  const handleSendReaction = (emoji) => {
+    const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+    if (!reactionsEnabled) return;
+    const id = Date.now() + Math.random();
+    const xOffset = Math.floor(Math.random() * 60) - 30;
+    setUserEmojis((prev) => [...prev, { id, emoji, xOffset }]);
+    setTimeout(() => {
+      setUserEmojis((prev) => prev.filter((item) => item.id !== id));
+    }, 2500);
+    broadcastMove({ type: 'reaction', emoji });
+  };
+
+  const handleSendChat = (text) => {
+    const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+    if (!reactionsEnabled) return;
+    setActiveUserBubble(text);
+    setTimeout(() => {
+      setActiveUserBubble('');
+    }, 4000);
+    broadcastMove({ type: 'chat', text });
+  };
+
+  const handleBackAction = () => {
+    if (!gameOver) {
+      setShowForfeitModal(true);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleForfeitConfirm = async () => {
+    setShowForfeitModal(false);
+    recorder.current.recordMove(userId, 'forfeit', {});
+    broadcastMove({ type: 'forfeit', senderId: userId });
+    
+    // If we are host, write replay to DB before exiting
+    if (userId < partnerId) {
+      const partnerWinId = partnerId;
+      await recorder.current.save(partnerWinId).catch(console.error);
+    }
+    
+    onBack();
+  };
 
   const handleGuessSubmit = (e) => {
     e?.preventDefault();
@@ -167,7 +240,11 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
         partner={partner}
         isMyTurn={!iAmDrawer && !gameOver}
         timeLeft={gameOver ? undefined : seconds}
-        onBack={onBack}
+        onBack={handleBackAction}
+        activeUserBubble={activeUserBubble}
+        activePartnerBubble={activePartnerBubble}
+        userEmojis={userEmojis}
+        partnerEmojis={partnerEmojis}
       />
 
       <div className="flex-1 flex flex-col items-center p-4 gap-4 overflow-hidden">
@@ -264,6 +341,15 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
           onLobby={onBack}
         />
       )}
+      <QuickReactionTray
+        onSendReaction={handleSendReaction}
+        onSendChat={handleSendChat}
+      />
+      <ForfeitModal
+        isOpen={showForfeitModal}
+        onClose={() => setShowForfeitModal(false)}
+        onConfirm={handleForfeitConfirm}
+      />
     </div>
   );
 }

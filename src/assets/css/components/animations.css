@@ -100,3 +100,22 @@
   animation: pulse-ring 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.1);
+  }
+  100% {
+    transform: translateY(-120px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.animate-float-up {
+  animation: float-up 2.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+

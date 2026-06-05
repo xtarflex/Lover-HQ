@@ -12,6 +12,9 @@ const initialState = {
   currentRoom: null,
   pairingStatus: 'unpaired',
   preferences: null,
+  activeInvitation: null,
+  autoJoinGameId: null,
+  globalNotification: null,
 };
 
 const AppContext = createContext(null);
@@ -46,6 +49,12 @@ function appReducer(state, action) {
           ? { ...state.preferences, ...action.payload }
           : action.payload,
       };
+    case 'SET_INVITATION':
+      return { ...state, activeInvitation: action.payload };
+    case 'SET_AUTO_JOIN':
+      return { ...state, autoJoinGameId: action.payload };
+    case 'SET_GLOBAL_NOTIFICATION':
+      return { ...state, globalNotification: action.payload };
     case 'RESET_STATE':
       return initialState;
     default:

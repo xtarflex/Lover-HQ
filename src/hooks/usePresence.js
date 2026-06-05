@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useSupabase } from './useSupabase';
 import { useAppDispatch, useAppContext } from '../contexts/AppContext';
+import { triggerBuzz, triggerPush } from '../utils/notification';
 
 /**
  * Hook to manage and sync presence status for the current user and their partner.
@@ -70,6 +71,40 @@ export function usePresence(roomName) {
             partnerRoom: partnerPresence ? partnerPresence.current_room : null,
           },
         });
+      })
+      .on('broadcast', { event: 'game_invite' }, ({ payload }) => {
+        const autoJoin = localStorage.getItem('preferences_auto_join_games') === 'true';
+        if (autoJoin) {
+          dispatch({ type: 'SET_AUTO_JOIN', payload: payload.gameId });
+          triggerBuzz();
+        } else {
+          dispatch({ type: 'SET_INVITATION', payload });
+          triggerBuzz();
+          triggerPush('Game Invitation 🎮', `${payload.hostName} invited you to play ${payload.gameName}!`);
+        }
+      })
+      .on('broadcast', { event: 'game_invite_decline' }, ({ payload }) => {
+        dispatch({
+          type: 'SET_GLOBAL_NOTIFICATION',
+          payload: { message: `${payload.partnerName} declined your invite.`, type: 'info' }
+        });
+      })
+      .on('broadcast', { event: 'reveal_nudge' }, ({ payload }) => {
+        const allowNudges = localStorage.getItem('reveal_allow_nudges') !== 'false';
+        if (!allowNudges) return;
+
+        triggerBuzz();
+
+        if (roomName === 'Reveal') {
+          const event = new CustomEvent('partner-nudge-shake');
+          window.dispatchEvent(event);
+        } else {
+          dispatch({
+            type: 'SET_GLOBAL_NOTIFICATION',
+            payload: { message: `${payload.hostName} is waiting for your Reveal answer! ⏳`, type: 'info' }
+          });
+          triggerPush('Reveal Q&A Nudge ⏳', `${payload.hostName} is waiting for your answer!`);
+        }
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {

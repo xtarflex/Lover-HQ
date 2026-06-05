@@ -1,11 +1,11 @@
 /**
  * @file RevealSettingsPanel.jsx
  * @description Settings panel for the Reveal Q&A feature:
- * daily reminder toggle and custom question frequency selector.
+ * daily reminder toggle, custom question frequency selector, and answer nudges.
  */
 
 import React from 'react';
-import { Bell, Sparkles } from 'lucide-react';
+import { Bell, Sparkles, Smartphone } from 'lucide-react';
 import GlassDropdown from '../../../components/GlassDropdown';
 
 /**
@@ -14,6 +14,8 @@ import GlassDropdown from '../../../components/GlassDropdown';
  *   onToggleReminders: Function,
  *   customQuestionFreq: string,
  *   onChangeFreq: Function,
+ *   revealNudges: boolean,
+ *   onToggleNudges: Function,
  * }} props
  * @returns {React.ReactElement}
  */
@@ -22,6 +24,8 @@ export default function RevealSettingsPanel({
   onToggleReminders,
   customQuestionFreq,
   onChangeFreq,
+  revealNudges,
+  onToggleNudges,
 }) {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -51,6 +55,28 @@ export default function RevealSettingsPanel({
           >
             <span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealReminders ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </button>
+        </div>
+
+        {/* Receive Answer Nudges Toggle */}
+        <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
+              <Smartphone className="w-4 h-4 text-primary" />
+              Receive Answer Nudges
+            </span>
+            <span className="text-xs text-text-muted mt-0.5">
+              Vibrate and alert when your partner nudges you to answer today&apos;s question.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onToggleNudges}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${revealNudges ? 'bg-primary' : 'bg-surface-border'}`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealNudges ? 'translate-x-5' : 'translate-x-0'}`}
             />
           </button>
         </div>

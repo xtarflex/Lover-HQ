@@ -16,6 +16,8 @@ import { useAppContext, useAppDispatch } from './contexts/AppContext';
 import { supabase } from './lib/supabase';
 import { usePresence } from './hooks/usePresence';
 import { usePreferences } from './hooks/usePreferences';
+import GameInviteModal from './components/GameInviteModal';
+import { Notification } from './components/Notification';
 
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
@@ -37,6 +39,8 @@ const Settings = lazy(() => import('./features/settings/Settings'));
  */
 function MainLayout() {
   const location = useLocation();
+  const { globalNotification } = useAppContext();
+  const dispatch = useAppDispatch();
 
   // Map route path to friendly room name
   const getFriendlyRoomName = (pathname) => {
@@ -91,6 +95,14 @@ function MainLayout() {
         </Suspense>
       </main>
       <BottomNav />
+      <GameInviteModal />
+      {globalNotification && (
+        <Notification
+          message={globalNotification.message}
+          type={globalNotification.type || 'info'}
+          onClose={() => dispatch({ type: 'SET_GLOBAL_NOTIFICATION', payload: null })}
+        />
+      )}
     </div>
   );
 }

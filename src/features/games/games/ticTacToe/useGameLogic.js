@@ -88,6 +88,11 @@ export function useTicTacToeLogic({ userId, partnerId, mySymbol }) {
     setWinner(null);
   }, []);
 
+  const forceWinner = useCallback((winSym) => {
+    setWinner(winSym);
+    setCurrentSymbol(null);
+  }, []);
+
   const winnerId =
     winner === mySymbol ? userId : winner === partnerSymbol ? partnerId : null;
 
@@ -101,5 +106,6 @@ export function useTicTacToeLogic({ userId, partnerId, mySymbol }) {
     handleCellTap,
     applyRemoteMove,
     reset,
+    forceWinner,
   };
 }

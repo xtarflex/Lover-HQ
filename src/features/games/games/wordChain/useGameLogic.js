@@ -73,6 +73,10 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
     [userId, partnerId]
   );
 
+  const forceWinner = useCallback((winnerId) => {
+    setWinner(winnerId);
+  }, []);
+
   const winnerId = winner === 'draw' ? null : winner || null;
 
   return {
@@ -87,5 +91,6 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
     submitWord,
     handleTimeout,
     reset,
+    forceWinner,
   };
 }

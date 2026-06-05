@@ -38,7 +38,7 @@ export function TopBar() {
   const { user, partner, presence } = useAppContext();
 
   return (
-    <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-50">
+    <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-[60]">
       {/* Top Left: Logo Only */}
       <div className="flex items-center text-primary">
         <LoverHQLogo className="text-primary w-10 h-10" />
@@ -110,7 +110,7 @@ export function TopBar() {
             </Link>
             {/* Speech bubble under the profile card */}
             {presence.partner === 'online' && (
-              <div className="absolute top-full mt-1.5 flex flex-col items-center z-50">
+              <div className="absolute top-full mt-1.5 flex flex-col items-center z-[70]">
                 {/* Speech bubble pointer pointing up */}
                 <div className="w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-amber-500" />
                 <div className="bg-amber-500 text-brand-surface text-[9px] font-extrabold px-2 py-0.5 rounded shadow-lg uppercase tracking-wider whitespace-nowrap">

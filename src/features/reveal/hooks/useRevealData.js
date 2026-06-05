@@ -6,6 +6,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { getCoupleSeed } from './useDailyQuestion';
+import promptsData from '../prompts.json';
 
 /**
  * Hook that fetches all Reveal data from Supabase and sets up real-time
@@ -57,6 +59,62 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
 
   /**
    * Loads daily question, custom questions, favorites, today's answers,
+   * the archive list, and archive comments from local storage, generating a default
+   * daily question if none exists for the current day.
+   *
+   * @returns {void}
+   */
+  const loadCachedData = useCallback(() => {
+    try {
+      const cachedQ = localStorage.getItem('reveal_daily_question_cache');
+      const cachedUserA = localStorage.getItem('reveal_user_answer_cache');
+      const cachedPartnerA = localStorage.getItem('reveal_partner_answer_cache');
+      const cachedCustomQ = localStorage.getItem('reveal_custom_questions_cache');
+      const cachedArchive = localStorage.getItem('reveal_archive_memories_cache');
+      const cachedComments = localStorage.getItem('reveal_archive_comments_cache');
+
+      let currentQ = null;
+      if (cachedQ) {
+        currentQ = JSON.parse(cachedQ);
+      }
+
+      // If no daily question is cached for today, compute a seed-based default daily question offline
+      if (!currentQ || currentQ.active_date !== todayStr) {
+        const coupleSeed = getCoupleSeed(userId, partnerId);
+        const todayObj = new Date();
+        const dayOfYear = Math.floor((todayObj - new Date(todayObj.getFullYear(), 0, 0)) / 86400000);
+        const promptIndex = (dayOfYear + coupleSeed) % promptsData.length;
+        const selectedPrompt = promptsData[promptIndex];
+        currentQ = {
+          user_id: coupleKey,
+          question_id: `default-${selectedPrompt.id}`,
+          content: selectedPrompt.content,
+          category: selectedPrompt.category,
+          active_date: todayStr,
+        };
+        localStorage.setItem('reveal_daily_question_cache', JSON.stringify(currentQ));
+        localStorage.removeItem('reveal_user_answer_cache');
+        localStorage.removeItem('reveal_partner_answer_cache');
+        setUserAnswer(null);
+        setPartnerAnswer(null);
+        setRevealedToday(false);
+      } else {
+        if (cachedUserA) setUserAnswer(JSON.parse(cachedUserA));
+        if (cachedPartnerA) setPartnerAnswer(JSON.parse(cachedPartnerA));
+        if (cachedUserA && cachedPartnerA) setRevealedToday(true);
+      }
+
+      setDailyQuestion(currentQ);
+      if (cachedCustomQ) setCustomQuestions(JSON.parse(cachedCustomQ));
+      if (cachedArchive) setArchiveMemories(JSON.parse(cachedArchive));
+      if (cachedComments) setArchiveComments(JSON.parse(cachedComments));
+    } catch (err) {
+      console.error('Error loading cached Reveal data:', err);
+    }
+  }, [userId, partnerId, coupleKey, todayStr]);
+
+  /**
+   * Loads daily question, custom questions, favorites, today's answers,
    * the archive list, and archive comments from Supabase.
    *
    * @returns {Promise<void>}
@@ -67,6 +125,12 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       return;
     }
     setLoading(true);
+
+    if (!navigator.onLine) {
+      loadCachedData();
+      setLoading(false);
+      return;
+    }
 
     try {
       // 1. Fetch Today's Daily Question from Database
@@ -85,6 +149,9 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       }
 
       setDailyQuestion(dailyRow);
+      if (dailyRow) {
+        localStorage.setItem('reveal_daily_question_cache', JSON.stringify(dailyRow));
+      }
 
       // 2. Fetch Custom Questions List
       const { data: customQ, error: customError } = await supabase
@@ -95,6 +162,7 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
 
       if (customError) throw customError;
       setCustomQuestions(customQ || []);
+      localStorage.setItem('reveal_custom_questions_cache', JSON.stringify(customQ || []));
 
       // 3. Fetch Favorites
       const { data: favs, error: favsError } = await supabase
@@ -106,6 +174,8 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       setFavorites(new Set((favs || []).map((f) => f.question_id)));
 
       // 4. Fetch Answers for today's question
+      let userA = null;
+      let partnerA = null;
       if (dailyRow) {
         const { data: todayAns, error: ansError } = await supabase
           .from('reveal_answers')
@@ -113,11 +183,13 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
           .eq('question_id', dailyRow.question_id);
 
         if (ansError) throw ansError;
-        const userA = todayAns?.find((a) => a.user_id === userId) || null;
-        const partnerA = todayAns?.find((a) => a.user_id === partnerId) || null;
+        userA = todayAns?.find((a) => a.user_id === userId) || null;
+        partnerA = todayAns?.find((a) => a.user_id === partnerId) || null;
 
         setUserAnswer(userA);
         setPartnerAnswer(partnerA);
+        localStorage.setItem('reveal_user_answer_cache', JSON.stringify(userA));
+        localStorage.setItem('reveal_partner_answer_cache', JSON.stringify(partnerA));
 
         if (userA && partnerA) {
           setRevealedToday(true);
@@ -160,8 +232,10 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       });
 
       setArchiveMemories(archiveList);
+      localStorage.setItem('reveal_archive_memories_cache', JSON.stringify(archiveList));
 
       // 6. Fetch Comments for all archive items
+      let commentsMap = {};
       if (archiveList.length > 0) {
         const { data: commentsList, error: commentsError } = await supabase
           .from('reveal_comments')
@@ -174,20 +248,26 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
 
         if (commentsError) throw commentsError;
 
-        const commentsMap = {};
         commentsList?.forEach((c) => {
           if (!commentsMap[c.question_id]) commentsMap[c.question_id] = [];
           commentsMap[c.question_id].push(c);
         });
         setArchiveComments(commentsMap);
       }
+      localStorage.setItem('reveal_archive_comments_cache', JSON.stringify(commentsMap));
     } catch (err) {
       console.error('Fetch reveal data failed:', err);
-      setMessage({ type: 'error', text: 'Failed to sync Q&A board: ' + err.message });
+      const isNetworkError = !navigator.onLine || err.message?.includes('Failed to fetch') || err.message?.includes('network');
+      if (isNetworkError) {
+        loadCachedData();
+        setMessage({ type: 'info', text: 'Viewing cached Q&A data (offline)' });
+      } else {
+        setMessage({ type: 'error', text: 'Failed to sync Q&A board: ' + err.message });
+      }
     } finally {
       setLoading(false);
     }
-  }, [userId, partnerId, coupleKey, todayStr, initializeDailyQuestion]);
+  }, [userId, partnerId, coupleKey, todayStr, initializeDailyQuestion, loadCachedData]);
 
   // Trigger initial data load
   useEffect(() => {

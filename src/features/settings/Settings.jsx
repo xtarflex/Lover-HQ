@@ -119,6 +119,21 @@ export default function Settings() {
   const [revealReminders, setRevealReminders] = useState(
     () => localStorage.getItem('reveal_reminders_enabled') !== 'false'
   );
+  const [pushEnabled, setPushEnabled] = useState(
+    () => localStorage.getItem('preferences_push_enabled') !== 'false'
+  );
+  const [hapticsEnabled, setHapticsEnabled] = useState(
+    () => localStorage.getItem('preferences_haptics_enabled') !== 'false'
+  );
+  const [autoJoinInvites, setAutoJoinInvites] = useState(
+    () => localStorage.getItem('preferences_auto_join_games') === 'true'
+  );
+  const [revealNudges, setRevealNudges] = useState(
+    () => localStorage.getItem('reveal_allow_nudges') !== 'false'
+  );
+  const [gameReactions, setGameReactions] = useState(
+    () => localStorage.getItem('preferences_game_reactions_enabled') !== 'false'
+  );
 
   const [message, setMessage] = useState(null);
 
@@ -174,9 +189,47 @@ export default function Settings() {
   };
 
   /**
+   * Synchronizes queued offline profile updates with Supabase once the client is online.
+   *
+   * @returns {Promise<void>}
+   */
+  const syncProfileOffline = useCallback(async () => {
+    if (!navigator.onLine || !userId) return;
+    try {
+      const pendingUpdate = localStorage.getItem('profile_offline_queue');
+      if (!pendingUpdate) return;
+      const profileData = JSON.parse(pendingUpdate);
+
+      const { error } = await supabase
+        .from('users')
+        .update(profileData)
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      localStorage.removeItem('profile_offline_queue');
+      console.log('Profile changes synced online.');
+    } catch (err) {
+      console.error('Failed to sync offline profile:', err);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    window.addEventListener('online', syncProfileOffline);
+    const timer = setTimeout(() => {
+      syncProfileOffline();
+    }, 500);
+    return () => {
+      window.removeEventListener('online', syncProfileOffline);
+      clearTimeout(timer);
+    };
+  }, [syncProfileOffline]);
+
+  /**
    * Saves the user's profile changes to the database and updates global state.
    *
    * @param {React.FormEvent} e - Form submission event.
+   * @returns {Promise<void>}
    */
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -184,29 +237,46 @@ export default function Settings() {
     setSaving(true);
     setMessage(null);
 
+    const updatedData = {
+      name: name.trim(),
+      avatar_url: avatarUrl,
+      phone_number: phone.trim() || null,
+      birthday: birthday || null,
+    };
+
+    const updatedUser = {
+      ...user,
+      ...updatedData,
+    };
+
+    // Optimistic update
+    dispatch({
+      type: 'SET_USER',
+      payload: updatedUser,
+    });
+    localStorage.setItem('lover_hq_user', JSON.stringify(updatedUser));
+
+    if (!navigator.onLine) {
+      try {
+        localStorage.setItem('profile_offline_queue', JSON.stringify(updatedData));
+        setMessage({ type: 'success', text: 'Profile updated offline! Will sync when connection returns.' });
+      } catch (err) {
+        console.error('Failed to queue offline profile update:', err);
+        setMessage({ type: 'error', text: 'Failed to save profile offline.' });
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     try {
       const { error: updateError } = await supabase
         .from('users')
-        .update({
-          name: name.trim(),
-          avatar_url: avatarUrl,
-          phone_number: phone.trim() || null,
-          birthday: birthday || null,
-        })
+        .update(updatedData)
         .eq('id', userId);
 
       if (updateError) throw updateError;
 
-      dispatch({
-        type: 'SET_USER',
-        payload: {
-          ...user,
-          name: name.trim(),
-          avatar_url: avatarUrl,
-          phone_number: phone.trim() || null,
-          birthday: birthday || null,
-        },
-      });
       setMessage({ type: 'success', text: 'Profile preferences updated successfully!' });
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -445,6 +515,22 @@ export default function Settings() {
                 onToggleSound={() =>
                   handlePreferenceChange('fridge_sound_muted', !soundMuted, setSoundMuted, null)
                 }
+                pushEnabled={pushEnabled}
+                onTogglePush={() =>
+                  handlePreferenceChange('preferences_push_enabled', !pushEnabled, setPushEnabled, null)
+                }
+                hapticsEnabled={hapticsEnabled}
+                onToggleHaptics={() =>
+                  handlePreferenceChange('preferences_haptics_enabled', !hapticsEnabled, setHapticsEnabled, null)
+                }
+                autoJoinInvites={autoJoinInvites}
+                onToggleAutoJoin={() =>
+                  handlePreferenceChange('preferences_auto_join_games', !autoJoinInvites, setAutoJoinInvites, null)
+                }
+                gameReactions={gameReactions}
+                onToggleGameReactions={() =>
+                  handlePreferenceChange('preferences_game_reactions_enabled', !gameReactions, setGameReactions, null)
+                }
               />
             )}
             {activeCategory === 'fridge' && (
@@ -501,6 +587,15 @@ export default function Settings() {
                     val,
                     setCustomQuestionFreq,
                     'Custom question frequency updated'
+                  )
+                }
+                revealNudges={revealNudges}
+                onToggleNudges={() =>
+                  handlePreferenceChange(
+                    'reveal_allow_nudges',
+                    !revealNudges,
+                    setRevealNudges,
+                    null
                   )
                 }
               />

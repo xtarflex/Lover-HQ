@@ -4,8 +4,9 @@
  * or lazy-loads the selected game component from the GAME_REGISTRY.
  */
 
-import React, { useState, Suspense } from 'react';
-import { useAppContext } from '../../contexts/AppContext';
+import React, { useState, Suspense, useEffect } from 'react';
+import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
+import { useSupabase } from '../../hooks/useSupabase';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import GameLobby from './GameLobby';
 import { GAME_REGISTRY, getGameById } from './games/index';
@@ -17,8 +18,37 @@ import { GAME_REGISTRY, getGameById } from './games/index';
  * @returns {React.ReactElement}
  */
 export default function Games() {
-  const { user, partner, presence } = useAppContext();
+  const { user, partner, presence, autoJoinGameId } = useAppContext();
+  const dispatch = useAppDispatch();
+  const supabase = useSupabase();
   const [selectedGameId, setSelectedGameId] = useState(null);
+
+  // Handle auto-join route redirection
+  useEffect(() => {
+    if (autoJoinGameId) {
+      setSelectedGameId(autoJoinGameId);
+      dispatch({ type: 'SET_AUTO_JOIN', payload: null });
+    }
+  }, [autoJoinGameId, dispatch]);
+
+  // Broadcast invite when entering a game
+  useEffect(() => {
+    if (selectedGameId && user && partner) {
+      const sortedIds = [user.id, partner.id].sort();
+      const channelName = `presence:pair:${sortedIds.join('_')}`;
+      const channel = supabase.channel(channelName);
+      
+      channel.send({
+        type: 'broadcast',
+        event: 'game_invite',
+        payload: {
+          gameId: selectedGameId,
+          gameName: getGameById(selectedGameId)?.name,
+          hostName: user.name || 'Your partner',
+        },
+      });
+    }
+  }, [selectedGameId, user, partner, supabase]);
 
   const selectedGame = selectedGameId ? getGameById(selectedGameId) : null;
   const GameComponent = selectedGame?.Component;

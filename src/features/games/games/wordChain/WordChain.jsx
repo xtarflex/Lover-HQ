@@ -14,6 +14,8 @@ import { useGameTimer } from '../../hooks/useGameTimer';
 import { useWordChainLogic } from './useGameLogic';
 import { GameRecorder } from '../../lib/gameRecorder';
 import { generateSessionId } from '../../lib/gameEngine';
+import ForfeitModal from '../../components/ForfeitModal';
+import QuickReactionTray from '../../components/QuickReactionTray';
 
 const TURN_SECONDS = 30;
 
@@ -31,11 +33,16 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
   const iGoFirst = userId < partnerId;
   const sessionId = useRef(generateSessionId(gameId, userId, partnerId)).current;
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
+  const [showForfeitModal, setShowForfeitModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [activeUserBubble, setActiveUserBubble] = useState('');
+  const [activePartnerBubble, setActivePartnerBubble] = useState('');
+  const [userEmojis, setUserEmojis] = useState([]);
+  const [partnerEmojis, setPartnerEmojis] = useState([]);
 
   const {
     chain, isMyTurn, winner, winnerId, prevWord, lastError,
-    submitWord, handleTimeout, reset,
+    submitWord, handleTimeout, reset, forceWinner,
   } = useWordChainLogic({ userId, partnerId, iGoFirst });
 
   const { seconds, start, reset: resetTimer } = useGameTimer(TURN_SECONDS, () => {
@@ -55,23 +62,89 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
     recorder.current.save(winnerId).catch(console.error);
   }, [winner, winnerId, userId, partnerId]);
 
-  const handleRemoteMove = useCallback(
-    (payload) => {
-      if (payload.type === 'word') {
-        submitWord(payload.word, partnerId);
-        recorder.current.recordMove(partnerId, 'word', { word: payload.word });
-      } else if (payload.type === 'timeout') {
-        handleTimeout(payload.loserId);
-      } else if (payload.type === 'rematch') {
-        reset(iGoFirst);
-        recorder.current = new GameRecorder(gameId, userId, partnerId);
-        resetTimer(true);
-      }
-    },
-    [submitWord, handleTimeout, reset, partnerId, iGoFirst, gameId, userId, resetTimer]
-  );
+  const handlersRef = useRef({ submitWord, handleTimeout, reset, forceWinner, partnerId, iGoFirst, gameId, userId, resetTimer, setUserEmojis, setPartnerEmojis, setActivePartnerBubble });
+  useEffect(() => {
+    handlersRef.current = { submitWord, handleTimeout, reset, forceWinner, partnerId, iGoFirst, gameId, userId, resetTimer, setUserEmojis, setPartnerEmojis, setActivePartnerBubble };
+  });
+
+  const handleRemoteMove = useCallback((payload) => {
+    const { submitWord, handleTimeout, reset, forceWinner, partnerId, iGoFirst, gameId, userId, resetTimer, setUserEmojis, setPartnerEmojis, setActivePartnerBubble } = handlersRef.current;
+    if (payload.type === 'word') {
+      submitWord(payload.word, partnerId);
+      recorder.current.recordMove(partnerId, 'word', { word: payload.word });
+    } else if (payload.type === 'timeout') {
+      handleTimeout(payload.loserId);
+    } else if (payload.type === 'rematch') {
+      reset(iGoFirst);
+      recorder.current = new GameRecorder(gameId, userId, partnerId);
+      resetTimer(true);
+    } else if (payload.type === 'forfeit') {
+      forceWinner(userId);
+      recorder.current.recordMove(partnerId, 'forfeit', {});
+    } else if (payload.type === 'reaction') {
+      const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+      if (!reactionsEnabled) return;
+      const id = Date.now() + Math.random();
+      const xOffset = Math.floor(Math.random() * 60) - 30;
+      setPartnerEmojis((prev) => [...prev, { id, emoji: payload.emoji, xOffset }]);
+      setTimeout(() => {
+        setPartnerEmojis((prev) => prev.filter((item) => item.id !== id));
+      }, 2500);
+    } else if (payload.type === 'chat') {
+      const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+      if (!reactionsEnabled) return;
+      setActivePartnerBubble(payload.text);
+      setTimeout(() => {
+        setActivePartnerBubble('');
+      }, 4000);
+    }
+  }, []);
 
   const broadcastMove = useGameSync(gameId, sessionId, handleRemoteMove);
+
+  const handleSendReaction = (emoji) => {
+    const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+    if (!reactionsEnabled) return;
+    const id = Date.now() + Math.random();
+    const xOffset = Math.floor(Math.random() * 60) - 30;
+    setUserEmojis((prev) => [...prev, { id, emoji, xOffset }]);
+    setTimeout(() => {
+      setUserEmojis((prev) => prev.filter((item) => item.id !== id));
+    }, 2500);
+    broadcastMove({ type: 'reaction', emoji });
+  };
+
+  const handleSendChat = (text) => {
+    const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+    if (!reactionsEnabled) return;
+    setActiveUserBubble(text);
+    setTimeout(() => {
+      setActiveUserBubble('');
+    }, 4000);
+    broadcastMove({ type: 'chat', text });
+  };
+
+  const handleBackAction = () => {
+    if (!winner) {
+      setShowForfeitModal(true);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleForfeitConfirm = async () => {
+    setShowForfeitModal(false);
+    recorder.current.recordMove(userId, 'forfeit', {});
+    broadcastMove({ type: 'forfeit', senderId: userId });
+    
+    // If we are host, write replay to DB before exiting
+    if (userId < partnerId) {
+      const partnerWinId = partnerId;
+      await recorder.current.save(partnerWinId).catch(console.error);
+    }
+    
+    onBack();
+  };
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -102,7 +175,11 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
         partner={partner}
         isMyTurn={isMyTurn && !winner}
         timeLeft={winner ? undefined : seconds}
-        onBack={onBack}
+        onBack={handleBackAction}
+        activeUserBubble={activeUserBubble}
+        activePartnerBubble={activePartnerBubble}
+        userEmojis={userEmojis}
+        partnerEmojis={partnerEmojis}
       />
 
       <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
@@ -194,6 +271,15 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
           onLobby={onBack}
         />
       )}
+      <QuickReactionTray
+        onSendReaction={handleSendReaction}
+        onSendChat={handleSendChat}
+      />
+      <ForfeitModal
+        isOpen={showForfeitModal}
+        onClose={() => setShowForfeitModal(false)}
+        onConfirm={handleForfeitConfirm}
+      />
     </div>
   );
 }
