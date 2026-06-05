@@ -106,7 +106,7 @@ export default function DailyQuestionCard({
           </div>
 
           {userAnswer && (
-            <div className="flex gap-1.5 mt-4 border-t border-surface-border/30 pt-3">
+            <div className="flex gap-2 mt-4 border-t border-surface-border/30 pt-3">
               {['❤️', '😂', '🔥', '✨', '🥺'].map((emoji) => {
                 const list = userAnswer.reactions?.[emoji] || [];
                 const reacted = list.includes(userId);
@@ -114,15 +114,21 @@ export default function DailyQuestionCard({
                   <button
                     key={emoji}
                     onClick={() => onToggleReaction(userAnswer, emoji)}
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm transition-all ${
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm relative transition-all ${
                       reacted
                         ? 'bg-primary/10 border-primary'
                         : 'bg-transparent border-surface-border hover:bg-surface/50'
                     }`}
                   >
-                    {emoji}
+                    <span>{emoji}</span>
                     {list.length > 0 && (
-                      <span className="text-[9px] font-bold ml-0.5">{list.length}</span>
+                      <span className={`absolute -top-1 -right-1 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border shadow-sm ${
+                        reacted
+                          ? 'bg-primary border-primary text-white'
+                          : 'bg-slate-700 border-slate-600 text-gray-200'
+                      }`}>
+                        {list.length}
+                      </span>
                     )}
                   </button>
                 );
@@ -177,7 +183,7 @@ export default function DailyQuestionCard({
 
           {/* Action buttons or Reactions */}
           {revealedToday && partnerAnswer ? (
-            <div className="flex gap-1.5 mt-4 border-t border-surface-border/30 pt-3">
+            <div className="flex gap-2 mt-4 border-t border-surface-border/30 pt-3">
               {['❤️', '😂', '🔥', '✨', '🥺'].map((emoji) => {
                 const list = partnerAnswer.reactions?.[emoji] || [];
                 const reacted = list.includes(userId);
@@ -185,15 +191,21 @@ export default function DailyQuestionCard({
                   <button
                     key={emoji}
                     onClick={() => onToggleReaction(partnerAnswer, emoji)}
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm transition-all ${
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm relative transition-all ${
                       reacted
                         ? 'bg-primary/10 border-primary'
                         : 'bg-transparent border-surface-border hover:bg-surface/50'
                     }`}
                   >
-                    {emoji}
+                    <span>{emoji}</span>
                     {list.length > 0 && (
-                      <span className="text-[9px] font-bold ml-0.5">{list.length}</span>
+                      <span className={`absolute -top-1 -right-1 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border shadow-sm ${
+                        reacted
+                          ? 'bg-primary border-primary text-white'
+                          : 'bg-slate-700 border-slate-600 text-gray-200'
+                      }`}>
+                        {list.length}
+                      </span>
                     )}
                   </button>
                 );
