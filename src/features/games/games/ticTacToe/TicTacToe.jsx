@@ -26,7 +26,7 @@ import { generateSessionId } from '../../lib/gameEngine';
 export default function TicTacToe({ gameId, gameName, userId, partnerId, user, partner, onBack }) {
   // Host (alphabetically first user ID) always plays X
   const mySymbol = userId < partnerId ? 'X' : 'O';
-  const sessionId = useRef(generateSessionId(gameId, userId)).current;
+  const sessionId = useRef(generateSessionId(gameId, userId, partnerId)).current;
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
 
   const {
@@ -53,11 +53,11 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
 
   const broadcastMove = useGameSync(gameId, sessionId, handleRemoteMove);
 
-  // Save replay when game ends
+  // Save replay when game ends (only host saves to prevent duplicates)
   useEffect(() => {
-    if (!winner) return;
+    if (!winner || userId >= partnerId) return;
     recorder.current.save(winnerId).catch(console.error);
-  }, [winner, winnerId]);
+  }, [winner, winnerId, userId, partnerId]);
 
   const onCellTap = (index) => {
     const move = handleCellTap(index);

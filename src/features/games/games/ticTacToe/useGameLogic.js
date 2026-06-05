@@ -32,29 +32,26 @@ export function useTicTacToeLogic({ userId, partnerId, mySymbol }) {
    */
   const applyMove = useCallback(
     (index, symbol) => {
-      let newBoard;
-      setBoard((prev) => {
-        newBoard = [...prev];
-        newBoard[index] = symbol;
-        return newBoard;
-      });
+      const nextBoard = [...board];
+      nextBoard[index] = symbol;
+      setBoard(nextBoard);
 
-      const w = checkTicTacToeWinner(newBoard || []);
+      const w = checkTicTacToeWinner(nextBoard);
       const nextSymbol = symbol === 'X' ? 'O' : 'X';
 
       if (w) {
         setWinner(w);
         setCurrentSymbol(null);
-      } else if (!newBoard?.includes(null)) {
+      } else if (!nextBoard.includes(null)) {
         setWinner('draw');
         setCurrentSymbol(null);
       } else {
         setCurrentSymbol(nextSymbol);
       }
 
-      return { newBoard, winner: w };
+      return { newBoard: nextBoard, winner: w };
     },
-    []
+    [board]
   );
 
   /**

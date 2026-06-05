@@ -29,7 +29,7 @@ const ROUND_SECONDS = 60;
 export default function QuickDraw({ gameId, gameName, userId, partnerId, user, partner, onBack }) {
   // Alphabetically first user draws first
   const iAmDrawer = userId < partnerId;
-  const sessionId = useRef(generateSessionId(gameId, userId)).current;
+  const sessionId = useRef(generateSessionId(gameId, userId, partnerId)).current;
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
   const canvasRef = useRef(null);
   const drawing = useRef(false);
@@ -43,11 +43,11 @@ export default function QuickDraw({ gameId, gameName, userId, partnerId, user, p
 
   const { seconds } = useGameTimer(ROUND_SECONDS, handleTimeout, true);
 
-  // Save replay on end
+  // Save replay on end (only host saves to prevent duplicates)
   useEffect(() => {
-    if (!gameOver) return;
+    if (!gameOver || userId >= partnerId) return;
     recorder.current.save(winnerId).catch(console.error);
-  }, [gameOver, winnerId]);
+  }, [gameOver, winnerId, userId, partnerId]);
 
   // Canvas drawing helpers
   const getPos = (e, canvas) => {

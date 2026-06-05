@@ -60,6 +60,7 @@ export function validateWordChain(prevWord, newWord, usedWords) {
  * @param {string} userId - Current user's ID.
  * @returns {string} Session ID.
  */
-export function generateSessionId(gameType, userId) {
-  return `${gameType}-${userId.slice(0, 8)}-${Date.now()}`;
+export function generateSessionId(gameType, userId, partnerId) {
+  const sorted = [userId, partnerId].sort();
+  return `${gameType}-${sorted[0].slice(0, 8)}-${sorted[1].slice(0, 8)}`;
 }

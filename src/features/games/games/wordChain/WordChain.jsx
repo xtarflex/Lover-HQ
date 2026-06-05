@@ -29,7 +29,7 @@ const TURN_SECONDS = 30;
  */
 export default function WordChain({ gameId, gameName, userId, partnerId, user, partner, onBack }) {
   const iGoFirst = userId < partnerId;
-  const sessionId = useRef(generateSessionId(gameId, userId)).current;
+  const sessionId = useRef(generateSessionId(gameId, userId, partnerId)).current;
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
   const [inputValue, setInputValue] = useState('');
 
@@ -49,11 +49,11 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
     }
   }, [isMyTurn, winner]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save replay when game ends
+  // Save replay when game ends (only host saves to prevent duplicates)
   useEffect(() => {
-    if (!winner) return;
+    if (!winner || userId >= partnerId) return;
     recorder.current.save(winnerId).catch(console.error);
-  }, [winner, winnerId]);
+  }, [winner, winnerId, userId, partnerId]);
 
   const handleRemoteMove = useCallback(
     (payload) => {
