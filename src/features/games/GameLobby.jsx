@@ -87,7 +87,7 @@ export default function GameLobby({ games, onSelectGame, partnerOnline, partner 
 
             {/* Icon + Name */}
             <div className="space-y-2 pr-10">
-              <span className="text-4xl">{game.icon}</span>
+              <game.Icon className="w-10 h-10 text-text-muted group-hover:text-primary transition-colors" />
               <h3 className="text-base font-extrabold text-text-main group-hover:text-primary transition-colors leading-snug">
                 {game.name}
               </h3>

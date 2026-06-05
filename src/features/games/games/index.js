@@ -5,13 +5,16 @@
  */
 
 import { lazy } from 'react';
+import { TicTacToeIcon, WordChainIcon, QuickDrawIcon } from '../components/GameIcons';
+
+
 
 /**
  * @typedef {Object} GameDefinition
  * @property {string} id - Unique snake-case identifier.
  * @property {string} name - Display name.
  * @property {string} description - Short description shown in lobby.
- * @property {string} icon - Emoji icon.
+ * @property {React.ComponentType} Icon - SVG icon component (accepts className prop).
  * @property {string} difficulty - 'easy' | 'medium' | 'hard'
  * @property {number} avgDuration - Estimated duration in seconds.
  * @property {string[]} tags - Filter tags (e.g. ['quick', 'word-based']).
@@ -24,7 +27,7 @@ export const GAME_REGISTRY = [
     id: 'tic-tac-toe',
     name: 'Tic-Tac-Toe',
     description: 'Classic 3×3 grid battle. Get 3 in a row to win.',
-    icon: '⭕',
+    Icon: TicTacToeIcon,
     difficulty: 'easy',
     avgDuration: 120,
     tags: ['quick', 'classic'],
@@ -34,7 +37,7 @@ export const GAME_REGISTRY = [
     id: 'word-chain',
     name: 'Word Chain',
     description: 'Each word must start with the last letter of the previous word.',
-    icon: '🔗',
+    Icon: WordChainIcon,
     difficulty: 'easy',
     avgDuration: 420,
     tags: ['word-based', 'thinking'],
@@ -44,7 +47,7 @@ export const GAME_REGISTRY = [
     id: 'quick-draw',
     name: 'Quick Draw',
     description: 'One of you draws, the other guesses. Race against the clock!',
-    icon: '🎨',
+    Icon: QuickDrawIcon,
     difficulty: 'easy',
     avgDuration: 180,
     tags: ['creative', 'quick'],
