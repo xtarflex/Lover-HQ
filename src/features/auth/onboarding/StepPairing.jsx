@@ -74,7 +74,7 @@ export default function StepPairing({
                   className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50 flex items-center justify-center"
                 >
                   {loading ? (
-                    <LoadingSpinner size="sm" className="text-primary" />
+                    <LoadingSpinner size="xs" className="text-primary" />
                   ) : (
                     'Generate New Code'
                   )}
@@ -121,7 +121,7 @@ export default function StepPairing({
               className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50 flex items-center justify-center"
             >
               {loading ? (
-                <LoadingSpinner size="sm" className="text-primary" />
+                <LoadingSpinner size="xs" className="text-primary" />
               ) : (
                 'Generate Code'
               )}
@@ -161,7 +161,7 @@ export default function StepPairing({
           >
             <span className="relative z-10 flex items-center justify-center">
               {loading ? (
-                <LoadingSpinner size="sm" className="text-white" />
+                <LoadingSpinner size="xs" className="text-white" />
               ) : (
                 'Complete Pairing'
               )}

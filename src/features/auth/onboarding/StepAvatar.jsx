@@ -84,7 +84,7 @@ export default function StepAvatar({ selectedAvatarId, setSelectedAvatarId, load
         >
           <span className="relative z-10 flex items-center justify-center">
             {loading ? (
-              <LoadingSpinner size="sm" className="text-background" />
+              <LoadingSpinner size="xs" className="text-background" />
             ) : (
               'Almost There'
             )}

@@ -5,8 +5,8 @@
  * Inspired by the Carrom/Pool mockup aesthetic from GH issue #14.
  */
 
-import React from 'react';
-import { ArrowLeft, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Clock, Info, X } from 'lucide-react';
 import Avatar from '../../../components/Avatar';
 
 /**
@@ -36,63 +36,102 @@ export default function GameHeader({
   userEmojis = [],
   partnerEmojis = [],
 }) {
+  const [showRules, setShowRules] = useState(false);
+
+  const getRulesData = () => {
+    const name = gameName?.toLowerCase() || '';
+    if (name.includes('word')) {
+      return {
+        title: 'Word Chain Rules',
+        rules: [
+          'Submit words where each word starts with the last letter of the previous word (e.g., apple → elephant → tree).',
+          'Words must be real English dictionary words. Repeated words are not allowed.',
+          'Scoring: Words score points based on letter rarity (like Scrabble). In Points Race, reach 50 points first to win.',
+          'Panic Mode: The timer limit decreases by 2 seconds per turn, down to a minimum of 5 seconds!',
+        ],
+      };
+    } else if (name.includes('draw') || name.includes('quick')) {
+      return {
+        title: 'Quick Draw Rules',
+        rules: [
+          'Players alternate roles as Drawer and Guesser across multiple rounds.',
+          'Drawer: Select/input a target word and draw it on the canvas using colors, brush sizes, and the eraser.',
+          'Guesser: Watch the drawing stream in real time and type guesses into the chat input.',
+          'Scoring: A correct guess awards 10 points to the Guesser and 5 points to the Drawer.',
+        ],
+      };
+    } else {
+      // Default to Tic-Tac-Toe
+      return {
+        title: 'Tic-Tac-Toe Rules',
+        rules: [
+          'Take turns placing X (Host) or O (Guest) on the 3x3 grid.',
+          'Form a line of 3 symbols horizontally, vertically, or diagonally to win the round.',
+          'If all cells are filled without a 3-in-a-row line, the round ends in a draw.',
+        ],
+      };
+    }
+  };
+
   return (
-    <div className="w-full bg-surface/80 backdrop-blur-lg border-b border-surface-border/60 px-4 py-3 flex items-center justify-between gap-2 z-10 relative">
-      {/* Back button */}
-      <button
-        onClick={onBack}
-        aria-label="Back to lobby"
-        className="p-2 rounded-xl text-text-muted hover:text-primary hover:bg-primary/10 transition-all flex-shrink-0"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+    <div className="w-full bg-surface/80 backdrop-blur-lg border-b border-surface-border/60 px-4 py-3 grid grid-cols-3 items-center z-10 relative">
+      {/* Left Column: Back button + Player A (You) */}
+      <div className="flex items-center gap-3 justify-start min-w-0">
+        <button
+          onClick={onBack}
+          aria-label="Back to lobby"
+          className="p-2 rounded-xl text-text-muted hover:text-primary hover:bg-primary/10 transition-all flex-shrink-0"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
 
-      {/* Player A (You) */}
-      <div
-        className={`flex flex-col items-center gap-1 min-w-[60px] relative transition-all ${
-          isMyTurn ? 'opacity-100 scale-105' : 'opacity-50 scale-95'
-        }`}
-      >
-        {/* Floating Emojis */}
-        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 pointer-events-none w-16 h-24 overflow-visible flex items-end justify-center">
-          {userEmojis.map((item) => (
-            <span
-              key={item.id}
-              style={{ left: `${item.xOffset}%` }}
-              className="absolute text-xl animate-float-up pointer-events-none"
-            >
-              {item.emoji}
+        <div
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-2xl bg-surface/30 border transition-all relative ${
+            isMyTurn
+              ? 'border-primary/40 bg-primary/5 shadow-md shadow-primary/5 scale-105 z-20'
+              : 'border-surface-border/40 opacity-60 scale-95 z-10'
+          }`}
+        >
+          <div className="relative flex-shrink-0">
+            <Avatar src={user?.avatar_url} fallback="👤" size="md" rounded="2xl" isOnline={true} />
+            {isMyTurn && (
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background animate-pulse z-30" />
+            )}
+          </div>
+          <div className="flex flex-col justify-center min-w-0 pr-0.5">
+            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-wider truncate max-w-[44px]">
+              You
             </span>
-          ))}
-        </div>
+            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">{userScore}</span>
+          </div>
 
-        <div className="relative">
-          <Avatar src={user?.avatar_url} fallback="👤" size="sm" isOnline={true} />
-          {isMyTurn && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background animate-pulse" />
+          {/* Chat Bubble */}
+          {activeUserBubble && (
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-primary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
+              {activeUserBubble}
+            </div>
           )}
         </div>
-        <span className="text-[10px] font-bold text-text-muted truncate max-w-[56px] text-center">
-          You
-        </span>
-        <span className="text-lg font-extrabold text-text-main leading-none">{userScore}</span>
-
-        {/* Chat Bubble */}
-        {activeUserBubble && (
-          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-primary/30 text-white text-[11px] font-bold px-2 py-1 rounded-xl shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
-            {activeUserBubble}
-          </div>
-        )}
       </div>
 
-      {/* Centre: game name + timer */}
-      <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-text-muted">
-          {gameName}
-        </span>
+      {/* Center Column: Game name + Timer */}
+      <div className="flex flex-col items-center gap-1 min-w-0 text-center">
+        <div className="flex items-center justify-center gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-text-muted">
+            {gameName}
+          </span>
+          <button
+            onClick={() => setShowRules(true)}
+            aria-label="How to play"
+            className="p-1 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+            title="How to play"
+          >
+            <Info className="w-3.5 h-3.5" />
+          </button>
+        </div>
         {timeLeft !== undefined && (
           <div
-            className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-extrabold transition-colors ${
+            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold transition-colors ${
               timeLeft <= 10
                 ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                 : 'bg-surface/60 text-text-main border border-surface-border/50'
@@ -103,7 +142,7 @@ export default function GameHeader({
           </div>
         )}
         <span
-          className={`text-[10px] font-bold uppercase tracking-wide ${
+          className={`text-[9px] font-bold uppercase tracking-wide ${
             isMyTurn ? 'text-primary' : 'text-text-muted'
           }`}
         >
@@ -111,46 +150,83 @@ export default function GameHeader({
         </span>
       </div>
 
-      {/* Player B (Partner) */}
-      <div
-        className={`flex flex-col items-center gap-1 min-w-[60px] relative transition-all ${
-          !isMyTurn ? 'opacity-100 scale-105' : 'opacity-50 scale-95'
-        }`}
-      >
-        {/* Floating Emojis */}
-        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 pointer-events-none w-16 h-24 overflow-visible flex items-end justify-center">
-          {partnerEmojis.map((item) => (
-            <span
-              key={item.id}
-              style={{ left: `${item.xOffset}%` }}
-              className="absolute text-xl animate-float-up pointer-events-none"
-            >
-              {item.emoji}
+      {/* Right Column: Player B (Partner) + Balancer Spacer */}
+      <div className="flex items-center gap-3 justify-end min-w-0">
+        <div
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-2xl bg-surface/30 border transition-all relative ${
+            !isMyTurn
+              ? 'border-secondary/40 bg-secondary/5 shadow-md shadow-secondary/5 scale-105 z-20'
+              : 'border-surface-border/40 opacity-60 scale-95 z-10'
+          }`}
+        >
+          <div className="flex flex-col justify-center min-w-0 pl-0.5 text-right">
+            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-wider truncate max-w-[50px]">
+              {partner?.name || 'Partner'}
             </span>
-          ))}
-        </div>
+            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">{partnerScore}</span>
+          </div>
+          <div className="relative flex-shrink-0">
+            <Avatar src={partner?.avatar_url} fallback="👤" size="md" rounded="2xl" isOnline={true} />
+            {!isMyTurn && (
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-secondary rounded-full border-2 border-background animate-pulse z-30" />
+            )}
+          </div>
 
-        <div className="relative">
-          <Avatar src={partner?.avatar_url} fallback="👤" size="sm" isOnline={true} />
-          {!isMyTurn && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full border-2 border-background animate-pulse" />
+          {/* Chat Bubble */}
+          {activePartnerBubble && (
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-secondary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
+              {activePartnerBubble}
+            </div>
           )}
         </div>
-        <span className="text-[10px] font-bold text-text-muted truncate max-w-[56px] text-center">
-          {partner?.name || 'Partner'}
-        </span>
-        <span className="text-lg font-extrabold text-text-main leading-none">{partnerScore}</span>
 
-        {/* Chat Bubble */}
-        {activePartnerBubble && (
-          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-secondary/30 text-white text-[11px] font-bold px-2 py-1 rounded-xl shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
-            {activePartnerBubble}
-          </div>
-        )}
+        {/* Spacer to balance back button */}
+        <div className="w-9 flex-shrink-0" />
       </div>
 
-      {/* Spacer to balance back button */}
-      <div className="w-9 flex-shrink-0" />
+      {/* Glassmorphic Rules Modal Overlay */}
+      {showRules && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowRules(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-surface/90 border border-surface-border backdrop-blur-xl rounded-3xl p-6 space-y-4 shadow-2xl relative animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-heading text-lg font-bold text-white flex items-center gap-2">
+                <Info className="w-5 h-5 text-primary" />
+                {getRulesData().title}
+              </h4>
+              <button
+                onClick={() => setShowRules(false)}
+                className="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <hr className="border-surface-border/50" />
+
+            <ul className="space-y-3 pr-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+              {getRulesData().rules.map((rule, idx) => (
+                <li key={idx} className="flex gap-2.5 items-start text-xs text-text-muted leading-relaxed">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                  <span>{rule}</span>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={() => setShowRules(false)}
+              className="w-full py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-md shadow-primary/15 text-xs"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

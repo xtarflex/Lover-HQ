@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Bell, Volume2, VolumeX, Smartphone, Gamepad2, Smile } from 'lucide-react';
+import { Bell, Volume2, VolumeX, Smartphone } from 'lucide-react';
 
 /**
  * @param {{
@@ -15,10 +15,6 @@ import { Bell, Volume2, VolumeX, Smartphone, Gamepad2, Smile } from 'lucide-reac
  *   onTogglePush: Function,
  *   hapticsEnabled: boolean,
  *   onToggleHaptics: Function,
- *   autoJoinInvites: boolean,
- *   onToggleAutoJoin: Function,
- *   gameReactions: boolean,
- *   onToggleGameReactions: Function,
  * }} props
  * @returns {React.ReactElement}
  */
@@ -29,10 +25,6 @@ export default function PreferencesPanel({
   onTogglePush,
   hapticsEnabled,
   onToggleHaptics,
-  autoJoinInvites,
-  onToggleAutoJoin,
-  gameReactions,
-  onToggleGameReactions,
 }) {
   /**
    * Toggles push notifications and requests permissions if enabled.
@@ -157,50 +149,6 @@ export default function PreferencesPanel({
           >
             <span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${hapticsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-            />
-          </button>
-        </div>
-
-        {/* Auto-Join Toggle */}
-        <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
-              <Gamepad2 className="w-4 h-4 text-purple-400" />
-              Auto-Join Game Invites
-            </span>
-            <span className="text-xs text-text-muted mt-0.5">
-              Automatically join game invites without displaying confirmation popups.
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={onToggleAutoJoin}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autoJoinInvites ? 'bg-primary' : 'bg-surface-border'}`}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${autoJoinInvites ? 'translate-x-5' : 'translate-x-0'}`}
-            />
-          </button>
-        </div>
-
-        {/* In-Game Reactions Toggle */}
-        <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
-              <Smile className="w-4 h-4 text-pink-400" />
-              In-Game Reactions & Presets
-            </span>
-            <span className="text-xs text-text-muted mt-0.5">
-              Enable floating emojis and quick chat messages during gameplay.
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={onToggleGameReactions}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${gameReactions ? 'bg-primary' : 'bg-surface-border'}`}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${gameReactions ? 'translate-x-5' : 'translate-x-0'}`}
             />
           </button>
         </div>

@@ -1,3 +1,13 @@
+/**
+ * @file App.jsx
+ * @description Root application component. Configures client-side routing, applies
+ * the active theme, handles the pairing-code URL parameter, and wires together
+ * the MainLayout shell with protected routes.
+ *
+ * Auth state management is delegated to {@link useAuthSync}.
+ * Speculative route pre-loading is delegated to {@link useSpeculativePreload}.
+ */
+
 import React, { Suspense, lazy, useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -6,6 +16,7 @@ import {
   Navigate,
   Outlet,
   useLocation,
+  useNavigate,
 } from 'react-router-dom';
 import { TopBar } from './components/TopBar';
 import { BottomNav } from './components/BottomNav';
@@ -13,11 +24,14 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { InstallPrompt } from './components/InstallPrompt';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { useAppContext, useAppDispatch } from './contexts/AppContext';
-import { supabase } from './lib/supabase';
 import { usePresence } from './hooks/usePresence';
 import { usePreferences } from './hooks/usePreferences';
+import { useAuthSync } from './hooks/useAuthSync';
+import { useSpeculativePreload } from './hooks/useSpeculativePreload';
 import GameInviteModal from './components/GameInviteModal';
 import { Notification } from './components/Notification';
+import { MusicProvider } from './contexts/MusicContext';
+import { MiniPlayer } from './components/MiniPlayer';
 
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
@@ -32,17 +46,34 @@ const Profile = lazy(() => import('./features/profile/Profile'));
 const Settings = lazy(() => import('./features/settings/Settings'));
 
 /**
- * Layout component that includes the TopBar and BottomNav.
- * Tracks user route changes and syncs presence status dynamically.
+ * Inner layout shell rendered for every authenticated route. Renders the
+ * TopBar, BottomNav, and the active page via `<Outlet>`.
  *
- * @returns {React.ReactElement} The MainLayout component.
+ * Also tracks route changes to sync the user's presence room name, handles
+ * the auto-join redirect for pending game invites, and renders global overlays
+ * (GameInviteModal, Notification).
+ *
+ * @returns {React.ReactElement}
  */
 function MainLayout() {
   const location = useLocation();
-  const { globalNotification } = useAppContext();
+  const navigate = useNavigate();
+  const { globalNotification, autoJoinGameId } = useAppContext();
   const dispatch = useAppDispatch();
 
-  // Map route path to friendly room name
+  // Redirect to games page if auto-join game ID is active and user is not in games room
+  useEffect(() => {
+    if (autoJoinGameId && location.pathname !== '/games') {
+      navigate('/games');
+    }
+  }, [autoJoinGameId, location.pathname, navigate]);
+
+  /**
+   * Maps a URL pathname to a human-readable presence room label.
+   *
+   * @param {string} pathname - The current `location.pathname`.
+   * @returns {string} A friendly room name for presence tracking.
+   */
   const getFriendlyRoomName = (pathname) => {
     const path = pathname.replace(/^\//, '').toLowerCase();
     switch (path) {
@@ -87,13 +118,14 @@ function MainLayout() {
         className={
           isFullHeight
             ? 'flex-grow overflow-hidden flex flex-col relative'
-            : 'flex-grow container mx-auto px-4 overflow-y-auto pt-4'
+            : 'flex-grow container mx-auto px-4 overflow-y-auto custom-scrollbar pt-4'
         }
       >
         <Suspense fallback={<LoadingSpinner className="h-full mt-20" />}>
           <Outlet />
         </Suspense>
       </main>
+      <MiniPlayer />
       <BottomNav />
       <GameInviteModal />
       {globalNotification && (
@@ -108,7 +140,12 @@ function MainLayout() {
 }
 
 /**
- * Protected route wrapper
+ * Route wrapper that redirects unauthenticated or un-onboarded users to the
+ * appropriate screen before rendering protected content.
+ *
+ * @param {object} props
+ * @param {React.ReactNode} props.children - The protected content to render.
+ * @returns {React.ReactElement}
  */
 function ProtectedRoute({ children }) {
   const { user } = useAppContext();
@@ -125,9 +162,22 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+/**
+ * Root application component. Sets up the Router, applies the active theme class
+ * to `document.documentElement`, captures the pairing code from the URL search
+ * params, and delegates auth sync + speculative preloading to dedicated hooks.
+ *
+ * @returns {React.ReactElement}
+ */
 export default function App() {
   const { user, preferences } = useAppContext();
   const dispatch = useAppDispatch();
+
+  // Auth lifecycle: hydrate cache → fetch profile → realtime listener
+  useAuthSync();
+
+  // Background speculative preloading of lazy route chunks for instant navigation
+  useSpeculativePreload();
 
   // Load and sync preferences from DB
   const { prefs } = usePreferences(user?.id);
@@ -152,175 +202,17 @@ export default function App() {
     }
   }, [preferences?.theme]);
 
-  // Capture pairing code from URL if present
+  // Capture pairing code from URL if present, store in sessionStorage, then clean the URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const pairCode = params.get('pair');
     if (pairCode) {
       sessionStorage.setItem('lover_hq_pairing_code', pairCode);
-      // Clean up URL without triggering a reload
       const newUrl =
         window.location.protocol + '//' + window.location.host + window.location.pathname;
       window.history.replaceState({ path: newUrl }, '', newUrl);
     }
   }, []);
-
-  // Background speculative preloading of lazy route chunks to ensure instant routing
-  useEffect(() => {
-    const preloadComponent = (importFn) => {
-      importFn().catch((err) => console.warn('Preload failed:', err));
-    };
-
-    const timer = setTimeout(() => {
-      preloadComponent(() => import('./features/home/Home'));
-      preloadComponent(() => import('./features/fridge/Fridge'));
-      preloadComponent(() => import('./features/music/Music'));
-      preloadComponent(() => import('./features/games/Games'));
-      preloadComponent(() => import('./features/reveal/Reveal'));
-      preloadComponent(() => import('./features/board/Board'));
-      preloadComponent(() => import('./features/profile/Profile'));
-      preloadComponent(() => import('./features/settings/Settings'));
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Listen for Supabase Auth changes and Fetch Profile
-  useEffect(() => {
-    const fetchProfile = async (authUser) => {
-      try {
-        // Clear cached partner and pairing status if switching users
-        const cachedUserStr = localStorage.getItem('lover_hq_user');
-        if (cachedUserStr) {
-          const cachedUser = JSON.parse(cachedUserStr);
-          if (cachedUser && cachedUser.id !== authUser.id) {
-            localStorage.removeItem('lover_hq_partner');
-            localStorage.removeItem('lover_hq_pairing_status');
-            dispatch({ type: 'SET_PARTNER', payload: null });
-            dispatch({ type: 'SET_PAIRING_STATUS', payload: 'unpaired' });
-          }
-        }
-
-        const { data: profile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', authUser.id)
-          .single();
-
-        if (error) {
-          if (error.code !== 'PGRST116') {
-            console.error('Error fetching profile:', error);
-            return;
-          }
-          // If PGRST116 (new user profile not created/found yet), we should still set the user state so they can onboard
-          const mergedUser = { ...authUser, onboarding_completed: false };
-          dispatch({ type: 'SET_USER', payload: mergedUser });
-          return;
-        }
-
-        let mergedUser = { ...authUser, ...(profile || {}) };
-
-        // Auto-mark onboarding as completed if a partner is linked in the DB
-        if (profile?.partner_id && !profile.onboarding_completed) {
-          await supabase.from('users').update({ onboarding_completed: true }).eq('id', authUser.id);
-          mergedUser.onboarding_completed = true;
-        }
-
-        dispatch({ type: 'SET_USER', payload: mergedUser });
-        localStorage.setItem('lover_hq_user', JSON.stringify(mergedUser));
-
-        // Determine pairing status
-        if (profile?.partner_id) {
-          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
-          localStorage.setItem('lover_hq_pairing_status', 'paired');
-
-          // Fetch partner data
-          const { data: partner } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', profile.partner_id)
-            .single();
-          if (partner) {
-            dispatch({ type: 'SET_PARTNER', payload: partner });
-            localStorage.setItem('lover_hq_partner', JSON.stringify(partner));
-          }
-        } else if (profile?.pairing_code) {
-          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'pending' });
-          localStorage.setItem('lover_hq_pairing_status', 'pending');
-        } else {
-          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'unpaired' });
-          localStorage.setItem('lover_hq_pairing_status', 'unpaired');
-        }
-      } catch (err) {
-        console.error('Profile sync failed:', err);
-      }
-    };
-
-    const hydrateFromCache = () => {
-      try {
-        const cachedUser = localStorage.getItem('lover_hq_user');
-        const cachedPartner = localStorage.getItem('lover_hq_partner');
-        const cachedPairingStatus = localStorage.getItem('lover_hq_pairing_status');
-
-        if (cachedUser) {
-          dispatch({ type: 'SET_USER', payload: JSON.parse(cachedUser) });
-        }
-        if (cachedPartner) {
-          dispatch({ type: 'SET_PARTNER', payload: JSON.parse(cachedPartner) });
-        }
-        if (cachedPairingStatus) {
-          dispatch({ type: 'SET_PAIRING_STATUS', payload: cachedPairingStatus });
-        }
-      } catch (e) {
-        console.error('Failed to parse cached auth state:', e);
-      }
-    };
-
-    // 1. Immediately hydrate from cache to support seamless offline initial load
-    hydrateFromCache();
-
-    // 2. Initial session check
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        if (session?.user) {
-          fetchProfile(session.user);
-        } else {
-          // If we are online and there is no active session, clear cached credentials
-          if (navigator.onLine) {
-            localStorage.removeItem('lover_hq_user');
-            localStorage.removeItem('lover_hq_partner');
-            localStorage.removeItem('lover_hq_pairing_status');
-            dispatch({ type: 'RESET_STATE' });
-          }
-        }
-      })
-      .catch((err) => {
-        console.error('Session retrieval failed:', err);
-      });
-
-    // 3. Auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        fetchProfile(session.user);
-      } else {
-        // If we are offline, do not clear the user state (it is likely a token refresh network failure)
-        if (!navigator.onLine && localStorage.getItem('lover_hq_user')) {
-          console.warn('Offline: ignoring session expiration auth event');
-          hydrateFromCache();
-          return;
-        }
-        localStorage.removeItem('lover_hq_user');
-        localStorage.removeItem('lover_hq_partner');
-        localStorage.removeItem('lover_hq_pairing_status');
-        dispatch({ type: 'RESET_STATE' });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [dispatch]);
 
   return (
     <Router>
@@ -364,7 +256,9 @@ export default function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <MainLayout />
+                <MusicProvider>
+                  <MainLayout />
+                </MusicProvider>
               </ProtectedRoute>
             }
           >

@@ -50,7 +50,22 @@ export default function Onboarding() {
   const { user } = useAppContext();
   const dispatch = useAppDispatch();
 
-  const [[step, direction], setStep] = useState([1, 0]);
+  const [[step, direction], setStepState] = useState(() => {
+    const savedStep = sessionStorage.getItem('lover_hq_onboarding_step');
+    return savedStep ? [parseInt(savedStep, 10), 0] : [1, 0];
+  });
+
+  /**
+   * Updates the onboarding step state and persists the next step to sessionStorage.
+   *
+   * @param {[number, number]} val - An array where the first element is the next step number,
+   *                                and the second element is the direction animation value.
+   */
+  const setStep = (val) => {
+    setStepState(val);
+    const nextStep = Array.isArray(val) ? val[0] : val;
+    sessionStorage.setItem('lover_hq_onboarding_step', nextStep);
+  };
   const [name, setName] = useState(user?.name || '');
   const [countriesList, setCountriesList] = useState(COUNTRIES);
   const [selectedCountry, setSelectedCountry] = useState(() => {
@@ -121,9 +136,11 @@ export default function Onboarding() {
     }
   }, [user]);
 
-  // Auto-skip to Step 5 if profile details are already set or onboarding is completed
+  // Auto-skip to Step 5 if profile details are already set or onboarding is completed.
+  // We check if avatar_url has been set to something other than the default 'cat' placeholder.
   useEffect(() => {
-    if ((user?.onboarding_completed || user?.name) && step < 5) {
+    const isProfileInitialized = user?.avatar_url && user.avatar_url !== 'cat';
+    if ((user?.onboarding_completed || isProfileInitialized) && step < 5) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep([5, 1]);
     }
@@ -139,6 +156,7 @@ export default function Onboarding() {
 
   /** Signs the user out of Supabase. */
   const handleSignOut = async () => {
+    sessionStorage.removeItem('lover_hq_onboarding_step');
     await supabase.auth.signOut();
   };
 
@@ -285,6 +303,7 @@ export default function Onboarding() {
       if (linkError) throw linkError;
 
       sessionStorage.removeItem('lover_hq_pairing_code');
+      sessionStorage.removeItem('lover_hq_onboarding_step');
       dispatch({
         type: 'SET_USER',
         payload: {
@@ -318,6 +337,7 @@ export default function Onboarding() {
 
       if (updateError) throw updateError;
 
+      sessionStorage.removeItem('lover_hq_onboarding_step');
       dispatch({
         type: 'SET_USER',
         payload: { ...user, onboarding_completed: true },
@@ -390,7 +410,7 @@ export default function Onboarding() {
         ></div>
       </div>
 
-      <main className="flex-grow flex items-center justify-center px-6 md:px-8 relative z-10 overflow-y-auto">
+      <main className="flex-grow flex items-center justify-center px-6 md:px-8 relative z-10 overflow-y-auto custom-scrollbar">
         <div className="w-full max-w-md relative z-10 min-h-[480px] flex items-center">
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
@@ -404,11 +424,7 @@ export default function Onboarding() {
               className="w-full py-4"
             >
               {step === 1 && (
-                <StepName
-                  name={name}
-                  setName={setName}
-                  onNext={() => setStep([2, 1])}
-                />
+                <StepName name={name} setName={setName} onNext={() => setStep([2, 1])} />
               )}
 
               {step === 2 && (

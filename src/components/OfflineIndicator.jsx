@@ -1,11 +1,25 @@
+/**
+ * @file OfflineIndicator.jsx
+ * @description Fixed top banner that appears automatically when the browser goes
+ * offline and disappears when the connection is restored.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 
+/**
+ * Renders a fixed amber banner at the top of the screen when the user is offline.
+ * Listens to `window` `online` and `offline` events; automatically shows/hides itself.
+ *
+ * @returns {React.ReactElement|null} The banner element, or null when online.
+ */
 export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
+    /** @returns {void} */
     const handleOnline = () => setIsOnline(true);
+    /** @returns {void} */
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);

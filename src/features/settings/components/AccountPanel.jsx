@@ -124,7 +124,7 @@ export default function AccountPanel({
             className="px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center gap-2"
           >
             {saving ? (
-              <LoadingSpinner size="sm" className="text-white w-4 h-4" />
+              <LoadingSpinner size="xs" className="text-white" />
             ) : (
               <Check className="w-4 h-4" />
             )}

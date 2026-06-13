@@ -1,6 +1,21 @@
+/**
+ * @file InstallPrompt.jsx
+ * @description Progressive Web App (PWA) install prompt banner. Captures the
+ * `beforeinstallprompt` event, waits 10 seconds before surfacing the UI, and
+ * persists the user's dismissal choice to `localStorage` so they are not
+ * repeatedly prompted.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Download, X } from 'lucide-react';
 
+/**
+ * Renders a slide-up bottom banner prompting the user to install the app.
+ * Only visible if the browser fires `beforeinstallprompt` and the user has not
+ * previously dismissed the prompt.
+ *
+ * @returns {React.ReactElement|null} The banner element, or null when hidden.
+ */
 export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -26,6 +41,11 @@ export function InstallPrompt() {
     };
   }, []);
 
+  /**
+   * Triggers the native PWA install dialog and cleans up internal state.
+   *
+   * @returns {Promise<void>}
+   */
   const handleInstall = async () => {
     if (!deferredPrompt) return;
 
@@ -40,6 +60,11 @@ export function InstallPrompt() {
     setShowPrompt(false);
   };
 
+  /**
+   * Hides the prompt and persists the dismissal decision to `localStorage`.
+   *
+   * @returns {void}
+   */
   const handleDismiss = () => {
     setShowPrompt(false);
     localStorage.setItem('pwa-prompt-dismissed', 'true');

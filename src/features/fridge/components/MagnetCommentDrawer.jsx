@@ -1,28 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+/**
+ * @file MagnetCommentDrawer.jsx
+ * @description Glassmorphic bottom-sheet/side-panel drawer for threaded comments
+ * and emoji reactions on a single fridge magnet.
+ *
+ * Data management is delegated to {@link useMagnetComments}.
+ * Keyboard height tracking is delegated to {@link useKeyboardHeight}.
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, MessageSquare, Clock, Smile, Check, CheckCheck } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
-import { supabase } from '../../../lib/supabase';
-import { getFridgeComments, createFridgeComment } from '../../../services/fridge';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
+import { useMagnetComments } from '../hooks/useMagnetComments';
+import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight';
 
 /**
- * @file MagnetCommentDrawer.jsx
- * @description Glassmorphic drawer component for threaded comments and emoji reactions on a single magnet.
- */
-
-/**
- * Magnet Comment Drawer Component
+ * Magnet Comment Drawer component.
  *
- * @param {object} props - Component props
- * @param {object|null} props.item - The active magnet item (note, photo, voice, emoji) or null if closed
- * @param {Function} props.onClose - Callback function to close the drawer
- * @param {string} props.userId - ID of the logged-in user
- * @param {object|null} props.partner - Partner profile object
- * @param {string|null} props.partnerLastSeen - ISO string of partner's last seen time
- * @param {boolean} props.isPartnerInFridge - If the partner is currently in the Fridge canvas view
- * @param {Function} props.onUpdateReactions - Callback to update reactions on the parent magnet: (itemId, newReactions) => void
- * @returns {React.ReactElement} The MagnetCommentDrawer component
+ * Renders a slide-up bottom sheet on mobile or a slide-in side panel on desktop.
+ * Displays threaded comments, emoji reaction chips, and an input composer.
+ *
+ * @param {object} props
+ * @param {object|null} props.item - The active magnet item or null if closed.
+ * @param {Function} props.onClose - Callback to close the drawer.
+ * @param {string} props.userId - ID of the logged-in user.
+ * @param {object|null} props.partner - Partner profile object.
+ * @param {string|null} props.partnerLastSeen - ISO string of partner's last seen timestamp.
+ * @param {boolean} props.isPartnerInFridge - Whether the partner is currently in the Fridge view.
+ * @param {Function} props.onUpdateReactions - Callback `(itemId, newReactions) => void`.
+ * @param {Function} [props.onPlaySound] - Optional callback to play UI sound effects.
+ * @returns {React.ReactElement}
  */
 export default function MagnetCommentDrawer({
   item,
@@ -34,304 +42,47 @@ export default function MagnetCommentDrawer({
   onUpdateReactions,
   onPlaySound,
 }) {
-  const [comments, setComments] = useState([]);
-  const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [particles, setParticles] = useState([]);
-  const [activeReactionPop, setActiveReactionPop] = useState(null); // tracking spring-pop emoji ID
-
+  const [activeReactionPop, setActiveReactionPop] = useState(null);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const commentsEndRef = useRef(null);
 
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+  // Delegate data management to custom hook
+  const {
+    comments,
+    isLoading,
+    isPartnerTyping,
+    inputText,
+    handleInputChange,
+    handleSendComment,
+  } = useMagnetComments(item, userId);
 
-  const [isPartnerTyping, setIsPartnerTyping] = useState(false);
-  const typingTimeoutRef = useRef(null);
-  const channelRef = useRef(null);
+  // Delegate keyboard height tracking to custom hook
+  const { keyboardHeight, viewportHeight } = useKeyboardHeight();
 
+  // Track desktop/mobile breakpoint
   useEffect(() => {
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 768);
-    };
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Visual viewport tracking for software keyboard height and accessory bar adjustment
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  useEffect(() => {
-    if (!window.visualViewport) return;
-
-    const handleViewportChange = () => {
-      const vv = window.visualViewport;
-      setViewportHeight(vv.height);
-      const offsetBottom = window.innerHeight - vv.height - vv.offsetTop;
-      setKeyboardHeight(Math.max(0, offsetBottom));
-    };
-
-    window.visualViewport.addEventListener('resize', handleViewportChange);
-    window.visualViewport.addEventListener('scroll', handleViewportChange);
-
-    // Initial check
-    handleViewportChange();
-
-    return () => {
-      window.visualViewport.removeEventListener('resize', handleViewportChange);
-      window.visualViewport.removeEventListener('scroll', handleViewportChange);
-    };
-  }, []);
-
-  // Load comments for the selected magnet item
-  const loadComments = useCallback(async () => {
-    if (!item?.id) return;
-    setIsLoading(true);
-
-    const cacheKey = `fridge_comments_cache_${item.id}`;
-    const queueKey = `fridge_comments_offline_queue`;
-
-    // 1. Try loading cached comments from localStorage first
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        setComments(JSON.parse(cached));
-      }
-    } catch (e) {
-      console.error('Error loading cached comments:', e);
-    }
-
-    try {
-      let freshComments = [];
-      if (navigator.onLine) {
-        freshComments = await getFridgeComments(item.id);
-        localStorage.setItem(cacheKey, JSON.stringify(freshComments));
-      }
-
-      // Merge with offline queued comments for this specific item
-      const queued = JSON.parse(localStorage.getItem(queueKey) || '[]');
-      const itemQueued = queued.filter((c) => c.item_id === item.id);
-
-      setComments([...freshComments, ...itemQueued]);
-    } catch (err) {
-      console.error('Failed to load comments:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [item]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (item?.id) {
-        loadComments();
-      } else {
-        setComments([]);
-      }
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [item, loadComments]);
-
-  // Subscribe to real-time comment updates & typing indicators
-  useEffect(() => {
-    if (!item?.id) return;
-
-    const channel = supabase
-      .channel(`item_comments_${item.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'fridge_comments',
-          filter: `item_id=eq.${item.id}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newComment = payload.new;
-            setComments((prev) => {
-              if (prev.some((c) => c.id === newComment.id)) return prev;
-              return [...prev, newComment];
-            });
-            setIsPartnerTyping(false);
-          } else if (payload.eventType === 'DELETE') {
-            const deletedId = payload.old.id;
-            setComments((prev) => prev.filter((c) => c.id !== deletedId));
-          }
-        }
-      )
-      .on('broadcast', { event: 'typing' }, ({ payload }) => {
-        if (payload.userId !== userId) {
-          setIsPartnerTyping(payload.isTyping);
-        }
-      })
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, [item?.id, userId]);
-
-  // Scroll to bottom helper
+  // Auto-scroll to the latest comment
   useEffect(() => {
     commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [comments, isPartnerTyping]);
 
-  const handleInputChange = (e) => {
-    setInputText(e.target.value);
-
-    if (channelRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { userId, isTyping: true },
-      });
-    }
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    typingTimeoutRef.current = setTimeout(() => {
-      if (channelRef.current) {
-        channelRef.current.send({
-          type: 'broadcast',
-          event: 'typing',
-          payload: { userId, isTyping: false },
-        });
-      }
-    }, 3000);
-  };
-
-  // Handle comment submit
-  const handleSendComment = async (e) => {
-    e.preventDefault();
-    if (!inputText.trim() || !item?.id) return;
-
-    if (onPlaySound) onPlaySound('rustle');
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    if (channelRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { userId, isTyping: false },
-      });
-    }
-
-    const textToSend = inputText.trim();
-    setInputText('');
-
-    const timestamp = new Date().toISOString();
-    const tempId = `offline-comment-${Date.now()}`;
-    const newComment = {
-      id: tempId,
-      item_id: item.id,
-      user_id: userId,
-      content: textToSend,
-      created_at: timestamp,
-      isPending: true,
-    };
-
-    // Update state optimistically
-    setComments((prev) => [...prev, newComment]);
-
-    const queueKey = `fridge_comments_offline_queue`;
-
-    if (!navigator.onLine) {
-      // Save to offline comments queue
-      try {
-        const queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
-        queue.push(newComment);
-        localStorage.setItem(queueKey, JSON.stringify(queue));
-      } catch (err) {
-        console.error('Failed to queue offline comment:', err);
-      }
-      return;
-    }
-
-    try {
-      const savedComment = await createFridgeComment({
-        item_id: item.id,
-        user_id: userId,
-        content: textToSend,
-      });
-
-      // Replace temporary offline comment with the DB version
-      setComments((prev) => prev.map((c) => (c.id === tempId ? savedComment : c)));
-
-      // Cache updated list
-      const cacheKey = `fridge_comments_cache_${item.id}`;
-      const fresh = await getFridgeComments(item.id);
-      localStorage.setItem(cacheKey, JSON.stringify(fresh));
-    } catch (err) {
-      console.error('Failed to save comment:', err);
-      // Fallback: keep in offline queue if it failed due to sudden disconnect
-      try {
-        const queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
-        queue.push(newComment);
-        localStorage.setItem(queueKey, JSON.stringify(queue));
-      } catch (queueErr) {
-        console.error('Failed to queue offline comment on error:', queueErr);
-      }
-    }
-  };
-
-  // Sync offline comments when online
-  const syncOfflineComments = useCallback(async () => {
-    if (!navigator.onLine) return;
-    const queueKey = `fridge_comments_offline_queue`;
-    let queue = [];
-    try {
-      queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
-    } catch {
-      return;
-    }
-
-    if (queue.length === 0) return;
-
-    const remaining = [];
-    for (const comment of queue) {
-      try {
-        await createFridgeComment({
-          item_id: comment.item_id,
-          user_id: comment.user_id,
-          content: comment.content,
-        });
-      } catch (err) {
-        console.error('Failed to sync offline comment:', err);
-        remaining.push(comment);
-      }
-    }
-
-    localStorage.setItem(queueKey, JSON.stringify(remaining));
-
-    // Reload comments if we synced successfully
-    if (remaining.length < queue.length && item?.id) {
-      loadComments();
-    }
-  }, [item?.id, loadComments]);
-
-  // Sync on mount/online events
-  useEffect(() => {
-    window.addEventListener('online', syncOfflineComments);
-    return () => {
-      window.removeEventListener('online', syncOfflineComments);
-    };
-  }, [syncOfflineComments]);
-
-  // Handle reaction click and particle explosion
+  /**
+   * Toggles a reaction emoji on/off for the local user and triggers a particle explosion.
+   *
+   * @param {string} emojiId - The unique identifier of the reaction emoji.
+   * @param {React.MouseEvent} event - The click event (used to compute particle origin).
+   * @returns {void}
+   */
   const handleToggleReaction = (emojiId, event) => {
     if (!item?.id) return;
     if (onPlaySound) onPlaySound('pop');
 
-    // Get click coordinates for particle splash direction
     const rect = event.currentTarget.getBoundingClientRect();
     const clickX = rect.left + rect.width / 2;
     const clickY = rect.top + rect.height / 2;
@@ -341,23 +92,19 @@ export default function MagnetCommentDrawer({
 
     let newReactions;
     if (userList.includes(userId)) {
-      // Remove reaction
       newReactions = {
         ...currentReactions,
         [emojiId]: userList.filter((uid) => uid !== userId),
       };
     } else {
-      // Add reaction
       newReactions = {
         ...currentReactions,
         [emojiId]: [...userList, userId],
       };
 
-      // Trigger spring-pop animation for active counters list
       setActiveReactionPop(emojiId);
       setTimeout(() => setActiveReactionPop(null), 300);
 
-      // Trigger particle explosion (6-8 emojis)
       const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
       const emojiChar = emojiDef ? emojiDef.char : '❤️';
       const newParticles = Array.from({ length: 7 }).map((_, idx) => ({
@@ -365,10 +112,9 @@ export default function MagnetCommentDrawer({
         char: emojiChar,
         x: clickX,
         y: clickY,
-        dx: (Math.random() - 0.5) * 160, // random scatter width
-        dy: -(Math.random() * 120 + 80), // float up height
+        dx: (Math.random() - 0.5) * 160,
+        dy: -(Math.random() * 120 + 80),
       }));
-
       setParticles((prev) => [...prev, ...newParticles]);
     }
 
@@ -377,16 +123,33 @@ export default function MagnetCommentDrawer({
     }
   };
 
-  // Remove individual finished particle
+  /**
+   * Removes a finished particle from the floating overlay.
+   *
+   * @param {string} id - The particle's unique ID.
+   * @returns {void}
+   */
   const removeParticle = (id) => {
     setParticles((prev) => prev.filter((p) => p.id !== id));
   };
 
+  /**
+   * Returns the display name for a comment author.
+   *
+   * @param {string} commentUserId - The user_id stored on the comment.
+   * @returns {string} 'You' for the local user, partner name otherwise.
+   */
   const getCommenterName = (commentUserId) => {
     if (commentUserId === userId) return 'You';
     return partner?.name || 'Partner';
   };
 
+  /**
+   * Renders a delivery status icon for a comment sent by the local user.
+   *
+   * @param {object} comment - The comment object to render status for.
+   * @returns {React.ReactElement|null} An icon or null if the comment is from the partner.
+   */
   const renderCommentStatus = (comment) => {
     if (comment.user_id !== userId) return null;
 
@@ -477,15 +240,12 @@ export default function MagnetCommentDrawer({
                   }`}
                   title={emoji.label}
                 >
-                  {/* WebP CDN Image */}
                   <img
                     src={getEmojiCdnUrl(emoji.code)}
                     alt={emoji.label}
                     className="w-4 h-4 object-contain pointer-events-none select-none"
                     loading="lazy"
                   />
-
-                  {/* Reaction Count Spring-Pop Animation */}
                   {count > 0 && (
                     <motion.span
                       animate={activeReactionPop === emoji.id ? { scale: [1, 1.4, 1] } : {}}
@@ -501,9 +261,9 @@ export default function MagnetCommentDrawer({
           </div>
         </div>
 
-        {/* Comments Feed Timeline Wrapper */}
+        {/* Comments Feed */}
         <div className="flex-grow relative overflow-hidden">
-          {/* Static Background and Tint Overlay */}
+          {/* Background texture */}
           <div
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
@@ -514,7 +274,7 @@ export default function MagnetCommentDrawer({
           />
           <div className="absolute inset-0 bg-slate-950/75 pointer-events-none z-0" />
 
-          {/* Scrollable Comments Feed */}
+          {/* Scrollable feed */}
           <div className="absolute inset-0 overflow-y-auto px-5 py-4 custom-scrollbar z-10">
             <div className="flex flex-col min-h-full">
               {isLoading && comments.length === 0 ? (
@@ -534,8 +294,7 @@ export default function MagnetCommentDrawer({
                   const isMe = comment.user_id === userId;
                   const prevComment = i > 0 ? comments[i - 1] : null;
                   const nextComment = i < comments.length - 1 ? comments[i + 1] : null;
-
-                  const TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+                  const TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
                   const isPrevSame =
                     prevComment &&
@@ -553,33 +312,20 @@ export default function MagnetCommentDrawer({
                   const showTimestamp = !isNextSame || comment.isPending;
 
                   let marginTopClass = 'mt-1';
-                  if (i === 0) {
-                    marginTopClass = 'mt-0';
-                  } else if (showSenderName) {
-                    marginTopClass = 'mt-4';
-                  }
+                  if (i === 0) marginTopClass = 'mt-0';
+                  else if (showSenderName) marginTopClass = 'mt-4';
 
                   let bubbleRadiusClass = '';
                   if (isMe) {
-                    if (!isPrevSame && !isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-br-none';
-                    } else if (!isPrevSame && isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-br-none';
-                    } else if (isPrevSame && isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-r-md';
-                    } else if (isPrevSame && !isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-tr-none';
-                    }
+                    if (!isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-br-none';
+                    else if (!isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-br-none';
+                    else if (isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-r-md';
+                    else if (isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-tr-none';
                   } else {
-                    if (!isPrevSame && !isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
-                    } else if (!isPrevSame && isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
-                    } else if (isPrevSame && isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-l-md';
-                    } else if (isPrevSame && !isNextSame) {
-                      bubbleRadiusClass = 'rounded-2xl rounded-tl-none';
-                    }
+                    if (!isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
+                    else if (!isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
+                    else if (isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-l-md';
+                    else if (isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-tl-none';
                   }
 
                   return (
@@ -589,14 +335,11 @@ export default function MagnetCommentDrawer({
                         isMe ? 'ml-auto items-end' : 'mr-auto items-start'
                       } ${marginTopClass}`}
                     >
-                      {/* Sender Metadata */}
                       {showSenderName && (
                         <span className="text-[10px] font-bold text-text-muted mb-1 px-1">
                           {getCommenterName(comment.user_id)}
                         </span>
                       )}
-
-                      {/* Message Bubble */}
                       <div
                         className={`px-3.5 py-2.5 text-xs font-medium leading-relaxed shadow ${bubbleRadiusClass} ${
                           isMe
@@ -606,8 +349,6 @@ export default function MagnetCommentDrawer({
                       >
                         {comment.content}
                       </div>
-
-                      {/* Time + Delivery Status */}
                       {showTimestamp && (
                         <div className="flex items-center gap-1.5 text-[9px] text-text-muted/50 mt-1 px-1 font-mono">
                           <span>
@@ -623,35 +364,29 @@ export default function MagnetCommentDrawer({
                   );
                 })
               )}
+
+              {/* Partner typing indicator */}
               {isPartnerTyping && (
                 <div className="flex flex-col max-w-[85%] mr-auto items-start mt-4">
                   <span className="text-[10px] font-bold text-text-muted mb-1 px-1">
                     {partner?.name || 'Partner'}
                   </span>
                   <div className="px-4 py-3 bg-surface border border-surface-border/20 rounded-2xl rounded-bl-none shadow flex items-center gap-1.5">
-                    <span
-                      className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce"
-                      style={{ animationDelay: '0ms' }}
-                    />
-                    <span
-                      className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce"
-                      style={{ animationDelay: '150ms' }}
-                    />
-                    <span
-                      className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce"
-                      style={{ animationDelay: '300ms' }}
-                    />
+                    <span className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               )}
+
               <div ref={commentsEndRef} />
             </div>
           </div>
         </div>
 
-        {/* Input Composer Panel */}
+        {/* Input Composer */}
         <form
-          onSubmit={handleSendComment}
+          onSubmit={(e) => handleSendComment(e, onPlaySound)}
           className="p-4 border-t border-surface-border/20 bg-slate-950/40 flex-shrink-0 flex items-center gap-2"
         >
           <input
@@ -673,18 +408,13 @@ export default function MagnetCommentDrawer({
         </form>
       </motion.div>
 
-      {/* Floating Reactions Particles overlay */}
+      {/* Floating emoji reaction particles */}
       <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
         <AnimatePresence>
           {particles.map((particle) => (
             <motion.span
               key={particle.id}
-              initial={{
-                x: particle.x,
-                y: particle.y,
-                opacity: 1,
-                scale: 0.6,
-              }}
+              initial={{ x: particle.x, y: particle.y, opacity: 1, scale: 0.6 }}
               animate={{
                 x: particle.x + particle.dx,
                 y: particle.y + particle.dy,

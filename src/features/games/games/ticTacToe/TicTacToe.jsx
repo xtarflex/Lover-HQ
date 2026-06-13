@@ -4,7 +4,7 @@
  * move sync via Supabase broadcast and move recording for replay.
  */
 
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import GameHeader from '../../components/GameHeader';
 import GameResults from '../../components/GameResults';
 import { useGameSync } from '../../hooks/useGameSync';
@@ -24,11 +24,15 @@ import QuickReactionTray from '../../components/QuickReactionTray';
  * @param {object} props.partner
  * @param {boolean} props.partnerOnline
  * @param {Function} props.onBack
+ * @param {boolean} props.isHost - Whether the local user initiated the game. The host always plays X.
  */
-export default function TicTacToe({ gameId, gameName, userId, partnerId, user, partner, onBack }) {
-  // Host (alphabetically first user ID) always plays X
-  const mySymbol = userId < partnerId ? 'X' : 'O';
-  const sessionId = useRef(generateSessionId(gameId, userId, partnerId)).current;
+export default function TicTacToe({ gameId, gameName, userId, partnerId, user, partner, onBack, isHost }) {
+  // Host (game initiator) always plays X — NOT alphabetical order.
+  const mySymbol = isHost ? 'X' : 'O';
+  const sessionId = useMemo(
+    () => generateSessionId(gameId, userId, partnerId),
+    [gameId, userId, partnerId]
+  );
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
 
   const [showForfeitModal, setShowForfeitModal] = useState(false);
@@ -36,40 +40,115 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
   const [activePartnerBubble, setActivePartnerBubble] = useState('');
   const [userEmojis, setUserEmojis] = useState([]);
   const [partnerEmojis, setPartnerEmojis] = useState([]);
+  const [endReason, setEndReason] = useState('completion');
+  const [rematchStatus, setRematchStatus] = useState('none');
 
   const {
-    board, isMyTurn, winner, winnerId, mySymbol: sym, partnerSymbol,
-    handleCellTap, applyRemoteMove, reset, forceWinner,
+    board,
+    isMyTurn,
+    winner,
+    winnerId,
+    mySymbol: sym,
+    partnerSymbol,
+    handleCellTap,
+    applyRemoteMove,
+    reset,
+    forceWinner,
   } = useTicTacToeLogic({ userId, partnerId, mySymbol });
 
   // Use a ref so we only call useGameSync once but always have the latest callbacks
-  const handlersRef = useRef({ applyRemoteMove, reset, recorder, partnerId, gameId, userId, forceWinner, sym, setUserEmojis, setPartnerEmojis, setActivePartnerBubble });
+  const handlersRef = useRef({
+    applyRemoteMove,
+    reset,
+    recorder,
+    partnerId,
+    gameId,
+    userId,
+    forceWinner,
+    sym,
+    setUserEmojis,
+    setPartnerEmojis,
+    setActivePartnerBubble,
+    setEndReason,
+    setRematchStatus,
+  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    handlersRef.current = { applyRemoteMove, reset, recorder, partnerId, gameId, userId, forceWinner, sym, setUserEmojis, setPartnerEmojis, setActivePartnerBubble };
+    handlersRef.current = {
+      applyRemoteMove,
+      reset,
+      recorder,
+      partnerId,
+      gameId,
+      userId,
+      forceWinner,
+      sym,
+      setUserEmojis,
+      setPartnerEmojis,
+      setActivePartnerBubble,
+      setEndReason,
+      setRematchStatus,
+    };
   });
 
   const handleRemoteMove = useCallback((payload) => {
-    const { applyRemoteMove, reset, recorder, partnerId, gameId, userId, forceWinner, sym, setUserEmojis, setPartnerEmojis, setActivePartnerBubble } = handlersRef.current;
+    const {
+      applyRemoteMove,
+      reset,
+      recorder,
+      partnerId,
+      gameId,
+      userId,
+      forceWinner,
+      sym,
+      setPartnerEmojis,
+      setActivePartnerBubble,
+      setEndReason,
+      setRematchStatus,
+    } = handlersRef.current;
     if (payload.type === 'move') {
       applyRemoteMove(payload);
       recorder.current.recordMove(partnerId, 'place', { index: payload.index });
-    } else if (payload.type === 'rematch') {
+    } else if (payload.type === 'rematch_request') {
+      setRematchStatus('receiving');
+    } else if (payload.type === 'rematch_accept') {
       reset();
+      setRematchStatus('none');
+      setEndReason('completion');
       recorder.current = new GameRecorder(gameId, userId, partnerId);
+    } else if (payload.type === 'rematch_decline') {
+      setRematchStatus('none');
     } else if (payload.type === 'forfeit') {
       forceWinner(sym);
+      setEndReason('forfeit');
       recorder.current.recordMove(partnerId, 'forfeit', {});
     } else if (payload.type === 'reaction') {
-      const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+      const reactionsEnabled =
+        localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
       if (!reactionsEnabled) return;
-      const id = Date.now() + Math.random();
-      const xOffset = Math.floor(Math.random() * 60) - 30;
-      setPartnerEmojis((prev) => [...prev, { id, emoji: payload.emoji, xOffset }]);
-      setTimeout(() => {
-        setPartnerEmojis((prev) => prev.filter((item) => item.id !== id));
-      }, 2500);
+      const burst = payload.burst || [
+        { xOffset: Math.floor(Math.random() * 60) - 30, delay: 0, duration: 3.2, scale: 1 },
+      ];
+      burst.forEach((item) => {
+        const id = Date.now() + Math.random();
+        setPartnerEmojis((prev) => [
+          ...prev,
+          {
+            id,
+            emoji: payload.emoji,
+            xOffset: item.xOffset,
+            delay: item.delay,
+            duration: item.duration,
+            scale: item.scale,
+          },
+        ]);
+        setTimeout(() => {
+          setPartnerEmojis((prev) => prev.filter((e) => e.id !== id));
+        }, 4500);
+      });
     } else if (payload.type === 'chat') {
-      const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
+      const reactionsEnabled =
+        localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
       if (!reactionsEnabled) return;
       setActivePartnerBubble(payload.text);
       setTimeout(() => {
@@ -82,9 +161,18 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
 
   // Save replay when game ends (only host saves to prevent duplicates)
   useEffect(() => {
-    if (!winner || userId >= partnerId) return;
+    if (!winner || !isHost) return;
     recorder.current.save(winnerId).catch(console.error);
-  }, [winner, winnerId, userId, partnerId]);
+  }, [winner, winnerId, isHost]);
+
+  // Listen for partner decline to exit game immediately without forfeit modal
+  useEffect(() => {
+    const handleDecline = () => {
+      onBack();
+    };
+    window.addEventListener('game-invite-declined', handleDecline);
+    return () => window.removeEventListener('game-invite-declined', handleDecline);
+  }, [onBack]);
 
   const onCellTap = (index) => {
     const move = handleCellTap(index);
@@ -93,13 +181,28 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
     broadcastMove({ type: 'move', ...move });
   };
 
-  const handleRematch = () => {
+  const handleRequestRematch = () => {
+    setRematchStatus('sending');
+    broadcastMove({ type: 'rematch_request' });
+  };
+
+  const handleAcceptRematch = () => {
     reset();
+    setRematchStatus('none');
+    setEndReason('completion');
     recorder.current = new GameRecorder(gameId, userId, partnerId);
-    broadcastMove({ type: 'rematch' });
+    broadcastMove({ type: 'rematch_accept' });
+  };
+
+  const handleDeclineRematch = () => {
+    setRematchStatus('none');
+    broadcastMove({ type: 'rematch_decline' });
   };
 
   const handleBackAction = () => {
+    if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
+      broadcastMove({ type: 'rematch_decline' });
+    }
     if (!winner) {
       setShowForfeitModal(true);
     } else {
@@ -111,28 +214,45 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
     setShowForfeitModal(false);
     recorder.current.recordMove(userId, 'forfeit', {});
     broadcastMove({ type: 'forfeit', senderId: userId });
-    
+
     // If we are host, write replay to DB before exiting
-    if (userId < partnerId) {
-      const partnerWinId = partnerId;
-      await recorder.current.save(partnerWinId).catch(console.error);
+    if (isHost) {
+      await recorder.current.save(partnerId).catch(console.error);
     }
-    
+
     onBack();
   };
-
-
 
   const handleSendReaction = (emoji) => {
     const reactionsEnabled = localStorage.getItem('preferences_game_reactions_enabled') !== 'false';
     if (!reactionsEnabled) return;
-    const id = Date.now() + Math.random();
-    const xOffset = Math.floor(Math.random() * 60) - 30;
-    setUserEmojis((prev) => [...prev, { id, emoji, xOffset }]);
-    setTimeout(() => {
-      setUserEmojis((prev) => prev.filter((item) => item.id !== id));
-    }, 2500);
-    broadcastMove({ type: 'reaction', emoji });
+
+    // Spawn a burst of 3-4 emojis
+    const count = 3 + Math.floor(Math.random() * 2);
+    const newEmojis = [];
+    for (let i = 0; i < count; i++) {
+      const id = Date.now() + Math.random();
+      const xOffset = Math.floor(Math.random() * 60) - 30;
+      const delay = Math.random() * 0.4;
+      const duration = 2.8 + Math.random() * 0.8;
+      const scale = 0.8 + Math.random() * 0.5;
+      newEmojis.push({ id, emoji, xOffset, delay, duration, scale });
+
+      setTimeout(() => {
+        setUserEmojis((prev) => prev.filter((item) => item.id !== id));
+      }, 4500);
+    }
+    setUserEmojis((prev) => [...prev, ...newEmojis]);
+    broadcastMove({
+      type: 'reaction',
+      emoji,
+      burst: newEmojis.map((e) => ({
+        xOffset: e.xOffset,
+        delay: e.delay,
+        duration: e.duration,
+        scale: e.scale,
+      })),
+    });
   };
 
   const handleSendChat = (text) => {
@@ -146,13 +266,7 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
   };
 
   const result =
-    winner === sym
-      ? 'win'
-      : winner === partnerSymbol
-      ? 'loss'
-      : winner === 'draw'
-      ? 'draw'
-      : null;
+    winner === sym ? 'win' : winner === partnerSymbol ? 'loss' : winner === 'draw' ? 'draw' : null;
 
   const cellBase =
     'aspect-square flex items-center justify-center text-4xl font-extrabold rounded-2xl border-2 transition-all duration-150 select-none cursor-pointer active:scale-90';
@@ -179,8 +293,8 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
               ? "It's a draw!"
               : `${winner === sym ? 'You' : partner?.name || 'Partner'} win${winner === sym ? '!' : 's!'}`
             : isMyTurn
-            ? `Your turn — tap a cell  (${sym})`
-            : `Waiting for ${partner?.name || 'partner'}… (${partnerSymbol})`}
+              ? `Your turn — tap a cell  (${sym})`
+              : `Waiting for ${partner?.name || 'partner'}… (${partnerSymbol})`}
         </p>
 
         {/* Board */}
@@ -200,8 +314,8 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
                 cell === 'X'
                   ? 'border-primary/40 bg-primary/10 text-primary'
                   : cell === 'O'
-                  ? 'border-secondary/40 bg-secondary/10 text-secondary'
-                  : 'border-surface-border bg-surface/50 hover:border-primary/40 hover:bg-primary/5 disabled:hover:border-surface-border disabled:cursor-not-allowed'
+                    ? 'border-secondary/40 bg-secondary/10 text-secondary'
+                    : 'border-surface-border bg-surface/50 hover:border-primary/40 hover:bg-primary/5 disabled:hover:border-surface-border disabled:cursor-not-allowed'
               }`}
             >
               {cell}
@@ -224,14 +338,56 @@ export default function TicTacToe({ gameId, gameName, userId, partnerId, user, p
         <GameResults
           result={result}
           winnerName={partner?.name}
-          onRematch={handleRematch}
-          onLobby={onBack}
+          endReason={endReason}
+          rematchStatus={rematchStatus}
+          onRequestRematch={handleRequestRematch}
+          onAcceptRematch={handleAcceptRematch}
+          onDeclineRematch={handleDeclineRematch}
+          onLobby={handleBackAction}
         />
       )}
-      <QuickReactionTray
-        onSendReaction={handleSendReaction}
-        onSendChat={handleSendChat}
-      />
+      {/* Floating Emojis (float up from bottom) */}
+      <div className="absolute bottom-20 left-6 pointer-events-none w-16 h-48 overflow-visible flex items-end justify-center z-50">
+        {userEmojis.map((item) => (
+          <span
+            key={item.id}
+            style={{
+              left: `${item.xOffset}%`,
+              animationDelay: `${item.delay || 0}s`,
+              animationDuration: `${item.duration || 3.2}s`,
+            }}
+            className="absolute text-xl animate-float-up pointer-events-none"
+          >
+            <span className="animate-float-sway inline-block">
+              <span style={{ transform: `scale(${item.scale || 1})`, display: 'inline-block' }}>
+                {item.emoji}
+              </span>
+            </span>
+          </span>
+        ))}
+      </div>
+
+      <div className="absolute bottom-20 right-6 pointer-events-none w-16 h-48 overflow-visible flex items-end justify-center z-50">
+        {partnerEmojis.map((item) => (
+          <span
+            key={item.id}
+            style={{
+              left: `${item.xOffset}%`,
+              animationDelay: `${item.delay || 0}s`,
+              animationDuration: `${item.duration || 3.2}s`,
+            }}
+            className="absolute text-xl animate-float-up pointer-events-none"
+          >
+            <span className="animate-float-sway inline-block">
+              <span style={{ transform: `scale(${item.scale || 1})`, display: 'inline-block' }}>
+                {item.emoji}
+              </span>
+            </span>
+          </span>
+        ))}
+      </div>
+
+      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
       <ForfeitModal
         isOpen={showForfeitModal}
         onClose={() => setShowForfeitModal(false)}

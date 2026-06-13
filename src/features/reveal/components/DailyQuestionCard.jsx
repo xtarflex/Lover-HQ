@@ -95,7 +95,7 @@ export default function DailyQuestionCard({
                   className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
                   {submittingAnswer ? (
-                    <LoadingSpinner size="sm" className="text-white w-4.5 h-4.5" />
+                    <LoadingSpinner size="xs" className="text-white" />
                   ) : (
                     <Check className="w-4.5 h-4.5" />
                   )}

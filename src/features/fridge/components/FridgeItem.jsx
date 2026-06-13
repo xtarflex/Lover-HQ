@@ -1,3 +1,10 @@
+/**
+ * @file FridgeItem.jsx
+ * @description Draggable fridge magnet item rendered on the collaborative Fridge canvas.
+ * Supports four content types: `note`, `photo`, `voice`, and `emoji`. Items can be
+ * freely positioned, deleted, edited (notes only), commented on, and reacted to.
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
 import { Play, Pause, Trash2, Pencil, Check, CheckCheck, Clock, MessageSquare } from 'lucide-react';
@@ -18,6 +25,13 @@ const NOTE_COLOR_MAP = {
 
 /**
  * Deterministic rotation based on item ID (stays same on reload)
+ */
+/**
+ * Returns a deterministic rotation angle (between −3° and +3°) derived from the
+ * item's ID so that each magnet has a stable tilt that persists across reloads.
+ *
+ * @param {string} id - The item's unique database ID.
+ * @returns {number} A rotation angle in degrees.
  */
 const getRotationAngle = (id) => {
   if (!id) return 0;
@@ -80,6 +94,11 @@ export default function FridgeItem({
     }
   }
 
+  /**
+   * Returns Tailwind size classes appropriate for the item's content type.
+   *
+   * @returns {string} Space-separated Tailwind class names.
+   */
   const getSizeClasses = () => {
     if (item.type === 'note') {
       return 'w-36 h-36 md:w-40 md:h-40 p-4';
@@ -96,6 +115,11 @@ export default function FridgeItem({
     return '';
   };
 
+  /**
+   * Returns the Tailwind typography class for the note font chosen in Settings.
+   *
+   * @returns {string} Space-separated Tailwind class names.
+   */
   const getNoteFontClass = () => {
     const font = noteFont || 'handwriting';
 
@@ -118,10 +142,30 @@ export default function FridgeItem({
     return 'font-handwriting text-sm md:text-lg';
   };
 
+  /**
+   * Returns the CSS line-clamp class for the note text content.
+   *
+   * @returns {string} A Tailwind line-clamp class name.
+   */
   const getLineClampClass = () => {
     return 'line-clamp-5';
   };
 
+  /**
+   * Returns a structured object of Tailwind class strings for each badge/button
+   * variant rendered on the item card (comments, delete, edit, reactions).
+   *
+   * @returns {{
+   *   comments: string,
+   *   commentsIcon: string,
+   *   commentsText: string,
+   *   delete: string,
+   *   deleteIcon: string,
+   *   edit: string,
+   *   editIcon: string,
+   *   reactions: string
+   * }}
+   */
   const getBadgeClasses = () => {
     return {
       comments:

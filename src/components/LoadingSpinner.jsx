@@ -4,7 +4,7 @@ import React from 'react';
  * LoadingSpinner component that displays an animated double-heart loader.
  *
  * @param {Object} props - The component props.
- * @param {'sm'|'md'|'lg'} [props.size] - The pre-defined size of the spinner.
+ * @param {'xs'|'sm'|'md'|'lg'} [props.size] - The pre-defined size of the spinner.
  * @param {string} [props.className] - Additional CSS classes to style the spinner.
  * @param {boolean} [props.fullScreen] - Whether the spinner should cover the full screen.
  * @returns {React.ReactElement} The rendered LoadingSpinner component.
@@ -16,7 +16,10 @@ export function LoadingSpinner({ size, className = '', fullScreen = false }) {
   let defaultWidth = 'w-16';
   let defaultHeight = 'h-16';
 
-  if (size === 'sm') {
+  if (size === 'xs') {
+    defaultWidth = 'w-5';
+    defaultHeight = 'h-5';
+  } else if (size === 'sm') {
     defaultWidth = 'w-8';
     defaultHeight = 'h-8';
   } else if (size === 'md') {

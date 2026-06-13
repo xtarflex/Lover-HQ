@@ -7,4 +7,4 @@ DROP POLICY IF EXISTS "Users can update partner profile" ON public.users;
 CREATE POLICY "Users can update partner profile"
 ON public.users FOR UPDATE TO authenticated
 USING (auth.uid() = partner_id)
-WITH CHECK (auth.uid() = partner_id);
+WITH CHECK (auth.uid() = partner_id OR partner_id IS NULL);

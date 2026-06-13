@@ -36,7 +36,7 @@ export default function GameLobby({ games, onSelectGame, partnerOnline, partner 
   };
 
   return (
-    <div className="flex flex-col h-full p-4 md:p-6 gap-5 pb-24 overflow-y-auto">
+    <div className="flex flex-col h-full p-4 md:p-6 gap-5 pb-24 overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">

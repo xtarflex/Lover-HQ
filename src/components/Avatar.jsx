@@ -11,12 +11,19 @@ import React from 'react';
  * @param {'sm' | 'md' | 'lg' | 'xl'} [props.size='md'] - Size of the avatar
  * @param {string} [props.className] - Additional CSS classes
  */
-const Avatar = ({ src, fallback, isOnline, size = 'md', className = '' }) => {
+const Avatar = ({ src, fallback, isOnline, size = 'md', className = '', rounded = 'full' }) => {
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
     md: 'w-12 h-12 text-base',
     lg: 'w-16 h-16 text-xl',
     xl: 'w-24 h-24 text-3xl',
+  };
+
+  const roundedClasses = {
+    full: 'rounded-full',
+    xl: 'rounded-xl',
+    '2xl': 'rounded-2xl',
+    '3xl': 'rounded-3xl',
   };
 
   const isSvgUrl =
@@ -28,7 +35,8 @@ const Avatar = ({ src, fallback, isOnline, size = 'md', className = '' }) => {
       <div
         className={`
           ${sizeClasses[size]}
-          rounded-full border-2 overflow-hidden flex items-center justify-center bg-brand-surface
+          ${roundedClasses[rounded] || 'rounded-full'}
+          border-2 overflow-hidden flex items-center justify-center bg-brand-surface
           ${isOnline ? 'border-amber-500 grayscale-0' : 'border-slate-600 grayscale'}
           transition-all duration-500 relative z-10
         `}

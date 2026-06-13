@@ -100,22 +100,37 @@
   animation: pulse-ring 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
-@keyframes float-up {
+@keyframes float-up-vertical {
   0% {
-    transform: translateY(0) scale(0.6);
+    transform: translateY(0);
     opacity: 0;
   }
-  15% {
+  8% {
     opacity: 1;
-    transform: translateY(-20px) scale(1.1);
+  }
+  85% {
+    opacity: 1;
   }
   100% {
-    transform: translateY(-120px) scale(0.8);
+    transform: translateY(-450px);
     opacity: 0;
   }
 }
 
 .animate-float-up {
-  animation: float-up 2.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  animation: float-up-vertical 3.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes float-sway-horizontal {
+  0%, 100% {
+    transform: translateX(-15px);
+  }
+  50% {
+    transform: translateX(15px);
+  }
+}
+
+.animate-float-sway {
+  animation: float-sway-horizontal 1.6s ease-in-out infinite;
 }
 

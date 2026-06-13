@@ -287,9 +287,8 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
   useEffect(() => {
     if (!userId || !partnerId) return;
 
-    // Listen for answer changes (revealing when partner submits)
     answerSubscriptionRef.current = supabase
-      .channel('public:reveal_answers')
+      .channel(`reveal_answers:${userId}_${partnerId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'reveal_answers' },
@@ -298,8 +297,10 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
             const answer = payload.new;
             if (answer.user_id === partnerId) {
               setPartnerAnswer(answer);
+              localStorage.setItem('reveal_partner_answer_cache', JSON.stringify(answer));
             } else if (answer.user_id === userId) {
               setUserAnswer(answer);
+              localStorage.setItem('reveal_user_answer_cache', JSON.stringify(answer));
             }
           }
         }
@@ -308,7 +309,7 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
 
     // Listen for Q&A comments
     commentSubscriptionRef.current = supabase
-      .channel('public:reveal_comments')
+      .channel(`reveal_comments:${userId}_${partnerId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'reveal_comments' },
@@ -331,6 +332,17 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       if (commentSubscriptionRef.current) supabase.removeChannel(commentSubscriptionRef.current);
     };
   }, [userId, partnerId]);
+
+  // Reactively unlock the reveal UI whenever both answers become available.
+  // This covers the case where the partner's answer arrives via the real-time
+  // subscription — the submitting player already calls setRevealedToday in the
+  // handler, but the *watching* player only gets setPartnerAnswer updated, so
+  // we must derive revealedToday from both answer states here.
+  useEffect(() => {
+    if (userAnswer && partnerAnswer) {
+      setRevealedToday(true);
+    }
+  }, [userAnswer, partnerAnswer]);
 
   return {
     dailyQuestion,

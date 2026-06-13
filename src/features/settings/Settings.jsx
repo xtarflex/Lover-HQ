@@ -19,6 +19,7 @@ import {
   Search,
   ChevronLeft,
   Sparkles,
+  Gamepad2,
 } from 'lucide-react';
 import {
   getFridgeItemsCount,
@@ -32,6 +33,7 @@ import AccountPanel from './components/AccountPanel';
 import PreferencesPanel from './components/PreferencesPanel';
 import FridgeSettingsPanel from './components/FridgeSettingsPanel';
 import RevealSettingsPanel from './components/RevealSettingsPanel';
+import GameSettingsPanel from './components/GameSettingsPanel';
 import DataManagementPanel from './components/DataManagementPanel';
 
 /**
@@ -75,13 +77,13 @@ export default function Settings() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab && ['account', 'preferences', 'fridge', 'reveal', 'data'].includes(tab)) {
+    if (tab && ['account', 'preferences', 'fridge', 'reveal', 'games', 'data'].includes(tab)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveCategory(tab);
       setIsMobileDetailView(true);
     } else if (window.location.hash) {
       const hash = window.location.hash.replace('#', '');
-      if (['account', 'preferences', 'fridge', 'reveal', 'data'].includes(hash)) {
+      if (['account', 'preferences', 'fridge', 'reveal', 'games', 'data'].includes(hash)) {
         setActiveCategory(hash);
         setIsMobileDetailView(true);
       }
@@ -411,6 +413,12 @@ export default function Settings() {
         icon: Sparkles,
       },
       {
+        id: 'games',
+        label: 'Game Room',
+        desc: 'Auto-join invitations, in-game floating reactions',
+        icon: Gamepad2,
+      },
+      {
         id: 'data',
         label: 'Data Management',
         desc: 'Clear cache, export your memories',
@@ -597,6 +605,18 @@ export default function Settings() {
                     setRevealNudges,
                     null
                   )
+                }
+              />
+            )}
+            {activeCategory === 'games' && (
+              <GameSettingsPanel
+                autoJoinInvites={autoJoinInvites}
+                onToggleAutoJoin={() =>
+                  handlePreferenceChange('preferences_auto_join_games', !autoJoinInvites, setAutoJoinInvites, null)
+                }
+                gameReactions={gameReactions}
+                onToggleGameReactions={() =>
+                  handlePreferenceChange('preferences_game_reactions_enabled', !gameReactions, setGameReactions, null)
                 }
               />
             )}

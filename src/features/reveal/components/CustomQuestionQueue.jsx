@@ -89,7 +89,7 @@ export default function CustomQuestionQueue({
             className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1"
           >
             {creatingQuestion ? (
-              <LoadingSpinner size="sm" className="text-primary w-4.5 h-4.5" />
+              <LoadingSpinner size="xs" className="text-primary" />
             ) : (
               <Check className="w-4.5 h-4.5 text-primary" />
             )}

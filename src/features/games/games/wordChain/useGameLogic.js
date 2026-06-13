@@ -13,7 +13,7 @@ import { validateWordChain } from '../../lib/gameEngine';
  * @param {string} params.partnerId - Partner's ID.
  * @param {boolean} params.iGoFirst - Whether the current user starts.
  */
-export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
+export function useWordChainLogic({ userId, partnerId, iGoFirst, settings = {} }) {
   const [chain, setChain] = useState([]);
   const [currentPlayerId, setCurrentPlayerId] = useState(iGoFirst ? userId : partnerId);
   const [winner, setWinner] = useState(null); // userId of winner, or 'draw'
@@ -28,12 +28,14 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
    *
    * @param {string} word - The word to submit.
    * @param {string} playerId - Who is submitting.
+   * @param {string} [definition=''] - The dictionary definition of the word.
+   * @param {string} [partOfSpeech=''] - The part of speech of the word.
    * @returns {boolean} Whether the word was accepted.
    */
   const submitWord = useCallback(
-    (word, playerId) => {
+    (word, playerId, definition = '', partOfSpeech = '') => {
       const usedWords = chain.map((e) => e.word);
-      const { valid, reason } = validateWordChain(prevWord, word, usedWords);
+      const { valid, reason } = validateWordChain(prevWord, word, usedWords, settings);
 
       if (!valid) {
         setLastError(reason);
@@ -41,11 +43,19 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
       }
 
       setLastError('');
-      setChain((prev) => [...prev, { word: word.toLowerCase().trim(), playerId }]);
+      setChain((prev) => [
+        ...prev,
+        {
+          word: word.toLowerCase().trim(),
+          playerId,
+          definition,
+          partOfSpeech,
+        },
+      ]);
       setCurrentPlayerId((prev) => (prev === userId ? partnerId : userId));
       return true;
     },
-    [chain, prevWord, userId, partnerId]
+    [chain, prevWord, userId, partnerId, settings]
   );
 
   /**
@@ -77,6 +87,16 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
     setWinner(winnerId);
   }, []);
 
+  const updateWordDefinition = useCallback((word, definition, partOfSpeech) => {
+    setChain((prev) =>
+      prev.map((item) =>
+        item.word === word.toLowerCase().trim()
+          ? { ...item, definition, partOfSpeech }
+          : item
+      )
+    );
+  }, []);
+
   const winnerId = winner === 'draw' ? null : winner || null;
 
   return {
@@ -86,11 +106,13 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst }) {
     winner,
     winnerId,
     lastError,
+    setLastError,
     prevWord,
     timeoutLoserId,
     submitWord,
     handleTimeout,
     reset,
     forceWinner,
+    updateWordDefinition,
   };
 }

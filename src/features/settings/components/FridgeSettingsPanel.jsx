@@ -91,7 +91,7 @@ export default function FridgeSettingsPanel({
             className="w-full py-3.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {compacting ? (
-              <LoadingSpinner size="sm" className="text-primary w-4 h-4" />
+              <LoadingSpinner size="xs" className="text-primary" />
             ) : (
               <Database className="w-4 h-4 text-primary" />
             )}

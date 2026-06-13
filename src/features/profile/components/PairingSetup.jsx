@@ -112,7 +112,7 @@ export default function PairingSetup({
               className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
             >
               {pairCodeLoading ? (
-                <LoadingSpinner size="sm" className="text-white" />
+                <LoadingSpinner size="xs" className="text-white" />
               ) : (
                 <Sparkles className="w-4 h-4" />
               )}
@@ -144,7 +144,7 @@ export default function PairingSetup({
               className="w-full py-3 bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center"
             >
               {pairCodeLoading ? (
-                <LoadingSpinner size="sm" className="text-white" />
+                <LoadingSpinner size="xs" className="text-white" />
               ) : (
                 'Connect'
               )}

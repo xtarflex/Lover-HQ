@@ -93,7 +93,7 @@ export default function PartnerDetailsForm({
           className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
         >
           {saving ? (
-            <LoadingSpinner size="sm" className="text-white" />
+            <LoadingSpinner size="xs" className="text-white" />
           ) : (
             <Check className="w-4 h-4" />
           )}

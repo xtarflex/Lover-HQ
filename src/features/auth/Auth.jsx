@@ -81,7 +81,7 @@ export default function Auth() {
 
   return (
     <div className="fixed inset-0 w-full h-[100dvh] bg-background text-text-main overflow-hidden flex flex-col">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col items-center justify-center px-6 py-12">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar relative flex flex-col items-center justify-center px-6 py-12">
         {/* Animated Background Elements - Floating Hearts */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {floatingHearts.map((heart) => (

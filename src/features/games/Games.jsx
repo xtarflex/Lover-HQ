@@ -22,18 +22,20 @@ export default function Games() {
   const dispatch = useAppDispatch();
   const supabase = useSupabase();
   const [selectedGameId, setSelectedGameId] = useState(null);
+  const [isHost, setIsHost] = useState(false);
 
   // Handle auto-join route redirection
   useEffect(() => {
     if (autoJoinGameId) {
       setSelectedGameId(autoJoinGameId);
+      setIsHost(false);
       dispatch({ type: 'SET_AUTO_JOIN', payload: null });
     }
   }, [autoJoinGameId, dispatch]);
 
   // Broadcast invite when entering a game
   useEffect(() => {
-    if (selectedGameId && user && partner) {
+    if (selectedGameId && isHost && user && partner) {
       const sortedIds = [user.id, partner.id].sort();
       const channelName = `presence:pair:${sortedIds.join('_')}`;
       const channel = supabase.channel(channelName);
@@ -45,22 +47,32 @@ export default function Games() {
           gameId: selectedGameId,
           gameName: getGameById(selectedGameId)?.name,
           hostName: user.name || 'Your partner',
+          senderId: user.id,
         },
       });
     }
-  }, [selectedGameId, user, partner, supabase]);
+  }, [selectedGameId, isHost, user, partner, supabase]);
 
   const selectedGame = selectedGameId ? getGameById(selectedGameId) : null;
   const GameComponent = selectedGame?.Component;
   const partnerOnline = presence?.partner === 'online';
 
+  /**
+   * Returns the user to the game lobby by clearing the selected game ID.
+   *
+   * @returns {void}
+   */
   const handleBack = () => setSelectedGameId(null);
 
   if (!selectedGameId) {
     return (
       <GameLobby
         games={GAME_REGISTRY}
-        onSelectGame={setSelectedGameId}
+        onSelectGame={(id) => {
+          // Mark the local user as host so we broadcast the game invite
+          setSelectedGameId(id);
+          setIsHost(true);
+        }}
         partnerOnline={partnerOnline}
         partner={partner}
       />
@@ -86,6 +98,7 @@ export default function Games() {
           partner={partner}
           partnerOnline={partnerOnline}
           onBack={handleBack}
+          isHost={isHost}
         />
       </Suspense>
     </div>
