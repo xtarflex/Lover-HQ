@@ -69,12 +69,12 @@ export function useMusicSync({
         // Only run heartbeat sync if we are playing the same track
         if (payload.trackId === currentTrackId && payload.isPlaying && isPlaying) {
           const localTime = getCurrentTime();
-          const drift = Math.abs(localTime - payload.timestamp);
-
-          // If the partner's timestamp is ahead/behind ours by more than 1.5 seconds,
-          // seek silently to catch up or align.
-          if (drift > 1.5 && payload.eventSentAt > lastLocalActionAt.current) {
-            console.debug(`Sync drift detected: ${drift}s. Correcting time to match partner.`);
+          
+          // If the partner's timestamp is ahead of ours by more than 1.5 seconds,
+          // seek silently to catch up. We do not seek backward for heartbeats to prevent
+          // a trailing/stuck partner from pulling us back.
+          if (payload.timestamp > localTime + 1.5 && payload.eventSentAt > lastLocalActionAt.current) {
+            console.debug(`Sync drift detected: partner is ahead. Correcting time to match partner.`);
             onRemoteSeek(payload.timestamp);
           }
         }

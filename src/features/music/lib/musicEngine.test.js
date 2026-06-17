@@ -47,6 +47,11 @@ describe('parseFilenameMetadata', () => {
     const meta = parseFilenameMetadata('viva_la_vida_instrumental.m4a');
     expect(meta).toEqual({ artist: '', title: 'Viva La Vida Instrumental' });
   });
+
+  it('should parse filenames with multiple hyphens correctly', () => {
+    const meta = parseFilenameMetadata('Coldplay - Yellow - Live.mp3');
+    expect(meta).toEqual({ artist: 'Coldplay', title: 'Yellow - Live' });
+  });
 });
 
 describe('formatTime', () => {
@@ -62,5 +67,84 @@ describe('formatTime', () => {
   it('should handle NaN and null edge cases gracefully', () => {
     expect(formatTime(NaN)).toBe('0:00');
     expect(formatTime(null)).toBe('0:00');
+  });
+
+  it('should handle negative numbers and undefined gracefully', () => {
+    expect(formatTime(-10)).toBe('0:00');
+    expect(formatTime(undefined)).toBe('0:00');
+  });
+
+  it('should handle extremely large durations', () => {
+    expect(formatTime(1e15)).toBe('16666666666666:40');
+    expect(formatTime(1e21)).toBe('16666666666666666000:40');
+  });
+
+  it('should handle fractional numbers', () => {
+    expect(formatTime(65.7)).toBe('1:05');
+    expect(formatTime(0.9)).toBe('0:00');
+    expect(formatTime(60.0001)).toBe('1:00');
+  });
+
+  it('should handle empty/non-numeric inputs', () => {
+    expect(formatTime('')).toBe('0:00');
+    expect(formatTime('abc')).toBe('0:00');
+    expect(formatTime([])).toBe('0:00');
+    expect(formatTime({})).toBe('0:00');
+    // Note: formatTime(true) returns '0:01' in current implementation because isNaN(true) is false, true < 0 is false, true/60 is 0.016, true%60 is 1.
+    expect(formatTime(true)).toBe('0:01');
+  });
+});
+
+describe('parseFilenameMetadata edge cases', () => {
+  it('should handle extremely long title strings with special characters', () => {
+    const longArtist = 'A'.repeat(5000);
+    const longTitle = 'B'.repeat(5000);
+    const filename = `${longArtist} - ${longTitle}.mp3`;
+    const meta = parseFilenameMetadata(filename);
+    expect(meta.artist).toBe(longArtist);
+    expect(meta.title).toBe(longTitle);
+  });
+
+  it('should handle special characters and symbols', () => {
+    const meta = parseFilenameMetadata('Artist & Co. - Title @ #1! ($) [Remix] {2026} + _ - .mp3');
+    expect(meta).toEqual({
+      artist: 'Artist & Co.',
+      title: 'Title @ #1! ($) [Remix] {2026} + _ -',
+    });
+  });
+
+  it('should handle non-standard spacing and multiple hyphens', () => {
+    const meta1 = parseFilenameMetadata('Artist - - Title.mp3');
+    expect(meta1).toEqual({ artist: 'Artist', title: '- Title' });
+
+    const meta2 = parseFilenameMetadata('Artist - Title - Remix - 2026.mp3');
+    expect(meta2).toEqual({ artist: 'Artist', title: 'Title - Remix - 2026' });
+  });
+
+  it('should handle files without extensions or multiple extensions', () => {
+    const meta1 = parseFilenameMetadata('Artist - Title');
+    expect(meta1).toEqual({ artist: 'Artist', title: 'Title' });
+
+    const meta2 = parseFilenameMetadata('Artist - Title.tar.gz');
+    expect(meta2).toEqual({ artist: 'Artist', title: 'Title.tar' });
+  });
+
+  it('should handle paths in filename', () => {
+    const meta1 = parseFilenameMetadata('/path/to/some/Artist - Title.mp3');
+    expect(meta1).toEqual({ artist: 'Artist', title: 'Title' });
+
+    const meta2 = parseFilenameMetadata('C:\\Music\\Folder\\Artist - Title.wav');
+    expect(meta2).toEqual({ artist: 'Artist', title: 'Title' });
+  });
+
+  it('should handle unicode characters and showcase regexp limitations', () => {
+    // garçon has a non-ASCII character 'ç'
+    const meta = parseFilenameMetadata('garçon.mp3');
+    // Expected result of current implementation: 'GarçOn' due to \b\w regex match on 'o' preceded by non-word 'ç'
+    expect(meta.title).toBe('GarçOn');
+
+    // Test with emoji
+    const metaEmoji = parseFilenameMetadata('emoji_✨_test.mp3');
+    expect(metaEmoji.title).toBe('Emoji ✨ Test');
   });
 });

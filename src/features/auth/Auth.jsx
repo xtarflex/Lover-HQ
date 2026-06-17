@@ -252,6 +252,76 @@ export default function Auth() {
                 <span className="font-semibold">Apple</span>
               </button>
             </div>
+
+            {/* Developer bypass buttons */}
+            {import.meta.env.DEV && (
+              <div className="pt-2 space-y-4">
+                <div className="flex items-center space-x-4 opacity-70">
+                  <div className="h-px flex-grow bg-surface-border"></div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-text-muted">
+                    Developer Accounts
+                  </span>
+                  <div className="h-px flex-grow bg-surface-border"></div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setEmail('player1@lover.hq');
+                      setPassword('password123');
+                      setLoading(true);
+                      setError(null);
+                      try {
+                        const { data, error: authError } = await supabase.auth.signInWithPassword({
+                          email: 'player1@lover.hq',
+                          password: 'password123',
+                        });
+                        if (authError) throw authError;
+                        if (data.user) {
+                          dispatch({ type: 'SET_USER', payload: data.user });
+                        }
+                      } catch (err) {
+                        setError(err.message);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                    className="flex-1 py-3 bg-primary/10 border border-primary/30 rounded-2xl hover:bg-primary/20 transition-all text-xs font-bold text-primary flex items-center justify-center"
+                  >
+                    Log In as Player 1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setEmail('player2@lover.hq');
+                      setPassword('password123');
+                      setLoading(true);
+                      setError(null);
+                      try {
+                        const { data, error: authError } = await supabase.auth.signInWithPassword({
+                          email: 'player2@lover.hq',
+                          password: 'password123',
+                        });
+                        if (authError) throw authError;
+                        if (data.user) {
+                          dispatch({ type: 'SET_USER', payload: data.user });
+                        }
+                      } catch (err) {
+                        setError(err.message);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                    className="flex-1 py-3 bg-pink-500/10 border border-pink-500/30 rounded-2xl hover:bg-pink-500/20 transition-all text-xs font-bold text-pink-400 flex items-center justify-center"
+                  >
+                    Log In as Player 2
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <p className="mt-10 text-text-muted text-sm">

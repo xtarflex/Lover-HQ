@@ -27,13 +27,14 @@ export function extractYoutubeId(url) {
 export function parseFilenameMetadata(filename) {
   if (!filename) return { title: '', artist: '' };
 
-  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+  const baseName = filename.split(/[/\\]/).pop();
+  const nameWithoutExt = baseName.replace(/\.[^/.]+$/, '');
 
   if (nameWithoutExt.includes(' - ')) {
     const parts = nameWithoutExt.split(' - ');
     return {
       artist: parts[0].trim(),
-      title: parts[1].trim(),
+      title: parts.slice(1).join(' - ').trim(),
     };
   } else {
     const cleanedTitle = nameWithoutExt
@@ -53,7 +54,8 @@ export function parseFilenameMetadata(filename) {
  * @returns {string} The formatted timestamp.
  */
 export function formatTime(timeInSecs) {
-  if (isNaN(timeInSecs) || timeInSecs === null) return '0:00';
+  if (timeInSecs === null || timeInSecs === undefined || isNaN(timeInSecs) || timeInSecs < 0)
+    return '0:00';
   const mins = Math.floor(timeInSecs / 60);
   const secs = Math.floor(timeInSecs % 60);
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;

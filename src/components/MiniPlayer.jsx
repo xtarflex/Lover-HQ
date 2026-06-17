@@ -2,20 +2,25 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMusic } from '../contexts/MusicContext';
 import { Play, Pause } from '../lib/icons';
-import { Music, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
+import { getTrackArtwork } from '../features/music/lib/musicUtils';
+import GradientAvatar from './ui/GradientAvatar';
+import EqBars from './ui/EqBars';
 
 /**
- * Global MiniPlayer component. Renders a floating, glassmorphic bar
- * directly above the BottomNav when music is active and the user
- * is not in the Music Room.
+ * Global MiniPlayer component. A glassmorphic floating bar that appears above
+ * BottomNav when music is active and the user is outside the Music Room.
+ * Slides in with a smooth CSS @starting-style animation.
  *
- * @returns {React.ReactElement|null} The MiniPlayer component.
+ * @returns {React.ReactElement|null}
  */
 export function MiniPlayer() {
   const location = useLocation();
   const navigate = useNavigate();
   const {
     currentTrack,
+    currentTime,
+    duration,
     isPlaying,
     isListenAlongBlocked,
     pauseLocalPlayback,
@@ -23,75 +28,105 @@ export function MiniPlayer() {
     handleListenAlong,
   } = useMusic();
 
-  // Do not render if there's no active track, or if we're already in the Music Room
-  if (!currentTrack || location.pathname === '/music') {
-    return null;
-  }
+  if (!currentTrack || !isPlaying || location.pathname === '/music') return null;
+
+  const artworkUrl = getTrackArtwork(currentTrack);
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const handlePlayPause = (e) => {
-    e.stopPropagation(); // Prevent navigating when clicking play/pause
-    if (isPlaying) {
-      pauseLocalPlayback();
-    } else {
-      resumeLocalPlayback();
-    }
+    e.stopPropagation();
+    isPlaying ? pauseLocalPlayback() : resumeLocalPlayback();
   };
 
   return (
     <div
+      role="region"
+      aria-label="Mini player"
       onClick={() => navigate('/music')}
-      className="fixed bottom-20 left-4 right-4 max-w-[calc(100%-2rem)] md:max-w-lg md:left-1/2 md:-translate-x-1/2 z-40 bg-surface/90 backdrop-blur-md border-t border-x border-surface-border rounded-t-2xl px-4 py-3 flex items-center justify-between shadow-xl cursor-pointer transition-all duration-300 hover:bg-surface/95"
+      className="mini-player-bar fixed bottom-20 left-4 right-4 max-w-[calc(100%-2rem)] md:max-w-lg md:left-1/2 md:-translate-x-1/2 z-40 cursor-pointer"
     >
-      <div className="flex items-center space-x-3 overflow-hidden flex-1 mr-4">
-        {/* Spinning avatar/disc preview */}
-        <div className="relative w-10 h-10 rounded-full bg-slate-900 border border-slate-700/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      {/* Glassmorphic card */}
+      <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-t-2xl px-4 py-3 flex items-center justify-between shadow-2xl overflow-hidden transition-all duration-300 hover:bg-slate-900/90">
+        {/* 2px progress bar at bottom */}
+        <div
+          className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-primary via-pink-500 to-violet-500 transition-all duration-500"
+          style={{ width: `${progress}%` }}
+          role="progressbar"
+          aria-valuenow={Math.floor(currentTime)}
+          aria-valuemin={0}
+          aria-valuemax={Math.floor(duration)}
+          aria-label={`Playback: ${Math.round(progress)}%`}
+        />
+
+        {/* Ambient colour tint from track artwork */}
+        <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+
+        {/* Left: vinyl/artwork + track info */}
+        <div className="flex items-center space-x-3 overflow-hidden flex-1 mr-3 z-10">
+          {/* Artwork disc — spin when playing, animation-play-state preserved */}
           <div
-            className={`w-full h-full flex items-center justify-center ${
-              isPlaying ? 'animate-[spin_6s_linear_infinite]' : ''
-            }`}
+            className="relative w-10 h-10 rounded-full border border-slate-600/50 flex-shrink-0 overflow-hidden shadow-md animate-[spin_6s_linear_infinite]"
+            style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+            aria-hidden="true"
           >
-            <Music className="w-5 h-5 text-primary" />
-          </div>
-          {/* Center spindle point */}
-          <div className="absolute w-2 h-2 bg-background rounded-full border border-slate-700" />
-        </div>
-
-        {/* Track Title and Artist */}
-        <div className="flex flex-col overflow-hidden min-w-0">
-          <span className="text-sm font-bold text-text-main truncate font-rounded">
-            {currentTrack.title}
-          </span>
-          <span className="text-xs text-text-muted truncate">
-            {currentTrack.artist || 'Unknown Artist'}
-          </span>
-        </div>
-      </div>
-
-      {/* Right controls */}
-      <div className="flex items-center space-x-2 flex-shrink-0">
-        {isListenAlongBlocked ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleListenAlong();
-            }}
-            className="flex items-center space-x-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary px-3 py-1.5 rounded-full text-xs font-bold animate-pulse"
-          >
-            <Radio className="w-3.5 h-3.5" />
-            <span>Listen Along</span>
-          </button>
-        ) : (
-          <button
-            onClick={handlePlayPause}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-text-main border border-slate-700 transition-colors"
-          >
-            {isPlaying ? (
-              <Pause size={16} className="text-primary fill-primary" />
+            {artworkUrl ? (
+              <img
+                src={artworkUrl}
+                alt=""
+                className={`w-full h-full object-cover ${
+                  currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                }`}
+              />
             ) : (
-              <Play size={16} className="text-primary fill-primary ml-0.5" />
+              <GradientAvatar seed={currentTrack.title} size={40} />
             )}
-          </button>
-        )}
+            {/* Spindle */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-2 h-2 bg-slate-900 rounded-full border border-slate-600" />
+            </div>
+          </div>
+
+          {/* Title & artist */}
+          <div className="flex flex-col overflow-hidden min-w-0">
+            <span className="text-sm font-bold text-text-main truncate font-rounded">
+              {currentTrack.title}
+            </span>
+            <span className="text-xs text-text-muted truncate">
+              {currentTrack.artist || 'Unknown Artist'}
+            </span>
+          </div>
+
+          {/* EQ bars next to title when playing */}
+          {isPlaying && !isListenAlongBlocked && (
+            <EqBars size="sm" color="text-primary" paused={false} className="flex-shrink-0" />
+          )}
+        </div>
+
+        {/* Right: controls */}
+        <div className="flex items-center space-x-2 flex-shrink-0 z-10">
+          {isListenAlongBlocked ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleListenAlong(); }}
+              aria-label="Tap to listen along"
+              className="flex items-center space-x-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary px-3 py-1.5 rounded-full text-xs font-bold animate-pulse"
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>Listen Along</span>
+            </button>
+          ) : (
+            <button
+              onClick={handlePlayPause}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+              className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-text-main border border-slate-700 transition-colors"
+            >
+              {isPlaying ? (
+                <Pause size={16} className="text-primary fill-primary" />
+              ) : (
+                <Play size={16} className="text-primary fill-primary ml-0.5" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ VALUES (
   10485760, -- 10MB limit in bytes
   ARRAY['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/m4a', 'audio/x-m4a', 'audio/mp4', 'audio/webm']
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Storage Security Policies on storage.objects
 

@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useMusic } from '../../../contexts/MusicContext';
 import { useSupabase } from '../../../hooks/useSupabase';
-import { X, Upload, Tv, FileAudio, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Upload, FileAudio, AlertCircle, Loader2 } from 'lucide-react';
+import { YoutubeIcon } from '../../../lib/icons';
 import { extractYoutubeId, parseFilenameMetadata } from '../lib/musicEngine';
 
 /**
@@ -28,32 +29,97 @@ export default function AddTrackModal({ isOpen, onClose }) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+  const audioUrlRef = useRef(null);
+  const dialogRef = useRef(null);
+
+  // Handle native dialog show/close lifecycle
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (isOpen && dialog) {
+      if (typeof dialog.showModal === 'function') {
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    }
+    return () => {
+      if (dialog) {
+        if (typeof dialog.close === 'function') {
+          if (dialog.open) {
+            dialog.close();
+          }
+        } else {
+          dialog.removeAttribute('open');
+        }
+      }
+    };
+  }, [isOpen]);
+
+  // Cleanup audio blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    };
+  }, []);
 
   if (!isOpen) return null;
 
-  // Clean filename for defaults
+  /**
+   * Handles the selection of a local audio file.
+   * Validates file type, size, and extracts metadata/duration.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The change event.
+   */
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
     setError(null);
 
+    // Enforce audio MIME type check
+    if (!selectedFile.type || !selectedFile.type.startsWith('audio/')) {
+      setError('Please select a valid audio file.');
+      setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
     // Enforce 10MB limit (10485760 bytes)
     if (selectedFile.size > 10485760) {
       setError('File is too large. Maximum size allowed is 10MB.');
       setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       return;
     }
 
     setFile(selectedFile);
 
+    // Revoke previous blob URL if exists
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+
     // Read audio duration using native Audio object
     try {
       const audioUrl = URL.createObjectURL(selectedFile);
+      audioUrlRef.current = audioUrl;
       const audioObj = new Audio(audioUrl);
       audioObj.addEventListener('loadedmetadata', () => {
         setDuration(Math.round(audioObj.duration));
-        URL.revokeObjectURL(audioUrl);
+        if (audioUrlRef.current === audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+          audioUrlRef.current = null;
+        }
       });
     } catch (err) {
       console.warn('Could not read audio duration dynamically:', err);
@@ -65,8 +131,18 @@ export default function AddTrackModal({ isOpen, onClose }) {
     setArtist(metadata.artist);
   };
 
+  /**
+   * Closes the modal and resets all states.
+   */
   const handleClose = () => {
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
     setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setYtUrl('');
     setTitle('');
     setArtist('');
@@ -76,6 +152,32 @@ export default function AddTrackModal({ isOpen, onClose }) {
     onClose();
   };
 
+  /**
+   * Handles the escape key cancellation of the dialog.
+   *
+   * @param {React.SyntheticEvent} e - The cancel event.
+   */
+  const handleCancel = (e) => {
+    e.preventDefault();
+    handleClose();
+  };
+
+  /**
+   * Handles click events on the dialog, closing it if clicking the backdrop.
+   *
+   * @param {React.MouseEvent} e - The mouse event.
+   */
+  const handleBackdropClick = (e) => {
+    if (e.target === dialogRef.current) {
+      handleClose();
+    }
+  };
+
+  /**
+   * Handles form submission to add the track.
+   *
+   * @param {React.FormEvent} e - The form event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -91,6 +193,12 @@ export default function AddTrackModal({ isOpen, onClose }) {
       if (activeTab === 'upload') {
         if (!file) {
           setError('Please select an audio file first.');
+          setIsUploading(false);
+          return;
+        }
+
+        if (!file.type || !file.type.startsWith('audio/')) {
+          setError('Please select a valid audio file.');
           setIsUploading(false);
           return;
         }
@@ -134,15 +242,24 @@ export default function AddTrackModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+    <dialog
+      ref={dialogRef}
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+      aria-labelledby="dialog-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in border-none bg-transparent w-full h-full max-w-none max-h-none outline-none"
+    >
       {/* Modal Box */}
       <div className="bg-surface/90 border border-surface-border backdrop-blur-lg rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-surface-border/60">
-          <h3 className="text-base font-bold font-rounded text-text-main">Add Song to Queue</h3>
+          <h3 id="dialog-title" className="text-base font-bold font-rounded text-text-main">
+            Add Song to Queue
+          </h3>
           <button
             onClick={handleClose}
             disabled={isUploading}
+            aria-label="Close"
             className="p-1 hover:bg-slate-800 rounded-lg text-text-muted hover:text-text-main transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
@@ -182,7 +299,7 @@ export default function AddTrackModal({ isOpen, onClose }) {
                 : 'border-transparent text-text-muted hover:text-text-main'
             }`}
           >
-            <Tv className="w-4 h-4 text-red-500" />
+            <YoutubeIcon className="w-4 h-4" />
             <span>Add YouTube Link</span>
           </button>
         </div>
@@ -206,9 +323,11 @@ export default function AddTrackModal({ isOpen, onClose }) {
                 type="file"
                 ref={fileInputRef}
                 accept="audio/*"
+                aria-label="Select audio clip"
                 onChange={handleFileChange}
                 className="hidden"
               />
+
 
               {file ? (
                 <div className="flex items-center justify-between border border-primary/20 bg-primary/5 p-3.5 rounded-xl">
@@ -227,6 +346,13 @@ export default function AddTrackModal({ isOpen, onClose }) {
                     onClick={() => {
                       setFile(null);
                       setDuration(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                      if (audioUrlRef.current) {
+                        URL.revokeObjectURL(audioUrlRef.current);
+                        audioUrlRef.current = null;
+                      }
                     }}
                     className="text-text-muted hover:text-red-500 transition-colors"
                   >
@@ -254,15 +380,37 @@ export default function AddTrackModal({ isOpen, onClose }) {
                 YouTube URL
               </label>
               <input
-                type="text"
+                type="url"
                 placeholder="https://www.youtube.com/watch?v=..."
                 value={ytUrl}
                 onChange={(e) => {
-                  setYtUrl(e.target.value);
-                  const id = extractYoutubeId(e.target.value);
+                  const urlValue = e.target.value;
+                  setYtUrl(urlValue);
+                  const id = extractYoutubeId(urlValue);
                   if (id) {
-                    // Try to set default title if empty
-                    if (!title) setTitle('YouTube Video');
+                    const isMusic = urlValue.includes('music.youtube.com');
+                    const placeholder = isMusic ? 'YouTube Music' : 'YouTube Video';
+                    if (!title || title === 'YouTube Video' || title === 'YouTube Music') {
+                      setTitle('Loading video details...');
+                    }
+                    fetch(`https://noembed.com/embed?url=${encodeURIComponent(urlValue)}`)
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data) {
+                          setTitle((prev) =>
+                            !prev || prev === 'Loading video details...' || prev === 'YouTube Video' || prev === 'YouTube Music'
+                              ? data.title || placeholder
+                              : prev
+                          );
+                          setArtist((prev) => (!prev ? data.author_name || '' : prev));
+                        }
+                      })
+                      .catch((err) => {
+                        console.warn('Failed to fetch YouTube metadata:', err);
+                        setTitle((prev) =>
+                          prev === 'Loading video details...' ? placeholder : prev
+                        );
+                      });
                   }
                 }}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-main placeholder-slate-600 focus:outline-none"
@@ -322,6 +470,6 @@ export default function AddTrackModal({ isOpen, onClose }) {
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 }

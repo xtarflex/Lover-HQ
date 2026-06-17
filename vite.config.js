@@ -76,4 +76,13 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  test: {
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.agents/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+    ],
+  },
 });

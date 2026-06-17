@@ -17,6 +17,7 @@ import { LoverHQLogo } from '../assets/Logo';
 import { FridgeIcon } from '../assets/FridgeIcon';
 import { GameBoardIcon } from '../assets/GameBoardIcon';
 import { MusicIcon } from '../assets/MusicIcon';
+import { YoutubeIcon } from '../assets/YoutubeIcon';
 
 export {
   MusicIcon as Music,
@@ -36,4 +37,5 @@ export {
   LoverHQLogo,
   FridgeIcon,
   GameBoardIcon,
+  YoutubeIcon,
 };

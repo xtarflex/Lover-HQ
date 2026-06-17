@@ -12,5 +12,6 @@
 @import "./components/dialog.css";
 @import "./components/heart.css";
 @import "./components/scrollbar.css";
+@import "./components/music.css";
 
 @import "tailwindcss/utilities";
