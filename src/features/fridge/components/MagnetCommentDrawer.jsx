@@ -48,14 +48,8 @@ export default function MagnetCommentDrawer({
   const commentsEndRef = useRef(null);
 
   // Delegate data management to custom hook
-  const {
-    comments,
-    isLoading,
-    isPartnerTyping,
-    inputText,
-    handleInputChange,
-    handleSendComment,
-  } = useMagnetComments(item, userId);
+  const { comments, isLoading, isPartnerTyping, inputText, handleInputChange, handleSendComment } =
+    useMagnetComments(item, userId);
 
   // Delegate keyboard height tracking to custom hook
   const { keyboardHeight, viewportHeight } = useKeyboardHeight();
@@ -317,15 +311,23 @@ export default function MagnetCommentDrawer({
 
                   let bubbleRadiusClass = '';
                   if (isMe) {
-                    if (!isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-br-none';
-                    else if (!isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-br-none';
-                    else if (isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-r-md';
-                    else if (isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-tr-none';
+                    if (!isPrevSame && !isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-br-none';
+                    else if (!isPrevSame && isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-br-none';
+                    else if (isPrevSame && isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-r-md';
+                    else if (isPrevSame && !isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-tr-none';
                   } else {
-                    if (!isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
-                    else if (!isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
-                    else if (isPrevSame && isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-l-md';
-                    else if (isPrevSame && !isNextSame) bubbleRadiusClass = 'rounded-2xl rounded-tl-none';
+                    if (!isPrevSame && !isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
+                    else if (!isPrevSame && isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-bl-none';
+                    else if (isPrevSame && isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-l-md';
+                    else if (isPrevSame && !isNextSame)
+                      bubbleRadiusClass = 'rounded-2xl rounded-tl-none';
                   }
 
                   return (
@@ -372,9 +374,18 @@ export default function MagnetCommentDrawer({
                     {partner?.name || 'Partner'}
                   </span>
                   <div className="px-4 py-3 bg-surface border border-surface-border/20 rounded-2xl rounded-bl-none shadow flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span
+                      className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce"
+                      style={{ animationDelay: '0ms' }}
+                    />
+                    <span
+                      className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce"
+                      style={{ animationDelay: '150ms' }}
+                    />
+                    <span
+                      className="w-1.5 h-1.5 bg-text-muted/60 rounded-full animate-bounce"
+                      style={{ animationDelay: '300ms' }}
+                    />
                   </div>
                 </div>
               )}

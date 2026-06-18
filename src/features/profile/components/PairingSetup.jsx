@@ -55,8 +55,7 @@ export default function PairingSetup({
         <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
           <h3 className="font-bold text-text-main text-base">Invite Your Partner</h3>
           <p className="text-xs text-text-muted leading-relaxed">
-            Generate a temporary connection code to send to your partner. It expires in 24
-            hours.
+            Generate a temporary connection code to send to your partner. It expires in 24 hours.
           </p>
 
           {user?.pairing_code ? (
@@ -143,11 +142,7 @@ export default function PairingSetup({
               disabled={pairCodeLoading || inputPairingCode.length !== 6}
               className="w-full py-3 bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center"
             >
-              {pairCodeLoading ? (
-                <LoadingSpinner size="xs" className="text-white" />
-              ) : (
-                'Connect'
-              )}
+              {pairCodeLoading ? <LoadingSpinner size="xs" className="text-white" /> : 'Connect'}
             </button>
           </form>
         </div>

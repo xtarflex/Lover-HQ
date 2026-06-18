@@ -189,17 +189,20 @@ export default function Fridge() {
    * @param {string} id - Temporary offline ID.
    * @param {Object} result - The server-assigned item returned on create.
    */
-  const onSyncSuccess = useCallback((type, id, result) => {
-    if (type === 'create') {
-      setItems((prev) => prev.map((item) => (item.id === id ? result : item)));
-    } else if (type === 'update') {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, isPending: false, isOfflineQueue: false } : item
-        )
-      );
-    }
-  }, [setItems]);
+  const onSyncSuccess = useCallback(
+    (type, id, result) => {
+      if (type === 'create') {
+        setItems((prev) => prev.map((item) => (item.id === id ? result : item)));
+      } else if (type === 'update') {
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, isPending: false, isOfflineQueue: false } : item
+          )
+        );
+      }
+    },
+    [setItems]
+  );
 
   const { addOfflineItem, removeOfflineItem, addOfflineUpdate, addOfflineDeletion } =
     useOfflineQueue('fridge', syncCallback, onSyncSuccess);
@@ -317,11 +320,23 @@ export default function Fridge() {
         !navigator.onLine || err.message?.includes('Failed to fetch') || err.message === 'Offline';
       if (isNetwork) {
         try {
-          addOfflineUpdate({ id: itemId, x_position: newX, y_position: newY, updated_at: timestamp });
+          addOfflineUpdate({
+            id: itemId,
+            x_position: newX,
+            y_position: newY,
+            updated_at: timestamp,
+          });
           setItems((prev) =>
             prev.map((item) =>
               item.id === itemId
-                ? { ...item, x_position: newX, y_position: newY, updated_at: timestamp, isPending: true, isOfflineQueue: true }
+                ? {
+                    ...item,
+                    x_position: newX,
+                    y_position: newY,
+                    updated_at: timestamp,
+                    isPending: true,
+                    isOfflineQueue: true,
+                  }
                 : item
             )
           );
@@ -512,7 +527,13 @@ export default function Fridge() {
           setItems((prev) =>
             prev.map((item) =>
               item.id === itemId
-                ? { ...item, reactions: newReactions, updated_at: timestamp, isPending: true, isOfflineQueue: true }
+                ? {
+                    ...item,
+                    reactions: newReactions,
+                    updated_at: timestamp,
+                    isPending: true,
+                    isOfflineQueue: true,
+                  }
                 : item
             )
           );

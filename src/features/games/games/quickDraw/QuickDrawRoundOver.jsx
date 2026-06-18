@@ -55,9 +55,7 @@ export default function QuickDrawRoundOver({
           ) : (
             <>
               <p className="text-3xl font-extrabold text-rose-500">Time&apos;s Up! ⏰</p>
-              <p className="text-sm text-text-muted">
-                Neither player guessed the word in time.
-              </p>
+              <p className="text-sm text-text-muted">Neither player guessed the word in time.</p>
             </>
           )}
 
@@ -80,9 +78,7 @@ export default function QuickDrawRoundOver({
               <p className="text-xl font-extrabold text-primary">{scores[userId]} pts</p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-semibold text-text-main">
-                {partner?.name || 'Partner'}
-              </p>
+              <p className="text-sm font-semibold text-text-main">{partner?.name || 'Partner'}</p>
               <p className="text-xl font-extrabold text-primary">{scores[partnerId]} pts</p>
             </div>
           </div>

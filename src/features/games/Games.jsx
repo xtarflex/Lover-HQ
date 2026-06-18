@@ -11,7 +11,6 @@ import { LoadingSpinner } from '../../components/LoadingSpinner';
 import GameLobby from './GameLobby';
 import { GAME_REGISTRY, getGameById } from './games/index';
 
-
 /**
  * Top-level games hub component.
  *
@@ -39,7 +38,7 @@ export default function Games() {
       const sortedIds = [user.id, partner.id].sort();
       const channelName = `presence:pair:${sortedIds.join('_')}`;
       const channel = supabase.channel(channelName);
-      
+
       channel.send({
         type: 'broadcast',
         event: 'game_invite',

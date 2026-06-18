@@ -42,7 +42,7 @@ export default function ForfeitModal({ isOpen, onClose, onConfirm }) {
             <ArrowRight className="w-4 h-4" />
             Keep Playing
           </button>
-          
+
           <button
             onClick={onConfirm}
             className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-sm font-bold border border-red-500/20 transition-all flex items-center justify-center gap-1.5"

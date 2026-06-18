@@ -13,7 +13,7 @@ const CHAT_PRESETS = [
   'Your turn! ⏰',
   'Oops! 😅',
   'Nice move! 👏',
-  'I\'m thinking... 🤔',
+  "I'm thinking... 🤔",
 ];
 
 /**

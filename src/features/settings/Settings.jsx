@@ -202,10 +202,7 @@ export default function Settings() {
       if (!pendingUpdate) return;
       const profileData = JSON.parse(pendingUpdate);
 
-      const { error } = await supabase
-        .from('users')
-        .update(profileData)
-        .eq('id', userId);
+      const { error } = await supabase.from('users').update(profileData).eq('id', userId);
 
       if (error) throw error;
 
@@ -261,7 +258,10 @@ export default function Settings() {
     if (!navigator.onLine) {
       try {
         localStorage.setItem('profile_offline_queue', JSON.stringify(updatedData));
-        setMessage({ type: 'success', text: 'Profile updated offline! Will sync when connection returns.' });
+        setMessage({
+          type: 'success',
+          text: 'Profile updated offline! Will sync when connection returns.',
+        });
       } catch (err) {
         console.error('Failed to queue offline profile update:', err);
         setMessage({ type: 'error', text: 'Failed to save profile offline.' });
@@ -473,7 +473,7 @@ export default function Settings() {
       </header>
 
       {/* Main Layout */}
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-0 md:gap-6 bg-transparent min-h-[600px] relative overflow-hidden md:overflow-visible rounded-2xl">
+      <main className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-0 md:gap-6 bg-transparent min-h-[600px] relative overflow-hidden md:overflow-visible md:rounded-2xl">
         <SettingsSidebar
           filteredCategories={filteredCategories}
           activeCategory={activeCategory}
@@ -525,19 +525,39 @@ export default function Settings() {
                 }
                 pushEnabled={pushEnabled}
                 onTogglePush={() =>
-                  handlePreferenceChange('preferences_push_enabled', !pushEnabled, setPushEnabled, null)
+                  handlePreferenceChange(
+                    'preferences_push_enabled',
+                    !pushEnabled,
+                    setPushEnabled,
+                    null
+                  )
                 }
                 hapticsEnabled={hapticsEnabled}
                 onToggleHaptics={() =>
-                  handlePreferenceChange('preferences_haptics_enabled', !hapticsEnabled, setHapticsEnabled, null)
+                  handlePreferenceChange(
+                    'preferences_haptics_enabled',
+                    !hapticsEnabled,
+                    setHapticsEnabled,
+                    null
+                  )
                 }
                 autoJoinInvites={autoJoinInvites}
                 onToggleAutoJoin={() =>
-                  handlePreferenceChange('preferences_auto_join_games', !autoJoinInvites, setAutoJoinInvites, null)
+                  handlePreferenceChange(
+                    'preferences_auto_join_games',
+                    !autoJoinInvites,
+                    setAutoJoinInvites,
+                    null
+                  )
                 }
                 gameReactions={gameReactions}
                 onToggleGameReactions={() =>
-                  handlePreferenceChange('preferences_game_reactions_enabled', !gameReactions, setGameReactions, null)
+                  handlePreferenceChange(
+                    'preferences_game_reactions_enabled',
+                    !gameReactions,
+                    setGameReactions,
+                    null
+                  )
                 }
               />
             )}
@@ -612,17 +632,25 @@ export default function Settings() {
               <GameSettingsPanel
                 autoJoinInvites={autoJoinInvites}
                 onToggleAutoJoin={() =>
-                  handlePreferenceChange('preferences_auto_join_games', !autoJoinInvites, setAutoJoinInvites, null)
+                  handlePreferenceChange(
+                    'preferences_auto_join_games',
+                    !autoJoinInvites,
+                    setAutoJoinInvites,
+                    null
+                  )
                 }
                 gameReactions={gameReactions}
                 onToggleGameReactions={() =>
-                  handlePreferenceChange('preferences_game_reactions_enabled', !gameReactions, setGameReactions, null)
+                  handlePreferenceChange(
+                    'preferences_game_reactions_enabled',
+                    !gameReactions,
+                    setGameReactions,
+                    null
+                  )
                 }
               />
             )}
-            {activeCategory === 'data' && (
-              <DataManagementPanel onLogout={handleLogout} />
-            )}
+            {activeCategory === 'data' && <DataManagementPanel onLogout={handleLogout} />}
           </div>
         </section>
       </main>

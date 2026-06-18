@@ -5,7 +5,10 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { computeOffscreenIndicator, scrollToItem as scrollToItemUtil } from '../../../utils/geometry';
+import {
+  computeOffscreenIndicator,
+  scrollToItem as scrollToItemUtil,
+} from '../../../utils/geometry';
 
 /**
  * Tracks off-screen unread fridge items and exposes a helper to scroll to them.

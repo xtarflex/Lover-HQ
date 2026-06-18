@@ -90,9 +90,7 @@ export function useWordChainLogic({ userId, partnerId, iGoFirst, settings = {} }
   const updateWordDefinition = useCallback((word, definition, partOfSpeech) => {
     setChain((prev) =>
       prev.map((item) =>
-        item.word === word.toLowerCase().trim()
-          ? { ...item, definition, partOfSpeech }
-          : item
+        item.word === word.toLowerCase().trim() ? { ...item, definition, partOfSpeech } : item
       )
     );
   }, []);

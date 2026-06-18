@@ -27,7 +27,13 @@ import avatarManifest from '../../../assets/avatars_manifest.json';
  * @param {Function} props.onNext - Callback to submit the profile and advance.
  * @returns {React.ReactElement}
  */
-export default function StepAvatar({ selectedAvatarId, setSelectedAvatarId, loading, onBack, onNext }) {
+export default function StepAvatar({
+  selectedAvatarId,
+  setSelectedAvatarId,
+  loading,
+  onBack,
+  onNext,
+}) {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -83,11 +89,7 @@ export default function StepAvatar({ selectedAvatarId, setSelectedAvatarId, load
           className="bg-text-main text-background hover-heart-scale flex-grow py-4 rounded-full text-sm font-bold uppercase tracking-widest transition-all disabled:opacity-50 group flex items-center justify-center"
         >
           <span className="relative z-10 flex items-center justify-center">
-            {loading ? (
-              <LoadingSpinner size="xs" className="text-background" />
-            ) : (
-              'Almost There'
-            )}
+            {loading ? <LoadingSpinner size="xs" className="text-background" /> : 'Almost There'}
           </span>
         </button>
       </div>

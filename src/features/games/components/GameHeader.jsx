@@ -102,7 +102,9 @@ export default function GameHeader({
             <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-wider truncate max-w-[44px]">
               You
             </span>
-            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">{userScore}</span>
+            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">
+              {userScore}
+            </span>
           </div>
 
           {/* Chat Bubble */}
@@ -163,10 +165,18 @@ export default function GameHeader({
             <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-wider truncate max-w-[50px]">
               {partner?.name || 'Partner'}
             </span>
-            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">{partnerScore}</span>
+            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">
+              {partnerScore}
+            </span>
           </div>
           <div className="relative flex-shrink-0">
-            <Avatar src={partner?.avatar_url} fallback="👤" size="md" rounded="2xl" isOnline={true} />
+            <Avatar
+              src={partner?.avatar_url}
+              fallback="👤"
+              size="md"
+              rounded="2xl"
+              isOnline={true}
+            />
             {!isMyTurn && (
               <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-secondary rounded-full border-2 border-background animate-pulse z-30" />
             )}
@@ -211,7 +221,10 @@ export default function GameHeader({
 
             <ul className="space-y-3 pr-1 max-h-[300px] overflow-y-auto custom-scrollbar">
               {getRulesData().rules.map((rule, idx) => (
-                <li key={idx} className="flex gap-2.5 items-start text-xs text-text-muted leading-relaxed">
+                <li
+                  key={idx}
+                  className="flex gap-2.5 items-start text-xs text-text-muted leading-relaxed"
+                >
                   <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                   <span>{rule}</span>
                 </li>

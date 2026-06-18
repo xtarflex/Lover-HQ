@@ -172,7 +172,13 @@ export const simulateIncomingBroadcast = (channelName, event, payload) => {
  * @param {any|null} [oldRecord=null] - The old row record.
  * @returns {void}
  */
-export const simulatePostgresChange = (channelName, table, eventType, newRecord, oldRecord = null) => {
+export const simulatePostgresChange = (
+  channelName,
+  table,
+  eventType,
+  newRecord,
+  oldRecord = null
+) => {
   const channel = mockChannels[channelName];
   if (channel) {
     channel.listeners.forEach((listener) => {
@@ -351,22 +357,34 @@ class MockAudioContext {
   suspend = vi.fn().mockResolvedValue(undefined);
   resume = vi.fn().mockResolvedValue(undefined);
   /** @returns {OscillatorNodeMock} */
-  createOscillator() { return new OscillatorNodeMock(); }
+  createOscillator() {
+    return new OscillatorNodeMock();
+  }
   /** @returns {GainNodeMock} */
-  createGain() { return new GainNodeMock(); }
+  createGain() {
+    return new GainNodeMock();
+  }
   /** @returns {BiquadFilterNodeMock} */
-  createBiquadFilter() { return new BiquadFilterNodeMock(); }
+  createBiquadFilter() {
+    return new BiquadFilterNodeMock();
+  }
   /**
    * @param {number} channels - Number of channels.
    * @param {number} length - Buffer length in samples.
    * @param {number} rate - Sample rate in Hz.
    * @returns {AudioBufferMock}
    */
-  createBuffer(channels, length, rate) { return new AudioBufferMock(channels, length, rate); }
+  createBuffer(channels, length, rate) {
+    return new AudioBufferMock(channels, length, rate);
+  }
   /** @returns {AudioBufferSourceNodeMock} */
-  createBufferSource() { return new AudioBufferSourceNodeMock(); }
+  createBufferSource() {
+    return new AudioBufferSourceNodeMock();
+  }
   /** @returns {AnalyserNodeMock} */
-  createAnalyser() { return new AnalyserNodeMock(); }
+  createAnalyser() {
+    return new AnalyserNodeMock();
+  }
   /**
    * Creates a MediaElementSourceNode mock (used by the Web Audio visualizer).
    * @param {HTMLMediaElement} _element - The audio element to connect.
@@ -479,19 +497,27 @@ if (typeof HTMLCanvasElement !== 'undefined') {
   // Mock standard dimensions for JSDOM
   Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
     configurable: true,
-    get() { return 400; },
+    get() {
+      return 400;
+    },
   });
   Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
     configurable: true,
-    get() { return 300; },
+    get() {
+      return 300;
+    },
   });
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
     configurable: true,
-    get() { return 400; },
+    get() {
+      return 400;
+    },
   });
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
     configurable: true,
-    get() { return 300; },
+    get() {
+      return 300;
+    },
   });
 }
 
@@ -788,7 +814,7 @@ const mockYT = {
         this.options.events.onStateChange({ data: state, target: this });
       }
     }
-  }
+  },
 };
 
 globalThis.YT = mockYT;

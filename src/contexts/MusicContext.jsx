@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
 import { useMusicSync } from '../features/music/hooks/useMusicSync';
@@ -76,7 +69,7 @@ export function MusicProvider({ children }) {
 
   // ─── YouTube player refs (fixed indices — never swapped) ────────────────────
   const ytPlayers = useRef([null, null]); // [primary, standby]
-  const activeYtIndex = useRef(0);        // which index is the "active" player
+  const activeYtIndex = useRef(0); // which index is the "active" player
   // JSX-rendered hidden container ref (avoids direct DOM mutation anti-pattern)
   const ytContainerRef = useRef(null);
 
@@ -97,14 +90,26 @@ export function MusicProvider({ children }) {
   const queueRef = useRef(queue);
   const currentTrackRef = useRef(currentTrack);
   const activePlayerRef = useRef(activePlayer); // fix #2/#3: read in intervals
-  const currentTimeRef = useRef(currentTime);   // fix #9: heartbeat ref
+  const currentTimeRef = useRef(currentTime); // fix #9: heartbeat ref
 
-  useEffect(() => { volumeRef.current = volume; }, [volume]);
-  useEffect(() => { crossfadeDurationRef.current = crossfadeDuration; }, [crossfadeDuration]);
-  useEffect(() => { queueRef.current = queue; }, [queue]);
-  useEffect(() => { currentTrackRef.current = currentTrack; }, [currentTrack]);
-  useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
-  useEffect(() => { currentTimeRef.current = currentTime; }, [currentTime]);
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
+  useEffect(() => {
+    crossfadeDurationRef.current = crossfadeDuration;
+  }, [crossfadeDuration]);
+  useEffect(() => {
+    queueRef.current = queue;
+  }, [queue]);
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
+  useEffect(() => {
+    activePlayerRef.current = activePlayer;
+  }, [activePlayer]);
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
 
   // ─── Initialise HTML5 audio elements ───────────────────────────────────────
   useEffect(() => {
@@ -191,13 +196,13 @@ export function MusicProvider({ children }) {
           height: '1',
           width: '1',
           videoId: '',
-          playerVars: { 
-            controls: 0, 
-            disablekb: 1, 
-            fs: 0, 
-            rel: 0, 
+          playerVars: {
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            rel: 0,
             modestbranding: 1,
-            origin: window.location.origin
+            origin: window.location.origin,
           },
           events: {
             onStateChange: (event) => {
@@ -251,7 +256,7 @@ export function MusicProvider({ children }) {
     if (shouldBroadcast && !isRemoteAction.current) {
       broadcastPause();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -261,79 +266,81 @@ export function MusicProvider({ children }) {
    * @param {string} trackId - The queue item ID to play.
    * @param {number} [startTime=0] - Position in seconds to start from.
    */
-  const playTrackById = useCallback(async (trackId, startTime = 0) => {
-    const track = queueRef.current.find((t) => t.id === trackId);
-    if (!track) return;
+  const playTrackById = useCallback(
+    async (trackId, startTime = 0) => {
+      const track = queueRef.current.find((t) => t.id === trackId);
+      if (!track) return;
 
-    let isAutoplayBlocked = false;
-    pauseLocalPlayback(false);
+      let isAutoplayBlocked = false;
+      pauseLocalPlayback(false);
 
-    setCurrentTrack(track);
-    setCurrentTime(startTime);
-    setDuration(track.duration_seconds || 0);
+      setCurrentTrack(track);
+      setCurrentTime(startTime);
+      setDuration(track.duration_seconds || 0);
 
-    if (track.source === 'upload') {
-      setActivePlayer('html5');
-      if (audioRef.current) {
-        // Lazy-init Web Audio API on first user-gesture-triggered play
-        initAudioContext();
-        if (audioCtxRef.current?.state === 'suspended') {
-          audioCtxRef.current.resume();
-        }
-
-        audioRef.current.src = track.url;
-        audioRef.current.currentTime = startTime;
-        audioRef.current.volume = volumeRef.current;
-        try {
-          await audioRef.current.play();
-          setIsPlaying(true);
-          setIsListenAlongBlocked(false);
-        } catch (err) {
-          if (err.name === 'NotAllowedError') {
-            console.warn('Autoplay blocked by browser policy (NotAllowedError).');
-          } else {
-            console.warn('HTML5 play() failed:', err);
+      if (track.source === 'upload') {
+        setActivePlayer('html5');
+        if (audioRef.current) {
+          // Lazy-init Web Audio API on first user-gesture-triggered play
+          initAudioContext();
+          if (audioCtxRef.current?.state === 'suspended') {
+            audioCtxRef.current.resume();
           }
-          isAutoplayBlocked = true;
-          setIsPlaying(false);
-          setIsListenAlongBlocked(true);
+
+          audioRef.current.src = track.url;
+          audioRef.current.currentTime = startTime;
+          audioRef.current.volume = volumeRef.current;
+          try {
+            await audioRef.current.play();
+            setIsPlaying(true);
+            setIsListenAlongBlocked(false);
+          } catch (err) {
+            if (err.name === 'NotAllowedError') {
+              console.warn('Autoplay blocked by browser policy (NotAllowedError).');
+            } else {
+              console.warn('HTML5 play() failed:', err);
+            }
+            isAutoplayBlocked = true;
+            setIsPlaying(false);
+            setIsListenAlongBlocked(true);
+          }
+        }
+      } else if (track.source === 'youtube') {
+        setActivePlayer('youtube');
+        const ytPlayer = ytPlayers.current[activeYtIndex.current];
+        if (ytPlayer?.loadVideoById) {
+          try {
+            ytPlayer.loadVideoById({ videoId: track.url, startSeconds: startTime });
+            ytPlayer.setVolume(volumeRef.current * 100);
+            ytPlayer.playVideo();
+            setIsPlaying(true);
+            setIsListenAlongBlocked(false);
+          } catch (err) {
+            console.warn('YouTube play failed:', err);
+            isAutoplayBlocked = true;
+            setIsPlaying(false);
+            setIsListenAlongBlocked(true);
+          }
         }
       }
-    } else if (track.source === 'youtube') {
-      setActivePlayer('youtube');
-      const ytPlayer = ytPlayers.current[activeYtIndex.current];
-      if (ytPlayer?.loadVideoById) {
-        try {
-          ytPlayer.loadVideoById({ videoId: track.url, startSeconds: startTime });
-          ytPlayer.setVolume(volumeRef.current * 100);
-          ytPlayer.playVideo();
-          setIsPlaying(true);
-          setIsListenAlongBlocked(false);
-        } catch (err) {
-          console.warn('YouTube play failed:', err);
-          isAutoplayBlocked = true;
-          setIsPlaying(false);
-          setIsListenAlongBlocked(true);
-        }
+
+      // Update Media Session API (fix #31)
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title,
+          artist: track.artist ?? 'Unknown Artist',
+          artwork: track.artwork_url
+            ? [{ src: track.artwork_url, sizes: '512x512', type: 'image/jpeg' }]
+            : [],
+        });
       }
-    }
 
-    // Update Media Session API (fix #31)
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.title,
-        artist: track.artist ?? 'Unknown Artist',
-        artwork: track.artwork_url
-          ? [{ src: track.artwork_url, sizes: '512x512', type: 'image/jpeg' }]
-          : [],
-      });
-    }
-
-    if (!isRemoteAction.current && !isAutoplayBlocked) {
-      broadcastPlay(trackId, startTime);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initAudioContext, pauseLocalPlayback]);
+      if (!isRemoteAction.current && !isAutoplayBlocked) {
+        broadcastPlay(trackId, startTime);
+      }
+    },
+    [initAudioContext, pauseLocalPlayback]
+  );
 
   /**
    * Resumes local playback from the current position.
@@ -371,7 +378,7 @@ export function MusicProvider({ children }) {
     if (!isRemoteAction.current && !isAutoplayBlocked && currentTrackRef.current) {
       broadcastPlay(currentTrackRef.current.id, currentTimeRef.current);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initAudioContext]);
 
   /**
@@ -388,7 +395,7 @@ export function MusicProvider({ children }) {
       ytPlayers.current[activeYtIndex.current]?.seekTo?.(timestamp, true);
     }
     if (!isRemoteAction.current) broadcastSeek(timestamp);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Queue CRUD & subscription ──────────────────────────────────────────────
@@ -406,7 +413,10 @@ export function MusicProvider({ children }) {
         .order('position_index', { ascending: true })
         .order('created_at', { ascending: true });
 
-      if (error) { console.error('Error fetching queue:', error); return; }
+      if (error) {
+        console.error('Error fetching queue:', error);
+        return;
+      }
       const tracks = data || [];
       setQueue(tracks);
 
@@ -457,15 +467,18 @@ export function MusicProvider({ children }) {
   // ─── Remote sync callbacks (stable via useCallback — fix #10) ───────────────
 
   /** @type {(trackId: string, timestamp: number) => Promise<void>} */
-  const onRemotePlay = useCallback(async (trackId, timestamp) => {
-    // fix #1: await the async play before resetting the flag to prevent broadcast loops
-    isRemoteAction.current = true;
-    try {
-      await playTrackById(trackId, timestamp);
-    } finally {
-      isRemoteAction.current = false;
-    }
-  }, [playTrackById]);
+  const onRemotePlay = useCallback(
+    async (trackId, timestamp) => {
+      // fix #1: await the async play before resetting the flag to prevent broadcast loops
+      isRemoteAction.current = true;
+      try {
+        await playTrackById(trackId, timestamp);
+      } finally {
+        isRemoteAction.current = false;
+      }
+    },
+    [playTrackById]
+  );
 
   /** @type {() => void} */
   const onRemotePause = useCallback(() => {
@@ -478,14 +491,17 @@ export function MusicProvider({ children }) {
   }, [pauseLocalPlayback]);
 
   /** @type {(timestamp: number) => void} */
-  const onRemoteSeek = useCallback((timestamp) => {
-    isRemoteAction.current = true;
-    try {
-      seekLocalPlayback(timestamp);
-    } finally {
-      isRemoteAction.current = false;
-    }
-  }, [seekLocalPlayback]);
+  const onRemoteSeek = useCallback(
+    (timestamp) => {
+      isRemoteAction.current = true;
+      try {
+        seekLocalPlayback(timestamp);
+      } finally {
+        isRemoteAction.current = false;
+      }
+    },
+    [seekLocalPlayback]
+  );
 
   /**
    * Returns the live playback position directly from the media element,
@@ -614,7 +630,10 @@ export function MusicProvider({ children }) {
         clearInterval(crossfadeIntervalRef.current);
 
         // fix #24: explicitly stop the outgoing player regardless of type (mixed-source)
-        if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.src = '';
+        }
         ytPlayers.current[activeYtIndex.current]?.stopVideo?.();
 
         // Promote standby: swap HTML5 refs OR update active YT index (no ref mutation)
@@ -657,8 +676,6 @@ export function MusicProvider({ children }) {
 
   // ─── Queue CRUD ─────────────────────────────────────────────────────────────
 
-
-
   /**
    * Inserts a new track into the shared queue. Optimistically updates local
    * state so autoplay fires immediately without waiting for the realtime event (fix #4).
@@ -670,43 +687,49 @@ export function MusicProvider({ children }) {
    * @param {number} durationSeconds
    * @param {string|null} [artworkUrl]
    */
-  const addToQueue = useCallback(async (title, artist, source, url, durationSeconds, artworkUrl = null) => {
-    if (!user) return;
-    try {
-      // fix #13: use queueRef to get current max position (avoids stale closure race)
-      const maxPos = queueRef.current.reduce(
-        (max, track) => Math.max(max, track.position_index || 0),
-        0
-      );
+  const addToQueue = useCallback(
+    async (title, artist, source, url, durationSeconds, artworkUrl = null) => {
+      if (!user) return;
+      try {
+        // fix #13: use queueRef to get current max position (avoids stale closure race)
+        const maxPos = queueRef.current.reduce(
+          (max, track) => Math.max(max, track.position_index || 0),
+          0
+        );
 
-      const { data, error } = await supabase
-        .from('music_queue')
-        .insert({
-          added_by: user.id,
-          title,
-          artist,
-          source,
-          url,
-          duration_seconds: durationSeconds,
-          position_index: maxPos + 1,
-          artwork_url: artworkUrl,
-        })
-        .select();
+        const { data, error } = await supabase
+          .from('music_queue')
+          .insert({
+            added_by: user.id,
+            title,
+            artist,
+            source,
+            url,
+            duration_seconds: durationSeconds,
+            position_index: maxPos + 1,
+            artwork_url: artworkUrl,
+          })
+          .select();
 
-      if (error) { console.error('Error adding to queue:', error); return; }
+        if (error) {
+          console.error('Error adding to queue:', error);
+          return;
+        }
 
-      const newTrack = data[0];
-      // fix #4: optimistic update so playTrackById can find the track immediately
-      setQueue((prev) => [...prev, newTrack]);
+        const newTrack = data[0];
+        // fix #4: optimistic update so playTrackById can find the track immediately
+        setQueue((prev) => [...prev, newTrack]);
 
-      // fix #26: guard against crossfade edge cases
-      if (!currentTrackRef.current && !isCrossfading.current && newTrack) {
-        playTrackById(newTrack.id, 0);
+        // fix #26: guard against crossfade edge cases
+        if (!currentTrackRef.current && !isCrossfading.current && newTrack) {
+          playTrackById(newTrack.id, 0);
+        }
+      } catch (err) {
+        console.error('Failed to add to queue:', err);
       }
-    } catch (err) {
-      console.error('Failed to add to queue:', err);
-    }
-  }, [user, supabase, playTrackById]);
+    },
+    [user, supabase, playTrackById]
+  );
 
   /**
    * Removes a track from the queue. Pauses playback and awaits DB deletion
@@ -714,52 +737,58 @@ export function MusicProvider({ children }) {
    *
    * @param {string} trackId
    */
-  const removeFromQueue = useCallback(async (trackId) => {
-    try {
-      const isCurrentlyPlaying = currentTrackRef.current?.id === trackId;
+  const removeFromQueue = useCallback(
+    async (trackId) => {
+      try {
+        const isCurrentlyPlaying = currentTrackRef.current?.id === trackId;
 
-      // Optimistic update: remove track from UI state immediately
-      setQueue((prev) => prev.filter((t) => t.id !== trackId));
+        // Optimistic update: remove track from UI state immediately
+        setQueue((prev) => prev.filter((t) => t.id !== trackId));
 
-      // fix #25: pause before any transition
-      if (isCurrentlyPlaying) pauseLocalPlayback(false);
+        // fix #25: pause before any transition
+        if (isCurrentlyPlaying) pauseLocalPlayback(false);
 
-      // fix #6: delete from DB first, then advance
-      const { error } = await supabase.from('music_queue').delete().eq('id', trackId);
-      if (error) {
-        console.error('Error deleting track:', error);
-        // Rollback state by re-fetching
+        // fix #6: delete from DB first, then advance
+        const { error } = await supabase.from('music_queue').delete().eq('id', trackId);
+        if (error) {
+          console.error('Error deleting track:', error);
+          // Rollback state by re-fetching
+          fetchQueue();
+          return;
+        }
+
+        if (isCurrentlyPlaying) handleTrackEnded();
+      } catch (err) {
+        console.error('Failed to delete track:', err);
         fetchQueue();
-        return;
       }
-
-      if (isCurrentlyPlaying) handleTrackEnded();
-    } catch (err) {
-      console.error('Failed to delete track:', err);
-      fetchQueue();
-    }
-  }, [pauseLocalPlayback, supabase, fetchQueue]);
+    },
+    [pauseLocalPlayback, supabase, fetchQueue]
+  );
 
   /**
    * Reorders the queue with an optimistic update and DB rollback on failure (fix #7).
    *
    * @param {Array} reorderedTracks - The full queue array in its new order.
    */
-  const reorderQueue = useCallback(async (reorderedTracks) => {
-    const previousQueue = [...queueRef.current];
-    setQueue(reorderedTracks); // optimistic
+  const reorderQueue = useCallback(
+    async (reorderedTracks) => {
+      const previousQueue = [...queueRef.current];
+      setQueue(reorderedTracks); // optimistic
 
-    try {
-      await Promise.all(
-        reorderedTracks.map((track, index) =>
-          supabase.from('music_queue').update({ position_index: index }).eq('id', track.id)
-        )
-      );
-    } catch (err) {
-      console.error('Failed to reorder queue, rolling back:', err);
-      setQueue(previousQueue); // fix #7: rollback on failure
-    }
-  }, [supabase]);
+      try {
+        await Promise.all(
+          reorderedTracks.map((track, index) =>
+            supabase.from('music_queue').update({ position_index: index }).eq('id', track.id)
+          )
+        );
+      } catch (err) {
+        console.error('Failed to reorder queue, rolling back:', err);
+        setQueue(previousQueue); // fix #7: rollback on failure
+      }
+    },
+    [supabase]
+  );
 
   // ─── Context value ──────────────────────────────────────────────────────────
   const value = {
@@ -792,7 +821,13 @@ export function MusicProvider({ children }) {
       <div
         ref={ytContainerRef}
         aria-hidden="true"
-        style={{ visibility: 'hidden', width: 0, height: 0, overflow: 'hidden', position: 'absolute' }}
+        style={{
+          visibility: 'hidden',
+          width: 0,
+          height: 0,
+          overflow: 'hidden',
+          position: 'absolute',
+        }}
       >
         <div id="yt-player-0" />
         <div id="yt-player-1" />

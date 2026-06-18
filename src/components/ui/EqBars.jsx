@@ -22,11 +22,7 @@ export function EqBars({ size = 'md', color = 'text-primary', paused = false }) 
   const delays = [0, 120, 60, 180, 30];
 
   return (
-    <span
-      className={`inline-flex items-end ${s.wrapper} ${color}`}
-      aria-hidden="true"
-      role="img"
-    >
+    <span className={`inline-flex items-end ${s.wrapper} ${color}`} aria-hidden="true" role="img">
       {delays.map((delay, i) => (
         <span
           key={i}

@@ -46,10 +46,7 @@ export default function PartnerDetailsForm({
       </div>
 
       <div className="flex flex-col items-center justify-center space-y-3 py-2">
-        <div
-          className="relative cursor-pointer"
-          onClick={onOpenAvatarPicker}
-        >
+        <div className="relative cursor-pointer" onClick={onOpenAvatarPicker}>
           <Avatar
             src={avatarUrl}
             fallback="👤"

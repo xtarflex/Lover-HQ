@@ -82,7 +82,9 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       if (!currentQ || currentQ.active_date !== todayStr) {
         const coupleSeed = getCoupleSeed(userId, partnerId);
         const todayObj = new Date();
-        const dayOfYear = Math.floor((todayObj - new Date(todayObj.getFullYear(), 0, 0)) / 86400000);
+        const dayOfYear = Math.floor(
+          (todayObj - new Date(todayObj.getFullYear(), 0, 0)) / 86400000
+        );
         const promptIndex = (dayOfYear + coupleSeed) % promptsData.length;
         const selectedPrompt = promptsData[promptIndex];
         currentQ = {
@@ -257,7 +259,10 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       localStorage.setItem('reveal_archive_comments_cache', JSON.stringify(commentsMap));
     } catch (err) {
       console.error('Fetch reveal data failed:', err);
-      const isNetworkError = !navigator.onLine || err.message?.includes('Failed to fetch') || err.message?.includes('network');
+      const isNetworkError =
+        !navigator.onLine ||
+        err.message?.includes('Failed to fetch') ||
+        err.message?.includes('network');
       if (isNetworkError) {
         loadCachedData();
         setMessage({ type: 'info', text: 'Viewing cached Q&A data (offline)' });

@@ -44,7 +44,7 @@ export default function GameInviteModal() {
       const sortedIds = [user.id, user.partner_id].sort();
       const channelName = `presence:pair:${sortedIds.join('_')}`;
       const channel = supabase.channel(channelName);
-      
+
       channel.send({
         type: 'broadcast',
         event: 'game_invite_decline',

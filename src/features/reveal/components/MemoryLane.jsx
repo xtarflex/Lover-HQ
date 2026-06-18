@@ -5,15 +5,7 @@
  */
 
 import React from 'react';
-import {
-  Heart,
-  Search,
-  Send,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  Star,
-} from 'lucide-react';
+import { Heart, Search, Send, MessageSquare, ChevronDown, ChevronUp, Star } from 'lucide-react';
 
 /**
  * Renders the Memory Lane archive panel, including:

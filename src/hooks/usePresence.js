@@ -54,13 +54,16 @@ export function usePresence(roomName) {
         } else {
           dispatch({ type: 'SET_INVITATION', payload });
           triggerBuzz();
-          triggerPush('Game Invitation 🎮', `${payload.hostName} invited you to play ${payload.gameName}!`);
+          triggerPush(
+            'Game Invitation 🎮',
+            `${payload.hostName} invited you to play ${payload.gameName}!`
+          );
         }
       })
       .on('broadcast', { event: 'game_invite_decline' }, ({ payload }) => {
         dispatch({
           type: 'SET_GLOBAL_NOTIFICATION',
-          payload: { message: `${payload.partnerName} declined your invite.`, type: 'info' }
+          payload: { message: `${payload.partnerName} declined your invite.`, type: 'info' },
         });
         window.dispatchEvent(new CustomEvent('game-invite-declined'));
       })
@@ -77,7 +80,10 @@ export function usePresence(roomName) {
         } else {
           dispatch({
             type: 'SET_GLOBAL_NOTIFICATION',
-            payload: { message: `${payload.hostName} is waiting for your Reveal answer! ⏳`, type: 'info' }
+            payload: {
+              message: `${payload.hostName} is waiting for your Reveal answer! ⏳`,
+              type: 'info',
+            },
           });
           triggerPush('Reveal Q&A Nudge ⏳', `${payload.hostName} is waiting for your answer!`);
         }
