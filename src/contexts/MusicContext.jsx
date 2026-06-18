@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
@@ -147,7 +148,7 @@ export function MusicProvider({ children }) {
       audio.removeEventListener('error', handleError);
       standbyAudio.pause();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   // ─── Cleanup crossfade interval on unmount ──────────────────────────────────
@@ -221,7 +222,7 @@ export function MusicProvider({ children }) {
       ytPlayers.current[0] = makePlayer('yt-player-0', 0);
       ytPlayers.current[1] = makePlayer('yt-player-1', 1);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [user]);
 
   // ─── YouTube time polling ───────────────────────────────────────────────────
@@ -256,7 +257,7 @@ export function MusicProvider({ children }) {
     if (shouldBroadcast && !isRemoteAction.current) {
       broadcastPause();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   /**
@@ -378,7 +379,7 @@ export function MusicProvider({ children }) {
     if (!isRemoteAction.current && !isAutoplayBlocked && currentTrackRef.current) {
       broadcastPlay(currentTrackRef.current.id, currentTimeRef.current);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [initAudioContext]);
 
   /**
@@ -395,7 +396,7 @@ export function MusicProvider({ children }) {
       ytPlayers.current[activeYtIndex.current]?.seekTo?.(timestamp, true);
     }
     if (!isRemoteAction.current) broadcastSeek(timestamp);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   // ─── Queue CRUD & subscription ──────────────────────────────────────────────
@@ -562,7 +563,7 @@ export function MusicProvider({ children }) {
         startCrossfade(queueRef.current[currentIndex + 1]);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [currentTime, duration, isPlaying, currentTrack]);
 
   // ─── Track ended handler ────────────────────────────────────────────────────

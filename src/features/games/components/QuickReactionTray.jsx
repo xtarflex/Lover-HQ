@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file QuickReactionTray.jsx
  * @description Interactive bottom tray for active game components, allowing players

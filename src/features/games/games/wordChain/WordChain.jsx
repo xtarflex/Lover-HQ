@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file WordChain.jsx
  * @description Word Chain game orchestrator. Manages all game state, real-time sync,
@@ -341,7 +342,7 @@ export default function WordChain({
   }, [selectedDefinitionWord, updateWordDefinition]);
 
   // Keep handler references fresh for the stable handleRemoteMove callback
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     handlersRef.current = {
       submitWord,

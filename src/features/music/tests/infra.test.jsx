@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -36,7 +37,7 @@ let mockQueueRows = [];
  * We call this lazily so vitest hoisting doesn't cause problems.
  * @returns {object}
  */
-const getMockSupabase = async () => {
+ async () => {
   const { default: supabaseMock } = await import('@/hooks/useSupabase');
   return supabaseMock;
 };

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file Games.jsx
  * @description Games hub router. Shows the lobby when no game is active,

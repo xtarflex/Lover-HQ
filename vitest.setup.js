@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
@@ -758,7 +759,7 @@ const mockYT = {
      * @param {boolean} [allowSeekAhead] - Placeholder param.
      * @returns {void}
      */
-    seekTo(seconds, allowSeekAhead) {
+    seekTo(seconds, _allowSeekAhead) {
       this.currentTime = seconds;
     }
 

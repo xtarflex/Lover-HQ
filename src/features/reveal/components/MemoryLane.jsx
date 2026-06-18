@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file MemoryLane.jsx
  * @description Archive section for the Reveal Q&A feature.

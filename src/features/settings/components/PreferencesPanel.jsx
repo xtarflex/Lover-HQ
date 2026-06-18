@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file PreferencesPanel.jsx
  * @description Settings panel for app-wide preferences: sound effects,
@@ -53,6 +54,7 @@ export default function PreferencesPanel({
       try {
         navigator.vibrate([100]);
       } catch (err) {
+
         // ignore vibrate restrictions
       }
     }

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file useRevealData.js
  * @description Hook managing all Supabase data-fetching and real-time

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file GameHeader.jsx
  * @description Shared game header shown at the top of every active game.

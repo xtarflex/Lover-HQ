@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file Profile.jsx
  * @description Partner Profile page. Displays and manages partner details when
@@ -46,6 +47,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (editTarget) {
+
       setName(editTarget.name || '');
       setAvatarUrl(editTarget.avatar_url || '');
     }

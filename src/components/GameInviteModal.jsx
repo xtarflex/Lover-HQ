@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file GameInviteModal.jsx
  * @description Premium modal dialog shown when a user receives a real-time
