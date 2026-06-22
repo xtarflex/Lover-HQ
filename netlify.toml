@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- src/ public/ index.html vite.config.js package.json postcss.config.js tailwind.config.js"
 
 [build.environment]
   NODE_VERSION = "20"

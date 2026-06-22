@@ -31,3 +31,11 @@ dist-ssr
 skills-lock.json
 dev-dist/
 avatar batch.html
+
+# Test outputs & caches
+test-results/
+coverage/
+.eslintcache
+.vite/
+.vitest-cache/
+.supabase/
