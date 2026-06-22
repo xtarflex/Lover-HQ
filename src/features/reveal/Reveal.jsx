@@ -62,20 +62,34 @@ export default function Reveal() {
 
   const {
     dailyQuestion,
-    userAnswer, setUserAnswer,
-    partnerAnswer, setPartnerAnswer,
-    customQuestions, setCustomQuestions,
-    archiveMemories, setArchiveMemories,
-    archiveComments, setArchiveComments,
-    favorites, setFavorites,
-    revealedToday, setRevealedToday,
-    loading, message, setMessage, fetchData,
+    userAnswer,
+    setUserAnswer,
+    partnerAnswer,
+    setPartnerAnswer,
+    customQuestions,
+    setCustomQuestions,
+    archiveMemories,
+    setArchiveMemories,
+    archiveComments,
+    setArchiveComments,
+    favorites,
+    setFavorites,
+    revealedToday,
+    setRevealedToday,
+    loading,
+    message,
+    setMessage,
+    fetchData,
   } = useRevealData({ userId, partnerId, coupleKey, todayStr, initializeDailyQuestion });
 
   // --- Filter / resolver hook ---
   const { getQuestionDetails, filteredMemories } = useRevealFilters({
-    archiveMemories, customQuestions, searchQuery,
-    activeCategoryFilter, activeArchiveTab, favorites,
+    archiveMemories,
+    customQuestions,
+    searchQuery,
+    activeCategoryFilter,
+    activeArchiveTab,
+    favorites,
   });
 
   // --- Event handler hook ---
@@ -88,14 +102,31 @@ export default function Reveal() {
     handleAddComment,
     handleNudgePartner,
   } = useRevealHandlers({
-    userId, partner, dailyQuestion,
-    userAnswerInput, setUserAnswerInput, setSubmittingAnswer,
-    newQuestionText, setNewQuestionText, newQuestionCategory, setCreatingQuestion,
-    newCommentTexts, setNewCommentTexts,
-    setUserAnswer, setPartnerAnswer, setCustomQuestions,
-    setArchiveMemories, setArchiveComments, setFavorites,
-    setRevealedToday, setShowConfetti, setNudgeShaking, setMessage,
-    fetchData, favorites, partnerAnswer,
+    userId,
+    partner,
+    dailyQuestion,
+    userAnswerInput,
+    setUserAnswerInput,
+    setSubmittingAnswer,
+    newQuestionText,
+    setNewQuestionText,
+    newQuestionCategory,
+    setCreatingQuestion,
+    newCommentTexts,
+    setNewCommentTexts,
+    setUserAnswer,
+    setPartnerAnswer,
+    setCustomQuestions,
+    setArchiveMemories,
+    setArchiveComments,
+    setFavorites,
+    setRevealedToday,
+    setShowConfetti,
+    setNudgeShaking,
+    setMessage,
+    fetchData,
+    favorites,
+    partnerAnswer,
   });
 
   // --- Guards ---
@@ -117,8 +148,8 @@ export default function Reveal() {
         <div className="space-y-2">
           <h2 className="font-heading text-2xl font-extrabold text-text-main">Pairing Required</h2>
           <p className="text-sm text-text-muted max-w-xs mx-auto leading-relaxed">
-            The Daily Reveal is a blind Q&amp;A game built for two. Link up with your partner to unlock
-            daily prompts, check their answers, and share comments!
+            The Daily Reveal is a blind Q&amp;A game built for two. Link up with your partner to
+            unlock daily prompts, check their answers, and share comments!
           </p>
         </div>
         <button
@@ -165,7 +196,10 @@ export default function Reveal() {
           onSubmitAnswer={handleSubmitAnswer}
           onToggleReaction={handleToggleReaction}
           onNudgePartner={handleNudgePartner}
-          onReveal={() => { setRevealedToday(true); setShowConfetti(true); }}
+          onReveal={() => {
+            setRevealedToday(true);
+            setShowConfetti(true);
+          }}
         />
       )}
 

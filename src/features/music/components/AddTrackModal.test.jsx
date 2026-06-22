@@ -101,12 +101,16 @@ describe('AddTrackModal', () => {
     const fileInput = screen.getByLabelText(/select audio clip/i, { selector: 'input' });
 
     // Create a file larger than 10MB
-    const largeFile = new File(['a'.repeat(11 * 1024 * 1024)], 'large-song.mp3', { type: 'audio/mp3' });
+    const largeFile = new File(['a'.repeat(11 * 1024 * 1024)], 'large-song.mp3', {
+      type: 'audio/mp3',
+    });
     Object.defineProperty(largeFile, 'size', { value: 11 * 1024 * 1024 });
 
     fireEvent.change(fileInput, { target: { files: [largeFile] } });
 
-    expect(screen.getByText('File is too large. Maximum size allowed is 10MB.')).toBeInTheDocument();
+    expect(
+      screen.getByText('File is too large. Maximum size allowed is 10MB.')
+    ).toBeInTheDocument();
   });
 
   it('handles sequential file selection and ensures previous URL is revoked', async () => {
@@ -181,7 +185,9 @@ describe('AddTrackModal', () => {
 
     // Fill inputs
     const urlInput = screen.getByPlaceholderText(/watch\?v=/i);
-    fireEvent.change(urlInput, { target: { value: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' } });
+    fireEvent.change(urlInput, {
+      target: { value: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+    });
 
     const titleInput = screen.getByPlaceholderText(/e\.g\. Yellow/i);
     fireEvent.change(titleInput, { target: { value: 'Never Gonna Give You Up' } });

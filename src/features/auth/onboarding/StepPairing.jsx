@@ -120,11 +120,7 @@ export default function StepPairing({
               disabled={loading}
               className="w-full bg-transparent border-2 border-primary text-primary font-bold py-3 px-6 rounded-full hover:bg-primary/5 transition-all disabled:opacity-50 flex items-center justify-center"
             >
-              {loading ? (
-                <LoadingSpinner size="xs" className="text-primary" />
-              ) : (
-                'Generate Code'
-              )}
+              {loading ? <LoadingSpinner size="xs" className="text-primary" /> : 'Generate Code'}
             </button>
           )}
         </div>
@@ -160,11 +156,7 @@ export default function StepPairing({
             className="w-full bg-secondary text-white hover-heart-scale font-bold py-4 rounded-full shadow-lg hover:shadow-xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 flex justify-center items-center group"
           >
             <span className="relative z-10 flex items-center justify-center">
-              {loading ? (
-                <LoadingSpinner size="xs" className="text-white" />
-              ) : (
-                'Complete Pairing'
-              )}
+              {loading ? <LoadingSpinner size="xs" className="text-white" /> : 'Complete Pairing'}
             </span>
           </button>
         </form>

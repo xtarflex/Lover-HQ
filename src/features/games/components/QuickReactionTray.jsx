@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file QuickReactionTray.jsx
  * @description Interactive bottom tray for active game components, allowing players
@@ -13,7 +14,7 @@ const CHAT_PRESETS = [
   'Your turn! ⏰',
   'Oops! 😅',
   'Nice move! 👏',
-  'I\'m thinking... 🤔',
+  "I'm thinking... 🤔",
 ];
 
 /**

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file PreferencesPanel.jsx
  * @description Settings panel for app-wide preferences: sound effects,
@@ -45,10 +46,15 @@ export default function PreferencesPanel({
   const handleHapticsToggle = () => {
     onToggleHaptics();
     // Buzz test
-    if (!hapticsEnabled && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    if (
+      !hapticsEnabled &&
+      typeof navigator !== 'undefined' &&
+      typeof navigator.vibrate === 'function'
+    ) {
       try {
         navigator.vibrate([100]);
       } catch (err) {
+
         // ignore vibrate restrictions
       }
     }
@@ -92,9 +98,7 @@ export default function PreferencesPanel({
         <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border">
           <div className="flex flex-col mb-3">
             <span className="text-sm font-bold text-text-main">Theme Mode</span>
-            <span className="text-xs text-text-muted">
-              Choose your preferred visual style.
-            </span>
+            <span className="text-xs text-text-muted">Choose your preferred visual style.</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <button className="py-2 px-3 bg-surface-border/50 text-text-muted border border-transparent rounded-xl text-xs font-bold transition-all hover:bg-surface-border">

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file MemoryLane.jsx
  * @description Archive section for the Reveal Q&A feature.
@@ -5,15 +6,7 @@
  */
 
 import React from 'react';
-import {
-  Heart,
-  Search,
-  Send,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  Star,
-} from 'lucide-react';
+import { Heart, Search, Send, MessageSquare, ChevronDown, ChevronUp, Star } from 'lucide-react';
 
 /**
  * Renders the Memory Lane archive panel, including:

@@ -49,10 +49,7 @@ export default function AccountPanel({
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="flex flex-col items-center justify-center space-y-3 py-2">
-          <div
-            className="relative cursor-pointer group"
-            onClick={onOpenAvatarPicker}
-          >
+          <div className="relative cursor-pointer group" onClick={onOpenAvatarPicker}>
             <Avatar src={avatarUrl} fallback="👤" isOnline={true} size="xl" />
             <div className="absolute bottom-0 right-0 w-8 h-8 bg-primary hover:bg-primary-hover rounded-full flex items-center justify-center shadow-lg border-2 border-background z-20 transition-transform active:scale-90 group-hover:scale-105">
               <Pencil className="w-4 h-4 text-white" />

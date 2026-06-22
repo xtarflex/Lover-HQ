@@ -93,8 +93,7 @@ export function useTicTacToeLogic({ userId, partnerId, mySymbol }) {
     setCurrentSymbol(null);
   }, []);
 
-  const winnerId =
-    winner === mySymbol ? userId : winner === partnerSymbol ? partnerId : null;
+  const winnerId = winner === mySymbol ? userId : winner === partnerSymbol ? partnerId : null;
 
   return {
     board,

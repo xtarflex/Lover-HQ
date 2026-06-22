@@ -14,12 +14,7 @@ export default mergeConfig(
       environment: 'jsdom',
       globals: true,
       setupFiles: ['./vitest.setup.js'],
-      exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/.git/**',
-        '**/.agents/**',
-      ],
+      exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/.agents/**'],
     },
   })
 );

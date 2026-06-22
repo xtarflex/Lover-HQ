@@ -96,7 +96,7 @@ export function useRevealHandlers({
         }
       }
       localStorage.setItem('reveal_offline_queue', JSON.stringify(remaining));
-      
+
       // If we synced successfully, refresh data to get correct IDs/states
       if (queue.length > remaining.length) {
         fetchData();
@@ -155,7 +155,10 @@ export function useRevealHandlers({
           localStorage.setItem('reveal_offline_queue', JSON.stringify(queue));
           localStorage.setItem('reveal_user_answer_cache', JSON.stringify(mockAns));
 
-          setMessage({ type: 'success', text: 'Answer saved offline! Will sync when connection returns.' });
+          setMessage({
+            type: 'success',
+            text: 'Answer saved offline! Will sync when connection returns.',
+          });
           if (partnerAnswer) {
             setRevealedToday(true);
           }
@@ -177,7 +180,11 @@ export function useRevealHandlers({
         setUserAnswer(ans);
         localStorage.setItem('reveal_user_answer_cache', JSON.stringify(ans));
         setMessage({ type: 'success', text: 'Answer submitted! Your partner is next.' });
-        if (partnerAnswer) { setRevealedToday(true); setShowConfetti(true); fetchData(); }
+        if (partnerAnswer) {
+          setRevealedToday(true);
+          setShowConfetti(true);
+          fetchData();
+        }
       } catch (err) {
         console.error('Submit answer error:', err);
         setMessage({ type: 'error', text: 'Failed to submit answer: ' + err.message });
@@ -185,8 +192,19 @@ export function useRevealHandlers({
         setSubmittingAnswer(false);
       }
     },
-    [userId, dailyQuestion, userAnswerInput, setUserAnswerInput, setSubmittingAnswer,
-     setUserAnswer, setMessage, partnerAnswer, setRevealedToday, setShowConfetti, fetchData]
+    [
+      userId,
+      dailyQuestion,
+      userAnswerInput,
+      setUserAnswerInput,
+      setSubmittingAnswer,
+      setUserAnswer,
+      setMessage,
+      partnerAnswer,
+      setRevealedToday,
+      setShowConfetti,
+      fetchData,
+    ]
   );
 
   /**
@@ -224,10 +242,18 @@ export function useRevealHandlers({
           queue.push({ type: 'custom_question', data: qPayload });
           localStorage.setItem('reveal_offline_queue', JSON.stringify(queue));
 
-          const cachedCustomQ = JSON.parse(localStorage.getItem('reveal_custom_questions_cache') || '[]');
-          localStorage.setItem('reveal_custom_questions_cache', JSON.stringify([mockQ, ...cachedCustomQ]));
+          const cachedCustomQ = JSON.parse(
+            localStorage.getItem('reveal_custom_questions_cache') || '[]'
+          );
+          localStorage.setItem(
+            'reveal_custom_questions_cache',
+            JSON.stringify([mockQ, ...cachedCustomQ])
+          );
 
-          setMessage({ type: 'success', text: 'Question saved offline! Will sync when connection returns.' });
+          setMessage({
+            type: 'success',
+            text: 'Question saved offline! Will sync when connection returns.',
+          });
         } catch (err) {
           console.error('Failed to queue offline custom question:', err);
         } finally {
@@ -252,7 +278,15 @@ export function useRevealHandlers({
         setCreatingQuestion(false);
       }
     },
-    [userId, newQuestionText, newQuestionCategory, setCreatingQuestion, setCustomQuestions, setNewQuestionText, setMessage]
+    [
+      userId,
+      newQuestionText,
+      newQuestionCategory,
+      setCreatingQuestion,
+      setCustomQuestions,
+      setNewQuestionText,
+      setMessage,
+    ]
   );
 
   /**
@@ -264,11 +298,17 @@ export function useRevealHandlers({
   const handleScheduleNext = useCallback(
     async (qId) => {
       try {
-        const t = new Date(); t.setDate(t.getDate() + 1);
+        const t = new Date();
+        t.setDate(t.getDate() + 1);
         const tomStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-        const { error } = await supabase.from('reveal_questions').update({ scheduled_for_date: tomStr }).eq('id', qId);
+        const { error } = await supabase
+          .from('reveal_questions')
+          .update({ scheduled_for_date: tomStr })
+          .eq('id', qId);
         if (error) throw error;
-        setCustomQuestions((prev) => prev.map((q) => q.id === qId ? { ...q, scheduled_for_date: tomStr } : q));
+        setCustomQuestions((prev) =>
+          prev.map((q) => (q.id === qId ? { ...q, scheduled_for_date: tomStr } : q))
+        );
         setMessage({ type: 'success', text: `Scheduled for tomorrow's question (${tomStr})!` });
       } catch (err) {
         console.error('Scheduling failed:', err);
@@ -289,13 +329,29 @@ export function useRevealHandlers({
       const isFav = favorites.has(questionId);
       try {
         if (isFav) {
-          await supabase.from('reveal_favorites').delete().eq('user_id', userId).eq('question_id', questionId);
-          setFavorites((prev) => { const n = new Set(prev); n.delete(questionId); return n; });
+          await supabase
+            .from('reveal_favorites')
+            .delete()
+            .eq('user_id', userId)
+            .eq('question_id', questionId);
+          setFavorites((prev) => {
+            const n = new Set(prev);
+            n.delete(questionId);
+            return n;
+          });
         } else {
-          await supabase.from('reveal_favorites').insert({ user_id: userId, question_id: questionId });
-          setFavorites((prev) => { const n = new Set(prev); n.add(questionId); return n; });
+          await supabase
+            .from('reveal_favorites')
+            .insert({ user_id: userId, question_id: questionId });
+          setFavorites((prev) => {
+            const n = new Set(prev);
+            n.add(questionId);
+            return n;
+          });
         }
-      } catch (err) { console.error('Toggle favorite failed:', err); }
+      } catch (err) {
+        console.error('Toggle favorite failed:', err);
+      }
     },
     [userId, favorites, setFavorites]
   );
@@ -315,7 +371,10 @@ export function useRevealHandlers({
         ? { ...current, [emojiChar]: list.filter((id) => id !== userId) }
         : { ...current, [emojiChar]: [...list, userId] };
       try {
-        const { error } = await supabase.from('reveal_answers').update({ reactions: newReactions }).eq('id', answer.id);
+        const { error } = await supabase
+          .from('reveal_answers')
+          .update({ reactions: newReactions })
+          .eq('id', answer.id);
         if (error) throw error;
         if (answer.question_id === dailyQuestion?.question_id) {
           answer.user_id === userId
@@ -324,14 +383,21 @@ export function useRevealHandlers({
         }
         setArchiveMemories((prev) =>
           prev.map((m) =>
-            m.question_id !== answer.question_id ? m : {
-              ...m,
-              user: m.user?.id === answer.id ? { ...m.user, reactions: newReactions } : m.user,
-              partner: m.partner?.id === answer.id ? { ...m.partner, reactions: newReactions } : m.partner,
-            }
+            m.question_id !== answer.question_id
+              ? m
+              : {
+                  ...m,
+                  user: m.user?.id === answer.id ? { ...m.user, reactions: newReactions } : m.user,
+                  partner:
+                    m.partner?.id === answer.id
+                      ? { ...m.partner, reactions: newReactions }
+                      : m.partner,
+                }
           )
         );
-      } catch (err) { console.error('Toggle reaction failed:', err); }
+      } catch (err) {
+        console.error('Toggle reaction failed:', err);
+      }
     },
     [userId, dailyQuestion, setUserAnswer, setPartnerAnswer, setArchiveMemories]
   );
@@ -359,7 +425,9 @@ export function useRevealHandlers({
           if (l.some((c) => c.id === newC.id)) return prev;
           return { ...prev, [questionId]: [...l, newC] };
         });
-      } catch (err) { console.error('Add comment failed:', err); }
+      } catch (err) {
+        console.error('Add comment failed:', err);
+      }
     },
     [userId, newCommentTexts, setNewCommentTexts, setArchiveComments]
   );
@@ -372,7 +440,10 @@ export function useRevealHandlers({
   const handleNudgePartner = useCallback(() => {
     setNudgeShaking(true);
     setTimeout(() => setNudgeShaking(false), 800);
-    setMessage({ type: 'info', text: `Nudged ${partner?.name || 'partner'}! They will receive a shake indicator.` });
+    setMessage({
+      type: 'info',
+      text: `Nudged ${partner?.name || 'partner'}! They will receive a shake indicator.`,
+    });
   }, [partner, setNudgeShaking, setMessage]);
 
   return {

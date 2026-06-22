@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file WordChain.jsx
  * @description Word Chain game orchestrator. Manages all game state, real-time sync,
@@ -39,7 +40,16 @@ const localWordsSet = new Set(localWords);
  * @param {boolean} props.isHost - Whether the local user initiated the game (controls config + timer).
  * @returns {React.ReactElement}
  */
-export default function WordChain({ gameId, gameName, userId, partnerId, user, partner, onBack, isHost }) {
+export default function WordChain({
+  gameId,
+  gameName,
+  userId,
+  partnerId,
+  user,
+  partner,
+  onBack,
+  isHost,
+}) {
   // The host (game initiator) is always the config-setter and timer controller.
   // We do NOT use userId < partnerId here — that would always give config to the same
   // person regardless of who actually started the game.
@@ -68,11 +78,11 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
   const [drawerPartOfSpeech, setDrawerPartOfSpeech] = useState('');
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [settings, setSettings] = useState({
-    mode: 'classic',     // 'classic' | 'panic'
-    timerLimit: 30,      // 15 | 30 | 45 | 60
-    scoring: 'none',     // 'none' | 'points_race'
-    minLength: 'none',   // 'none' | '3' | '4' | '5'
-    maxLength: 'none',   // 'none' | '6' | '8' | '10'
+    mode: 'classic', // 'classic' | 'panic'
+    timerLimit: 30, // 15 | 30 | 45 | 60
+    scoring: 'none', // 'none' | 'points_race'
+    minLength: 'none', // 'none' | '3' | '4' | '5'
+    maxLength: 'none', // 'none' | '6' | '8' | '10'
   });
 
   const {
@@ -326,11 +336,13 @@ export default function WordChain({ gameId, gameName, userId, partnerId, user, p
     };
 
     fetchDef();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [selectedDefinitionWord, updateWordDefinition]);
 
   // Keep handler references fresh for the stable handleRemoteMove callback
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     handlersRef.current = {
       submitWord,

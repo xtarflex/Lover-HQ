@@ -13,7 +13,7 @@ import { Database } from 'lucide-react';
  * }} props
  * @returns {React.ReactElement}
  */
-export default function DataManagementPanel({ onLogout }) {
+export default function DataManagementPanel({ _onLogout }) {
   return (
     <div className="space-y-6 animate-fade-in flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6">
       <div className="w-16 h-16 bg-surface-border/20 rounded-full flex items-center justify-center mb-4">

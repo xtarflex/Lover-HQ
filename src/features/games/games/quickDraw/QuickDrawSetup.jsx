@@ -45,9 +45,7 @@ export default function QuickDrawSetup({
         <div className="w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-2xl">
           <div className="text-center space-y-1">
             <h2 className="text-2xl font-black text-white">Round {currentRound} Setup</h2>
-            <p className="text-sm text-text-muted">
-              Choose a word to draw or type a custom one.
-            </p>
+            <p className="text-sm text-text-muted">Choose a word to draw or type a custom one.</p>
           </div>
 
           {/* Word suggestions */}

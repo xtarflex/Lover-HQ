@@ -122,11 +122,13 @@ export default function DailyQuestionCard({
                   >
                     <span>{emoji}</span>
                     {list.length > 0 && (
-                      <span className={`absolute -top-1 -right-1 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border shadow-sm ${
-                        reacted
-                          ? 'bg-primary border-primary text-white'
-                          : 'bg-slate-700 border-slate-600 text-gray-200'
-                      }`}>
+                      <span
+                        className={`absolute -top-1 -right-1 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border shadow-sm ${
+                          reacted
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-slate-700 border-slate-600 text-gray-200'
+                        }`}
+                      >
                         {list.length}
                       </span>
                     )}
@@ -199,11 +201,13 @@ export default function DailyQuestionCard({
                   >
                     <span>{emoji}</span>
                     {list.length > 0 && (
-                      <span className={`absolute -top-1 -right-1 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border shadow-sm ${
-                        reacted
-                          ? 'bg-primary border-primary text-white'
-                          : 'bg-slate-700 border-slate-600 text-gray-200'
-                      }`}>
+                      <span
+                        className={`absolute -top-1 -right-1 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border shadow-sm ${
+                          reacted
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-slate-700 border-slate-600 text-gray-200'
+                        }`}
+                      >
                         {list.length}
                       </span>
                     )}

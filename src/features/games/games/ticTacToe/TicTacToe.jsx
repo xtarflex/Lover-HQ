@@ -26,7 +26,16 @@ import QuickReactionTray from '../../components/QuickReactionTray';
  * @param {Function} props.onBack
  * @param {boolean} props.isHost - Whether the local user initiated the game. The host always plays X.
  */
-export default function TicTacToe({ gameId, gameName, userId, partnerId, user, partner, onBack, isHost }) {
+export default function TicTacToe({
+  gameId,
+  gameName,
+  userId,
+  partnerId,
+  user,
+  partner,
+  onBack,
+  isHost,
+}) {
   // Host (game initiator) always plays X — NOT alphabetical order.
   const mySymbol = isHost ? 'X' : 'O';
   const sessionId = useMemo(

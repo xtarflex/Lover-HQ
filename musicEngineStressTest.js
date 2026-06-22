@@ -2,7 +2,7 @@ import { formatTime, parseFilenameMetadata } from './src/features/music/lib/musi
 
 const results = {
   formatTime: [],
-  parseFilenameMetadata: []
+  parseFilenameMetadata: [],
 };
 
 // 1. Stress tests for formatTime
@@ -40,14 +40,14 @@ for (const tc of formatTimeCases) {
       input: String(tc.input),
       expected: tc.expected,
       actual,
-      passed
+      passed,
     });
   } catch (err) {
     results.formatTime.push({
       input: String(tc.input),
       expected: tc.expected,
       actual: `Error: ${err.message}`,
-      passed: false
+      passed: false,
     });
   }
 }
@@ -66,10 +66,19 @@ const parseCases = [
   { input: 'Artist - Title - Live.mp3', expected: { artist: 'Artist', title: 'Title - Live' } }, // Multiple hyphens
   { input: 'Artist-Title.mp3', expected: { artist: '', title: 'Artist Title' } }, // Dash replacement
   { input: 'some_cool_song.mp3', expected: { artist: '', title: 'Some Cool Song' } }, // Underscore replacement & capitalization
-  { input: longString + '.mp3', expected: { artist: '', title: longString.replace(/\b\w/g, c => c.toUpperCase()) } }, // Extremely long title
+  {
+    input: longString + '.mp3',
+    expected: { artist: '', title: longString.replace(/\b\w/g, (c) => c.toUpperCase()) },
+  }, // Extremely long title
   { input: `Artist - ${longString}.mp3`, expected: { artist: 'Artist', title: longString } }, // Long title with artist
-  { input: `Artist - Title ${specialChars}.mp3`, expected: { artist: 'Artist', title: `Title ${specialChars}` } }, // Special characters
-  { input: `${unicodeString}.mp3`, expected: { artist: '', title: 'Élégant Русский Язык 🎵 🔥 Straße' } }, // Unicode / Emojis / International casing
+  {
+    input: `Artist - Title ${specialChars}.mp3`,
+    expected: { artist: 'Artist', title: `Title ${specialChars}` },
+  }, // Special characters
+  {
+    input: `${unicodeString}.mp3`,
+    expected: { artist: '', title: 'Élégant Русский Язык 🎵 🔥 Straße' },
+  }, // Unicode / Emojis / International casing
 ];
 
 for (const tc of parseCases) {
@@ -80,14 +89,14 @@ for (const tc of parseCases) {
       input: tc.input && tc.input.length > 60 ? tc.input.slice(0, 60) + '...' : String(tc.input),
       expected: tc.expected,
       actual,
-      passed
+      passed,
     });
   } catch (err) {
     results.parseFilenameMetadata.push({
       input: tc.input && tc.input.length > 60 ? tc.input.slice(0, 60) + '...' : String(tc.input),
       expected: tc.expected,
       actual: `Error: ${err.message}`,
-      passed: false
+      passed: false,
     });
   }
 }

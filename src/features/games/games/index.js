@@ -7,8 +7,6 @@
 import { lazy } from 'react';
 import { TicTacToeIcon, WordChainIcon, QuickDrawIcon } from '../components/GameIcons';
 
-
-
 /**
  * @typedef {Object} GameDefinition
  * @property {string} id - Unique snake-case identifier.

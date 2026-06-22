@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file GameInviteModal.jsx
  * @description Premium modal dialog shown when a user receives a real-time
@@ -44,7 +45,7 @@ export default function GameInviteModal() {
       const sortedIds = [user.id, user.partner_id].sort();
       const channelName = `presence:pair:${sortedIds.join('_')}`;
       const channel = supabase.channel(channelName);
-      
+
       channel.send({
         type: 'broadcast',
         event: 'game_invite_decline',

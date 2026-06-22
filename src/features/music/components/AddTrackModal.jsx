@@ -328,7 +328,6 @@ export default function AddTrackModal({ isOpen, onClose }) {
                 className="hidden"
               />
 
-
               {file ? (
                 <div className="flex items-center justify-between border border-primary/20 bg-primary/5 p-3.5 rounded-xl">
                   <div className="flex items-center space-x-2.5 overflow-hidden">
@@ -398,7 +397,10 @@ export default function AddTrackModal({ isOpen, onClose }) {
                       .then((data) => {
                         if (data) {
                           setTitle((prev) =>
-                            !prev || prev === 'Loading video details...' || prev === 'YouTube Video' || prev === 'YouTube Music'
+                            !prev ||
+                            prev === 'Loading video details...' ||
+                            prev === 'YouTube Video' ||
+                            prev === 'YouTube Music'
                               ? data.title || placeholder
                               : prev
                           );

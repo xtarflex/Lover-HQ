@@ -79,7 +79,14 @@ export function useRevealFilters({
         if (activeArchiveTab === 'favorites' && !favorites.has(m.question_id)) return false;
         return true;
       }),
-    [archiveMemories, activeCategoryFilter, searchQuery, activeArchiveTab, favorites, getQuestionDetails]
+    [
+      archiveMemories,
+      activeCategoryFilter,
+      searchQuery,
+      activeArchiveTab,
+      favorites,
+      getQuestionDetails,
+    ]
   );
 
   return { getQuestionDetails, filteredMemories };

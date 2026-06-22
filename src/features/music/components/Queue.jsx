@@ -9,7 +9,12 @@ import EqBars from '../../../components/ui/EqBars';
 
 /** Illustrated SVG empty state for an empty queue. */
 const EmptyQueueIllustration = () => (
-  <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" className="w-24 h-24 text-slate-600" aria-hidden="true">
+  <svg
+    viewBox="0 0 120 100"
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-24 h-24 text-slate-600"
+    aria-hidden="true"
+  >
     <rect x="20" y="30" width="80" height="12" rx="6" fill="currentColor" opacity="0.3" />
     <rect x="20" y="48" width="60" height="12" rx="6" fill="currentColor" opacity="0.2" />
     <rect x="20" y="66" width="70" height="12" rx="6" fill="currentColor" opacity="0.15" />
@@ -39,7 +44,8 @@ const SkeletonRow = () => (
  */
 export default function Queue({ onOpenAddModal }) {
   const { user, partner } = useAppContext();
-  const { queue, currentTrack, isPlaying, playTrackById, removeFromQueue, reorderQueue } = useMusic();
+  const { queue, currentTrack, isPlaying, playTrackById, removeFromQueue, reorderQueue } =
+    useMusic();
   const [isLoading] = useState(false); // set true briefly on first mount if needed
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
@@ -212,7 +218,9 @@ export default function Queue({ onOpenAddModal }) {
 
                   {/* Title & artist */}
                   <div className="flex flex-col min-w-0 overflow-hidden">
-                    <span className={`text-sm font-semibold truncate ${isCurrent ? 'text-primary font-rounded' : 'text-text-main'}`}>
+                    <span
+                      className={`text-sm font-semibold truncate ${isCurrent ? 'text-primary font-rounded' : 'text-text-main'}`}
+                    >
                       {track.title}
                     </span>
                     <span className="text-xs text-text-muted truncate">
@@ -226,7 +234,11 @@ export default function Queue({ onOpenAddModal }) {
                   {/* Uploader avatar */}
                   <div className="w-5 h-5 rounded-full border border-slate-700 overflow-hidden bg-slate-800 flex items-center justify-center flex-shrink-0">
                     {uploaderAvatar ? (
-                      <img src={uploaderAvatar} alt="Added by" className="w-full h-full object-cover" />
+                      <img
+                        src={uploaderAvatar}
+                        alt="Added by"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <Music className="w-3 h-3 text-slate-500" />
                     )}
@@ -254,7 +266,10 @@ export default function Queue({ onOpenAddModal }) {
 
                   {/* Delete */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); removeFromQueue(track.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFromQueue(track.id);
+                    }}
                     aria-label={`Remove ${track.title} from queue`}
                     className="p-1.5 text-text-muted hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors"
                   >

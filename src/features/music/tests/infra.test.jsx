@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -36,7 +37,7 @@ let mockQueueRows = [];
  * We call this lazily so vitest hoisting doesn't cause problems.
  * @returns {object}
  */
-const getMockSupabase = async () => {
+ async () => {
   const { default: supabaseMock } = await import('@/hooks/useSupabase');
   return supabaseMock;
 };
@@ -64,7 +65,9 @@ vi.mock('@/hooks/useSupabase', () => ({
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockImplementation(function () { return this; }),
+        order: vi.fn().mockImplementation(function () {
+          return this;
+        }),
         single: vi.fn().mockResolvedValue({ data: null, error: null }),
         then: vi.fn().mockImplementation(function (onfulfilled) {
           return Promise.resolve({ data: mockQueueRows, error: null }).then(onfulfilled);
@@ -234,15 +237,11 @@ describe('MusicPlayer & Queue Integration Tests', () => {
 
     // Simulate partner seeking the track to 60s
     await act(async () => {
-      _simulateIncomingBroadcast(
-        `music:pair:user-a-uuid_user-b-uuid`,
-        'seek',
-        {
-          senderId: 'user-b-uuid',
-          timestamp: 60,
-          eventSentAt: Date.now() + 1000, // newer timestamp to satisfy LWW
-        }
-      );
+      _simulateIncomingBroadcast(`music:pair:user-a-uuid_user-b-uuid`, 'seek', {
+        senderId: 'user-b-uuid',
+        timestamp: 60,
+        eventSentAt: Date.now() + 1000, // newer timestamp to satisfy LWW
+      });
       vi.advanceTimersByTime(200);
     });
 

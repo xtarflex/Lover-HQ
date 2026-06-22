@@ -19,10 +19,7 @@ import { Play, Clock, Award, Wifi, WifiOff, Gamepad2 } from 'lucide-react';
 export default function GameLobby({ games, onSelectGame, partnerOnline, partner }) {
   const [filterTag, setFilterTag] = useState('all');
 
-  const allTags = useMemo(
-    () => ['all', ...new Set(games.flatMap((g) => g.tags))],
-    [games]
-  );
+  const allTags = useMemo(() => ['all', ...new Set(games.flatMap((g) => g.tags))], [games]);
 
   const filteredGames = useMemo(
     () => (filterTag === 'all' ? games : games.filter((g) => g.tags.includes(filterTag))),
@@ -43,13 +40,15 @@ export default function GameLobby({ games, onSelectGame, partnerOnline, partner 
           <Gamepad2 className="w-6 h-6 text-primary" />
           <h2 className="font-heading text-2xl font-extrabold text-text-main">Game Room</h2>
         </div>
-        <div className={`flex items-center gap-1.5 text-xs font-semibold ${
-          partnerOnline ? 'text-green-400' : 'text-text-muted'
-        }`}>
+        <div
+          className={`flex items-center gap-1.5 text-xs font-semibold ${
+            partnerOnline ? 'text-green-400' : 'text-text-muted'
+          }`}
+        >
           {partnerOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
           {partnerOnline
             ? `${partner?.name || 'Partner'} is online — pick a game!`
-            : `${partner?.name || 'Partner'} is offline — turn-based games still work.`}
+            : `${partner?.name || 'Partner'} is offline.`}
         </div>
       </div>
 

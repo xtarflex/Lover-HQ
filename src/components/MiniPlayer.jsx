@@ -106,7 +106,10 @@ export function MiniPlayer() {
         <div className="flex items-center space-x-2 flex-shrink-0 z-10">
           {isListenAlongBlocked ? (
             <button
-              onClick={(e) => { e.stopPropagation(); handleListenAlong(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleListenAlong();
+              }}
               aria-label="Tap to listen along"
               className="flex items-center space-x-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary px-3 py-1.5 rounded-full text-xs font-bold animate-pulse"
             >

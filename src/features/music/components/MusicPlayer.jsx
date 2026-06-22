@@ -5,15 +5,7 @@ import { Play, Pause, YoutubeIcon } from '../../../lib/icons';
 import { formatTime } from '../lib/musicEngine';
 import { getTrackArtwork } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
-import {
-  Volume2,
-  VolumeX,
-  SkipForward,
-  SkipBack,
-  Disc,
-  Music,
-  Sliders,
-} from 'lucide-react';
+import { Volume2, VolumeX, SkipForward, SkipBack, Disc, Music, Sliders } from 'lucide-react';
 
 /** Single music note SVG provided by the user. */
 const MusicNoteSvg = ({ className = '' }) => (
@@ -63,13 +55,20 @@ export default function MusicPlayer() {
   const analyserRef = useRef(analyserNode);
 
   // Keep refs current for use inside rAF callbacks
-  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
-  useEffect(() => { analyserRef.current = analyserNode; }, [analyserNode]);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+  useEffect(() => {
+    analyserRef.current = analyserNode;
+  }, [analyserNode]);
 
   /** Navigates one track backward (restarts if <3 s in), or seeks to 0. */
   const handleSkipBack = () => {
     if (!currentTrack) return;
-    if (currentTime > 3) { seekLocalPlayback(0); return; }
+    if (currentTime > 3) {
+      seekLocalPlayback(0);
+      return;
+    }
     const idx = queue.findIndex((t) => t.id === currentTrack.id);
     if (idx > 0) playTrackById(queue[idx - 1].id, 0);
     else seekLocalPlayback(0);
@@ -86,7 +85,8 @@ export default function MusicPlayer() {
   const getDJInfo = () => {
     if (!currentTrack) return { name: '', id: null };
     if (user && currentTrack.added_by === user.id) return { name: 'You', id: user.id };
-    if (partner && currentTrack.added_by === partner.id) return { name: partner.name, id: partner.id };
+    if (partner && currentTrack.added_by === partner.id)
+      return { name: partner.name, id: partner.id };
     return { name: 'Partner', id: null };
   };
 
@@ -108,9 +108,9 @@ export default function MusicPlayer() {
     const barWidth = Math.max(2, (canvas.width - gap * (numBars - 1)) / numBars);
 
     const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
-    gradient.addColorStop(0, '#F59E0B');   // amber
+    gradient.addColorStop(0, '#F59E0B'); // amber
     gradient.addColorStop(0.5, '#EC4899'); // rose
-    gradient.addColorStop(1, '#8B5CF6');   // violet
+    gradient.addColorStop(1, '#8B5CF6'); // violet
     ctx.fillStyle = gradient;
 
     // Respect prefers-reduced-motion: freeze bars for accessibility
@@ -184,8 +184,8 @@ export default function MusicPlayer() {
   }, [drawFrame]);
 
   const hasPrev = currentTrack && queue.findIndex((t) => t.id === currentTrack.id) > 0;
-  const hasNext = currentTrack &&
-    queue.findIndex((t) => t.id === currentTrack.id) < queue.length - 1;
+  const hasNext =
+    currentTrack && queue.findIndex((t) => t.id === currentTrack.id) < queue.length - 1;
 
   return (
     <div className="music-glass-card rounded-2xl p-6 flex flex-col items-center shadow-2xl relative overflow-hidden w-full max-w-md mx-auto">
@@ -274,11 +274,7 @@ export default function MusicPlayer() {
 
       {/* Web Audio frequency visualizer canvas */}
       <div className="w-full mt-2 z-10">
-        <canvas
-          ref={canvasRef}
-          className="w-full opacity-80"
-          aria-hidden="true"
-        />
+        <canvas ref={canvasRef} className="w-full opacity-80" aria-hidden="true" />
       </div>
 
       {/* Progress bar */}

@@ -6,16 +6,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Eye,
-  EyeOff,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Trash2,
-  Settings,
-  Grid,
-} from 'lucide-react';
+import { Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, Trash2, Settings, Grid } from 'lucide-react';
 import { FridgeIcon } from '../../../lib/icons';
 import GlassDropdown from '../../../components/GlassDropdown';
 
@@ -70,9 +61,7 @@ export default function FridgeToolbar({
           <FridgeIcon className="w-4 h-4 text-primary" />
           Our Fridge
         </h2>
-        <p className="text-[10px] text-text-muted mt-0.5">
-          Pin notes, photos, and voice messages.
-        </p>
+        <p className="text-[10px] text-text-muted mt-0.5">Pin notes, photos, and voice messages.</p>
       </div>
 
       {/* View Controls Toolbar Wrapper with Scroll Gradients */}
