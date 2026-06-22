@@ -48,7 +48,7 @@ export default function StepPairing({
   onCopyCode,
 }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="space-y-2">
         <span className="text-primary font-semibold tracking-tighter text-sm uppercase">
           05 / 05
@@ -59,10 +59,10 @@ export default function StepPairing({
         <p className="text-sm text-text-muted italic">Lover-HQ is best enjoyed by two.</p>
       </div>
 
-      <div className="space-y-6 pt-4">
-        <div className="p-6 bg-surface/20 rounded-2xl border border-surface-border/50 flex flex-col items-center">
+      <div className="space-y-5 md:space-y-6 pt-2 md:pt-4">
+        <div className="p-5 md:p-6 bg-surface/20 rounded-2xl border border-surface-border/50 flex flex-col items-center">
           <h3 className="font-bold text-text-main text-lg mb-1">Invite them</h3>
-          <p className="text-xs text-text-muted mb-6">Generate a code to share</p>
+          <p className="text-xs text-text-muted mb-4 md:mb-6">Generate a code to share</p>
 
           {user?.pairing_code ? (
             isExpired ? (
@@ -82,29 +82,29 @@ export default function StepPairing({
               </div>
             ) : (
               <div className="text-center w-full flex flex-col items-center">
-                <div className="text-4xl font-mono font-bold tracking-[0.5em] text-primary bg-surface/40 px-8 py-4 rounded-2xl shadow-inner mb-6 select-all">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-mono font-bold tracking-[0.3em] sm:tracking-[0.4em] md:tracking-[0.5em] text-primary bg-surface/40 px-6 py-3 sm:px-8 sm:py-4 rounded-2xl shadow-inner mb-4 sm:mb-6 select-all w-full text-center">
                   {user.pairing_code}
                 </div>
-                <div className="flex gap-4 w-full">
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
                   <button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(user.pairing_code);
                       if (onCopyCode) onCopyCode();
                     }}
-                    className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-text-main text-sm font-bold rounded-full border border-white/5 transition-colors flex items-center justify-center gap-2 hover-heart-scale"
+                    className="w-full sm:flex-1 py-3 bg-white/10 hover:bg-white/20 text-text-main text-sm font-bold rounded-full border border-white/5 transition-colors flex items-center justify-center gap-2 hover-heart-scale whitespace-nowrap"
                   >
                     <span>Copy Code</span>
-                    <Copy size={16} />
+                    <Copy size={16} className="shrink-0" />
                   </button>
                   <button
                     type="button"
                     onClick={onShareLink}
-                    className="flex-grow bg-primary text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover-heart-scale group"
+                    className="w-full sm:flex-1 bg-primary text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover-heart-scale group whitespace-nowrap"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       <span>Share Link</span>
-                      <LinkIcon size={18} />
+                      <LinkIcon size={18} className="shrink-0" />
                     </span>
                   </button>
                 </div>
@@ -125,7 +125,7 @@ export default function StepPairing({
           )}
         </div>
 
-        <div className="relative my-6">
+        <div className="relative my-4 md:my-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-surface-border"></span>
           </div>
@@ -134,7 +134,7 @@ export default function StepPairing({
           </div>
         </div>
 
-        <form onSubmit={onEnterCode} className="space-y-6">
+        <form onSubmit={onEnterCode} className="space-y-4 md:space-y-6">
           <div className="text-center">
             <h3 className="font-bold text-text-main text-lg mb-1">Enter their code</h3>
           </div>
@@ -146,7 +146,7 @@ export default function StepPairing({
               value={pairingCode}
               onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, ''))}
               placeholder="000000"
-              className="w-full text-center text-3xl font-mono tracking-[0.5em] bg-transparent placeholder-text-muted/30 text-text-main focus:outline-none"
+              className="w-full text-center text-2xl sm:text-3xl font-mono tracking-[0.3em] sm:tracking-[0.5em] bg-transparent placeholder-text-muted/30 text-text-main focus:outline-none"
             />
           </div>
 

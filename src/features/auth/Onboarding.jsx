@@ -410,8 +410,8 @@ export default function Onboarding() {
         ></div>
       </div>
 
-      <main className="flex-grow flex items-center justify-center px-6 md:px-8 relative z-10 overflow-y-auto custom-scrollbar">
-        <div className="w-full max-w-md relative z-10 min-h-[480px] flex items-center">
+      <main className="flex-grow flex items-start md:items-center justify-center px-6 md:px-8 relative z-10 overflow-y-auto custom-scrollbar py-6 md:py-8">
+        <div className="w-full max-w-md relative z-10 min-h-[400px] md:min-h-[480px] flex items-center">
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
               key={step}
