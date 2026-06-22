@@ -75,9 +75,9 @@ export default function GameHeader({
   };
 
   return (
-    <div className="w-full bg-surface/80 backdrop-blur-lg border-b border-surface-border/60 px-4 py-3 grid grid-cols-3 items-center z-10 relative">
-      {/* Left Column: Back button + Player A (You) */}
-      <div className="flex items-center gap-3 justify-start min-w-0">
+    <div className="w-full bg-surface/80 backdrop-blur-lg border-b border-surface-border/60 z-10 relative flex flex-col">
+      {/* Top Toolbar: Back Button + Game Title + Info + Timer */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-surface-border/30">
         <button
           onClick={onBack}
           aria-label="Back to lobby"
@@ -86,41 +86,8 @@ export default function GameHeader({
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <div
-          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-2xl bg-surface/30 border transition-all relative ${
-            isMyTurn
-              ? 'border-primary/40 bg-primary/5 shadow-md shadow-primary/5 scale-105 z-20'
-              : 'border-surface-border/40 opacity-60 scale-95 z-10'
-          }`}
-        >
-          <div className="relative flex-shrink-0">
-            <Avatar src={user?.avatar_url} fallback="👤" size="md" rounded="2xl" isOnline={true} />
-            {isMyTurn && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background animate-pulse z-30" />
-            )}
-          </div>
-          <div className="flex flex-col justify-center min-w-0 pr-0.5">
-            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-wider truncate max-w-[44px]">
-              You
-            </span>
-            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">
-              {userScore}
-            </span>
-          </div>
-
-          {/* Chat Bubble */}
-          {activeUserBubble && (
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-primary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
-              {activeUserBubble}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Center Column: Game name + Timer */}
-      <div className="flex flex-col items-center gap-1 min-w-0 text-center">
-        <div className="flex items-center justify-center gap-1">
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 justify-center">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-text-muted">
             {gameName}
           </span>
           <button
@@ -132,41 +99,90 @@ export default function GameHeader({
             <Info className="w-3.5 h-3.5" />
           </button>
         </div>
-        {timeLeft !== undefined && (
-          <div
-            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold transition-colors ${
-              timeLeft <= 10
-                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                : 'bg-surface/60 text-text-main border border-surface-border/50'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            {timeLeft}s
-          </div>
-        )}
-        <span
-          className={`text-[9px] font-bold uppercase tracking-wide ${
-            isMyTurn ? 'text-primary' : 'text-text-muted'
-          }`}
-        >
-          {isMyTurn ? 'Your turn' : `${partner?.name || 'Partner'}'s turn`}
-        </span>
+
+        <div className="flex items-center justify-end min-w-[40px]">
+          {timeLeft !== undefined && (
+            <div
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold transition-colors ${
+                timeLeft <= 10
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'bg-surface/60 text-text-main border border-surface-border/50'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              {timeLeft}s
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Right Column: Player B (Partner) + Balancer Spacer */}
-      <div className="flex items-center gap-3 justify-end min-w-0">
+      {/* Bottom Match Board: Player Cards + VS Split */}
+      <div className="flex items-center justify-between px-6 py-3 max-w-lg mx-auto w-full gap-4">
+        {/* Player 1 Card (You) */}
         <div
-          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-2xl bg-surface/30 border transition-all relative ${
-            !isMyTurn
-              ? 'border-secondary/40 bg-secondary/5 shadow-md shadow-secondary/5 scale-105 z-20'
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-surface/30 border transition-all relative flex-1 min-w-0 ${
+            isMyTurn
+              ? 'border-primary/60 bg-primary/5 shadow-md shadow-primary/5 scale-105 z-20'
               : 'border-surface-border/40 opacity-60 scale-95 z-10'
           }`}
         >
-          <div className="flex flex-col justify-center min-w-0 pl-0.5 text-right">
-            <span className="text-[9px] font-extrabold text-text-muted uppercase tracking-wider truncate max-w-[50px]">
+          <div className="relative flex-shrink-0">
+            <Avatar src={user?.avatar_url} fallback="👤" size="md" rounded="2xl" isOnline={true} />
+            {isMyTurn && (
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background animate-pulse z-30" />
+            )}
+          </div>
+          <div className="flex flex-col justify-center min-w-0 flex-1">
+            <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider truncate">
+              You
+            </span>
+            <span className="text-base font-extrabold text-text-main leading-none mt-1">
+              {userScore}
+            </span>
+          </div>
+
+          {/* Chat Bubble */}
+          {activeUserBubble && (
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-primary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
+              {activeUserBubble}
+            </div>
+          )}
+        </div>
+
+        {/* Center: Turn indicator & VS Split */}
+        <div className="flex flex-col items-center justify-center flex-shrink-0 px-2 min-w-[70px]">
+          <span className="text-[11px] font-black tracking-widest text-text-muted uppercase opacity-40">
+            VS
+          </span>
+          <span
+            className={`text-[9px] font-bold uppercase tracking-wide text-center mt-1 leading-tight whitespace-nowrap ${
+              isMyTurn ? 'text-primary' : 'text-secondary'
+            }`}
+          >
+            {isMyTurn ? 'Your turn' : `${partner?.name || 'Partner'}'s turn`}
+          </span>
+        </div>
+
+        {/* Player 2 Card (Partner) */}
+        <div
+          className={`flex items-center justify-end gap-3 px-4 py-2.5 rounded-2xl bg-surface/30 border transition-all relative flex-1 min-w-0 ${
+            !isMyTurn
+              ? 'border-secondary/60 bg-secondary/5 shadow-md shadow-secondary/5 scale-105 z-20'
+              : 'border-surface-border/40 opacity-60 scale-95 z-10'
+          }`}
+        >
+          {/* Chat Bubble */}
+          {activePartnerBubble && (
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-secondary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
+              {activePartnerBubble}
+            </div>
+          )}
+
+          <div className="flex flex-col justify-center min-w-0 flex-1 text-right">
+            <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider truncate">
               {partner?.name || 'Partner'}
             </span>
-            <span className="text-sm font-extrabold text-text-main leading-none mt-0.5">
+            <span className="text-base font-extrabold text-text-main leading-none mt-1">
               {partnerScore}
             </span>
           </div>
@@ -182,17 +198,7 @@ export default function GameHeader({
               <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-secondary rounded-full border-2 border-background animate-pulse z-30" />
             )}
           </div>
-
-          {/* Chat Bubble */}
-          {activePartnerBubble && (
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-secondary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">
-              {activePartnerBubble}
-            </div>
-          )}
         </div>
-
-        {/* Spacer to balance back button */}
-        <div className="w-9 flex-shrink-0" />
       </div>
 
       {/* Glassmorphic Rules Modal Overlay */}
