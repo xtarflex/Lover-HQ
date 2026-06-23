@@ -1,0 +1,66 @@
+/**
+ * @file drawer.css
+ * @description Styles and animations for the bottom sheet drawer element,
+ * using modern CSS transition rules, @starting-style, and ::backdrop.
+ */
+
+/* Target the native dialog.bottom-drawer */
+dialog.bottom-drawer {
+  /* Transition standard properties along with display and overlay for entry/exit */
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+    display 0.25s allow-discrete,
+    overlay 0.25s allow-discrete;
+  
+  /* Starting/closed state styles: slid down completely */
+  opacity: 0;
+  transform: translateY(100%);
+  background: transparent;
+  max-width: 42rem; /* Equivalent to max-w-2xl */
+  width: 100%;
+  margin: auto auto 0 auto; /* Pin to bottom, center horizontally */
+  border: none;
+  overflow: visible;
+  padding: 0;
+  outline: none;
+}
+
+/* Open state styles: slide up to position */
+dialog.bottom-drawer[open] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Entry starting style when the drawer is first opened */
+@starting-style {
+  dialog.bottom-drawer[open] {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+/* Backdrop styling */
+dialog.bottom-drawer::backdrop {
+  background-color: rgba(9, 15, 30, 0.8); /* Dark slate overlay */
+  backdrop-filter: blur(5px);
+  
+  /* Transition opacity and display for exit */
+  transition:
+    opacity 0.25s ease,
+    display 0.25s allow-discrete,
+    overlay 0.25s allow-discrete;
+  opacity: 0;
+}
+
+/* Backdrop open state styling */
+dialog.bottom-drawer[open]::backdrop {
+  opacity: 1;
+}
+
+/* Entry starting style for backdrop */
+@starting-style {
+  dialog.bottom-drawer[open]::backdrop {
+    opacity: 0;
+  }
+}
