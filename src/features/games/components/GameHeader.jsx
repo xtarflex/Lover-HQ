@@ -7,6 +7,7 @@
  */
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Clock, Info, X } from 'lucide-react';
 import Avatar from '../../../components/Avatar';
 
@@ -201,52 +202,62 @@ export default function GameHeader({
         </div>
       </div>
 
-      {/* Glassmorphic Rules Modal Overlay */}
-      {showRules && (
-        <div
-          className="fixed inset-0 top-20 z-[90] bg-slate-950/60 backdrop-blur-sm animate-fade-in"
-          onClick={() => setShowRules(false)}
-        >
-          <div
-            className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface/95 border-b border-x border-surface-border/80 backdrop-blur-xl rounded-b-3xl rounded-t-none p-6 space-y-4 shadow-2xl z-[100] animate-slide-down-fade"
-            onClick={(e) => e.stopPropagation()}
+      {/* Rules Dropdown Overlay (Transparent to allow click-outside-to-close) */}
+      <AnimatePresence>
+        {showRules && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 top-20 z-[90] bg-transparent"
+            onClick={() => setShowRules(false)}
           >
-            <div className="flex items-center justify-between">
-              <h4 className="font-heading text-lg font-bold text-white flex items-center gap-2">
-                <Info className="w-5 h-5 text-primary" />
-                {getRulesData().title}
-              </h4>
+            <motion.div
+              initial={{ y: '-100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="fixed top-20 left-0 right-0 mx-auto w-full max-w-md bg-surface/95 border-b border-x border-surface-border/80 backdrop-blur-xl rounded-b-3xl rounded-t-none p-6 space-y-4 shadow-2xl z-[100]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="font-heading text-lg font-bold text-white flex items-center gap-2">
+                  <Info className="w-5 h-5 text-primary" />
+                  {getRulesData().title}
+                </h4>
+                <button
+                  onClick={() => setShowRules(false)}
+                  className="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <hr className="border-surface-border/50" />
+
+              <ul className="space-y-3 pr-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+                {getRulesData().rules.map((rule, idx) => (
+                  <li
+                    key={idx}
+                    className="flex gap-2.5 items-start text-xs text-text-muted leading-relaxed"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
+
               <button
                 onClick={() => setShowRules(false)}
-                className="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
+                className="w-full py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-md shadow-primary/15 text-xs"
               >
-                <X className="w-4 h-4" />
+                Got it!
               </button>
-            </div>
-
-            <hr className="border-surface-border/50" />
-
-            <ul className="space-y-3 pr-1 max-h-[300px] overflow-y-auto custom-scrollbar">
-              {getRulesData().rules.map((rule, idx) => (
-                <li
-                  key={idx}
-                  className="flex gap-2.5 items-start text-xs text-text-muted leading-relaxed"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                  <span>{rule}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button
-              onClick={() => setShowRules(false)}
-              className="w-full py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-md shadow-primary/15 text-xs"
-            >
-              Got it!
-            </button>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
