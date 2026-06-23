@@ -201,10 +201,10 @@ export default function GameHeader({
         </div>
       </div>
 
-      {/* Glassmorphic Rules Modal Overlay */}
+      {/* Rules Dropdown Overlay (Transparent to allow click-outside-to-close) */}
       {showRules && (
         <div
-          className="fixed inset-0 top-20 z-[90] bg-slate-950/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 top-20 z-[90] bg-transparent"
           onClick={() => setShowRules(false)}
         >
           <div
