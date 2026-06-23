@@ -6,6 +6,8 @@
  */
 
 import React, { useState, Suspense, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Heart } from 'lucide-react';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { useSupabase } from '../../hooks/useSupabase';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
@@ -21,6 +23,7 @@ export default function Games() {
   const { user, partner, presence, autoJoinGameId } = useAppContext();
   const dispatch = useAppDispatch();
   const supabase = useSupabase();
+  const navigate = useNavigate();
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [isHost, setIsHost] = useState(false);
 
@@ -63,6 +66,28 @@ export default function Games() {
    * @returns {void}
    */
   const handleBack = () => setSelectedGameId(null);
+
+  if (!partner?.id) {
+    return (
+      <div className="max-w-md mx-auto pt-16 pb-24 px-4 flex flex-col items-center text-center space-y-6 animate-slide-up">
+        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+          <Heart className="w-8 h-8 fill-current text-red-500 animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="font-heading text-2xl font-extrabold text-text-main">Pairing Required</h2>
+          <p className="text-sm text-text-muted max-w-xs mx-auto leading-relaxed">
+            The Game Room is built for two. Link up with your partner to unlock turn-based games, challenge each other, and see who wins!
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/profile')}
+          className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover-heart-scale"
+        >
+          Go to Partner Profile
+        </button>
+      </div>
+    );
+  }
 
   if (!selectedGameId) {
     return (

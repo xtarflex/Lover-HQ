@@ -204,11 +204,11 @@ export default function GameHeader({
       {/* Glassmorphic Rules Modal Overlay */}
       {showRules && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 top-20 z-[90] bg-slate-950/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setShowRules(false)}
         >
           <div
-            className="w-full max-w-sm bg-surface/90 border border-surface-border backdrop-blur-xl rounded-3xl p-6 space-y-4 shadow-2xl relative animate-scale-in"
+            className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface/95 border-b border-x border-surface-border/80 backdrop-blur-xl rounded-b-3xl rounded-t-none p-6 space-y-4 shadow-2xl z-[100] animate-slide-down-fade"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
