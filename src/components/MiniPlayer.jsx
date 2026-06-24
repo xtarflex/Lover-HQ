@@ -238,8 +238,8 @@ export function MiniPlayer() {
           className="mini-player-bar fixed bottom-20 left-4 right-4 max-w-[calc(100%-2rem)] md:max-w-lg md:left-1/2 md:-translate-x-1/2 z-40 cursor-pointer"
           transition={{ type: 'spring', stiffness: 350, damping: 26 }}
         >
-          {/* Glassmorphic card */}
-          <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl px-4 py-3 flex items-center justify-between shadow-2xl overflow-hidden transition-all duration-300 hover:bg-slate-900/90">
+          {/* Glassmorphic card - NOTE: Keep only top corners rounded (rounded-t-2xl) so bottom stays flush with the bottom dock layout */}
+          <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-t-2xl px-4 py-3 flex items-center justify-between shadow-2xl overflow-hidden transition-all duration-300 hover:bg-slate-900/90">
             {/* 2px progress bar at bottom */}
             <div
               className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-primary via-pink-500 to-violet-500 transition-all duration-500"
