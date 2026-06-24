@@ -61,6 +61,7 @@ export default function MusicPlayer() {
   } = useMusic();
 
   const [showSettings, setShowSettings] = useState(false);
+  const [scrubValue, setScrubValue] = useState(null);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const isPlayingRef = useRef(isPlaying);
@@ -195,6 +196,17 @@ export default function MusicPlayer() {
     };
   }, [drawFrame]);
 
+  const handleSliderChange = (e) => {
+    setScrubValue(parseFloat(e.target.value));
+  };
+
+  const handleSliderRelease = () => {
+    if (scrubValue !== null) {
+      seekLocalPlayback(scrubValue);
+      setScrubValue(null);
+    }
+  };
+
   const hasPrev = currentTrack && queue.findIndex((t) => t.id === currentTrack.id) > 0;
   const hasNext =
     currentTrack && queue.findIndex((t) => t.id === currentTrack.id) < queue.length - 1;
@@ -315,21 +327,28 @@ export default function MusicPlayer() {
             {/* Progress bar */}
             <div className="w-full mt-4 z-10">
               <div className="flex justify-between text-xs text-text-muted mb-1 font-mono">
-                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(scrubValue !== null ? scrubValue : currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max={duration || 100}
-                value={currentTime || 0}
+                value={scrubValue !== null ? scrubValue : (currentTime || 0)}
                 disabled={!currentTrack}
-                onChange={(e) => seekLocalPlayback(parseFloat(e.target.value))}
+                onChange={handleSliderChange}
+                onMouseUp={handleSliderRelease}
+                onTouchEnd={handleSliderRelease}
+                onKeyUp={(e) => {
+                  if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+                    handleSliderRelease();
+                  }
+                }}
                 aria-label="Playback progress"
                 aria-valuemin={0}
                 aria-valuemax={duration}
-                aria-valuenow={Math.floor(currentTime)}
-                aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+                aria-valuenow={Math.floor(scrubValue !== null ? scrubValue : currentTime)}
+                aria-valuetext={`${formatTime(scrubValue !== null ? scrubValue : currentTime)} of ${formatTime(duration)}`}
                 className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
