@@ -1,11 +1,22 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { Play, Pause, YoutubeIcon } from '../../../lib/icons';
 import { formatTime } from '../lib/musicEngine';
 import { getTrackArtwork } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
-import { Volume2, VolumeX, SkipForward, SkipBack, Disc, Music, Sliders } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  SkipForward,
+  SkipBack,
+  Disc,
+  Music,
+  Sliders,
+  Settings,
+  ArrowLeft,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /** Single music note SVG provided by the user. */
 const MusicNoteSvg = ({ className = '' }) => (
@@ -49,6 +60,7 @@ export default function MusicPlayer() {
     analyserNode,
   } = useMusic();
 
+  const [showSettings, setShowSettings] = useState(false);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const isPlayingRef = useRef(isPlaying);
@@ -188,7 +200,7 @@ export default function MusicPlayer() {
     currentTrack && queue.findIndex((t) => t.id === currentTrack.id) < queue.length - 1;
 
   return (
-    <div className="music-glass-card rounded-2xl p-6 flex flex-col items-center shadow-2xl relative overflow-hidden w-full max-w-md mx-auto">
+    <div className="music-glass-card rounded-2xl p-6 flex flex-col items-center shadow-2xl relative overflow-hidden w-full max-w-md mx-auto min-h-[480px]">
       {/* Ambient glow orbs */}
       <div
         className={`absolute -top-24 -left-24 w-48 h-48 rounded-full bg-primary/10 blur-[80px] transition-all duration-1000 ${
@@ -201,193 +213,252 @@ export default function MusicPlayer() {
         }`}
       />
 
-      {/* Track title & source badge */}
-      <div className="text-center w-full z-10 mb-4">
-        {currentTrack ? (
-          <>
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-surface-border/40 backdrop-blur-md rounded-full border border-surface-border/60 text-xs text-text-muted mb-3">
-              {currentTrack.source === 'upload' ? (
-                <Disc className="w-3.5 h-3.5 text-primary animate-pulse" />
-              ) : (
-                <YoutubeIcon className="w-3.5 h-3.5 animate-pulse" />
-              )}
-              <span className="capitalize">{currentTrack.source}</span>
-            </div>
-            <h2 className="text-xl font-bold text-text-main font-rounded truncate px-4">
-              {currentTrack.title}
-            </h2>
-            <p className="text-sm text-text-muted mt-1 truncate px-4">
-              {currentTrack.artist || 'Unknown Artist'}
-            </p>
-          </>
-        ) : (
-          <>
-            <div className="w-10 h-10 rounded-full bg-slate-800/60 border border-slate-700 flex items-center justify-center mx-auto mb-3">
-              <Music className="w-5 h-5 text-text-muted" />
-            </div>
-            <h2 className="text-lg font-bold text-text-main font-rounded">Music Room Empty</h2>
-            <p className="text-sm text-text-muted mt-1">Add a song below to get started!</p>
-          </>
-        )}
-      </div>
-
-      {/* Rotating vinyl record — artwork in centre, angle preserved via animation-play-state (fix #43) */}
-      <div className="relative my-4 z-10 flex justify-center items-center w-56 h-56">
-        <div
-          className="w-full h-full rounded-full bg-gradient-to-r from-slate-900 via-black to-slate-900 border-4 border-slate-800 shadow-2xl flex items-center justify-center relative animate-[spin_10s_linear_infinite]"
-          style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
-        >
-          {/* Vinyl groove rings */}
-          <div className="absolute inset-4 rounded-full border border-slate-700/40" />
-          <div className="absolute inset-8 rounded-full border border-slate-700/30" />
-          <div className="absolute inset-12 rounded-full border border-slate-700/20" />
-          <div className="absolute inset-16 rounded-full border border-slate-700/10" />
-
-          {/* Centre label — track artwork or deterministic gradient avatar */}
-          <div className="w-20 h-20 rounded-full border-2 border-primary/40 flex items-center justify-center overflow-hidden relative bg-slate-900">
-            {artworkUrl ? (
-              <img
-                src={artworkUrl}
-                alt={currentTrack?.title || 'Track artwork'}
-                className={`w-full h-full object-cover ${
-                  currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
-                }`}
-              />
-            ) : (
-              <GradientAvatar seed={currentTrack?.title || 'empty'} size={80} />
-            )}
-            {/* Spindle (only render when showing artwork to avoid covering the fallback icon) */}
-            {artworkUrl && (
-              <div className="absolute w-3.5 h-3.5 bg-background rounded-full border border-slate-700 shadow-inner" />
-            )}
-          </div>
-        </div>
-
-        {/* Floating music notes (SVG, not emoji) — respect reduced-motion */}
-        {isPlaying && (
-          <>
-            <MusicNoteSvg className="absolute text-primary w-5 h-5 top-0 left-4 opacity-75 animate-[bounce_2s_infinite] motion-reduce:animate-none" />
-            <MusicNoteSvg className="absolute text-pink-500 w-4 h-4 top-6 right-4 opacity-75 animate-[bounce_1.5s_infinite_0.5s] motion-reduce:animate-none" />
-          </>
-        )}
-      </div>
-
-      {/* Web Audio frequency visualizer canvas */}
-      <div className="w-full mt-2 z-10">
-        <canvas ref={canvasRef} className="w-full opacity-80" aria-hidden="true" />
-      </div>
-
-      {/* Progress bar */}
-      <div className="w-full mt-4 z-10">
-        <div className="flex justify-between text-xs text-text-muted mb-1 font-mono">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max={duration || 100}
-          value={currentTime || 0}
-          disabled={!currentTrack}
-          onChange={(e) => seekLocalPlayback(parseFloat(e.target.value))}
-          aria-label="Playback progress"
-          aria-valuemin={0}
-          aria-valuemax={duration}
-          aria-valuenow={Math.floor(currentTime)}
-          aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
-          className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        />
-      </div>
-
-      {/* Playback controls */}
-      <div className="flex items-center justify-center space-x-6 mt-6 z-10 w-full">
+      {/* Settings gear toggle button */}
+      {!showSettings && (
         <button
-          disabled={!hasPrev && !currentTrack}
-          onClick={handleSkipBack}
-          aria-label="Previous track or restart"
-          className="w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center text-text-muted hover:text-text-main transition-colors disabled:opacity-50"
+          onClick={() => setShowSettings(true)}
+          className="absolute top-6 right-6 z-20 text-text-muted hover:text-text-main transition-colors p-1.5 rounded-full hover:bg-slate-800/40"
+          aria-label="Open Music Settings"
         >
-          <SkipBack className="w-5 h-5" />
+          <Settings className="w-4 h-4" />
         </button>
+      )}
 
-        <button
-          disabled={!currentTrack}
-          onClick={() => (isPlaying ? pauseLocalPlayback() : resumeLocalPlayback())}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-amber-600 flex items-center justify-center text-white border-2 border-primary/20 shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
-        >
-          {isPlaying ? (
-            <Pause size={24} className="fill-white" />
-          ) : (
-            <Play size={24} className="fill-white ml-1" />
-          )}
-        </button>
-
-        <button
-          disabled={!hasNext}
-          onClick={handleSkipNext}
-          aria-label="Next track"
-          className="w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center text-text-muted hover:text-text-main transition-colors disabled:opacity-50"
-        >
-          <SkipForward className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Footer: volume + crossfade + DJ badge */}
-      <div className="w-full border-t border-surface-border/60 mt-6 pt-5 z-10 flex flex-col space-y-4">
-        {/* Volume */}
-        <div className="flex items-center space-x-3 text-text-muted">
-          <button
-            onClick={() => changeVolume(volume > 0 ? 0 : 0.8)}
-            aria-label={volume === 0 ? 'Unmute' : 'Mute'}
-            className="hover:text-text-main transition-colors flex-shrink-0"
+      <AnimatePresence mode="wait">
+        {!showSettings ? (
+          <motion.div
+            key="player"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="w-full flex flex-col items-center"
           >
-            {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={volume}
-            onChange={(e) => changeVolume(parseFloat(e.target.value))}
-            aria-label="Volume"
-            aria-valuemin={0}
-            aria-valuemax={1}
-            aria-valuenow={volume}
-            aria-valuetext={`${Math.round(volume * 100)}%`}
-            className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          />
-        </div>
+            {/* Track title & source badge */}
+            <div className="text-center w-full z-10 mb-4">
+              {currentTrack ? (
+                <>
+                  <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-surface-border/40 backdrop-blur-md rounded-full border border-surface-border/60 text-xs text-text-muted mb-3">
+                    {currentTrack.source === 'upload' ? (
+                      <Disc className="w-3.5 h-3.5 text-primary animate-pulse" />
+                    ) : (
+                      <YoutubeIcon className="w-3.5 h-3.5 animate-pulse" />
+                    )}
+                    <span className="capitalize">{currentTrack.source}</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-text-main font-rounded truncate px-4">
+                    {currentTrack.title}
+                  </h2>
+                  <p className="text-sm text-text-muted mt-1 truncate px-4">
+                    {currentTrack.artist || 'Unknown Artist'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-10 h-10 rounded-full bg-slate-800/60 border border-slate-700 flex items-center justify-center mx-auto mb-3">
+                    <Music className="w-5 h-5 text-text-muted" />
+                  </div>
+                  <h2 className="text-lg font-bold text-text-main font-rounded">
+                    Music Room Empty
+                  </h2>
+                  <p className="text-sm text-text-muted mt-1">Add a song below to get started!</p>
+                </>
+              )}
+            </div>
 
-        {/* Crossfade */}
-        <div className="flex items-center justify-between text-xs text-text-muted border-t border-slate-800/40 pt-3">
-          <div className="flex items-center space-x-1.5">
-            <Sliders className="w-3.5 h-3.5 text-primary" />
-            <span className="font-rounded font-bold text-text-main">Crossfade:</span>
-            <span>{crossfadeDuration}s</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            step="1"
-            value={crossfadeDuration}
-            onChange={(e) => setCrossfadeDuration(parseInt(e.target.value))}
-            aria-label="Crossfade duration in seconds"
-            className="w-24 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
-          />
-        </div>
+            {/* Rotating vinyl record — artwork in centre, angle preserved via animation-play-state (fix #43) */}
+            <div className="relative my-4 z-10 flex justify-center items-center w-56 h-56">
+              <div
+                className="w-full h-full rounded-full bg-gradient-to-r from-slate-900 via-black to-slate-900 border-4 border-slate-800 shadow-2xl flex items-center justify-center relative animate-[spin_10s_linear_infinite]"
+                style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+              >
+                {/* Vinyl groove rings */}
+                <div className="absolute inset-4 rounded-full border border-slate-700/40" />
+                <div className="absolute inset-8 rounded-full border border-slate-700/30" />
+                <div className="absolute inset-12 rounded-full border border-slate-700/20" />
+                <div className="absolute inset-16 rounded-full border border-slate-700/10" />
 
-        {/* DJ badge */}
-        {currentTrack && (
-          <div className="flex items-center justify-center space-x-2 text-[10px] text-text-muted bg-slate-900/50 py-1.5 px-3 rounded-full border border-slate-800/50 w-fit mx-auto">
-            <Disc className="w-3 h-3 text-primary" />
-            <span>Queued by:</span>
-            <span className="font-bold text-primary font-rounded">{djInfo.name}</span>
-          </div>
+                {/* Centre label — track artwork or deterministic gradient avatar */}
+                <div className="w-20 h-20 rounded-full border-2 border-primary/40 flex items-center justify-center overflow-hidden relative bg-slate-900">
+                  {artworkUrl ? (
+                    <img
+                      src={artworkUrl}
+                      alt={currentTrack?.title || 'Track artwork'}
+                      className={`w-full h-full object-cover ${
+                        currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                      }`}
+                    />
+                  ) : (
+                    <GradientAvatar seed={currentTrack?.title || 'empty'} size={80} />
+                  )}
+                  {/* Spindle (only render when showing artwork to avoid covering the fallback icon) */}
+                  {artworkUrl && (
+                    <div className="absolute w-3.5 h-3.5 bg-background rounded-full border border-slate-700 shadow-inner" />
+                  )}
+                </div>
+              </div>
+
+              {/* Floating music notes (SVG, not emoji) — respect reduced-motion */}
+              {isPlaying && (
+                <>
+                  <MusicNoteSvg className="absolute text-primary w-5 h-5 top-0 left-4 opacity-75 animate-[bounce_2s_infinite] motion-reduce:animate-none" />
+                  <MusicNoteSvg className="absolute text-pink-500 w-4 h-4 top-6 right-4 opacity-75 animate-[bounce_1.5s_infinite_0.5s] motion-reduce:animate-none" />
+                </>
+              )}
+            </div>
+
+            {/* Web Audio frequency visualizer canvas */}
+            <div className="w-full mt-2 z-10">
+              <canvas ref={canvasRef} className="w-full opacity-80" aria-hidden="true" />
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full mt-4 z-10">
+              <div className="flex justify-between text-xs text-text-muted mb-1 font-mono">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max={duration || 100}
+                value={currentTime || 0}
+                disabled={!currentTrack}
+                onChange={(e) => seekLocalPlayback(parseFloat(e.target.value))}
+                aria-label="Playback progress"
+                aria-valuemin={0}
+                aria-valuemax={duration}
+                aria-valuenow={Math.floor(currentTime)}
+                aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+                className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+            </div>
+
+            {/* Playback controls */}
+            <div className="flex items-center justify-center space-x-6 mt-6 z-10 w-full">
+              <button
+                disabled={!hasPrev && !currentTrack}
+                onClick={handleSkipBack}
+                aria-label="Previous track or restart"
+                className="w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center text-text-muted hover:text-text-main transition-colors disabled:opacity-50"
+              >
+                <SkipBack className="w-5 h-5" />
+              </button>
+
+              <button
+                disabled={!currentTrack}
+                onClick={() => (isPlaying ? pauseLocalPlayback() : resumeLocalPlayback())}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-amber-600 flex items-center justify-center text-white border-2 border-primary/20 shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+              >
+                {isPlaying ? (
+                  <Pause size={24} className="fill-white" />
+                ) : (
+                  <Play size={24} className="fill-white ml-1" />
+                )}
+              </button>
+
+              <button
+                disabled={!hasNext}
+                onClick={handleSkipNext}
+                aria-label="Next track"
+                className="w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center text-text-muted hover:text-text-main transition-colors disabled:opacity-50"
+              >
+                <SkipForward className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Footer: volume + DJ badge */}
+            <div className="w-full border-t border-surface-border/60 mt-6 pt-5 z-10 flex flex-col space-y-4">
+              {/* Volume */}
+              <div className="flex items-center space-x-3 text-text-muted">
+                <button
+                  onClick={() => changeVolume(volume > 0 ? 0 : 0.8)}
+                  aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+                  className="hover:text-text-main transition-colors flex-shrink-0"
+                >
+                  {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={volume}
+                  onChange={(e) => changeVolume(parseFloat(e.target.value))}
+                  aria-label="Volume"
+                  aria-valuemin={0}
+                  aria-valuemax={1}
+                  aria-valuenow={volume}
+                  aria-valuetext={`${Math.round(volume * 100)}%`}
+                  className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
+
+              {/* DJ badge */}
+              {currentTrack && (
+                <div className="flex items-center justify-center space-x-2 text-[10px] text-text-muted bg-slate-900/50 py-1.5 px-3 rounded-full border border-slate-800/50 w-fit mx-auto">
+                  <Disc className="w-3 h-3 text-primary" />
+                  <span>Queued by:</span>
+                  <span className="font-bold text-primary font-rounded">{djInfo.name}</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="w-full flex flex-col items-center h-full"
+          >
+            {/* Music Settings Header */}
+            <div className="flex items-center w-full mb-6 z-10 border-b border-surface-border/40 pb-3">
+              <button
+                onClick={() => setShowSettings(false)}
+                className="mr-3 p-1 rounded-full text-text-muted hover:text-text-main hover:bg-slate-800/40 transition-colors flex items-center justify-center"
+                aria-label="Back to player"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h2 className="text-lg font-bold text-text-main font-rounded">Music Settings</h2>
+            </div>
+
+            {/* Music Settings Content */}
+            <div className="w-full flex-1 z-10 flex flex-col space-y-6">
+              <div className="bg-slate-900/40 border border-slate-800/50 p-4 rounded-xl space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Sliders className="w-4 h-4 text-primary" />
+                  <span className="font-rounded font-bold text-xs text-text-main">
+                    Crossfade Transition
+                  </span>
+                </div>
+                <p className="text-[11px] text-text-muted leading-relaxed">
+                  Set the overlap duration in seconds when transitioning from one track to another.
+                  High values create a smoother fade.
+                </p>
+                <div className="flex items-center justify-between space-x-4 pt-1">
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="1"
+                    value={crossfadeDuration}
+                    onChange={(e) => setCrossfadeDuration(parseInt(e.target.value))}
+                    aria-label="Crossfade duration in seconds"
+                    className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
+                  />
+                  <span className="font-mono text-xs text-text-main bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg min-w-[36px] text-center">
+                    {crossfadeDuration}s
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

@@ -60,3 +60,18 @@ export function formatTime(timeInSecs) {
   const secs = Math.floor(timeInSecs % 60);
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
+
+/**
+ * Cleans platform-specific suffixes (like " - Topic") and trailing hyphens/spaces
+ * from formulated artist names.
+ *
+ * @param {string} artist - The raw artist name to clean.
+ * @returns {string} The cleaned artist name.
+ */
+export function cleanArtistName(artist) {
+  if (!artist) return '';
+  return artist
+    .replace(/\s*-\s*Topic\s*$/i, '')
+    .replace(/\s*-\s*$/, '')
+    .trim();
+}

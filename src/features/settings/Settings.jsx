@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   Sparkles,
   Gamepad2,
+  Music,
 } from 'lucide-react';
 import {
   getFridgeItemsCount,
@@ -35,6 +36,7 @@ import FridgeSettingsPanel from './components/FridgeSettingsPanel';
 import RevealSettingsPanel from './components/RevealSettingsPanel';
 import GameSettingsPanel from './components/GameSettingsPanel';
 import DataManagementPanel from './components/DataManagementPanel';
+import MusicSettingsPanel from './components/MusicSettingsPanel';
 
 /**
  * Main Settings page. Owns all settings state and handler functions,
@@ -77,13 +79,16 @@ export default function Settings() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab && ['account', 'preferences', 'fridge', 'reveal', 'games', 'data'].includes(tab)) {
+    if (
+      tab &&
+      ['account', 'preferences', 'fridge', 'reveal', 'games', 'music', 'data'].includes(tab)
+    ) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveCategory(tab);
       setIsMobileDetailView(true);
     } else if (window.location.hash) {
       const hash = window.location.hash.replace('#', '');
-      if (['account', 'preferences', 'fridge', 'reveal', 'games', 'data'].includes(hash)) {
+      if (['account', 'preferences', 'fridge', 'reveal', 'games', 'music', 'data'].includes(hash)) {
         setActiveCategory(hash);
         setIsMobileDetailView(true);
       }
@@ -407,6 +412,12 @@ export default function Settings() {
         icon: Database,
       },
       {
+        id: 'music',
+        label: 'Music Room',
+        desc: 'Crossfade transitions, player settings',
+        icon: Music,
+      },
+      {
         id: 'reveal',
         label: 'Reveal Q&A',
         desc: 'Custom question frequency, daily reminders',
@@ -650,6 +661,7 @@ export default function Settings() {
                 }
               />
             )}
+            {activeCategory === 'music' && <MusicSettingsPanel />}
             {activeCategory === 'data' && <DataManagementPanel onLogout={handleLogout} />}
           </div>
         </section>

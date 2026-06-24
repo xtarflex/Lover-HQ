@@ -3,7 +3,7 @@ import { useMusic } from '../../../contexts/MusicContext';
 import { useSupabase } from '../../../hooks/useSupabase';
 import { X, Upload, FileAudio, AlertCircle, Loader2 } from 'lucide-react';
 import { YoutubeIcon } from '../../../lib/icons';
-import { extractYoutubeId, parseFilenameMetadata } from '../lib/musicEngine';
+import { extractYoutubeId, parseFilenameMetadata, cleanArtistName } from '../lib/musicEngine';
 
 /**
  * AddTrackModal component. Renders the modal with tabs for
@@ -404,7 +404,9 @@ export default function AddTrackModal({ isOpen, onClose }) {
                               ? data.title || placeholder
                               : prev
                           );
-                          setArtist((prev) => (!prev ? data.author_name || '' : prev));
+                          setArtist((prev) =>
+                            !prev ? cleanArtistName(data.author_name) || '' : prev
+                          );
                         }
                       })
                       .catch((err) => {
