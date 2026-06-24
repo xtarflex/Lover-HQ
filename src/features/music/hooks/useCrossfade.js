@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { getProxiedUrl } from '../lib/musicUtils';
 
 /**
  * Custom hook to manage the audio crossfading between HTML5 and YouTube tracks.
@@ -71,7 +72,7 @@ export function useCrossfade({
       if (nextTrack.source === 'upload' && preparePlayer) {
         const standbyPlayer = preparePlayer(false, true);
         if (standbyPlayer) {
-          standbyPlayer.src = nextTrack.url;
+          standbyPlayer.src = getProxiedUrl(nextTrack.url);
           standbyPlayer.currentTime = 0;
           standbyPlayer.volume = 0;
           standbyPlayer.play().catch((err) => {

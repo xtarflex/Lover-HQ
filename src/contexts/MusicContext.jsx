@@ -7,6 +7,7 @@ import { useQueueDb } from '../features/music/hooks/useQueueDb';
 import { useHtml5Player } from '../features/music/hooks/useHtml5Player';
 import { useYoutubePlayer } from '../features/music/hooks/useYoutubePlayer';
 import { useCrossfade } from '../features/music/hooks/useCrossfade';
+import { getProxiedUrl } from '../features/music/lib/musicUtils';
 
 const MusicContext = createContext(null);
 
@@ -164,7 +165,7 @@ export function MusicProvider({ children }) {
             audioCtxRef.current.resume();
           }
 
-          player.src = track.url;
+          player.src = getProxiedUrl(track.url);
           player.currentTime = startTime;
           player.volume = volumeRef.current;
           try {
