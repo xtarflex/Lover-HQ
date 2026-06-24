@@ -36,10 +36,12 @@ export function useHtml5Player({
 
   useEffect(() => {
     const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
     audio.volume = volume;
     audioRef.current = audio;
 
     const standbyAudio = new Audio();
+    standbyAudio.crossOrigin = 'anonymous';
     standbyAudio.volume = 0;
     standbyAudioRef.current = standbyAudio;
 
