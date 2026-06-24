@@ -60,6 +60,7 @@ export function MusicProvider({ children }) {
     analyserNode,
     initAudioContext,
     audioCtxRef,
+    preparePlayer,
   } = useHtml5Player({
     volume,
     isCrossfadingRef: isCrossfading,
@@ -110,6 +111,7 @@ export function MusicProvider({ children }) {
     setIsPlaying,
     isRemoteActionRef: isRemoteAction,
     broadcastPlay: (trackId, startTime) => broadcastPlay(trackId, startTime),
+    preparePlayer,
   });
 
   // ─── Playback Controls (Orchestrated Wrapper Calls) ──────────────────────────
@@ -155,17 +157,18 @@ export function MusicProvider({ children }) {
 
       if (track.source === 'upload') {
         setActivePlayer('html5');
-        if (audioRef.current) {
+        const player = preparePlayer(true, true);
+        if (player) {
           initAudioContext();
           if (audioCtxRef.current?.state === 'suspended') {
             audioCtxRef.current.resume();
           }
 
-          audioRef.current.src = track.url;
-          audioRef.current.currentTime = startTime;
-          audioRef.current.volume = volumeRef.current;
+          player.src = track.url;
+          player.currentTime = startTime;
+          player.volume = volumeRef.current;
           try {
-            await audioRef.current.play();
+            await player.play();
             setIsPlaying(true);
             setIsListenAlongBlocked(false);
           } catch (err) {
@@ -475,6 +478,7 @@ export function MusicProvider({ children }) {
     reorderQueue,
     ytReady,
     ytPlayers,
+    preparePlayer,
   };
 
   return (

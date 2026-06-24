@@ -2,10 +2,11 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 /**
  * Custom hook to manage the HTML5 audio players and Web Audio API initialization.
+ * Supports self-healing fallback when CORS is not configured on the remote server.
  *
  * @param {Object} params
  * @param {number} params.volume - Initial volume level (0 to 1).
- * @param {React.MutableRefObject<boolean>} params.isCrossfadingRef - Ref tracking crossfade state.
+ * @param {React.MutableRefObject<boolean>} params.isCrossfadingRef - Ref tracking state.
  * @param {Function} params.setCurrentTime - Callback to update current playback time.
  * @param {Function} params.setDuration - Callback to update current track duration.
  * @param {Function} params.handleTrackEnded - Callback when track ends.
@@ -14,7 +15,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
  *   standbyAudioRef: React.MutableRefObject<HTMLAudioElement|null>,
  *   analyserNode: AnalyserNode|null,
  *   initAudioContext: () => void,
- *   audioCtxRef: React.MutableRefObject<AudioContext|null>
+ *   audioCtxRef: React.MutableRefObject<AudioContext|null>,
+ *   preparePlayer: (isPrimary: boolean, useCors: boolean) => HTMLAudioElement
  * }} HTML5 player state and controls.
  */
 export function useHtml5Player({
@@ -30,41 +32,51 @@ export function useHtml5Player({
   // Web Audio API refs & state
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
-  const sourceNodeRef = useRef(null);
-  const standbySourceNodeRef = useRef(null);
   const [analyserNode, setAnalyserNode] = useState(null);
 
-  // Store callbacks in stable refs to prevent re-running the Audio creation effect
+  // Store callbacks and settings in stable refs to prevent re-running effects
+  const volumeRef = useRef(volume);
   const handleTrackEndedRef = useRef(handleTrackEnded);
   const setCurrentTimeRef = useRef(setCurrentTime);
   const setDurationRef = useRef(setDuration);
 
+  useEffect(() => { volumeRef.current = volume; }, [volume]);
+  useEffect(() => { handleTrackEndedRef.current = handleTrackEnded; }, [handleTrackEnded]);
+  useEffect(() => { setCurrentTimeRef.current = setCurrentTime; }, [setCurrentTime]);
+  useEffect(() => { setDurationRef.current = setDuration; }, [setDuration]);
+
+  // Keep track of event listener cleanups
+  const cleanupsRef = useRef({ primary: null, standby: null });
+
+  // Stable ref for the recreate function so it can be called from callbacks
+  const recreateAudioElementRef = useRef(null);
+
+  /**
+   * Helper to connect an audio element to the AudioContext dynamically.
+   */
+  const connectElementToContext = useCallback((el) => {
+    if (!audioCtxRef.current || !analyserRef.current || el.__connectedToCtx) return;
+    try {
+      const source = audioCtxRef.current.createMediaElementSource(el);
+      source.connect(analyserRef.current);
+      el.__connectedToCtx = true;
+      setAnalyserNode(analyserRef.current);
+    } catch (err) {
+      console.warn('Failed to connect media element to AudioContext:', err);
+    }
+  }, []);
+
+  // Sync volume changes directly to active elements
   useEffect(() => {
-    handleTrackEndedRef.current = handleTrackEnded;
-  }, [handleTrackEnded]);
+    if (audioRef.current) audioRef.current.volume = volume;
+  }, [volume]);
 
+  // Initialize and manage audio players on mount
   useEffect(() => {
-    setCurrentTimeRef.current = setCurrentTime;
-  }, [setCurrentTime]);
+    const connectElementToContextRef = { current: connectElementToContext };
+    connectElementToContextRef.current = connectElementToContext;
 
-  useEffect(() => {
-    setDurationRef.current = setDuration;
-  }, [setDuration]);
-
-  // Create the Audio elements exactly once on mount
-  useEffect(() => {
-    const audio = new Audio();
-    // NOTE: We do not set audio.crossOrigin = 'anonymous' because Supabase Storage CORS configurations
-    // can fail on HTTP 206 range requests in Chromium, causing MEDIA_ELEMENT_ERROR (code 4).
-    // Playing without crossOrigin enables clean and immediate playback of uploaded tracks.
-    audio.volume = volume;
-    audioRef.current = audio;
-
-    const standbyAudio = new Audio();
-    standbyAudio.volume = 0;
-    standbyAudioRef.current = standbyAudio;
-
-    const createListeners = (el) => {
+    const setupListeners = (el) => {
       const handleTimeUpdate = () => {
         if (isCrossfadingRef.current) return;
         if (el === audioRef.current) {
@@ -82,54 +94,134 @@ export function useHtml5Player({
           handleTrackEndedRef.current();
         }
       };
+      const handlePlaying = () => {
+        if (el.crossOrigin === 'anonymous') {
+          connectElementToContextRef.current(el);
+        } else {
+          setAnalyserNode(null);
+        }
+      };
       const handleError = (e) => {
-        console.error('HTML5 audio element error:', e);
+        if (el.crossOrigin === 'anonymous') {
+          console.warn('CORS request failed for HTML5 audio. Re-trying without CORS...');
+          const currentSrc = el.src;
+          const currentTime = el.currentTime;
+          const wasPlaying = !el.paused;
+          const isPrimary = (el === audioRef.current);
+
+          // Recreate without CORS
+          const newEl = recreateAudioElement(isPrimary, false);
+          newEl.src = currentSrc;
+          newEl.currentTime = currentTime;
+
+          if (wasPlaying) {
+            newEl.play().catch((err) => console.warn('Fallback playback failed:', err));
+          }
+        } else {
+          console.error('HTML5 audio element error:', e);
+        }
       };
 
       el.addEventListener('timeupdate', handleTimeUpdate);
       el.addEventListener('durationchange', handleDurationChange);
       el.addEventListener('ended', handleEnded);
+      el.addEventListener('playing', handlePlaying);
       el.addEventListener('error', handleError);
 
       return () => {
         el.removeEventListener('timeupdate', handleTimeUpdate);
         el.removeEventListener('durationchange', handleDurationChange);
         el.removeEventListener('ended', handleEnded);
+        el.removeEventListener('playing', handlePlaying);
         el.removeEventListener('error', handleError);
       };
     };
 
-    const cleanupAudio = createListeners(audio);
-    const cleanupStandby = createListeners(standbyAudio);
+    const recreateAudioElement = (isPrimary, useCors) => {
+      const oldEl = isPrimary ? audioRef.current : standbyAudioRef.current;
+      if (oldEl) {
+        oldEl.pause();
+        if (isPrimary && cleanupsRef.current.primary) {
+          cleanupsRef.current.primary();
+          cleanupsRef.current.primary = null;
+        } else if (!isPrimary && cleanupsRef.current.standby) {
+          cleanupsRef.current.standby();
+          cleanupsRef.current.standby = null;
+        }
+      }
+
+      const el = new Audio();
+      el.volume = isPrimary ? volumeRef.current : 0;
+      if (useCors) {
+        el.crossOrigin = 'anonymous';
+      }
+
+      const cleanup = setupListeners(el);
+      if (isPrimary) {
+        audioRef.current = el;
+        cleanupsRef.current.primary = cleanup;
+      } else {
+        standbyAudioRef.current = el;
+        cleanupsRef.current.standby = cleanup;
+      }
+
+      return el;
+    };
+
+    recreateAudioElementRef.current = recreateAudioElement;
+
+    // Initial creation (with CORS enabled by default)
+    recreateAudioElement(true, true);
+    recreateAudioElement(false, true);
 
     return () => {
-      audio.pause();
-      standbyAudio.pause();
-      cleanupAudio();
-      cleanupStandby();
+      if (audioRef.current) audioRef.current.pause();
+      if (standbyAudioRef.current) standbyAudioRef.current.pause();
+      if (cleanupsRef.current.primary) cleanupsRef.current.primary();
+      if (cleanupsRef.current.standby) cleanupsRef.current.standby();
       audioRef.current = null;
       standbyAudioRef.current = null;
     };
-  }, [isCrossfadingRef]); // Depends only on stable refs to prevent recreation
+  }, [isCrossfadingRef, connectElementToContext]);
+
+  /**
+   * External helper to recreate/prepare an audio element slot.
+   */
+  const preparePlayer = useCallback((isPrimary, useCors) => {
+    if (recreateAudioElementRef.current) {
+      return recreateAudioElementRef.current(isPrimary, useCors);
+    }
+    return null;
+  }, []);
 
   /**
    * Lazily initializes the Web Audio API AudioContext.
-   * NOTE: We do NOT connect the primary and standby Audio elements to the AudioContext via
-   * createMediaElementSource because uploaded tracks are stored on Supabase Storage without CORS headers.
-   * If we connect them, browser security policies will force the MediaElementAudioSourceNode to output
-   * zeroes (silence). Bypassing this connection allows the audio to play directly to the speakers,
-   * while the music visualizer automatically falls back to a beautiful breathing animation.
    */
   const initAudioContext = useCallback(() => {
-    if (audioCtxRef.current) return;
+    if (audioCtxRef.current) {
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+      return;
+    }
 
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.connect(ctx.destination);
+
       audioCtxRef.current = ctx;
+      analyserRef.current = analyser;
+
+      // If the primary element is already playing with CORS, connect it now
+      if (audioRef.current && audioRef.current.crossOrigin === 'anonymous' && !audioRef.current.paused) {
+        connectElementToContext(audioRef.current);
+      }
     } catch (e) {
       console.warn('Web Audio API context initialization failed:', e);
     }
-  }, []);
+  }, [connectElementToContext]);
 
   return {
     audioRef,
@@ -137,5 +229,6 @@ export function useHtml5Player({
     analyserNode,
     initAudioContext,
     audioCtxRef,
+    preparePlayer,
   };
 }

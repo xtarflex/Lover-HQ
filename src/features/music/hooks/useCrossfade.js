@@ -42,6 +42,7 @@ export function useCrossfade({
   setIsPlaying,
   isRemoteActionRef,
   broadcastPlay,
+  preparePlayer,
 }) {
   const crossfadeIntervalRef = useRef(null);
 
@@ -67,13 +68,16 @@ export function useCrossfade({
       const standbyYtIdx = 1 - activeYtIndex.current;
 
       // 1. Prepare standby player
-      if (nextTrack.source === 'upload' && standbyAudioRef.current) {
-        standbyAudioRef.current.src = nextTrack.url;
-        standbyAudioRef.current.currentTime = 0;
-        standbyAudioRef.current.volume = 0;
-        standbyAudioRef.current.play().catch((err) => {
-          console.warn('Standby HTML5 play failed during crossfade:', err);
-        });
+      if (nextTrack.source === 'upload' && preparePlayer) {
+        const standbyPlayer = preparePlayer(false, true);
+        if (standbyPlayer) {
+          standbyPlayer.src = nextTrack.url;
+          standbyPlayer.currentTime = 0;
+          standbyPlayer.volume = 0;
+          standbyPlayer.play().catch((err) => {
+            console.warn('Standby HTML5 play failed during crossfade:', err);
+          });
+        }
       } else if (nextTrack.source === 'youtube') {
         const standbyYt = ytPlayers.current[standbyYtIdx];
         const isReady = ytReady.current[standbyYtIdx];
@@ -164,6 +168,7 @@ export function useCrossfade({
       setIsPlaying,
       isRemoteActionRef,
       broadcastPlay,
+      preparePlayer,
     ]
   );
 
