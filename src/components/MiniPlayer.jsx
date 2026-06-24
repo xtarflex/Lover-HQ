@@ -24,8 +24,16 @@ function MinimizedMiniPlayer({
   side,
   setSide,
 }) {
-  const x = useMotionValue(side === 'right' ? window.innerWidth - 96 : 0);
+  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+
+  const x = useMotionValue(side === 'right' ? window.innerWidth - 64 : 0);
   const y = useMotionValue(0); // vertical offset relative to top-[300px]
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+    isDraggingRef.current = true;
+  };
 
   const handleDragEnd = (event, info) => {
     const screenWidth = window.innerWidth;
@@ -35,27 +43,46 @@ function MinimizedMiniPlayer({
     // Detect target side based on drag release point
     const targetSide = info.point.x < mid ? 'left' : 'right';
     setSide(targetSide);
+    setIsDragging(false);
 
     // Compute target position coordinates
-    const targetX = targetSide === 'left' ? 0 : screenWidth - 96;
+    const targetX = targetSide === 'left' ? 0 : screenWidth - 64;
     // Clamp y between 60px (top safe zone) and screenHeight - 160px (bottom safe zone)
     const targetY = Math.max(60, Math.min(screenHeight - 160, info.point.y)) - 300;
 
     // Spring animate to snapped position
     animate(x, targetX, { type: 'spring', stiffness: 350, damping: 25 });
     animate(y, targetY, { type: 'spring', stiffness: 350, damping: 25 });
+
+    // Prevent immediate click event from maximizing during/after dragging
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 100);
+  };
+
+  const onCardClick = (e) => {
+    if (isDraggingRef.current) return;
+    handleMaximize();
   };
 
   // Adjust horizontal position on window resize
   useEffect(() => {
     const handleResize = () => {
       if (side === 'right') {
-        x.set(window.innerWidth - 96);
+        x.set(window.innerWidth - 64);
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [side, x]);
+
+  const containerClasses = `relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 shadow-2xl py-2 flex items-center transition-all duration-300 hover:bg-slate-900 select-none ${
+    isDragging
+      ? 'rounded-full px-2' // Fully rounded pill shape while dragging
+      : side === 'left'
+      ? 'rounded-r-3xl border-l-0 pr-3.5 pl-1.5' // Flat against left edge
+      : 'rounded-l-3xl border-r-0 pl-3.5 pr-1.5 justify-end' // Flat against right edge
+  }`;
 
   return (
     <motion.div
@@ -63,18 +90,12 @@ function MinimizedMiniPlayer({
       style={{ x, y }}
       drag
       dragMomentum={false}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onClick={handleMaximize}
-      className="fixed z-50 w-24 top-[300px] left-0 cursor-pointer select-none touch-none"
+      onClick={onCardClick}
+      className="fixed z-50 w-16 top-[300px] left-0 cursor-pointer select-none touch-none"
     >
-      {/* Glassmorphic curved dock card */}
-      <div
-        className={`relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 shadow-2xl py-2.5 px-2 flex items-center transition-all duration-300 hover:bg-slate-900 ${
-          side === 'left'
-            ? 'rounded-r-3xl border-l-0 pr-3.5 pl-1.5'
-            : 'rounded-l-3xl border-r-0 pl-3.5 pr-1.5 justify-end'
-        }`}
-      >
+      <div className={containerClasses}>
         {/* Sketch close button overlapping the card border */}
         <button
           onClick={handleClose}
@@ -86,81 +107,44 @@ function MinimizedMiniPlayer({
           <X size={10} />
         </button>
 
-        {side === 'left' ? (
-          <>
-            {/* Spinning Artwork Disc */}
-            <motion.div
-              layoutId="miniplayer-artwork"
-              className="relative w-9 h-9 rounded-full border border-slate-600/50 overflow-hidden shadow-md flex-shrink-0 animate-[spin_6s_linear_infinite]"
-              style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
-            >
-              {artworkUrl ? (
-                <img
-                  src={artworkUrl}
-                  alt=""
-                  className={`w-full h-full object-cover ${
-                    currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
-                  }`}
-                />
-              ) : (
-                <GradientAvatar seed={currentTrack.title} size={36} />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-1.5 h-1.5 bg-slate-900 rounded-full border border-slate-600" />
-              </div>
-            </motion.div>
+        {/* Outer Vinyl Container with hover group */}
+        <div className="relative group w-11 h-11 flex-shrink-0">
+          {/* Spinning Artwork Disc */}
+          <motion.div
+            layoutId="miniplayer-artwork"
+            className="relative w-11 h-11 rounded-full border border-slate-600/50 overflow-hidden shadow-md animate-[spin_6s_linear_infinite]"
+            style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+          >
+            {artworkUrl ? (
+              <img
+                src={artworkUrl}
+                alt=""
+                className={`w-full h-full object-cover ${
+                  currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                }`}
+              />
+            ) : (
+              <GradientAvatar seed={currentTrack.title} size={44} />
+            )}
+            {/* Spindle */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-1.5 h-1.5 bg-slate-900 rounded-full border border-slate-600" />
+            </div>
+          </motion.div>
 
-            {/* Micro Play/Pause Control */}
-            <button
-              onClick={handlePlayPause}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-text-main border border-slate-700 transition-colors flex-shrink-0"
-            >
-              {isPlaying ? (
-                <Pause size={12} className="text-primary fill-primary" />
-              ) : (
-                <Play size={12} className="text-primary fill-primary ml-0.5" />
-              )}
-            </button>
-          </>
-        ) : (
-          <>
-            {/* Micro Play/Pause Control */}
-            <button
-              onClick={handlePlayPause}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-text-main border border-slate-700 transition-colors flex-shrink-0 mr-2"
-            >
-              {isPlaying ? (
-                <Pause size={12} className="text-primary fill-primary" />
-              ) : (
-                <Play size={12} className="text-primary fill-primary ml-0.5" />
-              )}
-            </button>
-
-            {/* Spinning Artwork Disc */}
-            <motion.div
-              layoutId="miniplayer-artwork"
-              className="relative w-9 h-9 rounded-full border border-slate-600/50 overflow-hidden shadow-md flex-shrink-0 animate-[spin_6s_linear_infinite]"
-              style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
-            >
-              {artworkUrl ? (
-                <img
-                  src={artworkUrl}
-                  alt=""
-                  className={`w-full h-full object-cover ${
-                    currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
-                  }`}
-                />
-              ) : (
-                <GradientAvatar seed={currentTrack.title} size={36} />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-1.5 h-1.5 bg-slate-900 rounded-full border border-slate-600" />
-              </div>
-            </motion.div>
-          </>
-        )}
+          {/* Overlay Play/Pause Control (Hover visible on desktop, transparent on mobile) */}
+          <button
+            onClick={handlePlayPause}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+            className="absolute inset-0 m-auto w-7 h-7 rounded-full bg-slate-900/85 backdrop-blur-sm border border-slate-700/80 flex items-center justify-center text-primary shadow-lg transition-all duration-300 opacity-80 md:opacity-0 group-hover:opacity-100 group-hover:scale-110 z-10"
+          >
+            {isPlaying ? (
+              <Pause size={10} className="text-primary fill-primary" />
+            ) : (
+              <Play size={10} className="text-primary fill-primary ml-0.5" />
+            )}
+          </button>
+        </div>
       </div>
     </motion.div>
   );
