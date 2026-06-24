@@ -34,14 +34,33 @@ export function useHtml5Player({
   const standbySourceNodeRef = useRef(null);
   const [analyserNode, setAnalyserNode] = useState(null);
 
+  // Store callbacks in stable refs to prevent re-running the Audio creation effect
+  const handleTrackEndedRef = useRef(handleTrackEnded);
+  const setCurrentTimeRef = useRef(setCurrentTime);
+  const setDurationRef = useRef(setDuration);
+
+  useEffect(() => {
+    handleTrackEndedRef.current = handleTrackEnded;
+  }, [handleTrackEnded]);
+
+  useEffect(() => {
+    setCurrentTimeRef.current = setCurrentTime;
+  }, [setCurrentTime]);
+
+  useEffect(() => {
+    setDurationRef.current = setDuration;
+  }, [setDuration]);
+
+  // Create the Audio elements exactly once on mount
   useEffect(() => {
     const audio = new Audio();
-    audio.crossOrigin = 'anonymous';
+    // NOTE: We do not set audio.crossOrigin = 'anonymous' because Supabase Storage CORS configurations
+    // can fail on HTTP 206 range requests in Chromium, causing MEDIA_ELEMENT_ERROR (code 4).
+    // Playing without crossOrigin enables clean and immediate playback of uploaded tracks.
     audio.volume = volume;
     audioRef.current = audio;
 
     const standbyAudio = new Audio();
-    standbyAudio.crossOrigin = 'anonymous';
     standbyAudio.volume = 0;
     standbyAudioRef.current = standbyAudio;
 
@@ -49,18 +68,18 @@ export function useHtml5Player({
       const handleTimeUpdate = () => {
         if (isCrossfadingRef.current) return;
         if (el === audioRef.current) {
-          setCurrentTime(el.currentTime);
+          setCurrentTimeRef.current(el.currentTime);
         }
       };
       const handleDurationChange = () => {
         if (el === audioRef.current) {
-          setDuration(el.duration || 0);
+          setDurationRef.current(el.duration || 0);
         }
       };
       const handleEnded = () => {
         if (isCrossfadingRef.current) return;
         if (el === audioRef.current) {
-          handleTrackEnded();
+          handleTrackEndedRef.current();
         }
       };
       const handleError = (e) => {
@@ -88,33 +107,28 @@ export function useHtml5Player({
       standbyAudio.pause();
       cleanupAudio();
       cleanupStandby();
+      audioRef.current = null;
+      standbyAudioRef.current = null;
     };
-  }, [handleTrackEnded, isCrossfadingRef, setCurrentTime, setDuration]);
+  }, [isCrossfadingRef]); // Depends only on stable refs to prevent recreation
 
   /**
-   * Lazily initializes the Web Audio API AudioContext and connects BOTH
-   * primary and standby audio elements to the AnalyserNode.
+   * Lazily initializes the Web Audio API AudioContext.
+   * NOTE: We do NOT connect the primary and standby Audio elements to the AudioContext via
+   * createMediaElementSource because uploaded tracks are stored on Supabase Storage without CORS headers.
+   * If we connect them, browser security policies will force the MediaElementAudioSourceNode to output
+   * zeroes (silence). Bypassing this connection allows the audio to play directly to the speakers,
+   * while the music visualizer automatically falls back to a beautiful breathing animation.
    */
   const initAudioContext = useCallback(() => {
-    if (audioCtxRef.current || !audioRef.current || !standbyAudioRef.current) return;
+    if (audioCtxRef.current) return;
 
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 256;
-
-    // Connect both primary and standby players to the AnalyserNode
-    const source1 = ctx.createMediaElementSource(audioRef.current);
-    const source2 = ctx.createMediaElementSource(standbyAudioRef.current);
-
-    source1.connect(analyser);
-    source2.connect(analyser);
-    analyser.connect(ctx.destination);
-
-    audioCtxRef.current = ctx;
-    analyserRef.current = analyser;
-    sourceNodeRef.current = source1;
-    standbySourceNodeRef.current = source2;
-    setAnalyserNode(analyser);
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtxRef.current = ctx;
+    } catch (e) {
+      console.warn('Web Audio API context initialization failed:', e);
+    }
   }, []);
 
   return {
