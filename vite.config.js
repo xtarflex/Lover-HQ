@@ -4,11 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'fs';
 import path from 'path';
 
+/* eslint-disable-next-line no-undef -- Node.js global in config file */
+const cwd = process.cwd();
+
 // Parse .env file manually in Node to resolve VITE_SUPABASE_URL
 // without exporting a callback (fixes Vitest mergeConfig issues).
 let supabaseUrl = 'https://oxqpmfdoytdfxmofmeno.supabase.co';
 try {
-  const envPath = path.resolve(process.cwd(), '.env');
+  const envPath = path.resolve(cwd, '.env');
   if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, 'utf-8');
     const match = envContent.match(/^VITE_SUPABASE_URL\s*=\s*(.*)$/m);
@@ -16,8 +19,8 @@ try {
       supabaseUrl = match[1].trim();
     }
   }
-} catch (e) {
-  console.warn('Could not read .env file for proxy configuration:', e);
+} catch (_error) {
+  console.warn('Could not read .env file for proxy configuration:', _error);
 }
 
 export default defineConfig({
