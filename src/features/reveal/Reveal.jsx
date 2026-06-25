@@ -101,6 +101,10 @@ export default function Reveal() {
     handleToggleReaction,
     handleAddComment,
     handleNudgePartner,
+    handleDeleteCustomQuestion,
+    handleUnscheduleCustomQuestion,
+    handleSetCustomDate,
+    handleEditCustomQuestion,
   } = useRevealHandlers({
     userId,
     partner,
@@ -215,6 +219,10 @@ export default function Reveal() {
           creatingQuestion={creatingQuestion}
           onSubmit={handleCreateCustomQuestion}
           onScheduleNext={handleScheduleNext}
+          onDeleteCustomQuestion={handleDeleteCustomQuestion}
+          onUnscheduleCustomQuestion={handleUnscheduleCustomQuestion}
+          onSetCustomDate={handleSetCustomDate}
+          onEditCustomQuestion={handleEditCustomQuestion}
         />
         <MemoryLane
           filteredMemories={filteredMemories}
