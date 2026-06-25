@@ -43,39 +43,42 @@ export function useMusicSync({
     const channel = supabase.channel(channelName);
     channelRef.current = channel;
 
+    const isRecentLocalAction = () => {
+      return Date.now() - lastLocalActionAt.current < 1000;
+    };
+
     channel
       .on('broadcast', { event: 'play' }, ({ payload }) => {
-        // Enforce LWW: Discard if older than our latest local interaction
-        if (payload.senderId !== user.id && payload.eventSentAt > lastLocalActionAt.current) {
-          onRemotePlay(payload.trackId, payload.timestamp);
+        if (payload.senderId !== user.id) {
+          if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
+            onRemotePlay(payload.trackId, payload.timestamp);
+          }
         }
       })
       .on('broadcast', { event: 'pause' }, ({ payload }) => {
-        // Enforce LWW: Discard if older than our latest local interaction
-        if (payload.senderId !== user.id && payload.eventSentAt > lastLocalActionAt.current) {
-          onRemotePause();
+        if (payload.senderId !== user.id) {
+          if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
+            onRemotePause();
+          }
         }
       })
       .on('broadcast', { event: 'seek' }, ({ payload }) => {
-        // Enforce LWW: Discard if older than our latest local interaction
-        if (payload.senderId !== user.id && payload.eventSentAt > lastLocalActionAt.current) {
-          onRemoteSeek(payload.timestamp);
+        if (payload.senderId !== user.id) {
+          if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
+            onRemoteSeek(payload.timestamp);
+          }
         }
       })
       .on('broadcast', { event: 'heartbeat' }, ({ payload }) => {
         if (payload.senderId === user.id) return;
 
         // Passive sync correction logic:
-        // Only run heartbeat sync if we are playing the same track
         if (payload.trackId === currentTrackId && payload.isPlaying && isPlaying) {
           const localTime = getCurrentTime();
 
-          // If the partner's timestamp is ahead of ours by more than 1.5 seconds,
-          // seek silently to catch up. We do not seek backward for heartbeats to prevent
-          // a trailing/stuck partner from pulling us back.
           if (
             payload.timestamp > localTime + 1.5 &&
-            payload.eventSentAt > lastLocalActionAt.current
+            (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current)
           ) {
             console.debug(
               `Sync drift detected: partner is ahead. Correcting time to match partner.`

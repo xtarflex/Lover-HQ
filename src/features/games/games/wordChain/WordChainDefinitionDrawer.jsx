@@ -6,7 +6,7 @@
  * value, and the definition body (or a loading spinner while fetching).
  */
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 
 /**
@@ -32,17 +32,100 @@ export default function WordChainDefinitionDrawer({
   calculateLetterPoints,
   onClose,
 }) {
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef(0);
+  const containerRef = useRef(null);
+
+  // Reset drag offset when selected word changes
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset drag offset and state when the word changes */
+  useEffect(() => {
+    setDragOffset(0);
+    setIsDragging(false);
+  }, [selectedDefinitionWord]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  /**
+   * Handle pointer down event to initiate dragging.
+   * Only allows dragging with left click / primary pointer.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerDown = (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    setIsDragging(true);
+    startYRef.current = e.clientY;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  /**
+   * Handle pointer move event to update drag position.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    const deltaY = e.clientY - startYRef.current;
+    // Only allow dragging downwards
+    if (deltaY > 0) {
+      setDragOffset(deltaY);
+    } else {
+      setDragOffset(0);
+    }
+  };
+
+  /**
+   * Handle pointer up event to finish dragging and determine if drawer should close.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerUp = (e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+
+    const containerHeight = containerRef.current?.getBoundingClientRect().height || 300;
+    const threshold = Math.min(120, containerHeight * 0.25);
+
+    if (dragOffset > threshold) {
+      if (onClose) onClose();
+    }
+    setDragOffset(0);
+  };
+
+  /**
+   * Handle pointer cancel event to reset drag state.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerCancel = (_e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
   return (
     <div
       className="absolute inset-0 bg-background/60 backdrop-blur-sm z-50 flex items-end justify-center transition-all animate-fade-in"
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        style={{
+          transform: `translateY(${dragOffset}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+        }}
         className="w-full max-w-md bg-surface/95 backdrop-blur-xl border-t border-surface-border rounded-t-3xl p-6 pb-8 space-y-4 shadow-2xl relative animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle */}
-        <div className="w-12 h-1.5 bg-text-muted/20 rounded-full mx-auto mb-2" />
+        <div
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          className="w-12 h-1.5 bg-text-muted/20 rounded-full mx-auto mb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+        />
 
         {/* Word title + part-of-speech badge */}
         <div className="flex items-baseline justify-between">

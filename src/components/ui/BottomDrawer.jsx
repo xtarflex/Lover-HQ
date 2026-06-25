@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 /**
  * @file BottomDrawer.jsx
@@ -17,6 +17,10 @@ import React, { useEffect, useRef } from 'react';
  */
 export default function BottomDrawer({ isOpen, onClose, children }) {
   const dialogRef = useRef(null);
+  const containerRef = useRef(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef(0);
 
   // Sync React state with the native <dialog> show/hide methods
   useEffect(() => {
@@ -43,6 +47,16 @@ export default function BottomDrawer({ isOpen, onClose, children }) {
     };
   }, [isOpen]);
 
+  // Reset drag offset when drawer state changes
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset drag offset and state when the drawer closes */
+  useEffect(() => {
+    if (!isOpen) {
+      setDragOffset(0);
+      setIsDragging(false);
+    }
+  }, [isOpen]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   /**
    * Handle native Esc key or dismiss events.
    * Prevents default browser close behavior so that closing goes through the React state cycle.
@@ -66,6 +80,65 @@ export default function BottomDrawer({ isOpen, onClose, children }) {
     }
   };
 
+  /**
+   * Handle pointer down event to initiate dragging.
+   * Only allows dragging with left click / primary pointer.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerDown = (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    setIsDragging(true);
+    startYRef.current = e.clientY;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  /**
+   * Handle pointer move event to update drag position.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    const deltaY = e.clientY - startYRef.current;
+    // Only allow dragging downwards
+    if (deltaY > 0) {
+      setDragOffset(deltaY);
+    } else {
+      setDragOffset(0);
+    }
+  };
+
+  /**
+   * Handle pointer up event to finish dragging and determine if drawer should close.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerUp = (e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+
+    const containerHeight = containerRef.current?.getBoundingClientRect().height || 400;
+    const threshold = Math.min(120, containerHeight * 0.25);
+
+    if (dragOffset > threshold) {
+      if (onClose) onClose();
+    }
+    setDragOffset(0);
+  };
+
+  /**
+   * Handle pointer cancel event to reset drag state.
+   *
+   * @param {React.PointerEvent} e - Native pointer event
+   */
+  const handlePointerCancel = (_e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
   return (
     <dialog
       ref={dialogRef}
@@ -73,9 +146,22 @@ export default function BottomDrawer({ isOpen, onClose, children }) {
       onClick={handleBackdropClick}
       className="bottom-drawer"
     >
-      <div className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-x border-surface-border/60 dark:border-slate-800/80 rounded-t-3xl w-full shadow-2xl overflow-hidden relative flex flex-col max-h-[85vh] md:max-h-[90vh]">
+      <div
+        ref={containerRef}
+        style={{
+          transform: `translateY(${dragOffset}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+        }}
+        className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-x border-surface-border/60 dark:border-slate-800/80 rounded-t-3xl w-full shadow-2xl overflow-hidden relative flex flex-col max-h-[85vh] md:max-h-[90vh]"
+      >
         {/* Decorative grab handle for sheet drawer feel */}
-        <div className="w-12 h-1.5 bg-text-muted/20 dark:bg-slate-700 rounded-full mx-auto my-3 shrink-0" />
+        <div
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          className="w-12 h-1.5 bg-text-muted/20 dark:bg-slate-700 rounded-full mx-auto my-3 shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+        />
 
         {children}
       </div>

@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { X, Send, MessageSquare, Clock, Smile, Check, CheckCheck } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
@@ -46,6 +46,19 @@ export default function MagnetCommentDrawer({
   const [activeReactionPop, setActiveReactionPop] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const commentsEndRef = useRef(null);
+  const dragControls = useDragControls();
+
+  /**
+   * Start vertical drag on mobile device.
+   * Restricts dragging from starting if on desktop view.
+   *
+   * @param {React.PointerEvent} event - The pointer down event
+   */
+  const startDrag = (event) => {
+    if (!isDesktop) {
+      dragControls.start(event);
+    }
+  };
 
   // Delegate data management to custom hook
   const { comments, isLoading, isPartnerTyping, inputText, handleInputChange, handleSendComment } =
@@ -179,6 +192,17 @@ export default function MagnetCommentDrawer({
 
       {/* Drawer Container */}
       <motion.div
+        drag={isDesktop ? false : 'y'}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 1 }}
+        dragMomentum={false}
+        onDragEnd={(event, info) => {
+          if (info.offset.y > 120) {
+            onClose();
+          }
+        }}
         initial={isDesktop ? { x: '100%', y: 0 } : { y: '100%', x: 0 }}
         animate={{ x: 0, y: 0 }}
         exit={isDesktop ? { x: '100%', y: 0 } : { y: '100%', x: 0 }}
@@ -194,7 +218,10 @@ export default function MagnetCommentDrawer({
         }
       >
         {/* Drag Handle Indicator */}
-        <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto my-3 flex-shrink-0 md:hidden" />
+        <div
+          onPointerDown={startDrag}
+          className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto my-3 flex-shrink-0 md:hidden cursor-grab active:cursor-grabbing touch-none select-none"
+        />
 
         {/* Header */}
         <div className="px-5 pb-3 flex justify-between items-center border-b border-surface-border/20 flex-shrink-0">

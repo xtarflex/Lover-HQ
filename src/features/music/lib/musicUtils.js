@@ -67,3 +67,22 @@ export function gradientFromString(str) {
     color: '#ffffff',
   };
 }
+
+/**
+ * Resolves a public Supabase Storage URL through the local/production reverse proxy
+ * to bypass browser CORS security checks and enable the real-time visualizer.
+ *
+ * @param {string} url - The original public audio URL.
+ * @returns {string} The proxied URL.
+ */
+export function getProxiedUrl(url) {
+  if (!url) return '';
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (supabaseUrl) {
+    const prefix = `${supabaseUrl}/storage/v1/object/public/music-media/`;
+    if (url.startsWith(prefix)) {
+      return url.replace(prefix, '/storage-proxy/');
+    }
+  }
+  return url;
+}

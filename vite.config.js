@@ -1,6 +1,27 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import fs from 'fs';
+import path from 'path';
+
+/* eslint-disable-next-line no-undef -- Node.js global in config file */
+const cwd = process.cwd();
+
+// Parse .env file manually in Node to resolve VITE_SUPABASE_URL
+// without exporting a callback (fixes Vitest mergeConfig issues).
+let supabaseUrl = 'https://oxqpmfdoytdfxmofmeno.supabase.co';
+try {
+  const envPath = path.resolve(cwd, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    const match = envContent.match(/^VITE_SUPABASE_URL\s*=\s*(.*)$/m);
+    if (match && match[1]) {
+      supabaseUrl = match[1].trim();
+    }
+  }
+} catch (_error) {
+  console.warn('Could not read .env file for proxy configuration:', _error);
+}
 
 export default defineConfig({
   plugins: [
@@ -74,6 +95,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+    },
+  },
+  server: {
+    proxy: {
+      '/storage-proxy': {
+        target: `${supabaseUrl}/storage/v1/object/public/music-media`,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/storage-proxy/, ''),
+      },
     },
   },
   test: {

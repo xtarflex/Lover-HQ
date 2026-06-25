@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { extractYoutubeId, parseFilenameMetadata, formatTime } from './musicEngine';
+import {
+  extractYoutubeId,
+  parseFilenameMetadata,
+  formatTime,
+  cleanArtistName,
+} from './musicEngine';
 
 describe('extractYoutubeId', () => {
   it('should return null for empty or invalid urls', () => {
@@ -146,5 +151,42 @@ describe('parseFilenameMetadata edge cases', () => {
     // Test with emoji
     const metaEmoji = parseFilenameMetadata('emoji_✨_test.mp3');
     expect(metaEmoji.title).toBe('Emoji ✨ Test');
+  });
+});
+
+describe('cleanArtistName', () => {
+  it('should return empty string for null, undefined, or empty artist names', () => {
+    expect(cleanArtistName(null)).toBe('');
+    expect(cleanArtistName(undefined)).toBe('');
+    expect(cleanArtistName('')).toBe('');
+  });
+
+  it('should remove exact " - Topic" suffix case-insensitively', () => {
+    expect(cleanArtistName('Madara Dusal - Topic')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal - topic')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal - TOPIC')).toBe('Madara Dusal');
+  });
+
+  it('should remove " - Topic" with variation in spacing', () => {
+    expect(cleanArtistName('Madara Dusal-Topic')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal  -  Topic')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal -Topic')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal- Topic')).toBe('Madara Dusal');
+  });
+
+  it('should remove trailing hyphens and spaces', () => {
+    expect(cleanArtistName('Madara Dusal -')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal - ')).toBe('Madara Dusal');
+    expect(cleanArtistName('Madara Dusal-')).toBe('Madara Dusal');
+  });
+
+  it('should trim the final artist name', () => {
+    expect(cleanArtistName('  Madara Dusal  ')).toBe('Madara Dusal');
+  });
+
+  it('should keep valid hyphens in the middle of artist names', () => {
+    expect(cleanArtistName('Jay-Z')).toBe('Jay-Z');
+    expect(cleanArtistName('Jay-Z - Topic')).toBe('Jay-Z');
+    expect(cleanArtistName('Slipknot - Topic')).toBe('Slipknot');
   });
 });
