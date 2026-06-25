@@ -301,9 +301,7 @@ export function useRevealHandlers({
     async (qId) => {
       try {
         const scheduledDates = new Set(
-          (customQuestions || [])
-            .map((q) => q.scheduled_for_date)
-            .filter(Boolean)
+          (customQuestions || []).map((q) => q.scheduled_for_date).filter(Boolean)
         );
 
         const t = new Date();

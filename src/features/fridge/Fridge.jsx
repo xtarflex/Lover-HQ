@@ -152,7 +152,9 @@ export default function Fridge() {
 
       scrollToItem(itemId);
 
-      const el = scrollContainerRef.current?.querySelector(`.fridge-item[data-item-id="${itemId}"]`);
+      const el = scrollContainerRef.current?.querySelector(
+        `.fridge-item[data-item-id="${itemId}"]`
+      );
       if (el) {
         el.classList.add('animate-pulse-gold');
         setTimeout(() => {

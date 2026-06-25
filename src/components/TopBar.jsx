@@ -7,7 +7,6 @@ import { Heart } from '../lib/icons';
 import { ICON_SIZES } from '../lib/constants';
 import { ArrowLeft } from 'lucide-react';
 
-
 /**
  * Helper to truncate names longer than 5 letters.
  *
@@ -145,8 +144,6 @@ export function TopBar() {
             </div>
           </Link>
         )}
-
-
       </div>
     </header>
   );

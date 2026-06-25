@@ -43,9 +43,8 @@ const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
 // Stable mock waveform heights (in percentages, e.g. from 20% to 100%) to represent a natural audio signal
 const WAVEFORM_BARS = [
-  30, 45, 60, 40, 25, 45, 75, 90, 65, 50,
-  35, 60, 80, 95, 70, 45, 30, 50, 70, 55,
-  40, 30, 45, 60, 35
+  30, 45, 60, 40, 25, 45, 75, 90, 65, 50, 35, 60, 80, 95, 70, 45, 30, 50, 70, 55, 40, 30, 45, 60,
+  35,
 ];
 
 /**
@@ -149,7 +148,11 @@ export function VoiceMessagePlayer({ src }) {
         className="w-8 h-8 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center text-primary transition-all shrink-0"
         aria-label={isPlaying ? 'Pause' : 'Play'}
       >
-        {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+        {isPlaying ? (
+          <Pause className="w-4 h-4 fill-current" />
+        ) : (
+          <Play className="w-4 h-4 fill-current ml-0.5" />
+        )}
       </button>
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -196,7 +199,6 @@ export function VoiceMessagePlayer({ src }) {
     </div>
   );
 }
-
 
 /**
  * Stateful Chat Screen component.
@@ -277,6 +279,7 @@ export default function Chat() {
   }, [userId, partnerId]);
 
   // Setup initial subscription & load history
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: fetch initial chat history and fridge items list on mount */
   useEffect(() => {
     fetchChatHistory();
     fetchFridgeItemsList();
@@ -338,6 +341,7 @@ export default function Chat() {
       if (typingChannelRef.current) supabase.removeChannel(typingChannelRef.current);
     };
   }, [coupleKey, partnerId, fetchChatHistory, fetchFridgeItemsList, scrollToBottom]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Broadcast typing status
   const broadcastTypingStatus = useCallback(
@@ -688,7 +692,8 @@ export default function Chat() {
             <div>
               <p className="text-sm font-bold text-text-main">No messages here yet</p>
               <p className="text-xs text-text-muted mt-1 leading-relaxed">
-                Send a sweet note, upload a picture, record a voice memo, or tag a Fridge item as a reference!
+                Send a sweet note, upload a picture, record a voice memo, or tag a Fridge item as a
+                reference!
               </p>
             </div>
           </div>
@@ -737,18 +742,28 @@ export default function Chat() {
                   </span>
                 )}
 
-                <div className={`flex items-end space-x-2 ${isSelf ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+                <div
+                  className={`flex items-end space-x-2 ${isSelf ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}
+                >
                   {/* Avatar */}
                   {!hideHeader ? (
                     <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold font-rounded">
                       {isSelf ? (
                         user?.avatar_url ? (
-                          <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                          <img
+                            src={user.avatar_url}
+                            alt="avatar"
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           'Y'
                         )
                       ) : partner?.avatar_url ? (
-                        <img src={partner.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                        <img
+                          src={partner.avatar_url}
+                          alt="avatar"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         'P'
                       )}
@@ -870,27 +885,28 @@ export default function Chat() {
                       </div>
 
                       {/* Rendered Reaction Emojis Badges */}
-                      {msg.reactions && Object.keys(msg.reactions).some((k) => msg.reactions[k]?.length > 0) && (
-                        <div className="absolute -bottom-2.5 right-3 flex items-center space-x-1 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded-full text-[9px] z-10 shadow shadow-black">
-                          {Object.keys(msg.reactions).map((emoji) => {
-                            const count = msg.reactions[emoji]?.length || 0;
-                            if (count === 0) return null;
-                            const didIReact = msg.reactions[emoji]?.includes(userId);
-                            return (
-                              <button
-                                key={emoji}
-                                onClick={() => handleReaction(msg, emoji)}
-                                className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
-                                  didIReact ? 'text-primary' : 'text-gray-400'
-                                }`}
-                              >
-                                <span>{emoji}</span>
-                                {count > 1 && <span>{count}</span>}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {msg.reactions &&
+                        Object.keys(msg.reactions).some((k) => msg.reactions[k]?.length > 0) && (
+                          <div className="absolute -bottom-2.5 right-3 flex items-center space-x-1 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded-full text-[9px] z-10 shadow shadow-black">
+                            {Object.keys(msg.reactions).map((emoji) => {
+                              const count = msg.reactions[emoji]?.length || 0;
+                              if (count === 0) return null;
+                              const didIReact = msg.reactions[emoji]?.includes(userId);
+                              return (
+                                <button
+                                  key={emoji}
+                                  onClick={() => handleToggleReaction(msg, emoji)}
+                                  className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
+                                    didIReact ? 'text-primary' : 'text-gray-400'
+                                  }`}
+                                >
+                                  <span>{emoji}</span>
+                                  {count > 1 && <span>{count}</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                     </div>
 
                     {/* Message hover menu controls (Reply, React, Edit, Delete) */}
@@ -997,7 +1013,8 @@ export default function Chat() {
           <div className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between text-xs animate-slide-up">
             <div className="truncate flex-1">
               <span className="text-primary font-bold block text-[10px] uppercase tracking-wider">
-                Replying to {replyMessage.user_id === userId ? 'yourself' : partner?.name || 'Partner'}
+                Replying to{' '}
+                {replyMessage.user_id === userId ? 'yourself' : partner?.name || 'Partner'}
               </span>
               <p className="truncate text-text-muted mt-0.5">{replyMessage.content}</p>
             </div>
@@ -1022,7 +1039,9 @@ export default function Chat() {
                   Referencing Fridge {referencedItem.type}
                 </span>
                 <p className="truncate text-text-muted mt-0.5">
-                  {referencedItem.type === 'note' ? referencedItem.content : `Uploaded ${referencedItem.type}`}
+                  {referencedItem.type === 'note'
+                    ? referencedItem.content
+                    : `Uploaded ${referencedItem.type}`}
                 </p>
               </div>
             </div>
@@ -1146,7 +1165,11 @@ export default function Chat() {
             }`}
             aria-label={isRecording ? 'Stop recording voice note' : 'Record voice note'}
           >
-            {isRecording ? <Square className="w-4 h-4 fill-current" /> : <Mic className="w-5 h-5" />}
+            {isRecording ? (
+              <Square className="w-4 h-4 fill-current" />
+            ) : (
+              <Mic className="w-5 h-5" />
+            )}
           </button>
 
           {/* Send text button */}
