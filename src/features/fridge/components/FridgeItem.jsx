@@ -7,7 +7,17 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
-import { Play, Pause, Trash2, Pencil, Check, CheckCheck, Clock, MessageSquare } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Trash2,
+  Pencil,
+  Check,
+  CheckCheck,
+  Clock,
+  MessageSquare,
+  Pin,
+} from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
 
@@ -59,6 +69,7 @@ export default function FridgeItem({
   isSnappingEnabled,
   noteFont,
   _magnetSize,
+  onTogglePin,
 }) {
   const itemRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -361,7 +372,7 @@ export default function FridgeItem({
   return (
     <motion.div
       ref={itemRef}
-      drag
+      drag={!item.is_pinned}
       dragMomentum={false}
       dragElastic={0.05}
       dragConstraints={containerRef}
@@ -382,7 +393,9 @@ export default function FridgeItem({
           onOpenComments(item);
         }
       }}
-      className={`fridge-item touch-none cursor-grab active:cursor-grabbing select-none transition-shadow ${
+      className={`fridge-item touch-none select-none transition-shadow ${
+        item.is_pinned ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
+      } ${
         isEditMode
           ? 'ring-2 ring-red-500/50 shadow-lg'
           : isNew
@@ -473,11 +486,39 @@ export default function FridgeItem({
         </button>
       )}
 
+      {/* Pin/Lock Badge overlay */}
+      {isEditMode && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onTogglePin) onTogglePin(item.id, !item.is_pinned);
+          }}
+          className={`absolute -bottom-3 -right-3 w-7 h-7 rounded-full flex items-center justify-center shadow-md z-[60] border border-background transition-transform active:scale-95 ${
+            item.is_pinned
+              ? 'bg-amber-500 hover:bg-amber-600 text-white'
+              : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+          }`}
+          title={item.is_pinned ? 'Unlock magnet' : 'Lock/Pin magnet'}
+        >
+          <Pin className="w-3.5 h-3.5" />
+        </button>
+      )}
+
       {/* Render Note Variant */}
       {item.type === 'note' && (
         <div
-          className={`border-b-4 rounded shadow-md flex flex-col justify-between ${getSizeClasses()} ${colorClasses}`}
+          className={`border-b-4 rounded shadow-md flex flex-col justify-between relative overflow-visible ${getSizeClasses()} ${colorClasses}`}
         >
+          {/* Visual Magnet/Pin */}
+          {item.is_pinned ? (
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20 text-amber-500 drop-shadow-md">
+              <Pin className="w-4 h-4 fill-current transform rotate-45" />
+            </div>
+          ) : (
+            <div className="w-3.5 h-3.5 bg-slate-700 rounded-full absolute -top-1.5 left-1/2 -translate-x-1/2 border border-slate-600 shadow flex items-center justify-center z-10">
+              <div className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
+            </div>
+          )}
           <p
             className={`leading-snug overflow-hidden text-ellipsis ${getLineClampClass()} flex-grow ${getNoteFontClass()}`}
           >
@@ -497,8 +538,14 @@ export default function FridgeItem({
         <div
           className={`text-gray-800 border border-gray-200 rounded shadow-lg flex flex-col justify-between items-center relative bg-[#fafafa] ${getSizeClasses()}`}
         >
-          {/* Small black magnetic disc at the top */}
-          <div className="w-4 h-4 bg-gray-900 rounded-full shadow-inner absolute -top-2 left-1/2 -translate-x-1/2 border border-gray-700" />
+          {/* Visual Magnet/Pin */}
+          {item.is_pinned ? (
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-20 text-amber-500 drop-shadow-md">
+              <Pin className="w-4 h-4 fill-current transform rotate-45" />
+            </div>
+          ) : (
+            <div className="w-4 h-4 bg-gray-900 rounded-full shadow-inner absolute -top-2 left-1/2 -translate-x-1/2 border border-gray-700" />
+          )}
 
           <div
             onClick={(e) => {
@@ -529,10 +576,16 @@ export default function FridgeItem({
         <div
           className={`bg-gradient-to-br from-brand-slate/90 to-surface border border-surface-border/80 rounded-2xl shadow-xl flex flex-col justify-between items-center relative overflow-visible ${getSizeClasses()}`}
         >
-          {/* Little metallic pushpin magnet */}
-          <div className="w-3 h-3 bg-red-600 rounded-full absolute -top-1.5 left-1/2 -translate-x-1/2 border border-red-800 shadow flex items-center justify-center z-10">
-            <div className="w-1 h-1 bg-white/60 rounded-full" />
-          </div>
+          {/* Visual Magnet/Pin */}
+          {item.is_pinned ? (
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-20 text-amber-500 drop-shadow-md">
+              <Pin className="w-4 h-4 fill-current transform rotate-45" />
+            </div>
+          ) : (
+            <div className="w-3 h-3 bg-red-600 rounded-full absolute -top-1.5 left-1/2 -translate-x-1/2 border border-red-800 shadow flex items-center justify-center z-10">
+              <div className="w-1 h-1 bg-white/60 rounded-full" />
+            </div>
+          )}
 
           {renderAudioControls()}
 
@@ -549,6 +602,12 @@ export default function FridgeItem({
         <div
           className={`flex flex-col justify-between items-center relative group select-none ${getSizeClasses()}`}
         >
+          {/* Visual Pin for Emoji */}
+          {item.is_pinned && (
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-20 text-amber-500 drop-shadow-md">
+              <Pin className="w-4 h-4 fill-current transform rotate-45" />
+            </div>
+          )}
           <div className="w-full h-full flex items-center justify-center overflow-visible">
             {(() => {
               const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === item.content);

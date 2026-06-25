@@ -6,6 +6,7 @@
 
 import { lazy } from 'react';
 import { TicTacToeIcon, WordChainIcon, QuickDrawIcon } from '../components/GameIcons';
+import { CaseSensitive, Calculator } from 'lucide-react';
 
 /**
  * @typedef {Object} GameDefinition
@@ -13,7 +14,7 @@ import { TicTacToeIcon, WordChainIcon, QuickDrawIcon } from '../components/GameI
  * @property {string} name - Display name.
  * @property {string} description - Short description shown in lobby.
  * @property {React.ComponentType} Icon - SVG icon component (accepts className prop).
- * @property {string} difficulty - 'easy' | 'medium' | 'hard'
+ * @property {string} difficulty - 'easy' | 'medium' | 'hard' | 'variable'
  * @property {number} avgDuration - Estimated duration in seconds.
  * @property {string[]} tags - Filter tags (e.g. ['quick', 'word-based']).
  * @property {React.LazyExoticComponent} Component - Lazy-loaded game component.
@@ -50,6 +51,26 @@ export const GAME_REGISTRY = [
     avgDuration: 180,
     tags: ['creative', 'quick'],
     Component: lazy(() => import('./quickDraw/QuickDraw')),
+  },
+  {
+    id: 'scrabble',
+    name: 'Classic Scrabble',
+    description: 'Build words on a compact grid. 30-second rapid turns.',
+    Icon: CaseSensitive,
+    difficulty: 'medium',
+    avgDuration: 300,
+    tags: ['classic', 'word-based', 'turn-based'],
+    Component: lazy(() => import('./scrabble/Scrabble')),
+  },
+  {
+    id: 'math-puzzle',
+    name: 'CrossMath Race',
+    description: 'Solve the equation grid. Race your partner in real time!',
+    Icon: Calculator,
+    difficulty: 'variable',
+    avgDuration: 180,
+    tags: ['speed-race', 'math-based', 'thinking'],
+    Component: lazy(() => import('./mathPuzzle/MathPuzzle')),
   },
 ];
 

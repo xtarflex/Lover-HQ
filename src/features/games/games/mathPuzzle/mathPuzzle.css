@@ -1,0 +1,413 @@
+/**
+ * @file mathPuzzle.css
+ * @description Styles for the CrossMath Race procedural math speed-race game.
+ */
+
+.math-puzzle-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: #F8FAFC;
+  background-color: #0F172A;
+  font-family: inherit;
+  overflow: hidden;
+  position: relative;
+}
+
+.math-puzzle-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-bottom: 7.5rem; /* Space for the tile rack */
+}
+
+/* Difficulty selection screen */
+.difficulty-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
+  max-width: 320px;
+  margin: auto;
+}
+
+.difficulty-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-difficulty {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 16px;
+  background-color: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.btn-difficulty:hover {
+  border-color: #F59E0B;
+  background-color: #334155;
+  transform: translateY(-2px);
+}
+
+.btn-difficulty span.desc {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #94A3B8;
+}
+
+/* Header Live Progress Heartbeat */
+.heartbeat-bar-container {
+  width: 100%;
+  max-width: 360px;
+  background-color: #1E293B;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.heartbeat-bar-user {
+  height: 100%;
+  background-color: #F59E0B; /* Gold */
+  transition: width 0.3s ease;
+}
+
+.heartbeat-bar-partner {
+  height: 100%;
+  background-color: #3B82F6; /* Blue */
+  transition: width 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.6;
+}
+
+/* Matrix layout using dynamic variables */
+.math-board-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+}
+
+.math-board {
+  display: grid;
+  grid-template-columns: repeat(var(--matrix-size), 1fr);
+  grid-template-rows: repeat(var(--matrix-size), 1fr);
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  background-color: #1E293B;
+  border: 4px solid #334155;
+  border-radius: 16px;
+  padding: 4px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+/* During drag active state, fade immutable cells by 40% */
+.math-board.drag-active .math-cell-immutable {
+  opacity: 0.4;
+}
+
+/* Cell styles */
+.math-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  user-select: none;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+/* Immutable numbers */
+.math-cell-immutable {
+  background-color: #334155;
+  color: #F8FAFC;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Operators (+ - * /) */
+.math-cell-operator {
+  background-color: #1E293B;
+  color: #94A3B8;
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+/* Equals (=) */
+.math-cell-equals {
+  background-color: #1E293B;
+  color: #64748B;
+  font-size: 1.1rem;
+}
+
+/* Results */
+.math-cell-result {
+  background-color: #0F172A;
+  color: #E2E8F0;
+  border: 1px solid #334155;
+  font-size: 0.95rem;
+}
+
+/* Empty slots for drop */
+.math-cell-slot {
+  background-color: rgba(30, 41, 59, 0.4);
+  border: 2px dashed #475569;
+  cursor: pointer;
+}
+
+.math-cell-slot:hover {
+  border-color: #64748B;
+  background-color: rgba(71, 85, 105, 0.2);
+}
+
+/* Pulse target slots with gold dashed border on pickup */
+.math-board.drag-active .math-cell-slot:not(.has-tile) {
+  border-color: #F59E0B;
+  animation: border-pulse 1s infinite alternate;
+}
+
+@keyframes border-pulse {
+  0% {
+    box-shadow: inset 0 0 2px rgba(245, 158, 11, 0.2);
+    background-color: rgba(245, 158, 11, 0.05);
+  }
+  100% {
+    box-shadow: inset 0 0 8px rgba(245, 158, 11, 0.4);
+    background-color: rgba(245, 158, 11, 0.1);
+  }
+}
+
+/* Filled slot tile */
+.math-placed-tile {
+  width: 90%;
+  height: 90%;
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid #60A5FA;
+  cursor: pointer;
+  animation: spring-drop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes spring-drop {
+  0% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Equation validations styling */
+.row-status-indicator {
+  position: absolute;
+  right: -24px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+}
+
+.col-status-indicator {
+  position: absolute;
+  bottom: -24px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+}
+
+.indicator-correct {
+  background-color: #10B981; /* Emerald */
+  box-shadow: 0 0 8px #10B981;
+}
+
+.indicator-incorrect {
+  background-color: #EF4444; /* Red */
+  box-shadow: 0 0 8px #EF4444;
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Dragging tile style */
+.math-tile-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%);
+  color: #78350F;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  transform: scale(1.1) translateY(-15px); /* Offset to float above finger/cursor */
+  opacity: 0.9;
+  border: 2px solid #F59E0B;
+}
+
+/* Pinned tiles rack at bottom */
+.math-rack-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 41, 59, 0.9);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 40;
+}
+
+.math-rack {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 380px;
+  min-height: 44px;
+}
+
+.rack-number-tile {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78350F;
+  font-weight: 700;
+  font-size: 1.15rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid #FCD34D;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.rack-number-tile.selected {
+  transform: scale(1.05) translateY(-4px);
+  box-shadow: 0 8px 12px rgba(245, 158, 11, 0.4);
+  border-color: #F59E0B;
+}
+
+.rack-number-tile:active {
+  cursor: grabbing;
+}
+
+.rack-number-tile.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+/* Post-race Inspection Panel Overlay */
+.inspection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.95);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.inspection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.75rem;
+}
+
+.inspection-grids-side-by-side {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .inspection-grids-side-by-side {
+    flex-direction: row;
+    justify-content: center;
+    gap: 2rem;
+  }
+}
+
+.inspection-board-card {
+  flex: 1;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.inspection-board-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.inspection-board-title.winner {
+  color: #F59E0B;
+}

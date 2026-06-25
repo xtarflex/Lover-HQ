@@ -1,0 +1,354 @@
+/**
+ * @file scrabble.css
+ * @description Sleek dark mode styling for the compact Scrabble game.
+ */
+
+.scrabble-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: #F8FAFC;
+  background-color: #0F172A;
+  font-family: inherit;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrabble-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-bottom: 8rem; /* Space for the letter rack */
+}
+
+/* 11x11 Grid Layout */
+.scrabble-board {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  grid-template-rows: repeat(11, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  background-color: #334155;
+  border: 4px solid #1E293B;
+  border-radius: 12px;
+  padding: 2px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 
+              0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+}
+
+/* Board Cell */
+.scrabble-cell {
+  position: relative;
+  aspect-ratio: 1;
+  background-color: #1E293B;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.scrabble-cell:active:not(.has-tile) {
+  background-color: #334155;
+}
+
+.scrabble-cell.selected {
+  outline: 2px solid #F59E0B;
+  outline-offset: -2px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* Multiplier styling */
+.cell-mult {
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+  line-height: 1;
+}
+
+.cell-plain {
+  background-color: #1E293B;
+}
+
+.cell-dl {
+  background-color: #1E3A8A; /* Dark Blue */
+  color: #60A5FA;
+}
+
+.cell-tl {
+  background-color: #1D4ED8; /* Lighter Blue */
+  color: #93C5FD;
+}
+
+.cell-dw {
+  background-color: #881337; /* Rose/Pinkish */
+  color: #FDA4AF;
+}
+
+.cell-tw {
+  background-color: #991B1B; /* Crimson */
+  color: #FCA5A5;
+}
+
+.cell-center {
+  background-color: #78350F; /* Amber/Goldish */
+  color: #FBBF24;
+}
+
+/* Scrabble Tile Style */
+.scrabble-tile {
+  width: 92%;
+  height: 92%;
+  background: linear-gradient(135deg, #FCD34D 0%, #D97706 100%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78350F;
+  font-weight: 800;
+  font-size: 1.1rem;
+  position: absolute;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  border: 1px solid #FBBF24;
+  user-select: none;
+}
+
+/* Subscript score on tile */
+.tile-score {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 0.5rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* Placed this turn (uncommitted) styling */
+.scrabble-tile.new-placement {
+  animation: pulse-gold 1.5s infinite alternate;
+  border: 2px solid #F59E0B;
+}
+
+@keyframes pulse-gold {
+  0% {
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+  }
+}
+
+/* Pinned Letter Rack */
+.scrabble-rack-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 40;
+}
+
+.scrabble-rack {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+}
+
+/* Rack Tile */
+.rack-tile-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background-color: #334155;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rack-tile {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78350F;
+  font-weight: 800;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  border: 1px solid #FCD34D;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rack-tile:active {
+  transform: scale(0.95);
+}
+
+.rack-tile.selected {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);
+  border: 2px solid #F59E0B;
+}
+
+/* Controls row */
+.scrabble-controls {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 360px;
+  justify-content: space-between;
+}
+
+.btn-scrabble {
+  flex: 1;
+  padding: 0.5rem 0.25rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
+}
+
+.btn-scrabble-primary {
+  background-color: #F59E0B;
+  color: #78350F;
+}
+
+.btn-scrabble-primary:hover:not(:disabled) {
+  background-color: #D97706;
+}
+
+.btn-scrabble-secondary {
+  background-color: #334155;
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-scrabble-secondary:hover:not(:disabled) {
+  background-color: #475569;
+}
+
+.btn-scrabble:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Status info */
+.scrabble-turn-indicator {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scrabble-bag-count {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  background-color: #1E293B;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Exchange tiles tray */
+.exchange-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.exchange-card {
+  background-color: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+.exchange-grid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.exchange-tile {
+  width: 40px;
+  height: 40px;
+  background-color: #334155;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #F8FAFC;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.15s ease;
+}
+
+.exchange-tile.selected {
+  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%);
+  color: #78350F;
+  border-color: #FBBF24;
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+/* Quick reaction styles */
+.scrabble-reactions {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}

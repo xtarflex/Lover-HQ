@@ -42,7 +42,18 @@ function getStoragePathFromUrl(url) {
  * }}
  */
 export function useFridgeSync({ userId, partnerId, pairingStatus, isPartnerInFridge }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => {
+    try {
+      const cached = localStorage.getItem('fridge_items_cache');
+      const queue = localStorage.getItem('fridge_offline_queue');
+      const parsedCached = cached ? JSON.parse(cached) : [];
+      const parsedQueue = queue ? JSON.parse(queue) : [];
+      return [...parsedCached, ...parsedQueue];
+    } catch (e) {
+      console.error('Error initializing fridge items from cache:', e);
+      return [];
+    }
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [commentsCount, setCommentsCount] = useState({});
