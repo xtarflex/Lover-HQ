@@ -38,10 +38,12 @@ export default function WordChainDefinitionDrawer({
   const containerRef = useRef(null);
 
   // Reset drag offset when selected word changes
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset drag offset and state when the word changes */
   useEffect(() => {
     setDragOffset(0);
     setIsDragging(false);
   }, [selectedDefinitionWord]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /**
    * Handle pointer down event to initiate dragging.
@@ -96,7 +98,7 @@ export default function WordChainDefinitionDrawer({
    *
    * @param {React.PointerEvent} e - Native pointer event
    */
-  const handlePointerCancel = (e) => {
+  const handlePointerCancel = (_e) => {
     if (!isDragging) return;
     setIsDragging(false);
     setDragOffset(0);
