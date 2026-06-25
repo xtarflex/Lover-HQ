@@ -459,6 +459,108 @@ export function useRevealHandlers({
     });
   }, [partner, setNudgeShaking, setMessage]);
 
+  /**
+   * Deletes a custom question from Supabase and updates local state.
+   *
+   * @param {string} qId - The custom question row ID.
+   * @returns {Promise<void>}
+   */
+  const handleDeleteCustomQuestion = useCallback(
+    async (qId) => {
+      try {
+        const { error } = await supabase.from('reveal_questions').delete().eq('id', qId);
+        if (error) throw error;
+        setCustomQuestions((prev) => prev.filter((q) => q.id !== qId));
+        setMessage({ type: 'success', text: 'Custom question deleted successfully!' });
+      } catch (err) {
+        console.error('Delete custom question failed:', err);
+        setMessage({ type: 'error', text: 'Failed to delete question: ' + err.message });
+      }
+    },
+    [setCustomQuestions, setMessage]
+  );
+
+  /**
+   * Unschedules a custom question, setting its date to null.
+   *
+   * @param {string} qId - The custom question row ID.
+   * @returns {Promise<void>}
+   */
+  const handleUnscheduleCustomQuestion = useCallback(
+    async (qId) => {
+      try {
+        const { error } = await supabase
+          .from('reveal_questions')
+          .update({ scheduled_for_date: null })
+          .eq('id', qId);
+        if (error) throw error;
+        setCustomQuestions((prev) =>
+          prev.map((q) => (q.id === qId ? { ...q, scheduled_for_date: null } : q))
+        );
+        setMessage({ type: 'success', text: 'Question returned to the rotation pool.' });
+      } catch (err) {
+        console.error('Unschedule failed:', err);
+        setMessage({ type: 'error', text: 'Failed to unschedule question: ' + err.message });
+      }
+    },
+    [setCustomQuestions, setMessage]
+  );
+
+  /**
+   * Sets a specific calendar date for a custom question.
+   *
+   * @param {string} qId - The custom question row ID.
+   * @param {string} dateStr - The YYYY-MM-DD date string.
+   * @returns {Promise<void>}
+   */
+  const handleSetCustomDate = useCallback(
+    async (qId, dateStr) => {
+      try {
+        const { error } = await supabase
+          .from('reveal_questions')
+          .update({ scheduled_for_date: dateStr })
+          .eq('id', qId);
+        if (error) throw error;
+        setCustomQuestions((prev) =>
+          prev.map((q) => (q.id === qId ? { ...q, scheduled_for_date: dateStr } : q))
+        );
+        setMessage({ type: 'success', text: `Scheduled for question on ${dateStr}!` });
+      } catch (err) {
+        console.error('Custom scheduling failed:', err);
+        setMessage({ type: 'error', text: 'Failed to schedule question: ' + err.message });
+      }
+    },
+    [setCustomQuestions, setMessage]
+  );
+
+  /**
+   * Edits the content and category of a custom question.
+   *
+   * @param {string} qId - The custom question row ID.
+   * @param {string} content - The new question text.
+   * @param {string} category - The new category.
+   * @returns {Promise<void>}
+   */
+  const handleEditCustomQuestion = useCallback(
+    async (qId, content, category) => {
+      try {
+        const { error } = await supabase
+          .from('reveal_questions')
+          .update({ content, category })
+          .eq('id', qId);
+        if (error) throw error;
+        setCustomQuestions((prev) =>
+          prev.map((q) => (q.id === qId ? { ...q, content, category } : q))
+        );
+        setMessage({ type: 'success', text: 'Question updated successfully!' });
+      } catch (err) {
+        console.error('Edit custom question failed:', err);
+        setMessage({ type: 'error', text: 'Failed to update question: ' + err.message });
+      }
+    },
+    [setCustomQuestions, setMessage]
+  );
+
   return {
     handleSubmitAnswer,
     handleCreateCustomQuestion,
@@ -467,5 +569,9 @@ export function useRevealHandlers({
     handleToggleReaction,
     handleAddComment,
     handleNudgePartner,
+    handleDeleteCustomQuestion,
+    handleUnscheduleCustomQuestion,
+    handleSetCustomDate,
+    handleEditCustomQuestion,
   };
 }
