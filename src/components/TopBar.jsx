@@ -1,10 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import Avatar from './Avatar';
 import { LoverHQLogo } from '../assets/Logo';
 import { Heart } from '../lib/icons';
 import { ICON_SIZES } from '../lib/constants';
+import { ArrowLeft } from 'lucide-react';
+
 
 /**
  * Helper to truncate names longer than 5 letters.
@@ -37,12 +39,24 @@ const getShortRoomName = (room) => {
 
 export function TopBar() {
   const { user, partner, presence } = useAppContext();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <header className="bg-brand-surface/80 backdrop-blur-md border-b border-gray-800 h-20 flex items-center justify-between px-6 sticky top-0 z-[60]">
-      {/* Top Left: Logo Only */}
-      <div className="flex items-center text-primary">
-        <LoverHQLogo className="text-primary w-10 h-10" />
+      {/* Top Left: Logo or Back Button */}
+      <div className="flex items-center text-primary gap-3">
+        {location.pathname === '/chat' ? (
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+            className="p-2 rounded-full text-text-muted hover:text-text-main hover:bg-slate-800/40 transition-colors flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-300" />
+          </button>
+        ) : (
+          <LoverHQLogo className="text-primary w-10 h-10" />
+        )}
       </div>
 
       {/* Center Status Text - Hidden on Mobile/Tablet */}
@@ -131,6 +145,8 @@ export function TopBar() {
             </div>
           </Link>
         )}
+
+
       </div>
     </header>
   );

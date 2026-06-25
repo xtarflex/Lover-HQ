@@ -116,6 +116,7 @@ export default function Reveal() {
     setNewCommentTexts,
     setUserAnswer,
     setPartnerAnswer,
+    customQuestions,
     setCustomQuestions,
     setArchiveMemories,
     setArchiveComments,

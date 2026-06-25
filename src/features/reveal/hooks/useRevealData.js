@@ -157,13 +157,50 @@ export function useRevealData({ userId, partnerId, coupleKey, todayStr, initiali
       }
 
       // 2. Fetch Custom Questions List
-      const { data: customQ, error: customError } = await supabase
+      let { data: customQ, error: customError } = await supabase
         .from('reveal_questions')
         .select('*')
         .or(`user_id.eq.${userId},user_id.eq.${partnerId}`)
         .order('created_at', { ascending: false });
 
       if (customError) throw customError;
+
+      // Auto-cleanup past scheduled questions that were never initialized (Option B)
+      const pastScheduled = customQ?.filter(
+        (q) => q.scheduled_for_date && q.scheduled_for_date < todayStr
+      );
+
+      if (pastScheduled && pastScheduled.length > 0) {
+        const pastScheduledIds = pastScheduled.map((q) => `custom-${q.id}`);
+        const { data: activeDailies } = await supabase
+          .from('reveal_daily_question')
+          .select('question_id')
+          .in('question_id', pastScheduledIds);
+
+        const activeDailyIds = new Set(activeDailies?.map((d) => d.question_id) || []);
+        const missedQuestionIds = pastScheduled
+          .filter((q) => !activeDailyIds.has(`custom-${q.id}`))
+          .map((q) => q.id);
+
+        if (missedQuestionIds.length > 0) {
+          const { error: resetError } = await supabase
+            .from('reveal_questions')
+            .update({ scheduled_for_date: null })
+            .in('id', missedQuestionIds);
+
+          if (!resetError) {
+            const { data: refetched } = await supabase
+              .from('reveal_questions')
+              .select('*')
+              .or(`user_id.eq.${userId},user_id.eq.${partnerId}`)
+              .order('created_at', { ascending: false });
+            if (refetched) {
+              customQ = refetched;
+            }
+          }
+        }
+      }
+
       setCustomQuestions(customQ || []);
       localStorage.setItem('reveal_custom_questions_cache', JSON.stringify(customQ || []));
 
