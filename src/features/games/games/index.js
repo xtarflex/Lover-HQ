@@ -5,8 +5,13 @@
  */
 
 import { lazy } from 'react';
-import { TicTacToeIcon, WordChainIcon, QuickDrawIcon } from '../components/GameIcons';
-import { CaseSensitive, Calculator } from 'lucide-react';
+import {
+  TicTacToeIcon,
+  WordChainIcon,
+  QuickDrawIcon,
+  ScrabbleIcon,
+  MathPuzzleIcon,
+} from '../components/GameIcons';
 
 /**
  * @typedef {Object} GameDefinition
@@ -56,7 +61,7 @@ export const GAME_REGISTRY = [
     id: 'scrabble',
     name: 'Classic Scrabble',
     description: 'Build words on a compact grid. 30-second rapid turns.',
-    Icon: CaseSensitive,
+    Icon: ScrabbleIcon,
     difficulty: 'medium',
     avgDuration: 300,
     tags: ['classic', 'word-based', 'turn-based'],
@@ -66,7 +71,7 @@ export const GAME_REGISTRY = [
     id: 'math-puzzle',
     name: 'CrossMath Race',
     description: 'Solve the equation grid. Race your partner in real time!',
-    Icon: Calculator,
+    Icon: MathPuzzleIcon,
     difficulty: 'variable',
     avgDuration: 180,
     tags: ['speed-race', 'math-based', 'thinking'],
