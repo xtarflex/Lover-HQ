@@ -58,6 +58,7 @@ export default function MusicPlayer() {
     queue,
     playTrackById,
     analyserNode,
+    activePlayer,
   } = useMusic();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -66,6 +67,7 @@ export default function MusicPlayer() {
   const animationRef = useRef(null);
   const isPlayingRef = useRef(isPlaying);
   const analyserRef = useRef(analyserNode);
+  const activePlayerRef = useRef(activePlayer);
 
   // Keep refs current for use inside rAF callbacks
   useEffect(() => {
@@ -74,6 +76,9 @@ export default function MusicPlayer() {
   useEffect(() => {
     analyserRef.current = analyserNode;
   }, [analyserNode]);
+  useEffect(() => {
+    activePlayerRef.current = activePlayer;
+  }, [activePlayer]);
 
   /** Navigates one track backward (restarts if <3 s in), or seeks to 0. */
   const handleSkipBack = () => {
@@ -128,8 +133,9 @@ export default function MusicPlayer() {
 
     // Respect prefers-reduced-motion: freeze bars for accessibility
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isActiveHtml5 = activePlayerRef.current === 'html5';
 
-    if (analyser && playing && !prefersReduced) {
+    if (isActiveHtml5 && analyser && playing && !prefersReduced) {
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(dataArray);
       const binStep = Math.floor(dataArray.length / numBars);
@@ -144,10 +150,17 @@ export default function MusicPlayer() {
         ctx.fill();
       }
     } else {
-      // Breathing idle animation (or reduced-motion static state)
-      const phase = Date.now() / (prefersReduced ? Infinity : 1200);
+      // Beautiful breathing animation (or reduced-motion static state)
+      const phase = Date.now() / (prefersReduced ? Infinity : 1000);
       for (let i = 0; i < numBars; i++) {
-        const breathe = prefersReduced ? 0.15 : 0.1 + 0.05 * Math.sin(i * 0.4 + phase);
+        // Base amplitude: taller when playing, shorter when paused
+        const amplitude = playing ? 0.35 + 0.15 * Math.sin(phase * 1.5) : 0.08;
+        // Wave pattern across the bars
+        const wave = 0.5 + 0.5 * Math.sin(i * 0.25 + phase * 2.5);
+        // Center-focused bell curve envelope so the edges taper off beautifully
+        const envelope = Math.sin((i / (numBars - 1)) * Math.PI);
+        
+        const breathe = prefersReduced ? 0.15 : (amplitude * wave * envelope) + 0.05;
         const barHeight = Math.max(2, breathe * canvas.height);
         const x = i * (barWidth + gap);
         const y = canvas.height - barHeight;
