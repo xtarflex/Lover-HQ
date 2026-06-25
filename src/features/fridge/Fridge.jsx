@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ChevronsRight } from 'lucide-react';
 import {
   createFridgeItem,
@@ -52,6 +53,7 @@ import { useOffscreenIndicators } from './hooks/useOffscreenIndicators';
  */
 export default function Fridge() {
   const { user, partner, presence, pairingStatus } = useAppContext();
+  const navigate = useNavigate();
   const userId = user?.id;
   const partnerId = partner?.id;
   const isPartnerInFridge = presence?.partnerRoom === 'Fridge';
@@ -134,6 +136,38 @@ export default function Fridge() {
       container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
     }
   }, [isLoading]);
+
+  // Handle highlight event from chat tags
+  useEffect(() => {
+    /**
+     * Handles the 'highlight-fridge-item' custom event, scrolling the target
+     * item into view and triggering a temporary flash highlight animation.
+     *
+     * @param {CustomEvent} e - The custom event containing the target item ID.
+     * @returns {void}
+     */
+    const handleHighlight = (e) => {
+      const itemId = e.detail?.id;
+      if (!itemId) return;
+
+      scrollToItem(itemId);
+
+      const el = scrollContainerRef.current?.querySelector(
+        `.fridge-item[data-item-id="${itemId}"]`
+      );
+      if (el) {
+        el.classList.add('animate-pulse-gold');
+        setTimeout(() => {
+          el.classList.remove('animate-pulse-gold');
+        }, 2000);
+      }
+    };
+
+    window.addEventListener('highlight-fridge-item', handleHighlight);
+    return () => {
+      window.removeEventListener('highlight-fridge-item', handleHighlight);
+    };
+  }, [scrollToItem]);
 
   // Toolbar scroll-gradient detection
   const checkScroll = () => {
@@ -699,6 +733,7 @@ export default function Fridge() {
           onAddPhoto={() => setIsPhotoOpen(true)}
           onAddVoice={() => setIsVoiceOpen(true)}
           onAddEmoji={() => setIsEmojiPickerOpen(true)}
+          onOpenChat={() => navigate('/chat')}
         />
       </div>
 

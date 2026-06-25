@@ -44,6 +44,7 @@ const Reveal = lazy(() => import('./features/reveal/Reveal'));
 const Board = lazy(() => import('./features/board/Board'));
 const Profile = lazy(() => import('./features/profile/Profile'));
 const Settings = lazy(() => import('./features/settings/Settings'));
+const Chat = lazy(() => import('./features/chat/Chat'));
 
 /**
  * Inner layout shell rendered for every authenticated route. Renders the
@@ -93,6 +94,8 @@ function MainLayout() {
         return 'Partner Profile';
       case 'settings':
         return 'Settings';
+      case 'chat':
+        return 'Chat Room';
       default:
         return 'Lover-HQ';
     }
@@ -271,6 +274,7 @@ export default function App() {
             <Route path="board" element={<Board />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="chat" element={<Chat />} />
           </Route>
 
           {/* Fallback route */}

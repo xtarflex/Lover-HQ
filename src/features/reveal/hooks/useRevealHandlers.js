@@ -27,6 +27,7 @@ import { supabase } from '../../../lib/supabase';
  *   setNewCommentTexts: Function,
  *   setUserAnswer: Function,
  *   setPartnerAnswer: Function,
+ *   customQuestions: Array,
  *   setCustomQuestions: Function,
  *   setArchiveMemories: Function,
  *   setArchiveComments: Function,
@@ -64,6 +65,7 @@ export function useRevealHandlers({
   setNewCommentTexts,
   setUserAnswer,
   setPartnerAnswer,
+  customQuestions,
   setCustomQuestions,
   setArchiveMemories,
   setArchiveComments,
@@ -298,24 +300,35 @@ export function useRevealHandlers({
   const handleScheduleNext = useCallback(
     async (qId) => {
       try {
+        const scheduledDates = new Set(
+          (customQuestions || []).map((q) => q.scheduled_for_date).filter(Boolean)
+        );
+
         const t = new Date();
-        t.setDate(t.getDate() + 1);
-        const tomStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+        let daysOffset = 1;
+        let targetStr;
+        do {
+          const targetDate = new Date(t);
+          targetDate.setDate(t.getDate() + daysOffset);
+          targetStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+          daysOffset++;
+        } while (scheduledDates.has(targetStr));
+
         const { error } = await supabase
           .from('reveal_questions')
-          .update({ scheduled_for_date: tomStr })
+          .update({ scheduled_for_date: targetStr })
           .eq('id', qId);
         if (error) throw error;
         setCustomQuestions((prev) =>
-          prev.map((q) => (q.id === qId ? { ...q, scheduled_for_date: tomStr } : q))
+          prev.map((q) => (q.id === qId ? { ...q, scheduled_for_date: targetStr } : q))
         );
-        setMessage({ type: 'success', text: `Scheduled for tomorrow's question (${tomStr})!` });
+        setMessage({ type: 'success', text: `Scheduled for question on ${targetStr}!` });
       } catch (err) {
         console.error('Scheduling failed:', err);
         setMessage({ type: 'error', text: 'Failed to schedule question: ' + err.message });
       }
     },
-    [setCustomQuestions, setMessage]
+    [customQuestions, setCustomQuestions, setMessage]
   );
 
   /**

@@ -1,19 +1,19 @@
 /**
  * @file FridgeSpeedDial.jsx
  * @description Animated floating speed dial FAB for the Fridge board.
- * Opens/closes mini action buttons for adding notes, photos, voice memos, and emoji.
+ * Opens/closes mini action buttons for adding notes, photos, voice memos, emoji, and chat access.
  */
 
 import React from 'react';
-import { Plus, FileText, Camera, Mic, Smile } from 'lucide-react';
+import { Plus, FileText, Camera, Mic, Smile, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Animated floating-action-button speed dial for the Fridge board.
  *
- * When `isSpeedDialOpen` is true, four mini-buttons slide in with a staggered
+ * When `isSpeedDialOpen` is true, mini-buttons slide in with a staggered
  * spring animation (framer-motion). Each mini-button calls the corresponding
- * `onAdd*` callback and closes the dial.
+ * `onAdd*` or `onOpen*` callback and closes the dial.
  *
  * @param {{
  *   isSpeedDialOpen: boolean,
@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  *   onAddPhoto: Function,
  *   onAddVoice: Function,
  *   onAddEmoji: Function,
+ *   onOpenChat: Function,
  * }} props
  * @returns {React.ReactElement}
  */
@@ -32,6 +33,7 @@ export default function FridgeSpeedDial({
   onAddPhoto,
   onAddVoice,
   onAddEmoji,
+  onOpenChat,
 }) {
   return (
     <div className="absolute bottom-6 right-6 z-35 flex flex-col items-end gap-3">
@@ -58,6 +60,23 @@ export default function FridgeSpeedDial({
             }}
             className="flex flex-col gap-2 items-end z-40"
           >
+            {/* Open Chat Button */}
+            <motion.button
+              variants={{
+                hidden: { opacity: 0, x: 50, scale: 0.8 },
+                visible: { opacity: 1, x: 0, scale: 1 },
+                exit: { opacity: 0, x: 50, scale: 0.8 },
+              }}
+              transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+              onClick={() => {
+                onOpenChat();
+                setIsSpeedDialOpen(false);
+              }}
+              className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white font-bold px-3 py-2 rounded-xl shadow-lg border border-pink-400 text-xs transition-transform active:scale-95 animate-pulse"
+            >
+              <MessageSquare className="w-4 h-4 text-white" />
+              Chat
+            </motion.button>
             {/* Add Note Button */}
             <motion.button
               variants={{
