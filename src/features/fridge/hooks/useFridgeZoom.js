@@ -22,9 +22,15 @@ import { useState, useEffect, useRef } from 'react';
  * }}
  */
 export function useFridgeZoom(scrollContainerRef) {
-  const [zoom, setZoom] = useState(1.0);
+  const [zoom, setZoom] = useState(() => {
+    return Number(localStorage.getItem('fridge_zoom') || '1.0');
+  });
   const [touchStartDist, setTouchStartDist] = useState(0);
   const [touchStartZoom, setTouchStartZoom] = useState(1.0);
+
+  useEffect(() => {
+    localStorage.setItem('fridge_zoom', zoom.toString());
+  }, [zoom]);
 
   // Keep refs in sync so touch-event callbacks always read the current value
   // without needing them as effect dependencies (which would force re-attaching

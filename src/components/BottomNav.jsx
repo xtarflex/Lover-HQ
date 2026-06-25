@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FridgeIcon, Music, Gamepad2, Heart, LoverHQLogo } from '../lib/icons';
 import { ICON_SIZES } from '../lib/constants';
@@ -20,34 +20,42 @@ export function BottomNav() {
   const userId = user?.id;
   const partnerId = partner?.id;
 
+  const prevPathnameRef = useRef(location.pathname);
+
   // Track route changes, manage last_visited_fridge and fetch unread fridge items
   useEffect(() => {
     if (!userId) return;
 
     if (location.pathname === '/fridge') {
       setTimeout(() => setHasNewFridge(false), 0);
-      localStorage.setItem('last_visited_fridge', new Date().toISOString());
     } else {
-      const checkNewItems = async () => {
-        const lastVisited = localStorage.getItem('last_visited_fridge');
-        if (!lastVisited) {
-          // If never visited, set it to now to avoid badging old items
-          localStorage.setItem('last_visited_fridge', new Date().toISOString());
-          return;
-        }
-
-        try {
-          const data = await getFridgeItemsNewerThan(userId, partnerId, lastVisited);
-          if (data && data.length > 0) {
-            setHasNewFridge(true);
+      // If we just navigated away from the Fridge, update last_visited_fridge to now and clear badge immediately
+      if (prevPathnameRef.current === '/fridge') {
+        localStorage.setItem('last_visited_fridge', new Date().toISOString());
+        setHasNewFridge(false);
+      } else {
+        const checkNewItems = async () => {
+          const lastVisited = localStorage.getItem('last_visited_fridge');
+          if (!lastVisited) {
+            // If never visited, set it to now to avoid badging old items
+            localStorage.setItem('last_visited_fridge', new Date().toISOString());
+            return;
           }
-        } catch (err) {
-          console.error('Error checking for new fridge items:', err);
-        }
-      };
 
-      checkNewItems();
+          try {
+            const data = await getFridgeItemsNewerThan(userId, partnerId, lastVisited);
+            if (data && data.length > 0) {
+              setHasNewFridge(true);
+            }
+          } catch (err) {
+            console.error('Error checking for new fridge items:', err);
+          }
+        };
+
+        checkNewItems();
+      }
     }
+    prevPathnameRef.current = location.pathname;
   }, [location.pathname, userId, partnerId]);
 
   // Subscribe to real-time changes in fridge_items table to trigger badge
@@ -67,7 +75,7 @@ export function BottomNav() {
           // Only show badge if the user is not currently in the Fridge tab
           if (location.pathname !== '/fridge') {
             const itemUserId = payload.new?.user_id || payload.old?.user_id;
-            if (itemUserId === userId || itemUserId === partnerId) {
+            if (partnerId && itemUserId === partnerId && payload.eventType !== 'DELETE') {
               setHasNewFridge(true);
             }
           }

@@ -113,7 +113,8 @@ export async function getFridgeItemsBeforeCutoff(userIds, cutOffIso) {
     .from('fridge_items')
     .select('*')
     .in('user_id', userIds)
-    .lt('created_at', cutOffIso);
+    .lt('created_at', cutOffIso)
+    .eq('is_pinned', false);
 
   if (error) throw error;
   return data || [];
@@ -132,7 +133,8 @@ export async function deleteFridgeItemsBeforeCutoff(userIds, cutOffIso) {
     .from('fridge_items')
     .delete()
     .in('user_id', userIds)
-    .lt('created_at', cutOffIso);
+    .lt('created_at', cutOffIso)
+    .eq('is_pinned', false);
 
   if (error) throw error;
 }
@@ -147,15 +149,14 @@ export async function deleteFridgeItemsBeforeCutoff(userIds, cutOffIso) {
  * @throws {Error} If the database query fails.
  */
 export async function getFridgeItemsNewerThan(userId, partnerId, timestamp) {
-  let query = supabase.from('fridge_items').select('id, updated_at').gt('updated_at', timestamp);
+  if (!partnerId) return [];
 
-  if (partnerId) {
-    query = query.or(`user_id.eq.${userId},user_id.eq.${partnerId}`);
-  } else {
-    query = query.eq('user_id', userId);
-  }
+  const { data, error } = await supabase
+    .from('fridge_items')
+    .select('id, updated_at')
+    .eq('user_id', partnerId)
+    .gt('updated_at', timestamp);
 
-  const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }

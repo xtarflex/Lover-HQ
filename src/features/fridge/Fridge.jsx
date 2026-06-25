@@ -88,8 +88,10 @@ export default function Fridge() {
   // Local UI state
   // ---------------------------------------------------------------------------
 
-  const [hideOld, setHideOld] = useState(false);
-  const [cleanThreshold, setCleanThreshold] = useState(7);
+  const [hideOld, setHideOld] = useState(() => localStorage.getItem('fridge_hide_old') === 'true');
+  const [cleanThreshold, setCleanThreshold] = useState(() =>
+    Number(localStorage.getItem('fridge_clean_threshold') || '7')
+  );
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
 
@@ -128,14 +130,50 @@ export default function Fridge() {
     };
   }, []);
 
-  // Centre viewport scroll on initial load
+  // Persist settings changes
   useEffect(() => {
-    if (!isLoading && scrollContainerRef.current) {
+    localStorage.setItem('fridge_hide_old', hideOld.toString());
+  }, [hideOld]);
+
+  useEffect(() => {
+    localStorage.setItem('fridge_clean_threshold', cleanThreshold.toString());
+  }, [cleanThreshold]);
+
+  // Centre viewport scroll on initial load or mount
+  const centeredRef = useRef(false);
+  useEffect(() => {
+    if (scrollContainerRef.current && (!isLoading || items.length > 0) && !centeredRef.current) {
       const container = scrollContainerRef.current;
       container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
       container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
+      centeredRef.current = true;
     }
-  }, [isLoading]);
+  }, [isLoading, items.length]);
+
+  // Handle zoom centering scroll adjustment
+  const prevZoomRef = useRef(zoom);
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const zoomOld = prevZoomRef.current;
+      const zoomNew = zoom;
+
+      if (zoomOld !== zoomNew) {
+        const viewportWidth = container.clientWidth;
+        const viewportHeight = container.clientHeight;
+
+        const centerX = container.scrollLeft + viewportWidth / 2;
+        const centerY = container.scrollTop + viewportHeight / 2;
+
+        const newCenterX = centerX * (zoomNew / zoomOld);
+        const newCenterY = centerY * (zoomNew / zoomOld);
+
+        container.scrollLeft = newCenterX - viewportWidth / 2;
+        container.scrollTop = newCenterY - viewportHeight / 2;
+      }
+    }
+    prevZoomRef.current = zoom;
+  }, [zoom]);
 
   // Handle highlight event from chat tags
   useEffect(() => {
@@ -367,6 +405,68 @@ export default function Fridge() {
                     ...item,
                     x_position: newX,
                     y_position: newY,
+                    updated_at: timestamp,
+                    isPending: true,
+                    isOfflineQueue: true,
+                  }
+                : item
+            )
+          );
+        } catch (e) {
+          console.error('Failed to queue offline update:', e);
+          setItems(backupItems);
+        }
+      } else {
+        setItems(backupItems);
+      }
+    }
+  };
+
+  /**
+   * Toggles the pinned/locked status of a fridge magnet item.
+   *
+   * @param {string} itemId - The ID of the item.
+   * @param {boolean} isPinned - The target pinned status.
+   * @returns {Promise<void>}
+   */
+  const handleTogglePin = async (itemId, isPinned) => {
+    playWhiteboardSound('pin');
+    const backupItems = [...items];
+    const timestamp = new Date().toISOString();
+
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? { ...item, is_pinned: isPinned, updated_at: timestamp, isPending: true }
+          : item
+      )
+    );
+
+    try {
+      if (!navigator.onLine) throw new Error('Offline');
+
+      await updateFridgeItem(itemId, { is_pinned: isPinned, updated_at: timestamp });
+
+      setItems((prev) =>
+        prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+      );
+    } catch (err) {
+      console.error('Optimistic pin toggle failed:', err);
+      const isNetwork =
+        !navigator.onLine || err.message?.includes('Failed to fetch') || err.message === 'Offline';
+      if (isNetwork) {
+        try {
+          addOfflineUpdate({
+            id: itemId,
+            is_pinned: isPinned,
+            updated_at: timestamp,
+          });
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === itemId
+                ? {
+                    ...item,
+                    is_pinned: isPinned,
                     updated_at: timestamp,
                     isPending: true,
                     isOfflineQueue: true,
@@ -678,6 +778,7 @@ export default function Fridge() {
                   onDelete={handleDeleteItem}
                   onEdit={handleEditNote}
                   onPositionChange={handlePositionChange}
+                  onTogglePin={handleTogglePin}
                   isNew={isNew}
                   userId={userId}
                   partnerLastSeen={partnerLastSeen}
@@ -693,7 +794,7 @@ export default function Fridge() {
             })}
 
             {/* Initial Loading Overlay */}
-            {isLoading && (
+            {isLoading && items.length === 0 && (
               <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50">
                 <div className="flex flex-col items-center gap-3">
                   <LoadingSpinner size="md" />
