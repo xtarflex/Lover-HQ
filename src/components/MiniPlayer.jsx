@@ -60,7 +60,7 @@ function MinimizedMiniPlayer({
     }, 100);
   };
 
-  const onCardClick = (e) => {
+  const onCardClick = (_e) => {
     if (isDraggingRef.current) return;
     handleMaximize();
   };
@@ -80,8 +80,8 @@ function MinimizedMiniPlayer({
     isDragging
       ? 'rounded-full px-2' // Fully rounded pill shape while dragging
       : side === 'left'
-      ? 'rounded-r-3xl border-l-0 pr-3.5 pl-1.5' // Flat against left edge
-      : 'rounded-l-3xl border-r-0 pl-3.5 pr-1.5 justify-end' // Flat against right edge
+        ? 'rounded-r-3xl border-l-0 pr-3.5 pl-1.5' // Flat against left edge
+        : 'rounded-l-3xl border-r-0 pl-3.5 pr-1.5 justify-end' // Flat against right edge
   }`;
 
   return (
@@ -177,6 +177,7 @@ export function MiniPlayer() {
   const [lastTrackId, setLastTrackId] = useState(null);
 
   // Auto-restore and show MiniPlayer on track change
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset closed/minimized UI state when a new track starts */
   useEffect(() => {
     if (currentTrack?.id && currentTrack.id !== lastTrackId) {
       setIsClosed(false);
@@ -184,6 +185,7 @@ export function MiniPlayer() {
       setLastTrackId(currentTrack.id);
     }
   }, [currentTrack, lastTrackId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!currentTrack || isClosed || location.pathname === '/music') return null;
 

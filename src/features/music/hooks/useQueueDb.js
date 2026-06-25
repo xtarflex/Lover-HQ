@@ -67,6 +67,7 @@ export function useQueueDb({
   }, [user, supabase, playTrackById, currentTrackRef, isCrossfadingRef]);
 
   // Queue subscription with debounce
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: fetch initial queue state on subscription setup */
   useEffect(() => {
     if (!user?.id || !user?.partner_id) return;
 
@@ -97,6 +98,7 @@ export function useQueueDb({
       supabase.removeChannel(channel);
     };
   }, [user, supabase, fetchQueue]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /**
    * Inserts a new track into the shared queue.

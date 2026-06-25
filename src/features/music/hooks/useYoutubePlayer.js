@@ -58,7 +58,7 @@ export function useYoutubePlayer({
   isPlaying,
   isActivePlayer,
   isCrossfadingRef,
-  volumeRef,
+  _volumeRef,
   setDuration,
   setCurrentTime,
   handleTrackEnded,
@@ -117,7 +117,7 @@ export function useYoutubePlayer({
               ytReady.current[idx] = true;
               ytPlayers.current[idx] = event.target; // Store the fully decorated player instance!
               console.log(`YouTube player ${idx} ready.`);
-              
+
               // If this is the active index and we have a pending action, play it
               if (pendingYtAction.current && activeYtIndex.current === idx) {
                 const { trackId, startTime } = pendingYtAction.current;
@@ -129,7 +129,9 @@ export function useYoutubePlayer({
               if (!active) return;
               if (idx !== activeYtIndex.current) return;
               if (event.data === 1) {
-                setDurationRef.current(ytPlayers.current[activeYtIndex.current]?.getDuration() || 0);
+                setDurationRef.current(
+                  ytPlayers.current[activeYtIndex.current]?.getDuration() || 0
+                );
               } else if (event.data === 0) {
                 if (!isCrossfadingRef.current) {
                   handleTrackEndedRef.current();

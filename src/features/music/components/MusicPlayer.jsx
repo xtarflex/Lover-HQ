@@ -159,8 +159,8 @@ export default function MusicPlayer() {
         const wave = 0.5 + 0.5 * Math.sin(i * 0.25 + phase * 2.5);
         // Center-focused bell curve envelope so the edges taper off beautifully
         const envelope = Math.sin((i / (numBars - 1)) * Math.PI);
-        
-        const breathe = prefersReduced ? 0.15 : (amplitude * wave * envelope) + 0.05;
+
+        const breathe = prefersReduced ? 0.15 : amplitude * wave * envelope + 0.05;
         const barHeight = Math.max(2, breathe * canvas.height);
         const x = i * (barWidth + gap);
         const y = canvas.height - barHeight;
@@ -347,13 +347,15 @@ export default function MusicPlayer() {
                 type="range"
                 min="0"
                 max={duration || 100}
-                value={scrubValue !== null ? scrubValue : (currentTime || 0)}
+                value={scrubValue !== null ? scrubValue : currentTime || 0}
                 disabled={!currentTrack}
                 onChange={handleSliderChange}
                 onMouseUp={handleSliderRelease}
                 onTouchEnd={handleSliderRelease}
                 onKeyUp={(e) => {
-                  if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+                  if (
+                    ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)
+                  ) {
                     handleSliderRelease();
                   }
                 }}

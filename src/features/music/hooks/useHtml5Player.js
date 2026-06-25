@@ -40,10 +40,18 @@ export function useHtml5Player({
   const setCurrentTimeRef = useRef(setCurrentTime);
   const setDurationRef = useRef(setDuration);
 
-  useEffect(() => { volumeRef.current = volume; }, [volume]);
-  useEffect(() => { handleTrackEndedRef.current = handleTrackEnded; }, [handleTrackEnded]);
-  useEffect(() => { setCurrentTimeRef.current = setCurrentTime; }, [setCurrentTime]);
-  useEffect(() => { setDurationRef.current = setDuration; }, [setDuration]);
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
+  useEffect(() => {
+    handleTrackEndedRef.current = handleTrackEnded;
+  }, [handleTrackEnded]);
+  useEffect(() => {
+    setCurrentTimeRef.current = setCurrentTime;
+  }, [setCurrentTime]);
+  useEffect(() => {
+    setDurationRef.current = setDuration;
+  }, [setDuration]);
 
   // Keep track of event listener cleanups
   const cleanupsRef = useRef({ primary: null, standby: null });
@@ -107,7 +115,7 @@ export function useHtml5Player({
           const currentSrc = el.src;
           const currentTime = el.currentTime;
           const wasPlaying = !el.paused;
-          const isPrimary = (el === audioRef.current);
+          const isPrimary = el === audioRef.current;
 
           // Recreate without CORS
           const newEl = recreateAudioElement(isPrimary, false);
@@ -174,11 +182,13 @@ export function useHtml5Player({
     recreateAudioElement(true, true);
     recreateAudioElement(false, true);
 
+    const currentCleanups = cleanupsRef.current;
+
     return () => {
       if (audioRef.current) audioRef.current.pause();
       if (standbyAudioRef.current) standbyAudioRef.current.pause();
-      if (cleanupsRef.current.primary) cleanupsRef.current.primary();
-      if (cleanupsRef.current.standby) cleanupsRef.current.standby();
+      if (currentCleanups.primary) currentCleanups.primary();
+      if (currentCleanups.standby) currentCleanups.standby();
       audioRef.current = null;
       standbyAudioRef.current = null;
     };
@@ -215,7 +225,11 @@ export function useHtml5Player({
       analyserRef.current = analyser;
 
       // If the primary element is already playing with CORS, connect it now
-      if (audioRef.current && audioRef.current.crossOrigin === 'anonymous' && !audioRef.current.paused) {
+      if (
+        audioRef.current &&
+        audioRef.current.crossOrigin === 'anonymous' &&
+        !audioRef.current.paused
+      ) {
         connectElementToContext(audioRef.current);
       }
     } catch (e) {
