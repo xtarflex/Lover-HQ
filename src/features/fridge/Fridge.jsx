@@ -735,73 +735,82 @@ export default function Fridge() {
           className="w-full h-full overflow-auto scrollbar-none relative"
           style={{ cursor: 'grab' }}
         >
-          {/* Zoomable Canvas Surface */}
+          {/* Sizer wrapper to adjust scroll boundary to scaled canvas */}
           <div
-            ref={canvasRef}
-            className="relative transition-transform duration-200"
             style={{
-              width: '300%',
-              height: '300%',
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top left',
-              overflow: 'hidden',
-              ...getCanvasBackgroundStyle(),
+              width: `${300 * zoom}%`,
+              height: `${300 * zoom}%`,
+              position: 'relative',
             }}
           >
-            {/* Subtle Metallic Brushed Highlights */}
-            {boardBg === 'metallic' && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none opacity-30 mix-blend-overlay" />
-            )}
+            {/* Zoomable Canvas Surface */}
+            <div
+              ref={canvasRef}
+              className="absolute inset-0 transition-transform duration-200"
+              style={{
+                width: `${100 / zoom}%`,
+                height: `${100 / zoom}%`,
+                transform: `scale(${zoom})`,
+                transformOrigin: 'top left',
+                overflow: 'hidden',
+                ...getCanvasBackgroundStyle(),
+              }}
+            >
+              {/* Subtle Metallic Brushed Highlights */}
+              {boardBg === 'metallic' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none opacity-30 mix-blend-overlay" />
+              )}
 
-            {/* Empty Canvas Indicator */}
-            {!isLoading && filteredItems.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 pointer-events-none">
-                <FridgeIcon className="w-12 h-12 text-primary/30 mb-3" />
-                <p className="text-sm font-bold text-text-muted">Your Fridge is empty</p>
-                <p className="text-xs text-text-muted/60 mt-1 max-w-xs">
-                  Tap the floating plus icon in the bottom right to pin sticky notes, photos, or
-                  voice recordings.
-                </p>
-              </div>
-            )}
-
-            {/* Render Draggable Items */}
-            {filteredItems.map((item) => {
-              const isNew =
-                new Date(item.updated_at) > new Date(lastVisited) && item.user_id !== userId;
-              return (
-                <FridgeItem
-                  key={item.id}
-                  item={item}
-                  containerRef={canvasRef}
-                  isEditMode={isEditMode}
-                  onDelete={handleDeleteItem}
-                  onEdit={handleEditNote}
-                  onPositionChange={handlePositionChange}
-                  onTogglePin={handleTogglePin}
-                  isNew={isNew}
-                  userId={userId}
-                  partnerLastSeen={partnerLastSeen}
-                  isPartnerInFridge={isPartnerInFridge}
-                  commentCount={commentsCount[item.id] || 0}
-                  onOpenComments={(targetItem) => setSelectedCommentItem(targetItem)}
-                  onZoomPhoto={setSelectedPhotoUrl}
-                  isSnappingEnabled={isSnappingEnabled}
-                  noteFont={noteFont}
-                  magnetSize={magnetSize}
-                />
-              );
-            })}
-
-            {/* Initial Loading Overlay */}
-            {isLoading && items.length === 0 && (
-              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="flex flex-col items-center gap-3">
-                  <LoadingSpinner size="md" />
-                  <p className="text-xs font-semibold text-text-muted">Loading fridge items...</p>
+              {/* Empty Canvas Indicator */}
+              {!isLoading && filteredItems.length === 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 pointer-events-none">
+                  <FridgeIcon className="w-12 h-12 text-primary/30 mb-3" />
+                  <p className="text-sm font-bold text-text-muted">Your Fridge is empty</p>
+                  <p className="text-xs text-text-muted/60 mt-1 max-w-xs">
+                    Tap the floating plus icon in the bottom right to pin sticky notes, photos, or
+                    voice recordings.
+                  </p>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* Render Draggable Items */}
+              {filteredItems.map((item) => {
+                const isNew =
+                  new Date(item.updated_at) > new Date(lastVisited) && item.user_id !== userId;
+                return (
+                  <FridgeItem
+                    key={item.id}
+                    item={item}
+                    containerRef={canvasRef}
+                    isEditMode={isEditMode}
+                    onDelete={handleDeleteItem}
+                    onEdit={handleEditNote}
+                    onPositionChange={handlePositionChange}
+                    onTogglePin={handleTogglePin}
+                    isNew={isNew}
+                    userId={userId}
+                    partnerLastSeen={partnerLastSeen}
+                    isPartnerInFridge={isPartnerInFridge}
+                    commentCount={commentsCount[item.id] || 0}
+                    onOpenComments={(targetItem) => setSelectedCommentItem(targetItem)}
+                    onZoomPhoto={setSelectedPhotoUrl}
+                    isSnappingEnabled={isSnappingEnabled}
+                    noteFont={noteFont}
+                    magnetSize={magnetSize}
+                  />
+                );
+              })}
+
+              {/* Initial Loading Overlay */}
+              {isLoading && items.length === 0 && (
+                <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50">
+                  <div className="flex flex-col items-center gap-3">
+                    <LoadingSpinner size="md" />
+                    <p className="text-xs font-semibold text-text-muted">Loading fridge items...</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
