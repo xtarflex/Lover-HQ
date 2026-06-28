@@ -202,19 +202,21 @@ export function MathPuzzleIcon({ className = '' }) {
     <svg
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
       className={className}
       aria-hidden="true"
     >
-      <rect x="3" y="3" width="6" height="6" rx="1" />
-      <rect x="15" y="3" width="6" height="6" rx="1" />
-      <rect x="3" y="15" width="6" height="6" rx="1" />
-      <rect x="15" y="15" width="6" height="6" rx="1" />
-      <path d="M12 5v2M11 6h2M5 12h2M11 17h2M11 19h2" />
+      {/* Puzzle piece group, rotated slightly left */}
+      <g transform="translate(0.5, 6) rotate(-18, 6, 6)">
+        <path d="M 2 2 h 3 c 0 -1.5 2 -1.5 2 0 h 3 v 3 c -1.5 0 -1.5 2 0 2 v 3 h -3 c 0 1.5 -2 1.5 -2 0 h -3 v -3 c 1.5 0 1.5 -2 0 -2 z" />
+      </g>
+      {/* Question mark group, rotated slightly right */}
+      <g transform="translate(0, 0) rotate(8, 16, 11)">
+        {/* Hook */}
+        <path d="M 15.3 16 h 2.4 v -1.5 c 0 -1, 0.8 -1.7, 1.6 -2.5 c 1 -1, 1.5 -2.2, 1.5 -3.8 c 0 -2.7 -2.3 -4.7 -5.3 -4.7 c -2.7 0 -4.5 1.7 -5 4 h 2.5 c 0.3 -1, 1.2 -1.7, 2.5 -1.7 c 1.7 0 2.8 1 2.8 2.4 c 0 1 -0.5 1.8 -1.3 2.6 c -1 1 -1.7 2 -1.7 3.7 z" />
+        {/* Dot */}
+        <circle cx="16.5" cy="19.2" r="1.3" />
+      </g>
     </svg>
   );
 }
