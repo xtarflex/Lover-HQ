@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import { PencilLine } from 'lucide-react';
 
 /**
  * Tic-Tac-Toe board icon (user-supplied SVG, option 1).
@@ -152,14 +151,63 @@ export function WordChainIcon({ className = '' }) {
 }
 
 /**
- * Quick Draw pencil icon — uses Lucide PencilLine.
- * Wrapped so it matches the same component-reference pattern in the registry.
+ * Custom Quick Draw paint palette and brush icon.
+ * Features a masked transparency gap around the paintbrush.
  *
  * @param {object} props
  * @param {string} [props.className]
  */
 export function QuickDrawIcon({ className = '' }) {
-  return <PencilLine className={className} aria-hidden="true" />;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <defs>
+        <mask id="brush-mask">
+          <rect width="24" height="24" fill="white" />
+          <line
+            x1="5"
+            y1="19"
+            x2="19"
+            y2="5"
+            stroke="black"
+            strokeWidth="3.8"
+            strokeLinecap="round"
+          />
+        </mask>
+      </defs>
+
+      <path
+        d="M 12 3 C 7 3, 3 7, 3 12.5 C 3 17, 7 20, 12 20 C 14.5 20, 16.5 18, 17.5 16 C 18.5 14, 19 12.5, 19 11 C 19 8, 16.5 7.5, 16 5.5 C 15.5 3.5, 13.5 3, 12 3 Z"
+        mask="url(#brush-mask)"
+      />
+
+      <circle cx="14.5" cy="14.5" r="1.2" mask="url(#brush-mask)" />
+
+      <circle cx="7" cy="8" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="6.5" cy="12.5" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="8.5" cy="16.5" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="10.5" cy="5.5" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="14" cy="6.5" r="1.3" fill="currentColor" stroke="none" />
+
+      <line x1="4.8" y1="19.2" x2="14.5" y2="9.5" stroke="currentColor" strokeWidth="2.5" />
+      <line x1="14" y1="10" x2="15.8" y2="8.2" stroke="currentColor" strokeWidth="3.4" />
+      <path
+        d="M 15.5 8.5 C 16.8 6, 18.2 4.5, 21.5 2.5 C 19.5 5.8, 18 7.2, 15.5 8.5 Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+    </svg>
+  );
 }
 
 /**
