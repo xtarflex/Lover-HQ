@@ -14,9 +14,54 @@ Deno.serve(async (req) => {
   }
 
   const u = new URL(req.url);
-  const targetUrl = u.searchParams.get('url');
-  if (!targetUrl) {
+  const targetUrlStr = u.searchParams.get('url');
+  if (!targetUrlStr) {
     return new Response('Missing url parameter', { status: 400 });
+  }
+
+  let targetUrl;
+  try {
+    targetUrl = new URL(targetUrlStr);
+  } catch (e) {
+    return new Response('Invalid url parameter', { status: 400 });
+  }
+
+  // SSRF Mitigation: Restrict protocol
+  if (targetUrl.protocol !== 'https:') {
+    return new Response('Protocol not allowed', { status: 403 });
+  }
+
+  // SSRF Mitigation: Allowlist domains
+  const allowedHostnames = [
+    'youtube.com',
+    'www.youtube.com',
+    'youtu.be',
+    'googlevideo.com',
+    'noembed.com',
+  ];
+
+  // Try to add the current project's Supabase host if available
+  const supabaseUrlStr = Deno.env.get('SUPABASE_URL');
+  if (supabaseUrlStr) {
+    try {
+      const supUrl = new URL(supabaseUrlStr);
+      allowedHostnames.push(supUrl.hostname);
+    } catch (e) {
+      // Ignore invalid SUPABASE_URL
+    }
+  }
+
+  const isAllowedHost = allowedHostnames.some((host) => {
+    // Exact match or subdomain match (e.g. *.googlevideo.com)
+    return targetUrl.hostname === host || targetUrl.hostname.endsWith('.' + host);
+  });
+
+  if (
+    !isAllowedHost &&
+    !targetUrl.hostname.endsWith('.supabase.co') &&
+    !targetUrl.hostname.endsWith('.supabase.in')
+  ) {
+    return new Response('Hostname not allowed', { status: 403 });
   }
 
   // Echo origin or allow all for public access
@@ -30,7 +75,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const upstream = await fetch(targetUrl, { headers });
+    const upstream = await fetch(targetUrl.toString(), { headers });
 
     // If upstream returns an error that is not 206 (Partial Content), forward it
     if (!upstream.ok && upstream.status !== 206) {
