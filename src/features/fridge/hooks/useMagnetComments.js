@@ -8,7 +8,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { getFridgeComments, createFridgeComment } from '../../../services/fridge';
+import {
+  getFridgeComments,
+  createFridgeComment,
+  createFridgeComments,
+} from '../../../services/fridge';
 
 /**
  * Manages the comments state, real-time subscription, and offline-queue logic
@@ -151,17 +155,34 @@ export function useMagnetComments(item, userId) {
 
     if (queue.length === 0) return;
 
-    const remaining = [];
-    for (const comment of queue) {
-      try {
-        await createFridgeComment({
-          item_id: comment.item_id,
-          user_id: comment.user_id,
-          content: comment.content,
-        });
-      } catch (err) {
-        console.error('Failed to sync offline comment:', err);
-        remaining.push(comment);
+    let remaining = [];
+    try {
+      // 1. Attempt the optimized bulk insert for the 99% happy path
+      const commentsToInsert = queue.map((comment) => ({
+        item_id: comment.item_id,
+        user_id: comment.user_id,
+        content: comment.content,
+      }));
+      await createFridgeComments(commentsToInsert);
+    } catch (bulkErr) {
+      console.warn(
+        'Bulk offline sync failed, falling back to sequential inserts to isolate bad data:',
+        bulkErr
+      );
+
+      // 2. If the entire batch was rejected (e.g., one bad comment constraint violation),
+      //    fall back to sequential so we don't drop the valid comments.
+      for (const comment of queue) {
+        try {
+          await createFridgeComment({
+            item_id: comment.item_id,
+            user_id: comment.user_id,
+            content: comment.content,
+          });
+        } catch (err) {
+          console.error('Failed to sync offline comment during fallback:', err);
+          remaining.push(comment);
+        }
       }
     }
 
