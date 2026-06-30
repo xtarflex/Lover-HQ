@@ -185,11 +185,14 @@ export function useQueueDb({
       setQueue(reorderedTracks);
 
       try {
-        await Promise.all(
-          reorderedTracks.map((track, index) =>
-            supabase.from('music_queue').update({ position_index: index }).eq('id', track.id)
-          )
-        );
+        const payload = reorderedTracks.map((track, index) => ({
+          id: track.id,
+          position_index: index,
+        }));
+
+        const { error } = await supabase.rpc('update_queue_positions', { payload });
+
+        if (error) throw error;
       } catch (err) {
         console.error('Failed to reorder queue, rolling back:', err);
         setQueue(previousQueue);
