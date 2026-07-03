@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { VoiceMessagePlayer } from './Chat';
 
@@ -43,8 +43,9 @@ describe('VoiceMessagePlayer', () => {
     const { container } = render(<VoiceMessagePlayer src={mockSrc} />);
 
     // Wait for MockAudio to fire metadata/duration events asynchronously
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
+    await waitFor(() => {
+      // MockAudio defaults to a duration of 180 seconds, formatted as '3:00'
+      expect(screen.getByText('3:00')).toBeInTheDocument();
     });
 
     const waveformContainer = container.querySelector('.flex.items-center.space-x-\\[2px\\]');
