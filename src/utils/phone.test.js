@@ -42,7 +42,7 @@ describe('parsePhoneNumber', () => {
     const customCountries = [
       { code: '+2', name: 'Country Two' },
       { code: '+25', name: 'Country Twenty Five' },
-      { code: '+254', name: 'Kenya' } // the target
+      { code: '+254', name: 'Kenya' }, // the target
     ];
 
     const result = parsePhoneNumber('+254712345678', customCountries);
@@ -55,7 +55,7 @@ describe('parsePhoneNumber', () => {
     const customCountries = [
       { code: '+2', name: 'Country Two' },
       { code: '+25', name: 'Country Twenty Five' },
-      { code: '+254', name: 'Kenya' }
+      { code: '+254', name: 'Kenya' },
     ];
 
     // +251 doesn't match +254, but matches +25
