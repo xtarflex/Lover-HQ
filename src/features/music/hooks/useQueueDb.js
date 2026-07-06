@@ -32,6 +32,8 @@ export function useQueueDb({
 }) {
   const [queue, setQueue] = useState([]);
   const queueRef = useRef(queue);
+  const hasFetchedInitiallyRef = useRef(false);
+  const hasCuedInitialTrackRef = useRef(false);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -56,11 +58,24 @@ export function useQueueDb({
       }
       const tracks = data || [];
       setQueue(tracks);
+      queueRef.current = tracks;
 
-      // Autoplay the first track if nothing is playing
-      if (!currentTrackRef.current && !isCrossfadingRef.current && tracks.length > 0) {
-        playTrackById(tracks[0].id, 0);
+      if (tracks.length === 0) {
+        hasCuedInitialTrackRef.current = false;
       }
+
+      // Autoplay the first track if nothing is playing (start paused initially on refresh)
+      if (
+        !currentTrackRef.current &&
+        !isCrossfadingRef.current &&
+        tracks.length > 0 &&
+        !hasCuedInitialTrackRef.current
+      ) {
+        const startPaused = !hasFetchedInitiallyRef.current;
+        playTrackById(tracks[0].id, 0, startPaused);
+        hasCuedInitialTrackRef.current = true;
+      }
+      hasFetchedInitiallyRef.current = true;
     } catch (err) {
       console.error('Failed to load queue:', err);
     }
@@ -132,7 +147,9 @@ export function useQueueDb({
         }
 
         const newTrack = data[0];
-        setQueue((prev) => [...prev, newTrack]);
+        const nextQueue = [...queueRef.current, newTrack];
+        setQueue(nextQueue);
+        queueRef.current = nextQueue;
 
         if (!currentTrackRef.current && !isCrossfadingRef.current && newTrack) {
           playTrackById(newTrack.id, 0);
@@ -152,7 +169,9 @@ export function useQueueDb({
       try {
         const isCurrentlyPlaying = currentTrackRef.current?.id === trackId;
 
-        setQueue((prev) => prev.filter((t) => t.id !== trackId));
+        const nextQueue = queueRef.current.filter((t) => t.id !== trackId);
+        setQueue(nextQueue);
+        queueRef.current = nextQueue;
 
         if (isCurrentlyPlaying) {
           pauseLocalPlayback(false);

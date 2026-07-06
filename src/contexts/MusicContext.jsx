@@ -124,6 +124,9 @@ export function MusicProvider({ children }) {
    */
   const pauseLocalPlayback = useCallback((shouldBroadcast = true) => {
     setIsPlaying(false);
+    if (pendingYtAction.current) {
+      pendingYtAction.current.startPaused = true;
+    }
     const ap = activePlayerRef.current;
     if (ap === 'html5' && audioRef.current) {
       audioRef.current.pause();
@@ -136,7 +139,7 @@ export function MusicProvider({ children }) {
     if (shouldBroadcast && !isRemoteAction.current) {
       broadcastPause();
     }
-  }, [audioRef, ytPlayers, ytReady, activeYtIndex]);
+  }, [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]);
 
   /**
    * Plays a track by its queue database ID, setting up HTML5 or YouTube resources.
@@ -145,7 +148,7 @@ export function MusicProvider({ children }) {
    * @param {number} [startTime=0] - Playback offset in seconds.
    */
   const playTrackById = useCallback(
-    async (trackId, startTime = 0) => {
+    async (trackId, startTime = 0, startPaused = false) => {
       const track = queueRef.current.find((t) => t.id === trackId);
       if (!track) return;
 
@@ -168,19 +171,23 @@ export function MusicProvider({ children }) {
           player.src = getProxiedUrl(track.url);
           player.currentTime = startTime;
           player.volume = volumeRef.current;
-          try {
-            await player.play();
-            setIsPlaying(true);
-            setIsListenAlongBlocked(false);
-          } catch (err) {
-            if (err.name === 'NotAllowedError') {
-              console.warn('Autoplay blocked by browser policy (NotAllowedError).');
-            } else {
-              console.warn('HTML5 play() failed:', err);
+          if (!startPaused) {
+            try {
+              await player.play();
+              setIsPlaying(true);
+              setIsListenAlongBlocked(false);
+            } catch (err) {
+              if (err.name === 'NotAllowedError') {
+                console.warn('Autoplay blocked by browser policy (NotAllowedError).');
+              } else {
+                console.warn('HTML5 play() failed:', err);
+              }
+              isAutoplayBlocked = true;
+              setIsPlaying(false);
+              setIsListenAlongBlocked(true);
             }
-            isAutoplayBlocked = true;
+          } else {
             setIsPlaying(false);
-            setIsListenAlongBlocked(true);
           }
         }
       } else if (track.source === 'youtube') {
@@ -188,12 +195,18 @@ export function MusicProvider({ children }) {
         const ytPlayer = ytPlayers.current[activeYtIndex.current];
         const isReady = ytReady.current[activeYtIndex.current];
 
-        if (isReady && ytPlayer?.loadVideoById) {
+        if (isReady && ytPlayer?.cueVideoById) {
           try {
-            ytPlayer.loadVideoById({ videoId: track.url, startSeconds: startTime });
-            ytPlayer.setVolume(volumeRef.current * 100);
-            ytPlayer.playVideo();
-            setIsPlaying(true);
+            if (startPaused) {
+              ytPlayer.cueVideoById({ videoId: track.url, startSeconds: startTime });
+              ytPlayer.setVolume(volumeRef.current * 100);
+              setIsPlaying(false);
+            } else {
+              ytPlayer.loadVideoById({ videoId: track.url, startSeconds: startTime });
+              ytPlayer.setVolume(volumeRef.current * 100);
+              ytPlayer.playVideo();
+              setIsPlaying(true);
+            }
             setIsListenAlongBlocked(false);
           } catch (err) {
             console.warn('YouTube play failed:', err);
@@ -203,7 +216,7 @@ export function MusicProvider({ children }) {
           }
         } else {
           console.log(`YouTube player ${activeYtIndex.current} not ready. Queuing play action.`);
-          pendingYtAction.current = { trackId, startTime };
+          pendingYtAction.current = { trackId, startTime, startPaused };
         }
       }
 
@@ -217,7 +230,7 @@ export function MusicProvider({ children }) {
         });
       }
 
-      if (!isRemoteAction.current && !isAutoplayBlocked) {
+      if (!isRemoteAction.current && !isAutoplayBlocked && !startPaused) {
         broadcastPlay(trackId, startTime);
       }
     },

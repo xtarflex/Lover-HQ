@@ -12,6 +12,12 @@ vi.mock('../../../contexts/MusicContext', () => ({
   }),
 }));
 
+// Mock useSupabase — YouTube path never calls Supabase, but the hook
+// is imported at the top level and would otherwise try to init a real client.
+vi.mock('../../../hooks/useSupabase', () => ({
+  useSupabase: () => ({}),
+}));
+
 describe('AddTrackModal', () => {
   let mockOnClose;
   let originalCreateObjectURL;
@@ -177,7 +183,7 @@ describe('AddTrackModal', () => {
   });
 
   it('handles youtube link tab submission', async () => {
-    render(<AddTrackModal isOpen={true} onClose={mockOnClose} />);
+    const { unmount } = render(<AddTrackModal isOpen={true} onClose={mockOnClose} />);
 
     // Switch to YouTube tab
     const ytTabBtn = screen.getByRole('button', { name: /add youtube link/i });
@@ -195,10 +201,11 @@ describe('AddTrackModal', () => {
     const artistInput = screen.getByPlaceholderText(/e\.g\. Coldplay/i);
     fireEvent.change(artistInput, { target: { value: 'Rick Astley' } });
 
-    // Submit
-    const addBtn = screen.getByRole('button', { name: /add track/i });
+    // Submit inside act to flush all async state
     await act(async () => {
-      fireEvent.click(addBtn);
+      fireEvent.click(screen.getByRole('button', { name: /add track/i }));
+      // Flush the resolved mockAddToQueue promise
+      await Promise.resolve();
     });
 
     expect(mockAddToQueue).toHaveBeenCalledWith(
@@ -209,5 +216,6 @@ describe('AddTrackModal', () => {
       null
     );
     expect(mockOnClose).toHaveBeenCalledTimes(1);
-  });
+    unmount();
+  }, 10000); // generous timeout to prevent CI flakiness
 });

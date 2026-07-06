@@ -60,6 +60,9 @@ export function usePresence(roomName) {
           );
         }
       })
+      .on('broadcast', { event: 'game_invite_cancel' }, () => {
+        dispatch({ type: 'SET_INVITATION', payload: null });
+      })
       .on('broadcast', { event: 'game_invite_decline' }, ({ payload }) => {
         dispatch({
           type: 'SET_GLOBAL_NOTIFICATION',
