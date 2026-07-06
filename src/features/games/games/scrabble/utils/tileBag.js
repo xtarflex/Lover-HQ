@@ -31,9 +31,10 @@ export const LETTER_VALUES = {
   X: 8,
   Y: 4,
   Z: 10,
+  _: 0,
 };
 
-/** @type {Object<string, number>} Standard Scrabble letter distribution (98 tiles). */
+/** @type {Object<string, number>} Standard Scrabble letter distribution (100 tiles). */
 const LETTER_DISTRIBUTION = {
   A: 9,
   B: 2,
@@ -61,6 +62,7 @@ const LETTER_DISTRIBUTION = {
   X: 1,
   Y: 2,
   Z: 1,
+  _: 2,
 };
 
 /**
@@ -111,9 +113,11 @@ export function drawTiles(bag, count) {
  * Retrieves the point value of a single letter.
  *
  * @param {string} letter - The letter (case-insensitive).
+ * @param {boolean} [isBlank] - Whether the tile is a blank tile.
  * @returns {number} The point value.
  */
-export function getLetterScore(letter) {
+export function getLetterScore(letter, isBlank) {
+  if (isBlank) return 0;
   if (!letter) return 0;
   return LETTER_VALUES[letter.toUpperCase()] || 0;
 }

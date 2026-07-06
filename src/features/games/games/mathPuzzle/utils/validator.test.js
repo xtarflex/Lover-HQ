@@ -10,15 +10,15 @@ describe('CrossMath validator', () => {
     it('should evaluate left-to-right strictly', () => {
       // (3 + 5) * 2 = 16 (strict LTR)
       // Standard PEMDAS would be 3 + 10 = 13. We expect 16.
-      expect(evaluateEquation([3, 5, 2], ['+', '*'])).toBe(16);
+      expect(evaluateEquation([3, 5, 2], ['+', 'x'])).toBe(16);
     });
 
     it('should handle division correctly', () => {
-      expect(evaluateEquation([12, 3, 2], ['/', '+'])).toBe(6);
+      expect(evaluateEquation([12, 3, 2], ['÷', '+'])).toBe(6);
     });
 
     it('should handle division by zero', () => {
-      expect(evaluateEquation([5, 0], ['/'])).toBeNaN();
+      expect(evaluateEquation([5, 0], ['÷'])).toBeNaN();
     });
   });
 

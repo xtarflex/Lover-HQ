@@ -62,6 +62,25 @@ export default function GameHeader({
           'Scoring: A correct guess awards 10 points to the Guesser and 5 points to the Drawer.',
         ],
       };
+    } else if (name.includes('scrabble')) {
+      return {
+        title: 'Classic Scrabble Rules',
+        rules: [
+          'Place letters from your rack onto the grid to form valid words.',
+          'First word must cover the center star. Subsequent words must connect to existing ones.',
+          'Turns are limited to 30 seconds. Pass, swap tiles, or play a word to finish your turn.',
+          'The game ends if there are 4 consecutive passes or if the tile bag is empty and one player has used all rack tiles.',
+        ],
+      };
+    } else if (name.includes('math') || name.includes('crossmath')) {
+      return {
+        title: 'CrossMath Race Rules',
+        rules: [
+          'Place number tiles into empty slots to solve all math equations simultaneously.',
+          'Equations are computed strictly from Left to Right and Top to Bottom (no PEMDAS priority).',
+          'You are racing in real-time. The first player to reach 100% correct board completion wins!',
+        ],
+      };
     } else {
       // Default to Tic-Tac-Toe
       return {

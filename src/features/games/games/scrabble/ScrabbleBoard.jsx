@@ -12,9 +12,21 @@ import { getLetterScore } from './utils/tileBag';
  * @param {string[][]} props.board - Immutable board state (grid of letters or null).
  * @param {{r: number, c: number, letter: string}[]} props.newPlacements - Tiles placed this turn.
  * @param {function(number, number): void} props.onCellClick - Callback when cell is tapped.
+ * @param {function(object, number, number, number): void} [props.onDragStartTile] - Desktop drag start for placed tiles.
+ * @param {function(object): void} [props.onDragOverCell] - Desktop drag over cell.
+ * @param {function(object, number, number): void} [props.onDropCell] - Desktop drop tile on cell.
+ * @param {function(object, number): void} [props.onTouchStartTile] - Mobile touch start for placed tiles.
  * @returns {React.ReactElement}
  */
-export default function ScrabbleBoard({ board, newPlacements, onCellClick }) {
+export default function ScrabbleBoard({
+  board,
+  newPlacements,
+  onCellClick,
+  onDragStartTile,
+  onDragOverCell,
+  onDropCell,
+  onTouchStartTile,
+}) {
   // Helper to check if a tile is placed in this cell this turn
   const getNewPlacement = (r, c) => {
     return newPlacements.find((p) => p.r === r && p.c === c);
@@ -43,20 +55,23 @@ export default function ScrabbleBoard({ board, newPlacements, onCellClick }) {
       } else if (mult.type === 'TW') {
         cellClass = 'cell-tw';
         multText = 'TW';
-      } else if (r === 5 && c === 5) {
+      } else if (r === 7 && c === 7) {
         cellClass = 'cell-center';
         multText = '★';
       }
 
       const hasTile = !!tile || !!newPlacement;
-      const displayLetter = tile || newPlacement?.letter;
+      const displayLetter = tile?.letter || newPlacement?.letter;
       const isNew = !!newPlacement;
+      const isBlank = !!(tile?.isBlank || newPlacement?.isBlank);
 
       cells.push(
         <button
           key={`${r}-${c}`}
           id={`scrabble-cell-${r}-${c}`}
           onClick={() => onCellClick(r, c)}
+          onDragOver={onDragOverCell}
+          onDrop={(e) => onDropCell && onDropCell(e, r, c)}
           className={`scrabble-cell ${cellClass} ${hasTile ? 'has-tile' : ''}`}
           aria-label={`Cell at row ${r + 1}, column ${c + 1}. ${
             displayLetter
@@ -69,9 +84,24 @@ export default function ScrabbleBoard({ board, newPlacements, onCellClick }) {
           {!hasTile && multText && <span className="cell-mult">{multText}</span>}
 
           {hasTile && (
-            <div className={`scrabble-tile ${isNew ? 'new-placement' : ''}`}>
+            <div
+              draggable={isNew}
+              onDragStart={(e) => {
+                if (isNew && onDragStartTile) {
+                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
+                  onDragStartTile(e, idx, r, c);
+                }
+              }}
+              onTouchStart={(e) => {
+                if (isNew && onTouchStartTile) {
+                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
+                  onTouchStartTile(e, idx);
+                }
+              }}
+              className={`scrabble-tile ${isNew ? 'new-placement' : ''} ${isBlank ? 'blank-tile' : ''} ${isNew ? 'cursor-grab active:cursor-grabbing' : ''}`}
+            >
               {displayLetter}
-              <span className="tile-score">{getLetterScore(displayLetter)}</span>
+              <span className="tile-score">{getLetterScore(displayLetter, isBlank)}</span>
             </div>
           )}
         </button>
