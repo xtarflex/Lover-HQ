@@ -114,6 +114,8 @@ export default function GameResults({
       switch (endReason) {
         case 'timeout':
           return 'Draw because time expired before the correct guess.';
+        case 'consecutive_passes':
+          return 'Draw by consecutive passes.';
         case 'completion':
         default:
           return 'Draw by board completion — no moves left.';

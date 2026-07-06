@@ -47,6 +47,7 @@ export default function WordChain({
   partnerId,
   user,
   partner,
+  partnerOnline,
   onBack,
   isHost,
 }) {
@@ -456,7 +457,7 @@ export default function WordChain({
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
     }
-    if (!winner && gameStarted) {
+    if (!winner && gameStarted && partnerOnline) {
       setShowForfeitModal(true);
     } else {
       onBack();
@@ -615,6 +616,27 @@ export default function WordChain({
         : winner === 'draw'
           ? 'draw'
           : null;
+
+  if (!winner && !partnerOnline) {
+    return (
+      <div className="flex flex-col h-full relative">
+        <GameHeader
+          gameName={gameName}
+          user={user}
+          partner={partner}
+          isMyTurn={false}
+          onBack={handleBackAction}
+        />
+        <div className="flex-grow flex flex-col items-center justify-center gap-3 text-center py-16">
+          <LoadingSpinner size="md" />
+          <h3 className="font-heading text-lg font-bold">Waiting for partner…</h3>
+          <p className="text-xs text-text-muted max-w-xs leading-relaxed">
+            We&apos;re waiting for {partner?.name || 'your partner'} to accept the game invite.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // --- LOBBY SETUP SCREEN ---
   if (!gameStarted && chain.length === 0) {
@@ -835,7 +857,9 @@ export default function WordChain({
         ))}
       </div>
 
-      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      {(winner || partnerOnline) && (
+        <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      )}
       <ForfeitModal
         isOpen={showForfeitModal}
         onClose={() => setShowForfeitModal(false)}

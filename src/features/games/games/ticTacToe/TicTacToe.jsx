@@ -13,6 +13,7 @@ import { GameRecorder } from '../../lib/gameRecorder';
 import { generateSessionId } from '../../lib/gameEngine';
 import ForfeitModal from '../../components/ForfeitModal';
 import QuickReactionTray from '../../components/QuickReactionTray';
+import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 
 /**
  * @param {object} props
@@ -33,6 +34,7 @@ export default function TicTacToe({
   partnerId,
   user,
   partner,
+  partnerOnline,
   onBack,
   isHost,
 }) {
@@ -212,7 +214,7 @@ export default function TicTacToe({
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
     }
-    if (!winner) {
+    if (!winner && partnerOnline) {
       setShowForfeitModal(true);
     } else {
       onBack();
@@ -294,54 +296,64 @@ export default function TicTacToe({
         partnerEmojis={partnerEmojis}
       />
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
-        {/* Instructions */}
-        <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
-          {winner
-            ? winner === 'draw'
-              ? "It's a draw!"
-              : `${winner === sym ? 'You' : partner?.name || 'Partner'} win${winner === sym ? '!' : 's!'}`
-            : isMyTurn
-              ? `Your turn — tap a cell  (${sym})`
-              : `Waiting for ${partner?.name || 'partner'}… (${partnerSymbol})`}
-        </p>
-
-        {/* Board */}
-        <div
-          className="grid grid-cols-3 gap-3 w-full max-w-[320px]"
-          role="grid"
-          aria-label="Tic-Tac-Toe board"
-        >
-          {board.map((cell, i) => (
-            <button
-              key={i}
-              id={`ttt-cell-${i}`}
-              onClick={() => onCellTap(i)}
-              disabled={!!cell || !isMyTurn || !!winner}
-              aria-label={`Cell ${i + 1}: ${cell || 'empty'}`}
-              className={`${cellBase} ${
-                cell === 'X'
-                  ? 'border-primary/40 bg-primary/10 text-primary'
-                  : cell === 'O'
-                    ? 'border-secondary/40 bg-secondary/10 text-secondary'
-                    : 'border-surface-border bg-surface/50 hover:border-primary/40 hover:bg-primary/5 disabled:hover:border-surface-border disabled:cursor-not-allowed'
-              }`}
-            >
-              {cell}
-            </button>
-          ))}
+      {!winner && !partnerOnline ? (
+        <div className="flex-grow flex flex-col items-center justify-center gap-3 text-center py-16">
+          <LoadingSpinner size="md" />
+          <h3 className="font-heading text-lg font-bold">Waiting for partner…</h3>
+          <p className="text-xs text-text-muted max-w-xs leading-relaxed">
+            We&apos;re waiting for {partner?.name || 'your partner'} to accept the game invite.
+          </p>
         </div>
+      ) : (
+        <div className="flex-grow flex flex-col items-center justify-center p-6 gap-6">
+          {/* Instructions */}
+          <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
+            {winner
+              ? winner === 'draw'
+                ? "It's a draw!"
+                : `${winner === sym ? 'You' : partner?.name || 'Partner'} win${winner === sym ? '!' : 's!'}`
+              : isMyTurn
+                ? `Your turn — tap a cell  (${sym})`
+                : `Waiting for ${partner?.name || 'partner'}… (${partnerSymbol})`}
+          </p>
 
-        {/* Symbol legend */}
-        <div className="flex gap-6 text-xs text-text-muted">
-          <span>
-            <b className="text-primary">{sym}</b> — You
-          </span>
-          <span>
-            <b className="text-secondary">{partnerSymbol}</b> — {partner?.name || 'Partner'}
-          </span>
+          {/* Board */}
+          <div
+            className="grid grid-cols-3 gap-3 w-full max-w-[320px]"
+            role="grid"
+            aria-label="Tic-Tac-Toe board"
+          >
+            {board.map((cell, i) => (
+              <button
+                key={i}
+                id={`ttt-cell-${i}`}
+                onClick={() => onCellTap(i)}
+                disabled={!!cell || !isMyTurn || !!winner}
+                aria-label={`Cell ${i + 1}: ${cell || 'empty'}`}
+                className={`${cellBase} ${
+                  cell === 'X'
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : cell === 'O'
+                      ? 'border-secondary/40 bg-secondary/10 text-secondary'
+                      : 'border-surface-border bg-surface/50 hover:border-primary/40 hover:bg-primary/5 disabled:hover:border-surface-border disabled:cursor-not-allowed'
+                }`}
+              >
+                {cell}
+              </button>
+            ))}
+          </div>
+
+          {/* Symbol legend */}
+          <div className="flex gap-6 text-xs text-text-muted">
+            <span>
+              <b className="text-primary">{sym}</b> — You
+            </span>
+            <span>
+              <b className="text-secondary">{partnerSymbol}</b> — {partner?.name || 'Partner'}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {result && (
         <GameResults
@@ -396,7 +408,9 @@ export default function TicTacToe({
         ))}
       </div>
 
-      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      {(winner || partnerOnline) && (
+        <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      )}
       <ForfeitModal
         isOpen={showForfeitModal}
         onClose={() => setShowForfeitModal(false)}

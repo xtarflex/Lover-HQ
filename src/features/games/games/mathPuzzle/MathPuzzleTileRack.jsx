@@ -11,15 +11,32 @@ import React from 'react';
  * @param {string|null} props.selectedTileId - ID of currently selected tile.
  * @param {function(string): void} props.onSelectTile - Callback when tile is selected.
  * @param {function(React.DragEvent, string): void} props.onDragStart - Drag start handler.
+ * @param {function(object, object): void} [props.onTouchStart] - Touch start handler.
+ * @param {function(object): void} [props.onDragOverRack] - Drag over rack callback.
+ * @param {function(object): void} [props.onDropRack] - Drop on rack callback.
  * @returns {React.ReactElement}
  */
-export default function MathPuzzleTileRack({ tiles, selectedTileId, onSelectTile, onDragStart }) {
+export default function MathPuzzleTileRack({
+  tiles,
+  selectedTileId,
+  onSelectTile,
+  onDragStart,
+  onTouchStart,
+  onDragOverRack,
+  onDropRack,
+}) {
   return (
     <div className="math-rack-container">
       <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
         Tap a number, then tap an empty slot
       </p>
-      <div className="math-rack" role="listbox" aria-label="Available number tiles">
+      <div
+        className="math-rack"
+        role="listbox"
+        aria-label="Available number tiles"
+        onDragOver={onDragOverRack}
+        onDrop={onDropRack}
+      >
         {tiles.map((tile) => {
           const isSelected = selectedTileId === tile.id;
 
@@ -28,10 +45,11 @@ export default function MathPuzzleTileRack({ tiles, selectedTileId, onSelectTile
               key={tile.id}
               draggable={!tile.isPlaced}
               onDragStart={(e) => !tile.isPlaced && onDragStart(e, tile.id)}
+              onTouchStart={(e) => !tile.isPlaced && onTouchStart && onTouchStart(e, tile)}
               onClick={() => !tile.isPlaced && onSelectTile(tile.id)}
               className={`rack-number-tile ${tile.isPlaced ? 'disabled' : ''} ${
                 isSelected ? 'selected' : ''
-              }`}
+              } cursor-grab active:cursor-grabbing`}
               style={{
                 cursor: tile.isPlaced ? 'not-allowed' : 'grab',
               }}

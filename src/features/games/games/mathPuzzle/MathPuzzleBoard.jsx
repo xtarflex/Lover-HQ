@@ -4,12 +4,18 @@
  */
 
 import React from 'react';
-import { checkRowEquation, checkColEquation } from './utils/validator';
+import {
+  traceHorizontalEquation,
+  traceVerticalEquation,
+  checkEquationStatus,
+  isCellHorizontalResult,
+  isCellVerticalResult,
+  getLockedCellsMap,
+} from './utils/validator';
 
 /**
  * @param {object} props
  * @param {any[][]} props.grid - The puzzle grid state.
- * @param {number} props.size - Matrix size (5, 7, 9).
  * @param {function(number, number): void} props.onCellClick - Tap empty or placed slot.
  * @param {boolean} [props.isDragActive=false] - Whether a tile is currently picked up.
  * @param {boolean} [props.readOnly=false] - Frozen inspect view.
@@ -17,99 +23,161 @@ import { checkRowEquation, checkColEquation } from './utils/validator';
  */
 export default function MathPuzzleBoard({
   grid,
-  size,
   onCellClick,
   isDragActive = false,
   readOnly = false,
+  onDragStartTile,
+  onDragOverCell,
+  onDropCell,
+  onTouchStartTile,
 }) {
   const cells = [];
+  const cellStatusMap = {};
+  const lockedMap = getLockedCellsMap(grid);
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const cell = grid[r][c];
+  const height = grid.length;
+  const width = grid[0]?.length || 0;
 
-      if (!cell) {
-        cells.push(<div key={`${r}-${c}`} className="math-cell" />);
+  for (let r = 0; r < height; r++) {
+    for (let c = 0; c < width; c++) {
+      if (isCellHorizontalResult(grid, r, c)) {
+        const hEq = traceHorizontalEquation(grid, r, c);
+        if (hEq) {
+          const status = checkEquationStatus(hEq, grid);
+          if (status === 'correct' || status === 'incorrect') {
+            hEq.cells.forEach(({ r: er, c: ec }) => {
+              const key = `${er}-${ec}`;
+              if (cellStatusMap[key] !== 'incorrect') {
+                cellStatusMap[key] = status;
+              }
+            });
+          }
+        }
+      }
+
+      if (isCellVerticalResult(grid, r, c)) {
+        const vEq = traceVerticalEquation(grid, r, c);
+        if (vEq) {
+          const status = checkEquationStatus(vEq, grid);
+          if (status === 'correct' || status === 'incorrect') {
+            vEq.cells.forEach(({ r: er, c: ec }) => {
+              const key = `${er}-${ec}`;
+              if (cellStatusMap[key] !== 'incorrect') {
+                cellStatusMap[key] = status;
+              }
+            });
+          }
+        }
+      }
+    }
+  }
+
+  for (let r = 0; r < height; r++) {
+    for (let c = 0; c < width; c++) {
+      const cell = grid[r]?.[c];
+      const key = `${r}-${c}`;
+      const statusClass = cellStatusMap[key] ? `math-eq-${cellStatusMap[key]}` : '';
+
+      if (!cell || cell.type === 'empty') {
+        cells.push(<div key={key} className="math-cell math-cell-empty" />);
         continue;
       }
 
-      if (cell.type === 'number') {
-        if (cell.isHidden) {
-          const val = cell.currentValue;
-          const hasTile = val !== undefined && val !== null && val !== '';
+      // --- Hidden N cell (player fills in) — check BEFORE isIntermediate ---
+      if (cell.type === 'number' && cell.isHidden) {
+        const val = cell.currentValue;
+        const hasTile = val !== undefined && val !== null && val !== '';
+        const isLocked = lockedMap[key];
 
-          cells.push(
-            <button
-              key={`${r}-${c}`}
-              id={`math-slot-${r}-${c}`}
-              disabled={readOnly}
-              onClick={() => onCellClick(r, c)}
-              className={`math-cell math-cell-slot ${hasTile ? 'has-tile' : ''}`}
-              aria-label={`Empty slot at row ${r + 1}, col ${c + 1}`}
-            >
-              {hasTile && <div className="math-placed-tile">{val}</div>}
-            </button>
-          );
-        } else {
-          cells.push(
-            <div
-              key={`${r}-${c}`}
-              className="math-cell math-cell-immutable"
-              aria-label={`Immutable number ${cell.value}`}
-            >
-              {cell.value}
-            </div>
-          );
-        }
+        cells.push(
+          <button
+            key={key}
+            id={`math-slot-${r}-${c}`}
+            disabled={readOnly || isLocked}
+            onClick={() => onCellClick(r, c)}
+            onDragOver={onDragOverCell}
+            onDrop={(e) => onDropCell && onDropCell(e, r, c)}
+            className={`math-cell math-cell-slot ${hasTile ? 'has-tile' : ''} ${isLocked ? 'math-cell-locked' : ''} ${statusClass}`}
+            aria-label={`Empty slot at row ${r + 1}, col ${c + 1}`}
+          >
+            {hasTile && (
+              <div
+                draggable={!readOnly && !isLocked}
+                onDragStart={(e) => onDragStartTile && onDragStartTile(e, r, c, val)}
+                onTouchStart={(e) => onTouchStartTile && onTouchStartTile(e, r, c, val)}
+                className="math-placed-tile cursor-grab active:cursor-grabbing"
+              >
+                {val}
+              </div>
+            )}
+          </button>
+        );
+        continue;
+      }
+
+      // --- Blind result N cell (isBlind=true): value hidden, NOT in rack ---
+      // Renders as a blank dark tile. Player deduces from context.
+      if (cell.type === 'number' && cell.isBlind) {
+        cells.push(
+          <div
+            key={key}
+            className={`math-cell math-cell-blind-result ${statusClass}`}
+            aria-label={`Hidden result at row ${r + 1}, col ${c + 1}`}
+          />
+        );
+        continue;
+      }
+
+      // --- Visible result N cell (isClue=true, auto-computed anchor) ---
+      const isResultCell =
+        cell.type === 'number' &&
+        (isCellHorizontalResult(grid, r, c) || isCellVerticalResult(grid, r, c));
+
+      if (isResultCell && cell.isClue) {
+        const val = cell.currentValue ?? cell.value;
+        const hasVal = val !== undefined && val !== null && val !== '' && !isNaN(val);
+        const valStr = hasVal ? String(val) : '';
+        const style =
+          valStr.length > 3 ? { fontSize: `${Math.max(0.45, 3.5 / valStr.length)}em` } : {};
+        cells.push(
+          <div
+            key={key}
+            className={`math-cell math-cell-result math-cell-intermediate has-value ${statusClass}`}
+            style={style}
+            aria-label={`Result ${hasVal ? val : 'empty'}`}
+          >
+            {hasVal ? val : ''}
+          </div>
+        );
+      } else if (cell.type === 'number') {
+        // Visible independent N cell (given clue)
+        const valStr = String(cell.value ?? '');
+        const style =
+          valStr.length > 3 ? { fontSize: `${Math.max(0.45, 3.5 / valStr.length)}em` } : {};
+        cells.push(
+          <div
+            key={key}
+            className={`math-cell math-cell-immutable ${statusClass}`}
+            style={style}
+            aria-label={`Number ${cell.value}`}
+          >
+            {cell.value}
+          </div>
+        );
       } else if (cell.type === 'operator') {
         cells.push(
-          <div key={`${r}-${c}`} className="math-cell math-cell-operator">
+          <div key={key} className={`math-cell math-cell-operator ${statusClass}`}>
             {cell.value}
           </div>
         );
       } else if (cell.type === 'equals') {
         cells.push(
-          <div key={`${r}-${c}`} className="math-cell math-cell-equals">
+          <div key={key} className={`math-cell math-cell-equals ${statusClass}`}>
             {cell.value}
-          </div>
-        );
-      } else if (cell.type === 'result') {
-        // Compute equation status for this result cell
-        let status = 'incomplete';
-        if (r < size - 1 && c === size - 1) {
-          // Horizontal equation
-          status = checkRowEquation(grid, r);
-        } else if (r === size - 1 && c < size - 1) {
-          // Vertical equation
-          status = checkColEquation(grid, c);
-        }
-
-        const showDot = status === 'correct' || status === 'incorrect';
-
-        cells.push(
-          <div
-            key={`${r}-${c}`}
-            className="math-cell math-cell-result"
-            aria-label={`Result ${cell.value}`}
-          >
-            {cell.value}
-            {showDot && (
-              <span
-                className={`absolute w-3 h-3 rounded-full -top-1 -right-1 border border-[#0F172A] ${
-                  status === 'correct'
-                    ? 'bg-emerald-500 shadow-sm shadow-emerald-500'
-                    : 'bg-red-500 shadow-sm shadow-red-500 animate-bounce'
-                }`}
-                style={{
-                  backgroundColor: status === 'correct' ? '#10B981' : '#EF4444',
-                  boxShadow: status === 'correct' ? '0 0 8px #10B981' : '0 0 8px #EF4444',
-                }}
-              />
-            )}
           </div>
         );
       } else {
-        cells.push(<div key={`${r}-${c}`} className="math-cell" />);
+        cells.push(<div key={key} className="math-cell math-cell-empty" />);
       }
     }
   }
@@ -117,7 +185,6 @@ export default function MathPuzzleBoard({
   return (
     <div
       className={`math-board ${isDragActive ? 'drag-active' : ''}`}
-      style={{ '--matrix-size': size }}
       role="grid"
       aria-label="CrossMath puzzle board"
     >

@@ -3,9 +3,9 @@ import { createInitialBag, drawTiles, getLetterScore } from './tileBag';
 
 describe('tileBag utility', () => {
   describe('createInitialBag', () => {
-    it('should create a bag with 98 tiles', () => {
+    it('should create a bag with 100 tiles', () => {
       const bag = createInitialBag();
-      expect(bag).toHaveLength(98);
+      expect(bag).toHaveLength(100);
     });
 
     it('should contain the expected number of A and Z tiles', () => {
@@ -22,7 +22,7 @@ describe('tileBag utility', () => {
       const bag = createInitialBag();
       const { drawn, remainingBag } = drawTiles(bag, 7);
       expect(drawn).toHaveLength(7);
-      expect(remainingBag).toHaveLength(91);
+      expect(remainingBag).toHaveLength(93);
       expect([...drawn, ...remainingBag].sort()).toEqual([...bag].sort());
     });
 

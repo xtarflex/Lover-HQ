@@ -16,9 +16,43 @@ import QuickReactionTray from '../../components/QuickReactionTray';
 import MathPuzzleBoard from './MathPuzzleBoard';
 import MathPuzzleTileRack from './MathPuzzleTileRack';
 import InspectionPanel from './InspectionPanel';
-import { generatePuzzle } from './utils/generator';
-import { isGridCompleteAndCorrect } from './utils/validator';
+import {
+  isGridCompleteAndCorrect,
+  recalculateIntermediateResults,
+  getLockedCellsMap,
+} from './utils/validator';
 import './mathPuzzle.css';
+
+/**
+ * Runs the level generator backtracking engine asynchronously on a background Web Worker thread.
+ *
+ * @param {string} selectedDifficulty - The selected level difficulty ('easy', 'medium', 'expert').
+ * @returns {Promise<object>} The generated puzzle layout and pools.
+ */
+function generatePuzzleAsync(selectedDifficulty) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('./utils/generator.worker.js', import.meta.url), {
+      type: 'module',
+    });
+
+    worker.onmessage = (e) => {
+      const { success, puzzle, error } = e.data;
+      worker.terminate();
+      if (success) {
+        resolve(puzzle);
+      } else {
+        reject(new Error(error));
+      }
+    };
+
+    worker.onerror = (err) => {
+      worker.terminate();
+      reject(err);
+    };
+
+    worker.postMessage({ difficulty: selectedDifficulty });
+  });
+}
 
 /**
  * @param {object} props
@@ -39,6 +73,7 @@ export default function MathPuzzle({
   partnerId,
   user,
   partner,
+  partnerOnline,
   onBack,
   isHost,
 }) {
@@ -56,7 +91,6 @@ export default function MathPuzzle({
 
   // Puzzle data
   const [grid, setGrid] = useState(null);
-  const [size, setSize] = useState(5);
   const [rackTiles, setRackTiles] = useState([]);
   const [selectedRackTileId, setSelectedRackTileId] = useState(null);
 
@@ -84,12 +118,12 @@ export default function MathPuzzle({
 
   // Drag states
   const [isDragActive, setIsDragActive] = useState(false);
+  const [touchDrag, setTouchDrag] = useState(null); // { type: 'rack'|'board', id, value, x, y, r, c }
 
   const loadSessionData = useCallback(
     (session) => {
       const data = session.puzzle_data;
       setDifficulty(data.difficulty);
-      setSize(data.size);
       setGrid(data.initial_grid);
 
       // Initialize rack tiles
@@ -201,7 +235,6 @@ export default function MathPuzzle({
       if (payload.type === 'start') {
         setDbSessionId(payload.sessionId);
         setDifficulty(payload.difficulty);
-        setSize(payload.size);
         setGrid(payload.grid);
         setRackTiles(payload.rackTiles);
         setWinner(null);
@@ -236,17 +269,30 @@ export default function MathPuzzle({
 
   const broadcastMove = useGameSync(gameId, syncSessionId, handleRemoteBroadcast);
 
+  // Listen for partner decline to exit game immediately without forfeit modal
+  useEffect(() => {
+    const handleDecline = () => onBack();
+    window.addEventListener('game-invite-declined', handleDecline);
+    return () => window.removeEventListener('game-invite-declined', handleDecline);
+  }, [onBack]);
+
+  // Save replay when game ends (only host saves to prevent duplicates)
+  useEffect(() => {
+    if (!winner || !isHost) return;
+    const finalWinnerId = winner === 'win' ? userId : winner === 'loss' ? partnerId : null;
+    recorder.current.save(finalWinnerId).catch(console.error);
+  }, [winner, isHost, userId, partnerId]);
+
   // Host starts the puzzle race
   const handleStartRace = async (selectedDifficulty) => {
     try {
       setLoading(true);
 
-      const puzzle = generatePuzzle(selectedDifficulty);
+      const puzzle = await generatePuzzleAsync(selectedDifficulty);
 
       // Create DB session
       const puzzleData = {
         difficulty: selectedDifficulty,
-        size: puzzle.size,
         initial_grid: puzzle.grid,
         hidden_values: puzzle.hiddenValues,
       };
@@ -267,7 +313,6 @@ export default function MathPuzzle({
 
       setDbSessionId(session.id);
       setDifficulty(selectedDifficulty);
-      setSize(puzzle.size);
       setGrid(puzzle.grid);
 
       const initialTiles = puzzle.hiddenValues.map((val, idx) => ({
@@ -282,7 +327,6 @@ export default function MathPuzzle({
         type: 'start',
         sessionId: session.id,
         difficulty: selectedDifficulty,
-        size: puzzle.size,
         grid: puzzle.grid,
         rackTiles: initialTiles,
       });
@@ -292,6 +336,81 @@ export default function MathPuzzle({
       setLoading(false);
     }
   };
+
+  // Progress metrics
+  const updateAndBroadcastProgress = useCallback(
+    (currentGrid = grid) => {
+      if (!currentGrid) return;
+
+      let emptyCount = 0;
+      let filledCount = 0;
+
+      currentGrid.forEach((row) =>
+        row.forEach((cell) => {
+          if (cell && cell.type === 'number' && cell.isHidden) {
+            emptyCount++;
+            if (
+              cell.currentValue !== undefined &&
+              cell.currentValue !== null &&
+              cell.currentValue !== ''
+            ) {
+              filledCount++;
+            }
+          }
+        })
+      );
+
+      const percent = emptyCount > 0 ? Math.round((filledCount / emptyCount) * 100) : 100;
+      setMyProgress(percent);
+      broadcastMove({ type: 'progress', progress: percent });
+    },
+    [grid, broadcastMove]
+  );
+
+  // Check if grid is correct & ends race
+  const checkBoardCompletion = useCallback(
+    async (currentGrid = grid) => {
+      if (!currentGrid) return;
+
+      const correct = isGridCompleteAndCorrect(currentGrid);
+      if (correct) {
+        // Local solve completed! Record final win
+        setWinnerId(userId);
+        setWinner('win');
+        setWinnerName(user?.name || 'You');
+
+        // Update DB game session with winner details
+        if (dbSessionId) {
+          const { error } = await supabase
+            .from('game_sessions')
+            .update({
+              winner_id: userId,
+              ended_at: new Date().toISOString(),
+            })
+            .eq('id', dbSessionId);
+
+          if (error) console.error(error);
+        }
+
+        // Record replay (only host saves to avoid duplicate inserts)
+        recorder.current.recordMove(userId, 'finish', { time: Date.now() });
+        if (isHost) {
+          await recorder.current.save(userId).catch(console.error);
+        }
+
+        // Broadcast finish to partner with final board data
+        broadcastMove({
+          type: 'finish',
+          winnerId: userId,
+          winnerName: user?.name || 'You',
+          finalGrid: currentGrid,
+        });
+
+        setShowInspection(true);
+      }
+    },
+    [grid, userId, user, dbSessionId, isHost, broadcastMove]
+  );
 
   // Drag and drop / click logic
   const handleSelectRackTile = (tileId) => {
@@ -303,17 +422,17 @@ export default function MathPuzzle({
     if (winner || !grid) return;
 
     const cell = grid[r][c];
-    if (!cell || cell.type !== 'number' || !cell.isHidden) return;
+    if (!cell || cell.type !== 'number' || !cell.isHidden || getLockedCellsMap(grid)[`${r}-${c}`])
+      return;
 
     // Check if cell is currently occupied
     if (cell.currentValue !== undefined && cell.currentValue !== null) {
       // Recall placed tile
       const val = cell.currentValue;
-      setGrid((prev) => {
-        const copy = prev.map((row) => row.map((cl) => ({ ...cl })));
-        copy[r][c].currentValue = null;
-        return copy;
-      });
+      const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+      newGrid[r][c].currentValue = null;
+      recalculateIntermediateResults(newGrid);
+      setGrid(newGrid);
 
       // Find the first matching placed tile in rack and restore it
       setRackTiles((prev) =>
@@ -326,7 +445,7 @@ export default function MathPuzzle({
       );
 
       // Update progress
-      setTimeout(updateAndBroadcastProgress, 50);
+      updateAndBroadcastProgress(newGrid);
       return;
     }
 
@@ -336,11 +455,10 @@ export default function MathPuzzle({
       if (!tile || tile.isPlaced) return;
 
       // Update grid
-      setGrid((prev) => {
-        const copy = prev.map((row) => row.map((cl) => ({ ...cl })));
-        copy[r][c].currentValue = tile.value;
-        return copy;
-      });
+      const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+      newGrid[r][c].currentValue = tile.value;
+      recalculateIntermediateResults(newGrid);
+      setGrid(newGrid);
 
       // Mark tile as placed
       setRackTiles((prev) =>
@@ -355,10 +473,8 @@ export default function MathPuzzle({
       }
 
       // Check results and progress
-      setTimeout(() => {
-        updateAndBroadcastProgress();
-        checkBoardCompletion();
-      }, 50);
+      updateAndBroadcastProgress(newGrid);
+      checkBoardCompletion(newGrid);
     }
   };
 
@@ -366,6 +482,12 @@ export default function MathPuzzle({
   const handleDragStart = (e, tileId) => {
     if (winner) return;
     e.dataTransfer.setData('text/plain', tileId);
+    setIsDragActive(true);
+  };
+
+  const handleBoardDragStart = (e, r, c, val) => {
+    if (winner) return;
+    e.dataTransfer.setData('text/plain', JSON.stringify({ source: 'board', r, c, value: val }));
     setIsDragActive(true);
   };
 
@@ -383,98 +505,211 @@ export default function MathPuzzle({
 
     if (winner || !grid) return;
 
-    const tileId = e.dataTransfer.getData('text/plain');
-    if (!tileId) return;
-
-    const tile = rackTiles.find((t) => t.id === tileId);
-    if (!tile || tile.isPlaced) return;
+    const rawData = e.dataTransfer.getData('text/plain');
+    if (!rawData) return;
 
     const cell = grid[r][c];
-    if (!cell || cell.type !== 'number' || !cell.isHidden || cell.currentValue) return;
+    if (
+      !cell ||
+      cell.type !== 'number' ||
+      !cell.isHidden ||
+      cell.currentValue ||
+      getLockedCellsMap(grid)[`${r}-${c}`]
+    )
+      return;
 
-    // Place tile
-    setGrid((prev) => {
-      const copy = prev.map((row) => row.map((cl) => ({ ...cl })));
-      copy[r][c].currentValue = tile.value;
-      return copy;
-    });
-
-    setRackTiles((prev) => prev.map((t) => (t.id === tileId ? { ...t, isPlaced: true } : t)));
-
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-
-    setTimeout(() => {
-      updateAndBroadcastProgress();
-      checkBoardCompletion();
-    }, 50);
-  };
-
-  // Progress metrics
-  const updateAndBroadcastProgress = () => {
-    if (!grid) return;
-
-    let emptyCount = 0;
-    let filledCount = 0;
-
-    grid.forEach((row) =>
-      row.forEach((cell) => {
-        if (cell && cell.type === 'number' && cell.isHidden) {
-          emptyCount++;
-          if (cell.currentValue !== undefined && cell.currentValue !== null) {
-            filledCount++;
-          }
+    try {
+      if (rawData.startsWith('{')) {
+        // Board to board move
+        const data = JSON.parse(rawData);
+        if (data.source === 'board') {
+          const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+          newGrid[data.r][data.c].currentValue = null;
+          newGrid[r][c].currentValue = data.value;
+          recalculateIntermediateResults(newGrid);
+          setGrid(newGrid);
+          updateAndBroadcastProgress(newGrid);
+          checkBoardCompletion(newGrid);
         }
-      })
-    );
+      } else {
+        // Rack to board move
+        const tile = rackTiles.find((t) => t.id === rawData);
+        if (!tile || tile.isPlaced) return;
 
-    const percent = Math.round((filledCount / emptyCount) * 100);
-    setMyProgress(percent);
-    broadcastMove({ type: 'progress', progress: percent });
-  };
+        const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+        newGrid[r][c].currentValue = tile.value;
+        recalculateIntermediateResults(newGrid);
+        setGrid(newGrid);
 
-  // Check if grid is correct & ends race
-  const checkBoardCompletion = async () => {
-    if (!grid) return;
+        setRackTiles((prev) => prev.map((t) => (t.id === rawData ? { ...t, isPlaced: true } : t)));
 
-    const correct = isGridCompleteAndCorrect(grid);
-    if (correct) {
-      // Local solve completed! Record final win
-      setWinnerId(userId);
-      setWinner('win');
-      setWinnerName(user?.name || 'You');
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
 
-      // Update DB game session with winner details
-      if (dbSessionId) {
-        const { error } = await supabase
-          .from('game_sessions')
-          .update({
-            winner_id: userId,
-            ended_at: new Date().toISOString(),
-          })
-          .eq('id', dbSessionId);
-
-        if (error) console.error(error);
+        updateAndBroadcastProgress(newGrid);
+        checkBoardCompletion(newGrid);
       }
-
-      // Record replay (only host saves to avoid duplicate inserts)
-      recorder.current.recordMove(userId, 'finish', { time: Date.now() });
-      if (isHost) {
-        await recorder.current.save(userId).catch(console.error);
-      }
-
-      // Broadcast finish to partner with final board data
-      broadcastMove({
-        type: 'finish',
-        winnerId: userId,
-        winnerName: user?.name || 'You',
-        finalGrid: grid,
-      });
-
-      setShowInspection(true);
+    } catch (err) {
+      console.error('Error handling desktop drop:', err);
     }
   };
+
+  const handleDropOnRack = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    try {
+      const rawData = e.dataTransfer.getData('text/plain');
+      if (rawData && rawData.startsWith('{')) {
+        const data = JSON.parse(rawData);
+        if (data.source === 'board') {
+          const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+          newGrid[data.r][data.c].currentValue = null;
+          recalculateIntermediateResults(newGrid);
+          setGrid(newGrid);
+
+          setRackTiles((prev) =>
+            prev.map((t) => {
+              if (t.value === data.value && t.isPlaced) {
+                return { ...t, isPlaced: false };
+              }
+              return t;
+            })
+          );
+
+          updateAndBroadcastProgress(newGrid);
+        }
+      }
+    } catch (err) {
+      console.error('Error handling desktop drop on rack:', err);
+    }
+  };
+
+  // Mobile touch drag/drop handlers
+  const handleTouchStartRack = (e, tile) => {
+    if (winner) return;
+    const touch = e.touches[0];
+    setTouchDrag({
+      type: 'rack',
+      id: tile.id,
+      value: tile.value,
+      x: touch.clientX,
+      y: touch.clientY,
+    });
+  };
+
+  const handleTouchStartBoard = (e, r, c, val) => {
+    if (winner) return;
+    const touch = e.touches[0];
+    setTouchDrag({
+      type: 'board',
+      r,
+      c,
+      value: val,
+      x: touch.clientX,
+      y: touch.clientY,
+    });
+  };
+
+  const handleTouchDropOnCell = useCallback(
+    (drag, r, c) => {
+      if (winner || !grid) return;
+      const cell = grid[r][c];
+      if (
+        !cell ||
+        cell.type !== 'number' ||
+        !cell.isHidden ||
+        cell.currentValue ||
+        getLockedCellsMap(grid)[`${r}-${c}`]
+      )
+        return;
+
+      const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+
+      if (drag.type === 'rack') {
+        newGrid[r][c].currentValue = drag.value;
+        recalculateIntermediateResults(newGrid);
+        setGrid(newGrid);
+        setRackTiles((prev) => prev.map((t) => (t.id === drag.id ? { ...t, isPlaced: true } : t)));
+      } else if (drag.type === 'board') {
+        newGrid[drag.r][drag.c].currentValue = null;
+        newGrid[r][c].currentValue = drag.value;
+        recalculateIntermediateResults(newGrid);
+        setGrid(newGrid);
+      }
+
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+
+      updateAndBroadcastProgress(newGrid);
+      checkBoardCompletion(newGrid);
+    },
+    [grid, winner, checkBoardCompletion, updateAndBroadcastProgress]
+  );
+
+  const handleTouchDropOnRack = useCallback(
+    (drag) => {
+      if (drag.type === 'board') {
+        const newGrid = grid.map((row) => row.map((cl) => ({ ...cl })));
+        newGrid[drag.r][drag.c].currentValue = null;
+        recalculateIntermediateResults(newGrid);
+        setGrid(newGrid);
+
+        setRackTiles((prev) =>
+          prev.map((t) => {
+            if (t.value === drag.value && t.isPlaced) {
+              return { ...t, isPlaced: false };
+            }
+            return t;
+          })
+        );
+
+        updateAndBroadcastProgress(newGrid);
+      }
+    },
+    [grid, updateAndBroadcastProgress]
+  );
+
+  // Global touch listeners when a touch drag is active
+  useEffect(() => {
+    if (!touchDrag) return;
+
+    const handleTouchMove = (e) => {
+      if (e.cancelable) e.preventDefault();
+      const touch = e.touches[0];
+      setTouchDrag((prev) => (prev ? { ...prev, x: touch.clientX, y: touch.clientY } : null));
+    };
+
+    const handleTouchEnd = (e) => {
+      if (!touchDrag) return;
+      const touch = e.changedTouches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+      const slotElement = element?.closest('.math-cell-slot');
+      const rackElement = element?.closest('.math-rack');
+
+      if (slotElement) {
+        const match = slotElement.id.match(/math-slot-(\d+)-(\d+)/);
+        if (match) {
+          const r = parseInt(match[1], 10);
+          const c = parseInt(match[2], 10);
+          handleTouchDropOnCell(touchDrag, r, c);
+        }
+      } else if (rackElement && touchDrag.type === 'board') {
+        handleTouchDropOnRack(touchDrag);
+      }
+
+      setTouchDrag(null);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [touchDrag, handleTouchDropOnCell, handleTouchDropOnRack]);
 
   // Rematch & Forfeit controls
   const handleRequestRematch = () => {
@@ -483,34 +718,40 @@ export default function MathPuzzle({
   };
 
   const handleAcceptRematch = async () => {
-    const puzzle = generatePuzzle(difficulty);
+    try {
+      setLoading(true);
+      const puzzle = await generatePuzzleAsync(difficulty);
 
-    const puzzleData = {
-      difficulty,
-      size: puzzle.size,
-      initial_grid: puzzle.grid,
-      hidden_values: puzzle.hiddenValues,
-    };
+      const puzzleData = {
+        difficulty,
+        initial_grid: puzzle.grid,
+        hidden_values: puzzle.hiddenValues,
+      };
 
-    const { data: session, error } = await supabase
-      .from('game_sessions')
-      .insert({
-        game_type: 'math_puzzle',
-        player_a_id: userId,
-        player_b_id: partnerId,
-        puzzle_data: puzzleData,
-        player_states: {},
-      })
-      .select('*')
-      .single();
+      const { data: session, error } = await supabase
+        .from('game_sessions')
+        .insert({
+          game_type: 'math_puzzle',
+          player_a_id: userId,
+          player_b_id: partnerId,
+          puzzle_data: puzzleData,
+          player_states: {},
+        })
+        .select('*')
+        .single();
 
-    if (error) {
-      console.error(error);
-      return;
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      handleResetLocalState(session);
+      broadcastMove({ type: 'rematch_accept', newSession: session });
+    } catch (err) {
+      console.error('Error accepting rematch:', err);
+    } finally {
+      setLoading(false);
     }
-
-    handleResetLocalState(session);
-    broadcastMove({ type: 'rematch_accept', newSession: session });
   };
 
   const handleDeclineRematch = () => {
@@ -533,6 +774,11 @@ export default function MathPuzzle({
     setShowForfeitModal(false);
     recorder.current.recordMove(userId, 'forfeit', {});
     broadcastMove({ type: 'forfeit', senderId: userId });
+
+    // Write replay if host
+    if (isHost) {
+      await recorder.current.save(partnerId).catch(console.error);
+    }
 
     // Mark partner as winner in DB
     if (dbSessionId) {
@@ -593,6 +839,8 @@ export default function MathPuzzle({
         user={user}
         partner={partner}
         isMyTurn={!winner}
+        userScore={myProgress}
+        partnerScore={partnerProgress}
         onBack={handleBackAction}
         activeUserBubble={activeUserBubble}
         activePartnerBubble={activePartnerBubble}
@@ -603,7 +851,15 @@ export default function MathPuzzle({
       {/* Difficulty selector (If game not started and user is host) */}
       {!difficulty && !loading && (
         <div className="math-puzzle-main">
-          {isHost ? (
+          {!partnerOnline ? (
+            <div className="flex flex-col items-center justify-center gap-3 text-center py-8">
+              <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+              <h3 className="font-heading text-lg font-bold">Waiting for partner…</h3>
+              <p className="text-xs text-text-muted max-w-xs leading-relaxed">
+                We&apos;re waiting for {partner?.name || 'your partner'} to accept the game invite.
+              </p>
+            </div>
+          ) : isHost ? (
             <div className="difficulty-selector">
               <h2 className="font-heading text-xl font-bold text-text-main">Choose Difficulty</h2>
               <p className="text-xs text-text-muted">
@@ -612,15 +868,15 @@ export default function MathPuzzle({
               <div className="difficulty-options">
                 <button onClick={() => handleStartRace('easy')} className="btn-difficulty">
                   Easy
-                  <span className="desc">5×5 grid, operators (+ -), numbers 1-10</span>
+                  <span className="desc">5×5 grid, operators (+, -), numbers 1-10</span>
                 </button>
                 <button onClick={() => handleStartRace('medium')} className="btn-difficulty">
                   Medium
-                  <span className="desc">7×7 grid, operators (+ - *), numbers 1-20</span>
+                  <span className="desc">7×7 grid, operators (+, -, ×), numbers 1-20</span>
                 </button>
                 <button onClick={() => handleStartRace('expert')} className="btn-difficulty">
                   Expert
-                  <span className="desc">9×9 grid, operators (+ - * /), numbers 1-100</span>
+                  <span className="desc">9×9 grid, operators (+, -, ×, ÷), numbers 1-100</span>
                 </button>
               </div>
             </div>
@@ -655,10 +911,11 @@ export default function MathPuzzle({
           <div onDragOver={handleDragOver} className="math-board-wrapper">
             <MathPuzzleBoard
               grid={grid}
-              size={size}
               onCellClick={handleCellClick}
               isDragActive={isDragActive}
-              onDrop={handleDrop}
+              onDropCell={handleDrop}
+              onDragStartTile={handleBoardDragStart}
+              onTouchStartTile={handleTouchStartBoard}
             />
           </div>
 
@@ -687,6 +944,9 @@ export default function MathPuzzle({
           onSelectTile={handleSelectRackTile}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onTouchStart={handleTouchStartRack}
+          onDragOverRack={(e) => e.preventDefault()}
+          onDropRack={handleDropOnRack}
         />
       )}
 
@@ -731,7 +991,11 @@ export default function MathPuzzle({
         ))}
       </div>
 
-      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      {difficulty && (
+        <div className={winner ? 'math-reaction-tray winner' : 'math-reaction-tray'}>
+          <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+        </div>
+      )}
 
       <ForfeitModal
         isOpen={showForfeitModal}
@@ -744,7 +1008,6 @@ export default function MathPuzzle({
         <InspectionPanel
           myGrid={grid}
           partnerGrid={partnerGrid}
-          size={size}
           user={user}
           partner={partner}
           winnerId={winnerId}
@@ -765,6 +1028,22 @@ export default function MathPuzzle({
           onDeclineRematch={handleDeclineRematch}
           onLobby={handleBackAction}
         />
+      )}
+      {touchDrag && (
+        <div
+          style={{
+            position: 'fixed',
+            left: touchDrag.x - 22,
+            top: touchDrag.y - 22,
+            pointerEvents: 'none',
+            zIndex: 1000,
+            width: '44px',
+            height: '44px',
+          }}
+          className="math-placed-tile flex items-center justify-center font-extrabold text-lg select-none touch-drag-ghost"
+        >
+          {touchDrag.value}
+        </div>
       )}
     </div>
   );

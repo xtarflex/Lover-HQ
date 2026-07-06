@@ -5,65 +5,85 @@
 
 import { getLetterScore } from './tileBag';
 
-export const BOARD_SIZE = 11;
-export const CENTER_CELL = { r: 5, c: 5 };
+export const BOARD_SIZE = 15;
+export const CENTER_CELL = { r: 7, c: 7 };
 
 /**
  * Returns the board multiplier definition for a given cell.
  *
- * @param {number} r - Row index (0-10).
- * @param {number} c - Column index (0-10).
+ * @param {number} r - Row index (0-14).
+ * @param {number} c - Column index (0-14).
  * @returns {{ type: 'DL'|'TL'|'DW'|'TW'|null, value: number }} Multiplier info.
  */
 export function getMultiplier(r, c) {
-  // 4 corners are TW
-  if (
-    (r === 0 && c === 0) ||
-    (r === 0 && c === BOARD_SIZE - 1) ||
-    (r === BOARD_SIZE - 1 && c === 0) ||
-    (r === BOARD_SIZE - 1 && c === BOARD_SIZE - 1)
-  ) {
+  // TW (Triple Word): 8 squares
+  // Corners: (0,0), (0,14), (14,0), (14,14)
+  // Mids: (0,7), (7,0), (14,7), (7,14)
+  const isTw =
+    (r === 0 && (c === 0 || c === 7 || c === 14)) ||
+    (r === 7 && (c === 0 || c === 14)) ||
+    (r === 14 && (c === 0 || c === 7 || c === 14));
+  if (isTw) {
     return { type: 'TW', value: 3 };
   }
 
-  // DW Diagonals + Center + Mid-edges
-  const isDiagonal = r === c || r === BOARD_SIZE - 1 - c;
-  const isCenter = r === CENTER_CELL.r && c === CENTER_CELL.c;
-  const isMidEdge =
-    (r === 0 && c === 5) || (r === 10 && c === 5) || (r === 5 && c === 0) || (r === 5 && c === 10);
-
-  if (isCenter || isMidEdge || (isDiagonal && r >= 1 && r <= 9)) {
+  // DW (Double Word): 17 squares (including center star)
+  // Diagonals: (1,1), (2,2), (3,3), (4,4) and mirrors
+  // Center star: (7,7)
+  const isDw =
+    (r === c && ((r >= 1 && r <= 4) || (r >= 10 && r <= 13))) ||
+    (r === 14 - c && ((r >= 1 && r <= 4) || (r >= 10 && r <= 13))) ||
+    (r === 7 && c === 7);
+  if (isDw) {
     return { type: 'DW', value: 2 };
   }
 
-  // TL: (1, 5), (5, 1), (5, 9), (9, 5)
-  if (
-    (r === 1 && c === 5) ||
-    (r === 5 && c === 1) ||
-    (r === 5 && c === 9) ||
-    (r === 9 && c === 5)
-  ) {
+  // TL (Triple Letter): 12 squares
+  const tlSpots = [
+    [1, 5],
+    [1, 9],
+    [5, 1],
+    [5, 5],
+    [5, 9],
+    [5, 13],
+    [9, 1],
+    [9, 5],
+    [9, 9],
+    [9, 13],
+    [13, 5],
+    [13, 9],
+  ];
+  const isTl = tlSpots.some(([tr, tc]) => tr === r && tc === c);
+  if (isTl) {
     return { type: 'TL', value: 3 };
   }
 
-  // DL: Symmetric spots
+  // DL (Double Letter): 24 squares
   const dlSpots = [
     [0, 3],
-    [0, 7],
-    [3, 0],
-    [7, 0],
-    [3, 10],
-    [7, 10],
-    [10, 3],
-    [10, 7],
-    [2, 4],
+    [0, 11],
     [2, 6],
-    [4, 2],
-    [4, 8],
+    [2, 8],
+    [3, 0],
+    [3, 7],
+    [3, 14],
     [6, 2],
+    [6, 6],
     [6, 8],
-    [8, 4],
+    [6, 12],
+    [7, 3],
+    [7, 11],
+    [8, 2],
     [8, 6],
+    [8, 8],
+    [8, 12],
+    [11, 0],
+    [11, 7],
+    [11, 14],
+    [12, 6],
+    [12, 8],
+    [14, 3],
+    [14, 11],
   ];
   const isDl = dlSpots.some(([dr, dc]) => dr === r && dc === c);
   if (isDl) {
@@ -76,8 +96,8 @@ export function getMultiplier(r, c) {
 /**
  * Calculates the score of a single word.
  *
- * @param {{r: number, c: number, letter: string}[]} wordTiles - Tiles forming the word.
- * @param {string[][]} board - Immutable board before the current turn.
+ * @param {{r: number, c: number, letter: string, isBlank?: boolean}[]} wordTiles - Tiles forming the word.
+ * @param {({letter: string, isBlank: boolean}|null)[][]} board - Immutable board before the current turn.
  * @returns {number} Score for the word.
  */
 export function calculateWordScore(wordTiles, board) {
@@ -85,8 +105,8 @@ export function calculateWordScore(wordTiles, board) {
   let wordMultiplier = 1;
 
   for (const tile of wordTiles) {
-    const { r, c, letter } = tile;
-    const baseScore = getLetterScore(letter);
+    const { r, c, letter, isBlank } = tile;
+    const baseScore = getLetterScore(letter, isBlank);
 
     // Only apply multiplier if the board cell is currently empty (meaning it's placed this turn)
     const isNew = !board[r][c];
@@ -125,17 +145,17 @@ const inBounds = (r, c) => r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE;
 /**
  * Finds all words formed by a turn's new tile placements.
  *
- * @param {string[][]} board - The board (grid of letter strings or null/empty).
- * @param {{r: number, c: number, letter: string}[]} placements - Newly placed tiles.
- * @returns {{r: number, c: number, letter: string}[][]} Array of words, where each word is an array of tiles.
+ * @param {({letter: string, isBlank: boolean}|null)[][]} board - The board (grid of tile objects or null/empty).
+ * @param {{r: number, c: number, letter: string, isBlank?: boolean}[]} placements - Newly placed tiles.
+ * @returns {{r: number, c: number, letter: string, isBlank: boolean}[][]} Array of words.
  */
 export function findWordsFormed(board, placements) {
   if (placements.length === 0) return [];
 
   // Create a combined grid to easily check tile existence
   const grid = board.map((row) => [...row]);
-  placements.forEach(({ r, c, letter }) => {
-    grid[r][c] = letter;
+  placements.forEach(({ r, c, letter, isBlank }) => {
+    grid[r][c] = { letter, isBlank };
   });
 
   const words = [];
@@ -153,7 +173,7 @@ export function findWordsFormed(board, placements) {
       }
       // Read left-to-right
       while (inBounds(r, c) && grid[r][c]) {
-        tiles.push({ r, c, letter: grid[r][c] });
+        tiles.push({ r, c, letter: grid[r][c].letter, isBlank: !!grid[r][c].isBlank });
         c++;
       }
     } else {
@@ -162,7 +182,7 @@ export function findWordsFormed(board, placements) {
       }
       // Read top-to-bottom
       while (inBounds(r, c) && grid[r][c]) {
-        tiles.push({ r, c, letter: grid[r][c] });
+        tiles.push({ r, c, letter: grid[r][c].letter, isBlank: !!grid[r][c].isBlank });
         r++;
       }
     }
@@ -186,15 +206,24 @@ export function findWordsFormed(board, placements) {
     if (vWord) words.push(vWord);
     return words;
   } else {
-    // Invalid non-linear placement, but let's still check what's there
+    // Invalid non-linear placement
     return [];
   }
 
   // Find the main word
   const mainWord = getWordSpan(placements[0].r, placements[0].c, mainIsHorizontal);
-  if (mainWord) {
-    words.push(mainWord);
+  if (!mainWord) {
+    return [];
   }
+
+  // Continuity validation: ensure all placed tiles are part of this main word span.
+  const mainWordKeys = new Set(mainWord.map((t) => `${t.r},${t.c}`));
+  const allPlacementsInMainWord = placements.every((p) => mainWordKeys.has(`${p.r},${p.c}`));
+  if (!allPlacementsInMainWord) {
+    return []; // Gaps or disconnected placements in the line
+  }
+
+  words.push(mainWord);
 
   // Find cross words for each placed tile
   placements.forEach(({ r, c }) => {
@@ -210,8 +239,8 @@ export function findWordsFormed(board, placements) {
 /**
  * Calculates the total score of a turn.
  *
- * @param {string[][]} board - The board state before this turn.
- * @param {{r: number, c: number, letter: string}[]} placements - Newly placed tiles.
+ * @param {({letter: string, isBlank: boolean}|null)[][]} board - The board state before this turn.
+ * @param {{r: number, c: number, letter: string, isBlank?: boolean}[]} placements - Newly placed tiles.
  * @returns {number} Score of the turn.
  */
 export function calculateTurnScore(board, placements) {

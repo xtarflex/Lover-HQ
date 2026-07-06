@@ -19,6 +19,9 @@ import LetterRack from './LetterRack';
 import { createInitialBag, drawTiles } from './utils/tileBag';
 import { calculateTurnScore, BOARD_SIZE, findWordsFormed } from './utils/scoring';
 import { validateOnlineWord } from '../wordChain/dictionaryService';
+import { AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 import './scrabble.css';
 
 /**
@@ -40,6 +43,7 @@ export default function Scrabble({
   partnerId,
   user,
   partner,
+  partnerOnline,
   onBack,
   isHost,
 }) {
@@ -54,7 +58,7 @@ export default function Scrabble({
   const [dbSessionId, setDbSessionId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Board state: 11x11 grid
+  // Board state: 15x15 grid
   const [board, setBoard] = useState(() =>
     Array(BOARD_SIZE)
       .fill(null)
@@ -84,6 +88,9 @@ export default function Scrabble({
   const [showForfeitModal, setShowForfeitModal] = useState(false);
   const [showExchangeModal, setShowExchangeModal] = useState(false);
   const [exchangeSelected, setExchangeSelected] = useState([]);
+  const [showBlankModal, setShowBlankModal] = useState(false);
+  const [pendingBlankPlacement, setPendingBlankPlacement] = useState(null); // { r, c, rackIndex }
+  const [touchDrag, setTouchDrag] = useState(null); // { type: 'rack'|'board', index, x, y, letter, isBlank }
 
   const [activeUserBubble, setActiveUserBubble] = useState('');
   const [activePartnerBubble, setActivePartnerBubble] = useState('');
@@ -92,6 +99,63 @@ export default function Scrabble({
 
   // Check turn helper
   const isMyTurn = currentTurn === userId;
+
+  const getLetterScore = (letter, isBlank) => {
+    if (isBlank || letter === '_') return 0;
+    const LETTER_VALUES = {
+      A: 1,
+      B: 3,
+      C: 3,
+      D: 2,
+      E: 1,
+      F: 4,
+      G: 2,
+      H: 4,
+      I: 1,
+      J: 8,
+      K: 5,
+      L: 1,
+      M: 3,
+      N: 1,
+      O: 1,
+      P: 3,
+      Q: 10,
+      R: 1,
+      S: 1,
+      T: 1,
+      U: 1,
+      V: 4,
+      W: 4,
+      X: 8,
+      Y: 4,
+      Z: 10,
+      _: 0,
+    };
+    return LETTER_VALUES[letter.toUpperCase()] || 0;
+  };
+
+  const adjustFinalScores = useCallback(
+    (currentScores, finalMyRack, finalPartnerRack, emptiedRackUserId) => {
+      const myRackVal = finalMyRack.reduce((sum, l) => sum + getLetterScore(l), 0);
+      const partnerRackVal = finalPartnerRack.reduce((sum, l) => sum + getLetterScore(l), 0);
+
+      const adjusted = { ...currentScores };
+
+      if (emptiedRackUserId === userId) {
+        adjusted[userId] += partnerRackVal;
+        adjusted[partnerId] -= partnerRackVal;
+      } else if (emptiedRackUserId === partnerId) {
+        adjusted[partnerId] += myRackVal;
+        adjusted[userId] -= myRackVal;
+      } else {
+        adjusted[userId] -= myRackVal;
+        adjusted[partnerId] -= partnerRackVal;
+      }
+
+      return adjusted;
+    },
+    [userId, partnerId]
+  );
 
   const determineWinner = useCallback(
     (currentScores) => {
@@ -107,11 +171,27 @@ export default function Scrabble({
   const loadSessionData = useCallback(
     (session) => {
       const data = session.puzzle_data;
-      setBoard(data.board);
       setBag(data.bag);
       setScores(data.scores);
       setCurrentTurn(data.current_turn);
       setConsecutivePasses(data.consecutive_passes || 0);
+
+      // Normalize board to objects
+      let loadedBoard = data.board;
+      if (!loadedBoard || loadedBoard.length !== BOARD_SIZE) {
+        loadedBoard = Array(BOARD_SIZE)
+          .fill(null)
+          .map(() => Array(BOARD_SIZE).fill(null));
+      }
+      const normalizedBoard = loadedBoard.map((row) =>
+        row.map((cell) => {
+          if (typeof cell === 'string') {
+            return { letter: cell, isBlank: false };
+          }
+          return cell;
+        })
+      );
+      setBoard(normalizedBoard);
 
       const isPlayerA = session.player_a_id === userId;
       setMyRack(isPlayerA ? data.player_a_rack : data.player_b_rack);
@@ -162,7 +242,7 @@ export default function Scrabble({
 
   const handleRecallAll = useCallback(() => {
     if (newPlacements.length === 0) return;
-    const letters = newPlacements.map((p) => p.letter);
+    const letters = newPlacements.map((p) => (p.isBlank ? '_' : p.letter));
     setMyRack((prev) => [...prev, ...letters]);
     setNewPlacements([]);
     setValidationError('');
@@ -240,6 +320,20 @@ export default function Scrabble({
 
   const broadcastMove = useGameSync(gameId, syncSessionId, handleRemoteBroadcast);
 
+  // Listen for partner decline to exit game immediately without forfeit modal
+  useEffect(() => {
+    const handleDecline = () => onBack();
+    window.addEventListener('game-invite-declined', handleDecline);
+    return () => window.removeEventListener('game-invite-declined', handleDecline);
+  }, [onBack]);
+
+  // Save replay when game ends (only host saves to prevent duplicates)
+  useEffect(() => {
+    if (!winner || !isHost) return;
+    const finalWinnerId = winner === 'win' ? userId : winner === 'loss' ? partnerId : null;
+    recorder.current.save(finalWinnerId).catch(console.error);
+  }, [winner, isHost, userId, partnerId]);
+
   const handlePassTurn = useCallback(async () => {
     if (!isMyTurn || winner) return;
 
@@ -251,32 +345,36 @@ export default function Scrabble({
     const sessionData = await fetchCurrentSession();
     if (!sessionData) return;
 
+    let finalWinnerId = null;
+    let finalScores = { ...scores };
+    if (newPasses >= 4) {
+      // Game ends due to 4 consecutive passes
+      finalScores = adjustFinalScores(scores, myRack, partnerRack, null);
+      finalWinnerId = determineWinner(finalScores);
+      setEndReason('consecutive_passes');
+      setWinner(finalWinnerId === userId ? 'win' : finalWinnerId === 'draw' ? 'draw' : 'loss');
+    }
+
     const updatedPuzzleData = {
       board,
       bag,
       player_a_rack: isHost ? myRack : partnerRack,
       player_b_rack: isHost ? partnerRack : myRack,
-      scores,
+      scores: finalScores,
       current_turn: nextTurn,
       consecutive_passes: newPasses,
     };
 
-    let finalWinnerId = null;
-    if (newPasses >= 4) {
-      // Game ends due to 4 consecutive passes
-      finalWinnerId = determineWinner(scores);
-      setWinner(finalWinnerId === userId ? 'win' : finalWinnerId === 'draw' ? 'draw' : 'loss');
-    }
-
     await saveSessionToDb(updatedPuzzleData, finalWinnerId);
     setCurrentTurn(nextTurn);
     setConsecutivePasses(newPasses);
+    setScores(finalScores);
 
     broadcastMove({
       type: 'move',
       board,
       bag,
-      scores,
+      scores: finalScores,
       turn: nextTurn,
       consecutivePasses: newPasses,
       partnerRack: myRack,
@@ -305,6 +403,7 @@ export default function Scrabble({
     userId,
     saveSessionToDb,
     broadcastMove,
+    adjustFinalScores,
   ]);
 
   // Turn Countdown Timer (30 seconds)
@@ -314,16 +413,37 @@ export default function Scrabble({
     }
   }, [isMyTurn, handlePassTurn]);
 
-  const { seconds, pause, reset } = useGameTimer(30, handleTimerExpire, false);
+  const { seconds, pause, start, reset } = useGameTimer(30, handleTimerExpire, false);
 
-  // Synchronize timer active state based on turn
+  // Reset the timer only when the turn changes
   useEffect(() => {
     if (dbSessionId && !winner) {
       reset(true);
+    }
+  }, [currentTurn, dbSessionId, winner, reset]);
+
+  // Pause or resume the timer based on partner connection state
+  useEffect(() => {
+    if (dbSessionId && !winner) {
+      if (partnerOnline) {
+        start();
+      } else {
+        pause();
+      }
     } else {
       pause();
     }
-  }, [currentTurn, dbSessionId, winner, pause, reset]);
+  }, [partnerOnline, dbSessionId, winner, start, pause]);
+
+  // Auto-clear validation errors after 5 seconds
+  useEffect(() => {
+    if (validationError) {
+      const timer = setTimeout(() => {
+        setValidationError('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [validationError]);
 
   // Load or create game session from DB
   useEffect(() => {
@@ -412,18 +532,210 @@ export default function Scrabble({
     if (existingPlacementIndex !== -1) {
       // Recall tile
       const recalled = newPlacements[existingPlacementIndex];
-      setMyRack((prev) => [...prev, recalled.letter]);
+      setMyRack((prev) => [...prev, recalled.isBlank ? '_' : recalled.letter]);
       setNewPlacements((prev) => prev.filter((_, idx) => idx !== existingPlacementIndex));
       setValidationError('');
     } else if (selectedRackIndex !== null && !board[r][c]) {
       // Place tile
       const letter = myRack[selectedRackIndex];
-      setNewPlacements((prev) => [...prev, { r, c, letter }]);
-      setMyRack((prev) => prev.filter((_, idx) => idx !== selectedRackIndex));
-      setSelectedRackIndex(null);
-      setValidationError('');
+      if (letter === '_') {
+        setPendingBlankPlacement({ r, c, rackIndex: selectedRackIndex });
+        setShowBlankModal(true);
+      } else {
+        setNewPlacements((prev) => [...prev, { r, c, letter, isBlank: false }]);
+        setMyRack((prev) => prev.filter((_, idx) => idx !== selectedRackIndex));
+        setSelectedRackIndex(null);
+        setValidationError('');
+      }
     }
   };
+
+  const handleSelectBlankLetter = (chosenLetter) => {
+    if (!pendingBlankPlacement) return;
+    const { r, c, rackIndex } = pendingBlankPlacement;
+    setNewPlacements((prev) => [...prev, { r, c, letter: chosenLetter, isBlank: true }]);
+    setMyRack((prev) => prev.filter((_, idx) => idx !== rackIndex));
+    setPendingBlankPlacement(null);
+    setShowBlankModal(false);
+    setSelectedRackIndex(null);
+    setValidationError('');
+  };
+
+  const handleCancelBlankSelection = () => {
+    setPendingBlankPlacement(null);
+    setShowBlankModal(false);
+    setSelectedRackIndex(null);
+  };
+
+  // Desktop HTML5 drag/drop handlers
+  const handleDragStart = (e, index) => {
+    if (!isMyTurn || winner) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData('text/plain', JSON.stringify({ source: 'rack', index }));
+    e.dataTransfer.effectAllowed = 'move';
+    setSelectedRackIndex(index);
+  };
+
+  const handleBoardDragStart = (e, placementIndex, r, c) => {
+    if (!isMyTurn || winner) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData(
+      'text/plain',
+      JSON.stringify({ source: 'board', index: placementIndex, r, c })
+    );
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDropOnCell = (e, r, c) => {
+    e.preventDefault();
+    if (!isMyTurn || winner || board[r][c]) return;
+
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.source === 'rack') {
+        const letter = myRack[data.index];
+        if (letter === '_') {
+          setPendingBlankPlacement({ r, c, rackIndex: data.index });
+          setShowBlankModal(true);
+        } else {
+          setNewPlacements((prev) => [...prev, { r, c, letter, isBlank: false }]);
+          setMyRack((prev) => prev.filter((_, idx) => idx !== data.index));
+          setSelectedRackIndex(null);
+          setValidationError('');
+        }
+      } else if (data.source === 'board') {
+        // Move placed tile on the board
+        setNewPlacements((prev) => prev.map((p, idx) => (idx === data.index ? { ...p, r, c } : p)));
+        setValidationError('');
+      }
+    } catch (err) {
+      console.error('Error handling drop on cell:', err);
+    }
+  };
+
+  const handleDropOnRack = (e) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.source === 'board') {
+        const recalled = newPlacements[data.index];
+        setMyRack((prev) => [...prev, recalled.isBlank ? '_' : recalled.letter]);
+        setNewPlacements((prev) => prev.filter((_, idx) => idx !== data.index));
+        setValidationError('');
+      }
+    } catch (err) {
+      console.error('Error handling drop on rack:', err);
+    }
+  };
+
+  // Mobile touch drag/drop handlers
+  const handleTouchStartRack = (e, index) => {
+    if (!isMyTurn || winner) return;
+    const touch = e.touches[0];
+    setTouchDrag({
+      type: 'rack',
+      index,
+      x: touch.clientX,
+      y: touch.clientY,
+      letter: myRack[index],
+      isBlank: myRack[index] === '_',
+    });
+  };
+
+  const handleTouchStartBoard = (e, placementIndex) => {
+    if (!isMyTurn || winner) return;
+    const touch = e.touches[0];
+    const placement = newPlacements[placementIndex];
+    setTouchDrag({
+      type: 'board',
+      index: placementIndex,
+      x: touch.clientX,
+      y: touch.clientY,
+      letter: placement.letter,
+      isBlank: placement.isBlank,
+    });
+  };
+
+  // Helper for touch drops
+  const handleTouchDropOnCell = useCallback(
+    (drag, r, c) => {
+      if (board[r][c] || winner) return;
+
+      if (drag.type === 'rack') {
+        if (drag.letter === '_') {
+          setPendingBlankPlacement({ r, c, rackIndex: drag.index });
+          setShowBlankModal(true);
+        } else {
+          setNewPlacements((prev) => [...prev, { r, c, letter: drag.letter, isBlank: false }]);
+          setMyRack((prev) => prev.filter((_, idx) => idx !== drag.index));
+          setSelectedRackIndex(null);
+          setValidationError('');
+        }
+      } else if (drag.type === 'board') {
+        // Move placed tile on the board
+        setNewPlacements((prev) => prev.map((p, idx) => (idx === drag.index ? { ...p, r, c } : p)));
+        setValidationError('');
+      }
+    },
+    [board, winner]
+  );
+
+  const handleTouchDropOnRack = useCallback(
+    (drag) => {
+      if (drag.type === 'board') {
+        const recalled = newPlacements[drag.index];
+        setMyRack((prev) => [...prev, recalled.isBlank ? '_' : recalled.letter]);
+        setNewPlacements((prev) => prev.filter((_, idx) => idx !== drag.index));
+        setValidationError('');
+      }
+    },
+    [newPlacements]
+  );
+
+  // Global touch listeners when a touch drag is active
+  useEffect(() => {
+    if (!touchDrag) return;
+
+    const handleTouchMove = (e) => {
+      // Prevent scrolling while dragging tiles
+      if (e.cancelable) e.preventDefault();
+      const touch = e.touches[0];
+      setTouchDrag((prev) => (prev ? { ...prev, x: touch.clientX, y: touch.clientY } : null));
+    };
+
+    const handleTouchEnd = (e) => {
+      if (!touchDrag) return;
+      const touch = e.changedTouches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+      const cellElement = element?.closest('.scrabble-cell');
+      const rackElement = element?.closest('.scrabble-rack');
+
+      if (cellElement) {
+        const match = cellElement.id.match(/scrabble-cell-(\d+)-(\d+)/);
+        if (match) {
+          const r = parseInt(match[1], 10);
+          const c = parseInt(match[2], 10);
+          handleTouchDropOnCell(touchDrag, r, c);
+        }
+      } else if (rackElement && touchDrag.type === 'board') {
+        handleTouchDropOnRack(touchDrag);
+      }
+
+      setTouchDrag(null);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [touchDrag, handleTouchDropOnCell, handleTouchDropOnRack]);
 
   const handleSelectRackTile = (index) => {
     if (!isMyTurn || winner) return;
@@ -448,7 +760,7 @@ export default function Scrabble({
       // 2. Connectivity check
       const isFirstTurn = board.every((row) => row.every((cell) => cell === null));
       if (isFirstTurn) {
-        const coversCenter = newPlacements.some((p) => p.r === 5 && p.c === 5);
+        const coversCenter = newPlacements.some((p) => p.r === 7 && p.c === 7);
         if (!coversCenter) {
           throw new Error('First word must cover the center star (★).');
         }
@@ -494,8 +806,8 @@ export default function Scrabble({
       };
 
       const newBoard = board.map((row) => [...row]);
-      newPlacements.forEach(({ r, c, letter }) => {
-        newBoard[r][c] = letter;
+      newPlacements.forEach(({ r, c, letter, isBlank }) => {
+        newBoard[r][c] = { letter, isBlank };
       });
 
       // Draw replacement tiles
@@ -506,10 +818,12 @@ export default function Scrabble({
       // Check if game end condition met
       const nextTurn = partnerId;
       let finalWinnerId = null;
+      let finalScores = { ...newScores };
 
       const myRackEmpty = newMyRack.length === 0;
       if (myRackEmpty && remainingBag.length === 0) {
-        finalWinnerId = determineWinner(newScores);
+        finalScores = adjustFinalScores(newScores, newMyRack, partnerRack, userId);
+        finalWinnerId = determineWinner(finalScores);
         setWinner(finalWinnerId === userId ? 'win' : finalWinnerId === 'draw' ? 'draw' : 'loss');
       }
 
@@ -518,7 +832,7 @@ export default function Scrabble({
         bag: remainingBag,
         player_a_rack: isHost ? newMyRack : partnerRack,
         player_b_rack: isHost ? partnerRack : newMyRack,
-        scores: newScores,
+        scores: finalScores,
         current_turn: nextTurn,
         consecutive_passes: 0,
       };
@@ -528,7 +842,7 @@ export default function Scrabble({
       // Local State Update
       setBoard(newBoard);
       setBag(remainingBag);
-      setScores(newScores);
+      setScores(finalScores);
       setMyRack(newMyRack);
       setNewPlacements([]);
       setCurrentTurn(nextTurn);
@@ -541,7 +855,7 @@ export default function Scrabble({
         type: 'move',
         board: newBoard,
         bag: remainingBag,
-        scores: newScores,
+        scores: finalScores,
         turn: nextTurn,
         consecutivePasses: 0,
         partnerRack: newMyRack,
@@ -561,7 +875,7 @@ export default function Scrabble({
 
   // Exchange Tiles Modal Actions
   const handleOpenExchange = () => {
-    if (!isMyTurn || winner || bag.length === 0) return;
+    if (!isMyTurn || winner || bag.length < 7) return;
     handleRecallAll();
     setExchangeSelected([]);
     setShowExchangeModal(true);
@@ -592,21 +906,23 @@ export default function Scrabble({
     const nextTurn = partnerId;
     const newPasses = consecutivePasses + 1;
 
+    let finalWinnerId = null;
+    let finalScores = { ...scores };
+    if (newPasses >= 4) {
+      finalScores = adjustFinalScores(scores, finalRack, partnerRack, null);
+      finalWinnerId = determineWinner(finalScores);
+      setWinner(finalWinnerId === userId ? 'win' : finalWinnerId === 'draw' ? 'draw' : 'loss');
+    }
+
     const updatedPuzzleData = {
       board,
       bag: remainingBag,
       player_a_rack: isHost ? finalRack : partnerRack,
       player_b_rack: isHost ? partnerRack : finalRack,
-      scores,
+      scores: finalScores,
       current_turn: nextTurn,
       consecutive_passes: newPasses,
     };
-
-    let finalWinnerId = null;
-    if (newPasses >= 4) {
-      finalWinnerId = determineWinner(scores);
-      setWinner(finalWinnerId === userId ? 'win' : finalWinnerId === 'draw' ? 'draw' : 'loss');
-    }
 
     await saveSessionToDb(updatedPuzzleData, finalWinnerId);
 
@@ -615,12 +931,13 @@ export default function Scrabble({
     setShowExchangeModal(false);
     setCurrentTurn(nextTurn);
     setConsecutivePasses(newPasses);
+    setScores(finalScores);
 
     broadcastMove({
       type: 'move',
       board,
       bag: remainingBag,
-      scores,
+      scores: finalScores,
       turn: nextTurn,
       consecutivePasses: newPasses,
       partnerRack: finalRack,
@@ -689,7 +1006,7 @@ export default function Scrabble({
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
     }
-    if (!winner) {
+    if (!winner && partnerOnline) {
       setShowForfeitModal(true);
     } else {
       onBack();
@@ -701,7 +1018,20 @@ export default function Scrabble({
     recorder.current.recordMove(userId, 'forfeit', {});
     broadcastMove({ type: 'forfeit', senderId: userId });
 
-    await saveSessionToDb(board, partnerId); // End session marking partner as winner
+    // Write replay if host
+    if (isHost) {
+      await recorder.current.save(partnerId).catch(console.error);
+    }
+
+    // Safely update DB without schema corruption
+    const sessionData = await fetchCurrentSession();
+    if (sessionData) {
+      const updatedPuzzleData = {
+        ...sessionData,
+        board,
+      };
+      await saveSessionToDb(updatedPuzzleData, partnerId);
+    }
     onBack();
   };
 
@@ -751,6 +1081,9 @@ export default function Scrabble({
         user={user}
         partner={partner}
         isMyTurn={isMyTurn && !winner}
+        userScore={scores[userId] || 0}
+        partnerScore={scores[partnerId] || 0}
+        timeLeft={seconds}
         onBack={handleBackAction}
         activeUserBubble={activeUserBubble}
         activePartnerBubble={activePartnerBubble}
@@ -758,82 +1091,118 @@ export default function Scrabble({
         partnerEmojis={partnerEmojis}
       />
 
-      <div className="scrabble-main">
-        {/* Scores & Status indicators */}
-        <div className="flex w-full max-w-[360px] justify-between items-center text-xs px-1">
-          <div className="scrabble-turn-indicator">
-            {winner ? (
-              <span className="text-yellow-500 font-bold">Game Over</span>
-            ) : isMyTurn ? (
-              <span className="text-yellow-500 font-bold">Your Turn ({seconds}s)</span>
-            ) : (
-              <span>{"Partner's Turn"}</span>
-            )}
-          </div>
-          <div className="scrabble-bag-count">Bag: {bag.length} tiles</div>
-        </div>
-
-        {/* Board Component */}
-        <ScrabbleBoard board={board} newPlacements={newPlacements} onCellClick={handleCellClick} />
-
-        {/* Validation Errors */}
+      {/* Validation Errors: Absolute top-right below the header, slide left in / slide right out */}
+      <AnimatePresence>
         {validationError && (
-          <div className="text-xs text-red-400 font-semibold max-w-[360px] text-center bg-red-950/40 py-2 px-4 rounded-xl border border-red-500/20">
-            {validationError}
-          </div>
+          <motion.div
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ duration: 0.7, ease: 'easeInOut' }}
+            className="absolute top-28 right-4 z-50 text-xs text-red-400 font-bold bg-red-950/95 py-2.5 px-4 rounded-xl border border-red-500/30 shadow-2xl flex items-center gap-2 max-w-[280px]"
+          >
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <span>{validationError}</span>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Scores Display */}
-        <div className="flex gap-6 text-xs text-text-muted bg-surface/40 px-4 py-2 rounded-xl border border-surface-border">
-          <span>
-            You: <b className="text-yellow-500">{scores[userId]} pts</b>
-          </span>
-          <span>
-            {partner?.name || 'Partner'}: <b className="text-secondary">{scores[partnerId]} pts</b>
-          </span>
+      {!winner && !partnerOnline ? (
+        <div className="flex flex-col items-center justify-center gap-3 text-center py-16 flex-grow">
+          <LoadingSpinner size="md" />
+          <h3 className="font-heading text-lg font-bold">Waiting for partner…</h3>
+          <p className="text-xs text-text-muted max-w-xs leading-relaxed">
+            We&apos;re waiting for {partner?.name || 'your partner'} to accept the game invite.
+          </p>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="scrabble-main">
+            {/* Scores & Status indicators */}
+            <div className="flex w-full max-w-[360px] justify-between items-center text-xs px-1">
+              <div className="scrabble-turn-indicator">
+                {winner ? (
+                  <span className="text-yellow-500 font-bold">Game Over</span>
+                ) : isMyTurn ? (
+                  <span className="text-yellow-500 font-bold">Your Turn</span>
+                ) : (
+                  <span>{"Partner's Turn"}</span>
+                )}
+              </div>
+              <div className="scrabble-bag-count">Bag: {bag.length} tiles</div>
+            </div>
 
-      {/* Pinned Bottom Controls and Letter Rack */}
-      {!winner && !loading && (
-        <div className="scrabble-rack-container">
-          <div className="scrabble-controls">
-            <button
-              onClick={handleRecallAll}
-              disabled={!isMyTurn || newPlacements.length === 0}
-              className="btn-scrabble btn-scrabble-secondary"
-            >
-              Recall
-            </button>
-            <button
-              onClick={handleOpenExchange}
-              disabled={!isMyTurn || bag.length === 0}
-              className="btn-scrabble btn-scrabble-secondary"
-            >
-              Swap ({bag.length})
-            </button>
-            <button
-              onClick={handlePassTurn}
-              disabled={!isMyTurn}
-              className="btn-scrabble btn-scrabble-secondary"
-            >
-              Pass
-            </button>
-            <button
-              onClick={handlePlayWord}
-              disabled={!isMyTurn || newPlacements.length === 0 || isValidating}
-              className="btn-scrabble btn-scrabble-primary"
-            >
-              {isValidating ? 'Checking...' : 'Play'}
-            </button>
+            {/* Board Component */}
+            <ScrabbleBoard
+              board={board}
+              newPlacements={newPlacements}
+              onCellClick={handleCellClick}
+              onDragStartTile={handleBoardDragStart}
+              onDragOverCell={(e) => e.preventDefault()}
+              onDropCell={handleDropOnCell}
+              onTouchStartTile={handleTouchStartBoard}
+            />
+
+            {/* Scores Display */}
+            <div className="flex gap-6 text-xs text-text-muted bg-surface/40 px-4 py-2 rounded-xl border border-surface-border">
+              <span>
+                You: <b className="text-yellow-500">{scores[userId]} pts</b>
+              </span>
+              <span>
+                {partner?.name || 'Partner'}:{' '}
+                <b className="text-secondary">{scores[partnerId]} pts</b>
+              </span>
+            </div>
           </div>
 
-          <LetterRack
-            rack={myRack}
-            selectedTileIndex={selectedRackIndex}
-            onSelectTile={handleSelectRackTile}
-          />
-        </div>
+          {/* Pinned Bottom Controls and Letter Rack */}
+          {!winner && !loading && (
+            <div
+              className="scrabble-rack-container"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDropOnRack}
+            >
+              <div className="scrabble-controls">
+                <button
+                  onClick={handleRecallAll}
+                  disabled={!isMyTurn || newPlacements.length === 0}
+                  className="btn-scrabble btn-scrabble-secondary"
+                >
+                  Recall
+                </button>
+                <button
+                  onClick={handleOpenExchange}
+                  disabled={!isMyTurn || bag.length < 7}
+                  className="btn-scrabble btn-scrabble-secondary"
+                >
+                  Swap ({bag.length})
+                </button>
+                <button
+                  onClick={handlePassTurn}
+                  disabled={!isMyTurn}
+                  className="btn-scrabble btn-scrabble-secondary"
+                >
+                  Pass
+                </button>
+                <button
+                  onClick={handlePlayWord}
+                  disabled={!isMyTurn || newPlacements.length === 0 || isValidating}
+                  className="btn-scrabble btn-scrabble-primary"
+                >
+                  {isValidating ? 'Checking...' : 'Play'}
+                </button>
+              </div>
+
+              <LetterRack
+                rack={myRack}
+                selectedTileIndex={selectedRackIndex}
+                onSelectTile={handleSelectRackTile}
+                onDragStartTile={handleDragStart}
+                onTouchStartTile={handleTouchStartRack}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* Emojis Rendering */}
@@ -877,7 +1246,11 @@ export default function Scrabble({
         ))}
       </div>
 
-      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      {(winner || partnerOnline) && (
+        <div className="scrabble-reaction-tray">
+          <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+        </div>
+      )}
 
       <ForfeitModal
         isOpen={showForfeitModal}
@@ -925,6 +1298,41 @@ export default function Scrabble({
         </div>
       )}
 
+      {/* Blank Tile Letter Selection Modal */}
+      {showBlankModal && (
+        <div className="exchange-overlay">
+          <div className="exchange-card max-w-[360px]">
+            <h3 className="font-heading text-lg font-bold text-text-main">
+              Choose Blank Tile Letter
+            </h3>
+            <p className="text-xs text-text-muted text-center leading-relaxed">
+              Select a letter (A-Z) for your blank tile. The tile will count as 0 points.
+            </p>
+
+            <div className="grid grid-cols-6 gap-2 w-full p-1 justify-items-center">
+              {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) => (
+                <button
+                  key={letter}
+                  onClick={() => handleSelectBlankLetter(letter)}
+                  className="w-10 h-10 bg-slate-700 rounded-lg text-sm font-extrabold text-white flex items-center justify-center border border-slate-600 hover:bg-amber-500 hover:text-slate-900 transition-colors"
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex w-full mt-2">
+              <button
+                onClick={handleCancelBlankSelection}
+                className="flex-1 py-2 text-xs font-bold text-text-muted bg-surface/50 rounded-xl border border-surface-border"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {result && (
         <GameResults
           result={result}
@@ -936,6 +1344,22 @@ export default function Scrabble({
           onDeclineRematch={handleDeclineRematch}
           onLobby={handleBackAction}
         />
+      )}
+      {touchDrag && (
+        <div
+          style={{
+            position: 'fixed',
+            left: touchDrag.x - 22,
+            top: touchDrag.y - 22,
+            pointerEvents: 'none',
+            zIndex: 1000,
+            width: '44px',
+            height: '44px',
+          }}
+          className="rack-tile flex items-center justify-center font-extrabold text-lg select-none touch-drag-ghost"
+        >
+          {touchDrag.letter}
+        </div>
       )}
     </div>
   );

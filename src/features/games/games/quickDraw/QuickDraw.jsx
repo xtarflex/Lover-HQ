@@ -15,6 +15,7 @@ import { GameRecorder } from '../../lib/gameRecorder';
 import { generateSessionId } from '../../lib/gameEngine';
 import ForfeitModal from '../../components/ForfeitModal';
 import QuickReactionTray from '../../components/QuickReactionTray';
+import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 import QuickDrawSetup from './QuickDrawSetup';
 import QuickDrawCanvas from './QuickDrawCanvas';
 import QuickDrawRoundOver from './QuickDrawRoundOver';
@@ -50,6 +51,7 @@ export default function QuickDraw({
   partnerId,
   user,
   partner,
+  partnerOnline,
   onBack,
   isHost,
 }) {
@@ -635,7 +637,7 @@ export default function QuickDraw({
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
     }
-    if (!gameOver) {
+    if (!gameOver && partnerOnline) {
       setShowForfeitModal(true);
     } else {
       onBack();
@@ -792,66 +794,78 @@ export default function QuickDraw({
         ))}
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-4 gap-4 overflow-hidden">
-        {/* Pre-game / Round Setup Screen */}
-        {!gameOver && !roundOver && !targetWord && (
-          <QuickDrawSetup
-            iAmDrawer={iAmDrawer}
-            currentRound={currentRound}
-            partner={partner}
-            wordSuggestions={wordSuggestions}
-            selectedWord={selectedWord}
-            setSelectedWord={setSelectedWord}
-            customWord={customWord}
-            setCustomWord={setCustomWord}
-            durationSelect={durationSelect}
-            setDurationSelect={setDurationSelect}
-            handleStartRound={handleStartRound}
-          />
-        )}
+      {!gameOver && !partnerOnline ? (
+        <div className="flex-grow flex flex-col items-center justify-center gap-3 text-center py-16">
+          <LoadingSpinner size="md" />
+          <h3 className="font-heading text-lg font-bold">Waiting for partner…</h3>
+          <p className="text-xs text-text-muted max-w-xs leading-relaxed">
+            We&apos;re waiting for {partner?.name || 'your partner'} to accept the game invite.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex-grow flex flex-col items-center justify-center p-4 gap-4 overflow-hidden">
+            {/* Pre-game / Round Setup Screen */}
+            {!gameOver && !roundOver && !targetWord && (
+              <QuickDrawSetup
+                iAmDrawer={iAmDrawer}
+                currentRound={currentRound}
+                partner={partner}
+                wordSuggestions={wordSuggestions}
+                selectedWord={selectedWord}
+                setSelectedWord={setSelectedWord}
+                customWord={customWord}
+                setCustomWord={setCustomWord}
+                durationSelect={durationSelect}
+                setDurationSelect={setDurationSelect}
+                handleStartRound={handleStartRound}
+              />
+            )}
 
-        {/* Active gameplay canvas + controls */}
-        {!gameOver && !roundOver && targetWord && (
-          <QuickDrawCanvas
-            canvasRef={canvasRef}
-            iAmDrawer={iAmDrawer}
-            targetWord={targetWord}
-            partner={partner}
-            brushColor={brushColor}
-            setBrushColor={setBrushColor}
-            brushSize={brushSize}
-            setBrushSize={setBrushSize}
-            isEraser={isEraser}
-            setIsEraser={setIsEraser}
-            guessInput={guessInput}
-            guessResult={guessResult}
-            partnerIsTyping={partnerIsTyping}
-            guesses={guesses}
-            startDraw={startDraw}
-            draw={draw}
-            endDraw={endDraw}
-            clearCanvas={clearCanvas}
-            handleGuessSubmit={handleGuessSubmit}
-            handleGuessInputChange={handleGuessInputChange}
-            handleGuessInputBlur={handleGuessInputBlur}
-          />
-        )}
-      </div>
+            {/* Active gameplay canvas + controls */}
+            {!gameOver && !roundOver && targetWord && (
+              <QuickDrawCanvas
+                canvasRef={canvasRef}
+                iAmDrawer={iAmDrawer}
+                targetWord={targetWord}
+                partner={partner}
+                brushColor={brushColor}
+                setBrushColor={setBrushColor}
+                brushSize={brushSize}
+                setBrushSize={setBrushSize}
+                isEraser={isEraser}
+                setIsEraser={setIsEraser}
+                guessInput={guessInput}
+                guessResult={guessResult}
+                partnerIsTyping={partnerIsTyping}
+                guesses={guesses}
+                startDraw={startDraw}
+                draw={draw}
+                endDraw={endDraw}
+                clearCanvas={clearCanvas}
+                handleGuessSubmit={handleGuessSubmit}
+                handleGuessInputChange={handleGuessInputChange}
+                handleGuessInputBlur={handleGuessInputBlur}
+              />
+            )}
+          </div>
 
-      {/* Round Over overlay */}
-      {roundOver && !gameOver && (
-        <QuickDrawRoundOver
-          winner={winner}
-          userId={userId}
-          partnerId={partnerId}
-          partner={partner}
-          user={user}
-          targetWord={targetWord}
-          currentRound={currentRound}
-          maxRounds={maxRounds}
-          scores={scores}
-          handleNextRound={handleNextRound}
-        />
+          {/* Round Over overlay */}
+          {roundOver && !gameOver && (
+            <QuickDrawRoundOver
+              winner={winner}
+              userId={userId}
+              partnerId={partnerId}
+              partner={partner}
+              user={user}
+              targetWord={targetWord}
+              currentRound={currentRound}
+              maxRounds={maxRounds}
+              scores={scores}
+              handleNextRound={handleNextRound}
+            />
+          )}
+        </>
       )}
 
       {/* Game Over screen */}
@@ -910,7 +924,9 @@ export default function QuickDraw({
         ))}
       </div>
 
-      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      {(gameOver || partnerOnline) && (
+        <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
+      )}
       <ForfeitModal
         isOpen={showForfeitModal}
         onClose={() => setShowForfeitModal(false)}

@@ -23,7 +23,7 @@
   padding: 0.75rem;
   gap: 1rem;
   overflow-y: auto;
-  padding-bottom: 7.5rem; /* Space for the tile rack */
+  padding-bottom: 11rem; /* Space for the tile rack and reaction tray */
 }
 
 /* Difficulty selection screen */
@@ -107,21 +107,19 @@
   position: relative;
   width: 100%;
   max-width: 360px;
-  aspect-ratio: 1;
 }
 
 .math-board {
   display: grid;
-  grid-template-columns: repeat(var(--matrix-size), 1fr);
-  grid-template-rows: repeat(var(--matrix-size), 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  grid-template-rows: repeat(11, minmax(0, 1fr));
+  gap: 0;
   width: 100%;
-  height: 100%;
-  background-color: #1E293B;
-  border: 4px solid #334155;
-  border-radius: 16px;
-  padding: 4px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
   transition: all 0.2s ease;
 }
 
@@ -136,59 +134,123 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 0;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   user-select: none;
   position: relative;
   transition: all 0.15s ease;
 }
 
-/* Immutable numbers */
+.math-cell-empty {
+  visibility: hidden;
+  pointer-events: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Completed equation segment background highlights — muted tones so they guide without dominating */
+.math-eq-correct {
+  background-color: #0d3326 !important;
+  border-color: transparent !important;
+  color: #6ee7b7 !important;
+}
+
+.math-eq-incorrect {
+  background-color: #3d1010 !important;
+  border-color: transparent !important;
+  color: #f87171 !important;
+}
+
+.math-eq-correct .math-placed-tile {
+  background-color: #0d3326 !important;
+  border-color: transparent !important;
+  color: #6ee7b7 !important;
+  box-shadow: none !important;
+}
+
+.math-eq-incorrect .math-placed-tile {
+  background-color: #3d1010 !important;
+  border-color: transparent !important;
+  color: #f87171 !important;
+  box-shadow: none !important;
+}
+
+/* Immutable numbers — slightly lighter bg to distinguish from operators */
 .math-cell-immutable {
-  background-color: #334155;
-  color: #F8FAFC;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: #243347;
+  color: #CBD5E1;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Operators (+ - * /) */
+/* Operators (+ - × ÷) — darker bg, muted symbol color */
 .math-cell-operator {
-  background-color: #1E293B;
-  color: #94A3B8;
-  font-weight: 800;
-  font-size: 1.25rem;
-}
-
-/* Equals (=) */
-.math-cell-equals {
-  background-color: #1E293B;
+  background-color: #141E2B;
   color: #64748B;
-  font-size: 1.1rem;
+  font-weight: 800;
+  font-size: 1.1em;
 }
 
-/* Results */
+/* Equals (=) — same family as operators */
+.math-cell-equals {
+  background-color: #141E2B;
+  color: #475569;
+  font-size: 1.0em;
+}
+
+/* Results — solid dark bg, no border */
 .math-cell-result {
-  background-color: #0F172A;
+  background-color: #1E293B;
   color: #E2E8F0;
-  border: 1px solid #334155;
-  font-size: 0.95rem;
+  border: none;
+  font-size: 0.85em;
 }
 
-/* Empty slots for drop */
+/* Intermediate calculated result cell — solid bg always, no border */
+.math-cell-intermediate {
+  background-color: #1E293B;
+  border: none;
+  color: #475569;
+  font-style: italic;
+}
+
+.math-cell-intermediate.has-value {
+  background-color: #1E293B;
+  border: none;
+  color: #F8FAFC;
+  font-style: normal;
+}
+
+/* Blind result cell — value hidden from player, NOT in rack.
+   Renders as a blank tile identical in tone to operators.
+   Player deduces the value; wrong placements cascade silently. */
+.math-cell-blind-result {
+  background-color: #141E2B;
+  border: none;
+  pointer-events: none;
+  cursor: default;
+}
+
+/* Locked cell status */
+.math-cell-locked {
+  cursor: not-allowed !important;
+  opacity: 0.95;
+}
+
+/* Empty slots for drop — same bg as integer cells so they feel part of the number family */
 .math-cell-slot {
-  background-color: rgba(30, 41, 59, 0.4);
-  border: 2px dashed #475569;
+  background-color: #1e2c3e;
+  border: none;
   cursor: pointer;
 }
 
-.math-cell-slot:hover {
-  border-color: #64748B;
-  background-color: rgba(71, 85, 105, 0.2);
+.math-cell-slot:hover:not(.has-tile) {
+  background-color: #243347;
 }
 
-/* Pulse target slots with gold dashed border on pickup */
+/* Pulse target slots with subtle inner glow on drag pickup, no dashed border */
 .math-board.drag-active .math-cell-slot:not(.has-tile) {
-  border-color: #F59E0B;
   animation: border-pulse 1s infinite alternate;
 }
 
@@ -205,18 +267,18 @@
 
 /* Filled slot tile */
 .math-placed-tile {
-  width: 90%;
-  height: 90%;
-  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-  border-radius: 6px;
+  width: 100%;
+  height: 100%;
+  background-color: #1E293B;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.0em;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid #60A5FA;
+  border: none;
   cursor: pointer;
   animation: spring-drop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -279,8 +341,8 @@
   z-index: 1000;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%);
-  color: #78350F;
+  background: #1E293B;
+  color: #F8FAFC;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -290,7 +352,7 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
   transform: scale(1.1) translateY(-15px); /* Offset to float above finger/cursor */
   opacity: 0.9;
-  border: 2px solid #F59E0B;
+  border: 2px solid #3B82F6;
 }
 
 /* Pinned tiles rack at bottom */
@@ -322,16 +384,16 @@
 .rack-number-tile {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%);
+  background: #1E293B;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #78350F;
+  color: #F8FAFC;
   font-weight: 700;
   font-size: 1.15rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  border: 1px solid #FCD34D;
+  border: 2px solid #475569;
   cursor: grab;
   user-select: none;
   transition: all 0.15s ease;
@@ -339,7 +401,7 @@
 
 .rack-number-tile.selected {
   transform: scale(1.05) translateY(-4px);
-  box-shadow: 0 8px 12px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
   border-color: #F59E0B;
 }
 
@@ -410,4 +472,28 @@
 
 .inspection-board-title.winner {
   color: #F59E0B;
+}
+
+/* Reaction Tray Positioning */
+.math-reaction-tray {
+  position: absolute;
+  bottom: 125px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 45;
+  pointer-events: auto;
+  transition: bottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.math-reaction-tray.winner {
+  bottom: 24px;
+}
+
+/* Touch drag ghost style */
+.touch-drag-ghost {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  transform: scale(1.1);
+  opacity: 0.9;
 }

@@ -11,9 +11,17 @@ import { getLetterScore } from './utils/tileBag';
  * @param {string[]} props.rack - Array of letters in the rack.
  * @param {number|null} props.selectedTileIndex - Index of the currently selected tile, if any.
  * @param {function(number): void} props.onSelectTile - Callback invoked when a rack tile is tapped.
+ * @param {function(object, number): void} [props.onDragStartTile] - Desktop drag start callback.
+ * @param {function(object, number): void} [props.onTouchStartTile] - Mobile touch start callback.
  * @returns {React.ReactElement}
  */
-export default function LetterRack({ rack, selectedTileIndex, onSelectTile }) {
+export default function LetterRack({
+  rack,
+  selectedTileIndex,
+  onSelectTile,
+  onDragStartTile,
+  onTouchStartTile,
+}) {
   // Pad the rack to 7 slots so the layout is stable
   const paddedRack = [...rack];
   while (paddedRack.length < 7) {
@@ -29,7 +37,10 @@ export default function LetterRack({ rack, selectedTileIndex, onSelectTile }) {
               id={`scrabble-rack-tile-${index}`}
               aria-label={`Letter ${letter}, score ${getLetterScore(letter)}`}
               onClick={() => onSelectTile(index)}
-              className={`rack-tile ${selectedTileIndex === index ? 'selected' : ''}`}
+              draggable
+              onDragStart={(e) => onDragStartTile && onDragStartTile(e, index)}
+              onTouchStart={(e) => onTouchStartTile && onTouchStartTile(e, index)}
+              className={`rack-tile ${selectedTileIndex === index ? 'selected' : ''} cursor-grab active:cursor-grabbing`}
             >
               {letter}
               <span className="tile-score">{getLetterScore(letter)}</span>

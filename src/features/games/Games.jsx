@@ -27,6 +27,14 @@ export default function Games() {
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [isHost, setIsHost] = useState(false);
 
+  // Sync active game ID with global context
+  useEffect(() => {
+    dispatch({ type: 'SET_ACTIVE_GAME', payload: selectedGameId });
+    return () => {
+      dispatch({ type: 'SET_ACTIVE_GAME', payload: null });
+    };
+  }, [selectedGameId, dispatch]);
+
   // Handle auto-join route redirection
   useEffect(() => {
     if (autoJoinGameId) {
@@ -53,6 +61,16 @@ export default function Games() {
           senderId: user.id,
         },
       });
+
+      return () => {
+        channel.send({
+          type: 'broadcast',
+          event: 'game_invite_cancel',
+          payload: {
+            senderId: user.id,
+          },
+        });
+      };
     }
   }, [selectedGameId, isHost, user, partner, supabase]);
 
