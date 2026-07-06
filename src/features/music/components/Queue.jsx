@@ -48,6 +48,8 @@ export default function Queue({ onOpenAddModal }) {
     useMusic();
   const [isLoading] = useState(false); // set true briefly on first mount if needed
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [touchDragIndex, setTouchDragIndex] = useState(null);
+  const [touchCoords, setTouchCoords] = useState(null);
 
   /**
    * Returns avatar URL for the user who added a track.
@@ -113,6 +115,61 @@ export default function Queue({ onOpenAddModal }) {
     reorderQueue(newQueue);
   };
 
+  const handleTouchStart = (e, index) => {
+    const touch = e.touches[0];
+    setTouchDragIndex(index);
+    setTouchCoords({ x: touch.clientX, y: touch.clientY });
+  };
+
+  React.useEffect(() => {
+    if (touchDragIndex === null) return;
+
+    const handleTouchMove = (e) => {
+      const touch = e.touches[0];
+      setTouchCoords({ x: touch.clientX, y: touch.clientY });
+
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const queueItem = element?.closest('.queue-item');
+      if (queueItem) {
+        const targetIdx = parseInt(queueItem.getAttribute('data-index'), 10);
+        if (!isNaN(targetIdx)) {
+          setDragOverIndex(targetIdx);
+        }
+      } else {
+        setDragOverIndex(null);
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      const touch = e.changedTouches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const queueItem = element?.closest('.queue-item');
+
+      let targetIndex = null;
+      if (queueItem) {
+        targetIndex = parseInt(queueItem.getAttribute('data-index'), 10);
+      }
+
+      if (targetIndex !== null && !isNaN(targetIndex) && targetIndex !== touchDragIndex) {
+        const newQueue = [...queue];
+        const [removed] = newQueue.splice(touchDragIndex, 1);
+        newQueue.splice(targetIndex, 0, removed);
+        reorderQueue(newQueue);
+      }
+
+      setTouchDragIndex(null);
+      setDragOverIndex(null);
+      setTouchCoords(null);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [touchDragIndex, queue, reorderQueue]);
+
   return (
     <div className="music-glass-card rounded-2xl p-5 flex flex-col shadow-2xl w-full max-w-md mx-auto h-[480px] overflow-hidden">
       {/* Header */}
@@ -162,6 +219,7 @@ export default function Queue({ onOpenAddModal }) {
             return (
               <div
                 key={track.id}
+                data-index={index}
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
@@ -183,6 +241,7 @@ export default function Queue({ onOpenAddModal }) {
                 <div className="flex items-center space-x-2.5 overflow-hidden flex-1 min-w-0">
                   {/* Touch-friendly drag grip */}
                   <div
+                    onTouchStart={(e) => handleTouchStart(e, index)}
                     className="text-slate-600 group-hover:text-slate-400 cursor-grab active:cursor-grabbing p-1 touch-none"
                     aria-hidden="true"
                   >
@@ -281,6 +340,28 @@ export default function Queue({ onOpenAddModal }) {
           })
         )}
       </div>
+      {touchDragIndex !== null && touchCoords && (
+        <div
+          style={{
+            position: 'fixed',
+            left: touchCoords.x - 20,
+            top: touchCoords.y - 20,
+            pointerEvents: 'none',
+            zIndex: 1000,
+            width: '280px',
+          }}
+          className="bg-slate-900/90 border border-primary/50 rounded-xl p-3 flex items-center space-x-3 shadow-2xl opacity-80 touch-drag-ghost"
+        >
+          <div className="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center">
+            <Music className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <div className="text-xs font-semibold text-white truncate">
+              {queue[touchDragIndex]?.title}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

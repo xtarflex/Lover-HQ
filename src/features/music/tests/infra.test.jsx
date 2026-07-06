@@ -175,10 +175,18 @@ describe('MusicPlayer & Queue Integration Tests', () => {
       added_by: 'user-b-uuid',
     };
 
-    // Pre-configure mock DB to return the track on next fetch
-    setMockQueueRows([mockTrack]);
+    // Start with an empty queue initially so the player mounts in an idle state
+    setMockQueueRows([]);
 
     renderPlayerWithProvider();
+
+    // Flush initial fetch queue microtasks to mark initial load as completed
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Now configure the mock DB to return the track when the fetchQueue query is executed
+    setMockQueueRows([mockTrack]);
 
     await act(async () => {
       // Simulate real-time queue synchronization via the DB channel subscription

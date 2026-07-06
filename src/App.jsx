@@ -59,7 +59,7 @@ const Chat = lazy(() => import('./features/chat/Chat'));
 function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { globalNotification, autoJoinGameId } = useAppContext();
+  const { globalNotification, autoJoinGameId, activeGameId } = useAppContext();
   const dispatch = useAppDispatch();
 
   // Redirect to games page if auto-join game ID is active and user is not in games room
@@ -108,15 +108,21 @@ function MainLayout() {
   const isGamesRoute = location.pathname === '/games';
   const isFullHeight = isFridgeRoute || isGamesRoute;
 
+  // Hide global navigation and mini player inside active games
+  const showGlobalNav = !activeGameId;
+
+  let containerClass = 'flex flex-col min-h-screen bg-background pb-24';
+  if (isFullHeight) {
+    containerClass = activeGameId
+      ? 'flex flex-col h-[100dvh] overflow-hidden bg-background'
+      : 'flex flex-col h-[100dvh] overflow-hidden bg-background pb-20';
+  } else if (activeGameId) {
+    containerClass = 'flex flex-col min-h-screen bg-background';
+  }
+
   return (
-    <div
-      className={
-        isFullHeight
-          ? 'flex flex-col h-[100dvh] overflow-hidden bg-background pb-20'
-          : 'flex flex-col min-h-screen bg-background pb-24'
-      }
-    >
-      <TopBar />
+    <div className={containerClass}>
+      {showGlobalNav && <TopBar />}
       <main
         className={
           isFullHeight
@@ -128,8 +134,8 @@ function MainLayout() {
           <Outlet />
         </Suspense>
       </main>
-      <MiniPlayer />
-      <BottomNav />
+      {showGlobalNav && <MiniPlayer />}
+      {showGlobalNav && <BottomNav />}
       <GameInviteModal />
       {globalNotification && (
         <Notification

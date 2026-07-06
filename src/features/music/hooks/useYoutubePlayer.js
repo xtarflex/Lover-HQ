@@ -120,9 +120,9 @@ export function useYoutubePlayer({
 
               // If this is the active index and we have a pending action, play it
               if (pendingYtAction.current && activeYtIndex.current === idx) {
-                const { trackId, startTime } = pendingYtAction.current;
+                const { trackId, startTime, startPaused } = pendingYtAction.current;
                 pendingYtAction.current = null;
-                playTrackByIdRef.current?.(trackId, startTime);
+                playTrackByIdRef.current?.(trackId, startTime, startPaused);
               }
             },
             onStateChange: (event) => {

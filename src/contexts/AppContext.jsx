@@ -15,6 +15,7 @@ const initialState = {
   activeInvitation: null,
   autoJoinGameId: null,
   globalNotification: null,
+  activeGameId: null,
 };
 
 const AppContext = createContext(null);
@@ -55,6 +56,8 @@ function appReducer(state, action) {
       return { ...state, autoJoinGameId: action.payload };
     case 'SET_GLOBAL_NOTIFICATION':
       return { ...state, globalNotification: action.payload };
+    case 'SET_ACTIVE_GAME':
+      return { ...state, activeGameId: action.payload };
     case 'RESET_STATE':
       return initialState;
     default:
