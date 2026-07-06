@@ -233,6 +233,20 @@ export async function getFridgeComments(itemId) {
  * @returns {Promise<object>} A promise resolving to the inserted comment.
  * @throws {Error} If the insert fails.
  */
+/**
+ * Creates multiple comments for fridge items in bulk.
+ *
+ * @param {Array<object>} comments - The array of comment data to insert.
+ * @returns {Promise<Array<object>>} A promise resolving to the inserted comments.
+ * @throws {Error} If the bulk insert fails.
+ */
+export async function createFridgeComments(comments) {
+  const { data, error } = await supabase.from('fridge_comments').insert(comments).select();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function createFridgeComment(comment) {
   const { data, error } = await supabase.from('fridge_comments').insert(comment).select().single();
 
