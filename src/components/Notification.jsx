@@ -60,6 +60,7 @@ export function Notification({ message, type = 'error', onClose, duration = 5000
           type="button"
           onClick={onClose}
           className="opacity-70 hover:opacity-100 transition-opacity"
+          aria-label="Close notification"
         >
           <X className="w-5 h-5" />
         </button>
