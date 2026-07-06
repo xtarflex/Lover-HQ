@@ -529,23 +529,26 @@ export default function Chat() {
   };
 
   // Saves edited text of own message
-  const handleSaveEdit = async (mId) => {
-    if (!editText.trim()) return;
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ content: editText.trim(), is_edited: true })
-        .eq('id', mId);
-      if (error) throw error;
-      setEditingMessage(null);
-      setEditText('');
-    } catch (err) {
-      console.error('Failed to edit message:', err);
-    }
-  };
+  const handleSaveEdit = useCallback(
+    async (mId) => {
+      if (!editText.trim()) return;
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ content: editText.trim(), is_edited: true })
+          .eq('id', mId);
+        if (error) throw error;
+        setEditingMessage(null);
+        setEditText('');
+      } catch (err) {
+        console.error('Failed to edit message:', err);
+      }
+    },
+    [editText]
+  );
 
   // Deletes a message from DB
-  const handleDeleteMessage = async (mId) => {
+  const handleDeleteMessage = useCallback(async (mId) => {
     if (!confirm('Delete this message for everyone?')) return;
     try {
       const { error } = await supabase.from('messages').delete().eq('id', mId);
@@ -553,29 +556,32 @@ export default function Chat() {
     } catch (err) {
       console.error('Failed to delete message:', err);
     }
-  };
+  }, []);
 
   // Toggles message emoji reactions
-  const handleToggleReaction = async (msg, emoji) => {
-    const current = { ...(msg.reactions || {}) };
-    const list = current[emoji] ? [...current[emoji]] : [];
-    const newReactions = list.includes(userId)
-      ? { ...current, [emoji]: list.filter((id) => id !== userId) }
-      : { ...current, [emoji]: [...list, userId] };
+  const handleToggleReaction = useCallback(
+    async (msg, emoji) => {
+      const current = { ...(msg.reactions || {}) };
+      const list = current[emoji] ? [...current[emoji]] : [];
+      const newReactions = list.includes(userId)
+        ? { ...current, [emoji]: list.filter((id) => id !== userId) }
+        : { ...current, [emoji]: [...list, userId] };
 
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ reactions: newReactions })
-        .eq('id', msg.id);
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to update reaction:', err);
-    }
-  };
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ reactions: newReactions })
+          .eq('id', msg.id);
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to update reaction:', err);
+      }
+    },
+    [userId]
+  );
 
   // Format creation timestamp
-  const getFormattedTime = (isoString) => {
+  const getFormattedTime = useCallback((isoString) => {
     if (!isoString) return '';
     const d = new Date(isoString);
     let hours = d.getHours();
@@ -583,7 +589,7 @@ export default function Chat() {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12;
     return `${hours}:${mins} ${ampm}`;
-  };
+  }, []);
 
   // Group messages by date headings
   const groupedMessages = useMemo(() => {
@@ -620,21 +626,24 @@ export default function Chat() {
   }, [messages]);
 
   // Click handler to redirect and highlight tagged Fridge item
-  const handleReferenceClick = (itemId) => {
-    navigate('/fridge');
-    setTimeout(() => {
-      const event = new CustomEvent('highlight-fridge-item', { detail: { id: itemId } });
-      window.dispatchEvent(event);
-    }, 400);
-  };
+  const handleReferenceClick = useCallback(
+    (itemId) => {
+      navigate('/fridge');
+      setTimeout(() => {
+        const event = new CustomEvent('highlight-fridge-item', { detail: { id: itemId } });
+        window.dispatchEvent(event);
+      }, 400);
+    },
+    [navigate]
+  );
 
   // Scrolls message into view when replying to it
-  const handleScrollToMessage = (mId) => {
+  const handleScrollToMessage = useCallback((mId) => {
     const el = document.getElementById(`msg-${mId}`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el?.classList.add('animate-pulse-gold');
     setTimeout(() => el?.classList.remove('animate-pulse-gold'), 2000);
-  };
+  }, []);
 
   return (
     <motion.div
@@ -679,302 +688,326 @@ export default function Chat() {
 
       {/* Message List area */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 custom-scrollbar relative">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-2">
-            <LoadingSpinner size="md" />
-            <span className="text-xs text-text-muted">Fetching your digital diary...</span>
-          </div>
-        ) : groupedMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-4 text-center px-8">
-            <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
-              <Smile className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-text-main">No messages here yet</p>
-              <p className="text-xs text-text-muted mt-1 leading-relaxed">
-                Send a sweet note, upload a picture, record a voice memo, or tag a Fridge item as a
-                reference!
-              </p>
-            </div>
-          </div>
-        ) : (
-          groupedMessages.map((item, idx) => {
-            if (item.type === 'date') {
-              return (
-                <div key={`date-${item.label}-${idx}`} className="flex justify-center my-4">
-                  <span className="px-3 py-1 bg-slate-900/80 border border-slate-800/80 rounded-full text-[10px] font-bold text-text-muted tracking-wider uppercase">
-                    {item.label}
-                  </span>
+        {useMemo(
+          () =>
+            loading ? (
+              <div className="flex flex-col items-center justify-center h-full space-y-2">
+                <LoadingSpinner size="md" />
+                <span className="text-xs text-text-muted">Fetching your digital diary...</span>
+              </div>
+            ) : groupedMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full space-y-4 text-center px-8">
+                <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
+                  <Smile className="w-8 h-8 text-primary" />
                 </div>
-              );
-            }
-
-            const msg = item.data;
-            const isSelf = msg.user_id === userId;
-
-            // Check grouping helper: same sender within 2 mins
-            let hideHeader = false;
-            if (idx > 0 && groupedMessages[idx - 1].type === 'message') {
-              const prevMsg = groupedMessages[idx - 1].data;
-              const diffTime = (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000;
-              if (prevMsg.user_id === msg.user_id && diffTime < 120) {
-                hideHeader = true;
-              }
-            }
-
-            // Find quoted reply message
-            const quotedMsg = msg.reply_to_message_id
-              ? messages.find((m) => m.id === msg.reply_to_message_id)
-              : null;
-
-            return (
-              <div
-                key={`msg-${msg.id}`}
-                id={`msg-${msg.id}`}
-                className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'} space-y-1 group relative transition-all duration-300 ${
-                  hideHeader ? 'mt-0.5' : 'mt-4'
-                }`}
-              >
-                {/* Sender Tag */}
-                {!isSelf && !hideHeader && (
-                  <span className="text-[10px] font-bold text-primary font-rounded mb-0.5 ml-2.5">
-                    {partner?.name || 'Partner'}
-                  </span>
-                )}
-
-                <div
-                  className={`flex items-end space-x-2 ${isSelf ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}
-                >
-                  {/* Avatar */}
-                  {!hideHeader ? (
-                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold font-rounded">
-                      {isSelf ? (
-                        user?.avatar_url ? (
-                          <img
-                            src={user.avatar_url}
-                            alt="avatar"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          'Y'
-                        )
-                      ) : partner?.avatar_url ? (
-                        <img
-                          src={partner.avatar_url}
-                          alt="avatar"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        'P'
-                      )}
+                <div>
+                  <p className="text-sm font-bold text-text-main">No messages here yet</p>
+                  <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                    Send a sweet note, upload a picture, record a voice memo, or tag a Fridge item
+                    as a reference!
+                  </p>
+                </div>
+              </div>
+            ) : (
+              groupedMessages.map((item, idx) => {
+                if (item.type === 'date') {
+                  return (
+                    <div key={`date-${item.label}-${idx}`} className="flex justify-center my-4">
+                      <span className="px-3 py-1 bg-slate-900/80 border border-slate-800/80 rounded-full text-[10px] font-bold text-text-muted tracking-wider uppercase">
+                        {item.label}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="w-8 flex-shrink-0" />
-                  )}
+                  );
+                }
 
-                  {/* Message Bubble Container */}
-                  <div className="flex flex-col relative max-w-[280px] xs:max-w-[320px] sm:max-w-[420px]">
+                const msg = item.data;
+                const isSelf = msg.user_id === userId;
+
+                // Check grouping helper: same sender within 2 mins
+                let hideHeader = false;
+                if (idx > 0 && groupedMessages[idx - 1].type === 'message') {
+                  const prevMsg = groupedMessages[idx - 1].data;
+                  const diffTime = (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000;
+                  if (prevMsg.user_id === msg.user_id && diffTime < 120) {
+                    hideHeader = true;
+                  }
+                }
+
+                // Find quoted reply message
+                const quotedMsg = msg.reply_to_message_id
+                  ? messages.find((m) => m.id === msg.reply_to_message_id)
+                  : null;
+
+                return (
+                  <div
+                    key={`msg-${msg.id}`}
+                    id={`msg-${msg.id}`}
+                    className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'} space-y-1 group relative transition-all duration-300 ${
+                      hideHeader ? 'mt-0.5' : 'mt-4'
+                    }`}
+                  >
+                    {/* Sender Tag */}
+                    {!isSelf && !hideHeader && (
+                      <span className="text-[10px] font-bold text-primary font-rounded mb-0.5 ml-2.5">
+                        {partner?.name || 'Partner'}
+                      </span>
+                    )}
+
                     <div
-                      className={`p-3 rounded-2xl relative shadow-lg ${
-                        isSelf
-                          ? 'bg-primary/20 border border-primary/30 text-white rounded-tr-none'
-                          : 'bg-slate-900 border border-slate-800/80 text-gray-200 rounded-tl-none'
-                      } ${hideHeader ? (isSelf ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''}`}
+                      className={`flex items-end space-x-2 ${isSelf ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}
                     >
-                      {/* Quote Reply display */}
-                      {quotedMsg && (
-                        <div
-                          onClick={() => handleScrollToMessage(quotedMsg.id)}
-                          className="mb-2 p-2 bg-slate-950/50 rounded-lg border-l-4 border-primary text-[10px] text-text-muted cursor-pointer hover:bg-slate-950/70 transition-colors flex items-center justify-between"
-                        >
-                          <div className="truncate">
-                            <span className="font-extrabold text-primary block">
-                              {quotedMsg.user_id === userId ? 'You' : partner?.name || 'Partner'}
-                            </span>
-                            <span className="truncate block mt-0.5">{quotedMsg.content}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Tagged Fridge Item reference card */}
-                      {msg.fridge_items && (
-                        <div
-                          onClick={() => handleReferenceClick(msg.fridge_items.id)}
-                          className="mb-2.5 p-2 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center space-x-2 text-[10px] cursor-pointer hover:bg-slate-950 hover:border-slate-700 transition-all"
-                        >
-                          <div className="w-6 h-6 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-primary">
-                            <Tag className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-bold text-gray-300 block uppercase tracking-wider text-[8px]">
-                              Tagged Fridge {msg.fridge_items.type}
-                            </span>
-                            <span className="truncate block font-semibold text-text-main mt-0.5">
-                              {msg.fridge_items.type === 'note'
-                                ? msg.fridge_items.content
-                                : msg.fridge_items.type === 'photo'
-                                  ? 'Image Magnet'
-                                  : 'Voice Memo'}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Editing panel */}
-                      {editingMessage?.id === msg.id ? (
-                        <div className="space-y-2">
-                          <textarea
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-white"
-                          />
-                          <div className="flex justify-end space-x-2 text-[10px]">
-                            <button
-                              onClick={() => setEditingMessage(null)}
-                              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-gray-400 font-bold"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={() => handleSaveEdit(msg.id)}
-                              className="px-2.5 py-1 rounded bg-primary text-white font-bold"
-                            >
-                              Save
-                            </button>
-                          </div>
+                      {/* Avatar */}
+                      {!hideHeader ? (
+                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold font-rounded">
+                          {isSelf ? (
+                            user?.avatar_url ? (
+                              <img
+                                src={user.avatar_url}
+                                alt="avatar"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              'Y'
+                            )
+                          ) : partner?.avatar_url ? (
+                            <img
+                              src={partner.avatar_url}
+                              alt="avatar"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            'P'
+                          )}
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          {/* Image Render */}
-                          {msg.media_type === 'image' && msg.media_url && (
-                            <div className="rounded-lg overflow-hidden border border-slate-800/40 max-h-[220px]">
-                              <img
-                                src={msg.media_url}
-                                alt="Shared upload"
-                                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-all duration-300"
-                                onClick={() => window.open(msg.media_url, '_blank')}
-                              />
+                        <div className="w-8 flex-shrink-0" />
+                      )}
+
+                      {/* Message Bubble Container */}
+                      <div className="flex flex-col relative max-w-[280px] xs:max-w-[320px] sm:max-w-[420px]">
+                        <div
+                          className={`p-3 rounded-2xl relative shadow-lg ${
+                            isSelf
+                              ? 'bg-primary/20 border border-primary/30 text-white rounded-tr-none'
+                              : 'bg-slate-900 border border-slate-800/80 text-gray-200 rounded-tl-none'
+                          } ${hideHeader ? (isSelf ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''}`}
+                        >
+                          {/* Quote Reply display */}
+                          {quotedMsg && (
+                            <div
+                              onClick={() => handleScrollToMessage(quotedMsg.id)}
+                              className="mb-2 p-2 bg-slate-950/50 rounded-lg border-l-4 border-primary text-[10px] text-text-muted cursor-pointer hover:bg-slate-950/70 transition-colors flex items-center justify-between"
+                            >
+                              <div className="truncate">
+                                <span className="font-extrabold text-primary block">
+                                  {quotedMsg.user_id === userId
+                                    ? 'You'
+                                    : partner?.name || 'Partner'}
+                                </span>
+                                <span className="truncate block mt-0.5">{quotedMsg.content}</span>
+                              </div>
                             </div>
                           )}
 
-                          {/* Voice Note Player */}
-                          {msg.media_type === 'voice' && msg.media_url && (
-                            <VoiceMessagePlayer src={msg.media_url} />
+                          {/* Tagged Fridge Item reference card */}
+                          {msg.fridge_items && (
+                            <div
+                              onClick={() => handleReferenceClick(msg.fridge_items.id)}
+                              className="mb-2.5 p-2 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center space-x-2 text-[10px] cursor-pointer hover:bg-slate-950 hover:border-slate-700 transition-all"
+                            >
+                              <div className="w-6 h-6 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-primary">
+                                <Tag className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-bold text-gray-300 block uppercase tracking-wider text-[8px]">
+                                  Tagged Fridge {msg.fridge_items.type}
+                                </span>
+                                <span className="truncate block font-semibold text-text-main mt-0.5">
+                                  {msg.fridge_items.type === 'note'
+                                    ? msg.fridge_items.content
+                                    : msg.fridge_items.type === 'photo'
+                                      ? 'Image Magnet'
+                                      : 'Voice Memo'}
+                                </span>
+                              </div>
+                            </div>
                           )}
 
-                          {/* Message Text */}
-                          <p className="text-xs font-semibold leading-relaxed break-words whitespace-pre-wrap">
-                            {msg.content}
-                          </p>
-                        </div>
-                      )}
+                          {/* Editing panel */}
+                          {editingMessage?.id === msg.id ? (
+                            <div className="space-y-2">
+                              <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-white"
+                              />
+                              <div className="flex justify-end space-x-2 text-[10px]">
+                                <button
+                                  onClick={() => setEditingMessage(null)}
+                                  className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-gray-400 font-bold"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => handleSaveEdit(msg.id)}
+                                  className="px-2.5 py-1 rounded bg-primary text-white font-bold"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {/* Image Render */}
+                              {msg.media_type === 'image' && msg.media_url && (
+                                <div className="rounded-lg overflow-hidden border border-slate-800/40 max-h-[220px]">
+                                  <img
+                                    src={msg.media_url}
+                                    alt="Shared upload"
+                                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-all duration-300"
+                                    onClick={() => window.open(msg.media_url, '_blank')}
+                                  />
+                                </div>
+                              )}
 
-                      {/* Bubble footer (Timestamp, Read double check, Edited indicator) */}
-                      <div className="flex items-center justify-end space-x-1 mt-1 text-[9px] text-text-muted font-mono leading-none">
-                        {msg.is_edited && <span>edited</span>}
-                        <span>{getFormattedTime(msg.created_at)}</span>
-                        {isSelf && (
-                          <span>
-                            {presence.partner === 'online' ? (
-                              <CheckCheck className="w-3 h-3 text-emerald-500" />
-                            ) : (
-                              <Check className="w-3 h-3" />
+                              {/* Voice Note Player */}
+                              {msg.media_type === 'voice' && msg.media_url && (
+                                <VoiceMessagePlayer src={msg.media_url} />
+                              )}
+
+                              {/* Message Text */}
+                              <p className="text-xs font-semibold leading-relaxed break-words whitespace-pre-wrap">
+                                {msg.content}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Bubble footer (Timestamp, Read double check, Edited indicator) */}
+                          <div className="flex items-center justify-end space-x-1 mt-1 text-[9px] text-text-muted font-mono leading-none">
+                            {msg.is_edited && <span>edited</span>}
+                            <span>{getFormattedTime(msg.created_at)}</span>
+                            {isSelf && (
+                              <span>
+                                {presence.partner === 'online' ? (
+                                  <CheckCheck className="w-3 h-3 text-emerald-500" />
+                                ) : (
+                                  <Check className="w-3 h-3" />
+                                )}
+                              </span>
                             )}
-                          </span>
-                        )}
-                      </div>
+                          </div>
 
-                      {/* Rendered Reaction Emojis Badges */}
-                      {msg.reactions &&
-                        Object.keys(msg.reactions).some((k) => msg.reactions[k]?.length > 0) && (
-                          <div className="absolute -bottom-2.5 right-3 flex items-center space-x-1 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded-full text-[9px] z-10 shadow shadow-black">
-                            {Object.keys(msg.reactions).map((emoji) => {
-                              const count = msg.reactions[emoji]?.length || 0;
-                              if (count === 0) return null;
-                              const didIReact = msg.reactions[emoji]?.includes(userId);
-                              return (
+                          {/* Rendered Reaction Emojis Badges */}
+                          {msg.reactions &&
+                            Object.keys(msg.reactions).some(
+                              (k) => msg.reactions[k]?.length > 0
+                            ) && (
+                              <div className="absolute -bottom-2.5 right-3 flex items-center space-x-1 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded-full text-[9px] z-10 shadow shadow-black">
+                                {Object.keys(msg.reactions).map((emoji) => {
+                                  const count = msg.reactions[emoji]?.length || 0;
+                                  if (count === 0) return null;
+                                  const didIReact = msg.reactions[emoji]?.includes(userId);
+                                  return (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => handleToggleReaction(msg, emoji)}
+                                      className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
+                                        didIReact ? 'text-primary' : 'text-gray-400'
+                                      }`}
+                                    >
+                                      <span>{emoji}</span>
+                                      {count > 1 && <span>{count}</span>}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                        </div>
+
+                        {/* Message hover menu controls (Reply, React, Edit, Delete) */}
+                        <div
+                          className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 px-2 z-10 ${
+                            isSelf ? 'right-full' : 'left-full'
+                          }`}
+                        >
+                          {/* React trigger */}
+                          <div className="relative group/reactions">
+                            <button
+                              aria-label="React"
+                              className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-text-main shadow hover:scale-105"
+                            >
+                              <Smile className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/reactions:flex items-center space-x-1 bg-slate-950 border border-slate-800 p-1 rounded-full shadow-xl z-[90]">
+                              {EMOJIS.map((emoji) => (
                                 <button
                                   key={emoji}
                                   onClick={() => handleToggleReaction(msg, emoji)}
-                                  className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
-                                    didIReact ? 'text-primary' : 'text-gray-400'
-                                  }`}
+                                  className="text-xs hover:scale-125 transition-transform p-0.5"
                                 >
-                                  <span>{emoji}</span>
-                                  {count > 1 && <span>{count}</span>}
+                                  {emoji}
                                 </button>
-                              );
-                            })}
+                              ))}
+                            </div>
                           </div>
-                        )}
-                    </div>
 
-                    {/* Message hover menu controls (Reply, React, Edit, Delete) */}
-                    <div
-                      className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 px-2 z-10 ${
-                        isSelf ? 'right-full' : 'left-full'
-                      }`}
-                    >
-                      {/* React trigger */}
-                      <div className="relative group/reactions">
-                        <button
-                          aria-label="React"
-                          className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-text-main shadow hover:scale-105"
-                        >
-                          <Smile className="w-3.5 h-3.5" />
-                        </button>
-                        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/reactions:flex items-center space-x-1 bg-slate-950 border border-slate-800 p-1 rounded-full shadow-xl z-[90]">
-                          {EMOJIS.map((emoji) => (
+                          {/* Reply trigger */}
+                          <button
+                            onClick={() => setReplyMessage(msg)}
+                            aria-label="Reply"
+                            className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-text-main shadow hover:scale-105"
+                          >
+                            <Reply className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Edit own text message */}
+                          {isSelf && !msg.media_url && (
                             <button
-                              key={emoji}
-                              onClick={() => handleToggleReaction(msg, emoji)}
-                              className="text-xs hover:scale-125 transition-transform p-0.5"
+                              onClick={() => {
+                                setEditingMessage(msg);
+                                setEditText(msg.content);
+                              }}
+                              aria-label="Edit"
+                              className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-text-main shadow hover:scale-105"
                             >
-                              {emoji}
+                              <Edit3 className="w-3.5 h-3.5" />
                             </button>
-                          ))}
+                          )}
+
+                          {/* Delete own message */}
+                          {isSelf && (
+                            <button
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              aria-label="Delete"
+                              className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-red-500 shadow hover:scale-105"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
-
-                      {/* Reply trigger */}
-                      <button
-                        onClick={() => setReplyMessage(msg)}
-                        aria-label="Reply"
-                        className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-text-main shadow hover:scale-105"
-                      >
-                        <Reply className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Edit own text message */}
-                      {isSelf && !msg.media_url && (
-                        <button
-                          onClick={() => {
-                            setEditingMessage(msg);
-                            setEditText(msg.content);
-                          }}
-                          aria-label="Edit"
-                          className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-text-main shadow hover:scale-105"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-
-                      {/* Delete own message */}
-                      {isSelf && (
-                        <button
-                          onClick={() => handleDeleteMessage(msg.id)}
-                          aria-label="Delete"
-                          className="p-1 rounded-full bg-slate-900 border border-slate-800 text-text-muted hover:text-red-500 shadow hover:scale-105"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })
+                );
+              })
+            ),
+          [
+            loading,
+            groupedMessages,
+            userId,
+            partner,
+            user,
+            presence.partner,
+            messages,
+            editingMessage?.id,
+            editText,
+            handleReferenceClick,
+            handleSaveEdit,
+            handleToggleReaction,
+            getFormattedTime,
+            handleDeleteMessage,
+            handleScrollToMessage,
+          ]
         )}
 
         {/* Pulsing Side Typing indicator bubble */}
