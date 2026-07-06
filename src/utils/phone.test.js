@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsePhoneNumber, COUNTRIES } from './phone.js';
+import { parsePhoneNumber, getFlagEmoji, COUNTRIES } from './phone.js';
 
 describe('parsePhoneNumber', () => {
   it('returns default country and empty local number for falsy input', () => {
@@ -63,5 +63,32 @@ describe('parsePhoneNumber', () => {
     expect(result.country.code).toBe('+25');
     expect(result.country.name).toBe('Country Twenty Five');
     expect(result.local).toBe('1712345678');
+  });
+});
+
+describe('getFlagEmoji', () => {
+  it('returns the globe emoji when no country code is provided', () => {
+    expect(getFlagEmoji('')).toBe('🌍');
+    expect(getFlagEmoji(null)).toBe('🌍');
+    expect(getFlagEmoji(undefined)).toBe('🌍');
+  });
+
+  it('returns the correct flag emoji for uppercase country codes', () => {
+    expect(getFlagEmoji('US')).toBe('🇺🇸');
+    expect(getFlagEmoji('GB')).toBe('🇬🇧');
+    expect(getFlagEmoji('NG')).toBe('🇳🇬');
+    expect(getFlagEmoji('JP')).toBe('🇯🇵');
+  });
+
+  it('returns the correct flag emoji for lowercase country codes', () => {
+    expect(getFlagEmoji('us')).toBe('🇺🇸');
+    expect(getFlagEmoji('gb')).toBe('🇬🇧');
+    expect(getFlagEmoji('ng')).toBe('🇳🇬');
+    expect(getFlagEmoji('jp')).toBe('🇯🇵');
+  });
+
+  it('handles mixed case country codes', () => {
+    expect(getFlagEmoji('Us')).toBe('🇺🇸');
+    expect(getFlagEmoji('uS')).toBe('🇺🇸');
   });
 });
