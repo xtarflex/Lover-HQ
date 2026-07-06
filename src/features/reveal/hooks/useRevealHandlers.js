@@ -85,16 +85,62 @@ export function useRevealHandlers({
       if (queue.length === 0) return;
 
       const remaining = [];
+      const answersToInsert = [];
+      const customQuestionsToInsert = [];
+
+      // Categorize valid queue items
       for (const action of queue) {
+        if (action.type === 'answer') {
+          answersToInsert.push(action);
+        } else if (action.type === 'custom_question') {
+          customQuestionsToInsert.push(action);
+        }
+      }
+
+      // Bulk insert answers
+      if (answersToInsert.length > 0) {
         try {
-          if (action.type === 'answer') {
-            await supabase.from('reveal_answers').insert(action.data);
-          } else if (action.type === 'custom_question') {
-            await supabase.from('reveal_questions').insert(action.data);
-          }
+          const { error } = await supabase
+            .from('reveal_answers')
+            .insert(answersToInsert.map((a) => a.data));
+          if (error) throw error;
         } catch (err) {
-          console.error('Failed to sync offline reveal action:', err);
-          remaining.push(action);
+          console.error('Failed bulk insert for reveal_answers, falling back to individual:', err);
+          for (const action of answersToInsert) {
+            try {
+              const { error: innerErr } = await supabase.from('reveal_answers').insert(action.data);
+              if (innerErr) throw innerErr;
+            } catch (innerErr) {
+              console.error('Failed individual sync for answer:', innerErr);
+              remaining.push(action);
+            }
+          }
+        }
+      }
+
+      // Bulk insert custom questions
+      if (customQuestionsToInsert.length > 0) {
+        try {
+          const { error } = await supabase
+            .from('reveal_questions')
+            .insert(customQuestionsToInsert.map((a) => a.data));
+          if (error) throw error;
+        } catch (err) {
+          console.error(
+            'Failed bulk insert for reveal_questions, falling back to individual:',
+            err
+          );
+          for (const action of customQuestionsToInsert) {
+            try {
+              const { error: innerErr } = await supabase
+                .from('reveal_questions')
+                .insert(action.data);
+              if (innerErr) throw innerErr;
+            } catch (innerErr) {
+              console.error('Failed individual sync for custom_question:', innerErr);
+              remaining.push(action);
+            }
+          }
         }
       }
       localStorage.setItem('reveal_offline_queue', JSON.stringify(remaining));
