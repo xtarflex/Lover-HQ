@@ -424,7 +424,8 @@ export default function Chat() {
     }
 
     setUploadingMedia(true);
-    const filePath = `chat/${userId}/${Date.now()}_${file.name}`;
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filePath = `chat/${userId}/${Date.now()}_${safeFileName}`;
 
     try {
       // Upload to storage
