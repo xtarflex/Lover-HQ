@@ -83,6 +83,7 @@ export default function MathPuzzle({
   );
 
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
+  const broadcastMoveRef = useRef(null);
 
   // Game session states
   const [dbSessionId, setDbSessionId] = useState(null);
@@ -249,6 +250,15 @@ export default function MathPuzzle({
         setWinnerName(payload.winnerName);
         setPartnerGrid(payload.finalGrid);
         setShowInspection(true);
+
+        if (payload.winnerId !== userId) {
+          broadcastMoveRef.current?.({
+            type: 'share_grid',
+            grid: grid,
+          });
+        }
+      } else if (payload.type === 'share_grid') {
+        setPartnerGrid(payload.grid);
       } else if (payload.type === 'rematch_request') {
         setRematchStatus('receiving');
       } else if (payload.type === 'rematch_accept') {
@@ -264,10 +274,13 @@ export default function MathPuzzle({
         setTimeout(() => setActivePartnerBubble(''), 4000);
       }
     },
-    [userId, handleResetLocalState, handleForfeitLocal, triggerPartnerReaction]
+    [userId, handleResetLocalState, handleForfeitLocal, triggerPartnerReaction, grid]
   );
 
   const broadcastMove = useGameSync(gameId, syncSessionId, handleRemoteBroadcast);
+  useEffect(() => {
+    broadcastMoveRef.current = broadcastMove;
+  }, [broadcastMove]);
 
   // Listen for partner decline to exit game immediately without forfeit modal
   useEffect(() => {

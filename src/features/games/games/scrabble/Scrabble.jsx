@@ -19,10 +19,129 @@ import LetterRack from './LetterRack';
 import { createInitialBag, drawTiles } from './utils/tileBag';
 import { calculateTurnScore, BOARD_SIZE, findWordsFormed } from './utils/scoring';
 import { validateOnlineWord } from '../wordChain/dictionaryService';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Clock, Wifi, Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 import './scrabble.css';
+
+const SCRABBLE_2_LETTER_WORDS = new Set([
+  'aa',
+  'ab',
+  'ad',
+  'ae',
+  'ag',
+  'ah',
+  'ai',
+  'al',
+  'am',
+  'an',
+  'ar',
+  'as',
+  'at',
+  'aw',
+  'ax',
+  'ay',
+  'ba',
+  'be',
+  'bi',
+  'bo',
+  'by',
+  'da',
+  'de',
+  'di',
+  'do',
+  'ed',
+  'ee',
+  'eh',
+  'el',
+  'em',
+  'en',
+  'er',
+  'es',
+  'et',
+  'ex',
+  'fa',
+  'fe',
+  'fy',
+  'gi',
+  'go',
+  'gu',
+  'he',
+  'hi',
+  'hm',
+  'ho',
+  'id',
+  'if',
+  'in',
+  'io',
+  'is',
+  'it',
+  'ja',
+  'jo',
+  'ka',
+  'ki',
+  'ko',
+  'la',
+  'li',
+  'lo',
+  'ma',
+  'me',
+  'mi',
+  'mm',
+  'mo',
+  'mu',
+  'my',
+  'na',
+  'ne',
+  'no',
+  'nu',
+  'ny',
+  'ob',
+  'od',
+  'oe',
+  'of',
+  'oh',
+  'oi',
+  'ok',
+  'om',
+  'on',
+  'op',
+  'or',
+  'os',
+  'ou',
+  'ow',
+  'ox',
+  'oy',
+  'pa',
+  'pe',
+  'pi',
+  'po',
+  'qi',
+  're',
+  'sh',
+  'si',
+  'so',
+  'ta',
+  'te',
+  'ti',
+  'to',
+  'ug',
+  'uh',
+  'um',
+  'un',
+  'up',
+  'ur',
+  'us',
+  'ut',
+  'we',
+  'wo',
+  'xi',
+  'xu',
+  'ya',
+  'ye',
+  'yo',
+  'za',
+]);
 
 /**
  * @param {object} props
@@ -53,10 +172,20 @@ export default function Scrabble({
   );
 
   const recorder = useRef(new GameRecorder(gameId, userId, partnerId));
+  const broadcastMoveRef = useRef(null);
 
   // Game DB Session state
   const [dbSessionId, setDbSessionId] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Setup states
+  const [showSetup, setShowSetup] = useState(false);
+  const [setupMode, setSetupMode] = useState('timed');
+  const [setupTimeLimit, setSetupTimeLimit] = useState(60);
+  const [gameMode, setGameMode] = useState('timed');
+  const [timeLimit, setTimeLimit] = useState(60);
+
+  const [cellWidth, setCellWidth] = useState(32);
 
   // Board state: 15x15 grid
   const [board, setBoard] = useState(() =>
@@ -175,6 +304,8 @@ export default function Scrabble({
       setScores(data.scores);
       setCurrentTurn(data.current_turn);
       setConsecutivePasses(data.consecutive_passes || 0);
+      setGameMode(data.gameMode || 'timed');
+      setTimeLimit(data.timeLimit !== undefined ? data.timeLimit : 60);
 
       // Normalize board to objects
       let loadedBoard = data.board;
@@ -292,7 +423,10 @@ export default function Scrabble({
   // Remote Broadcast Sync
   const handleRemoteBroadcast = useCallback(
     (payload) => {
-      if (payload.type === 'move') {
+      if (payload.type === 'start') {
+        setDbSessionId(payload.session.id);
+        loadSessionData(payload.session);
+      } else if (payload.type === 'move') {
         setBoard(payload.board);
         setBag(payload.bag);
         setScores(payload.scores);
@@ -315,10 +449,13 @@ export default function Scrabble({
         setTimeout(() => setActivePartnerBubble(''), 4000);
       }
     },
-    [handleResetLocalState, handleForfeitLocal, triggerPartnerReaction]
+    [handleResetLocalState, handleForfeitLocal, triggerPartnerReaction, loadSessionData]
   );
 
   const broadcastMove = useGameSync(gameId, syncSessionId, handleRemoteBroadcast);
+  useEffect(() => {
+    broadcastMoveRef.current = broadcastMove;
+  }, [broadcastMove]);
 
   // Listen for partner decline to exit game immediately without forfeit modal
   useEffect(() => {
@@ -413,18 +550,22 @@ export default function Scrabble({
     }
   }, [isMyTurn, handlePassTurn]);
 
-  const { seconds, pause, start, reset } = useGameTimer(30, handleTimerExpire, false);
+  const { seconds, pause, start, reset } = useGameTimer(
+    gameMode === 'timeless' ? undefined : timeLimit,
+    handleTimerExpire,
+    false
+  );
 
   // Reset the timer only when the turn changes
   useEffect(() => {
-    if (dbSessionId && !winner) {
+    if (dbSessionId && !winner && gameMode !== 'timeless') {
       reset(true);
     }
-  }, [currentTurn, dbSessionId, winner, reset]);
+  }, [currentTurn, dbSessionId, winner, gameMode, reset]);
 
   // Pause or resume the timer based on partner connection state
   useEffect(() => {
-    if (dbSessionId && !winner) {
+    if (dbSessionId && !winner && gameMode !== 'timeless') {
       if (partnerOnline) {
         start();
       } else {
@@ -433,7 +574,7 @@ export default function Scrabble({
     } else {
       pause();
     }
-  }, [partnerOnline, dbSessionId, winner, start, pause]);
+  }, [partnerOnline, dbSessionId, winner, gameMode, start, pause]);
 
   // Auto-clear validation errors after 5 seconds
   useEffect(() => {
@@ -474,40 +615,8 @@ export default function Scrabble({
             loadSessionData(session);
           }
         } else if (isHost) {
-          // Create new session
-          const initialBag = createInitialBag();
-          const p1Draw = drawTiles(initialBag, 7);
-          const p2Draw = drawTiles(p1Draw.remainingBag, 7);
-
-          const initialPuzzleData = {
-            board: Array(BOARD_SIZE)
-              .fill(null)
-              .map(() => Array(BOARD_SIZE).fill(null)),
-            bag: p2Draw.remainingBag,
-            player_a_rack: p1Draw.drawn,
-            player_b_rack: p2Draw.drawn,
-            scores: { [userId]: 0, [partnerId]: 0 },
-            current_turn: userId,
-            consecutive_passes: 0,
-          };
-
-          const { data: newSession, error: createError } = await supabase
-            .from('game_sessions')
-            .insert({
-              game_type: 'scrabble',
-              player_a_id: userId,
-              player_b_id: partnerId,
-              puzzle_data: initialPuzzleData,
-              player_states: {},
-            })
-            .select('*')
-            .single();
-
-          if (createError) throw createError;
-
-          if (active && newSession) {
-            setDbSessionId(newSession.id);
-            loadSessionData(newSession);
+          if (active) {
+            setShowSetup(true);
           }
         }
       } catch (err) {
@@ -522,6 +631,60 @@ export default function Scrabble({
       active = false;
     };
   }, [isHost, userId, partnerId, loadSessionData]);
+
+  // Host starts the match with chosen settings
+  const handleStartConfiguredGame = async () => {
+    try {
+      setLoading(true);
+      const initialBag = createInitialBag();
+      const p1Draw = drawTiles(initialBag, 7);
+      const p2Draw = drawTiles(p1Draw.remainingBag, 7);
+
+      const initialPuzzleData = {
+        board: Array(BOARD_SIZE)
+          .fill(null)
+          .map(() => Array(BOARD_SIZE).fill(null)),
+        bag: p2Draw.remainingBag,
+        player_a_rack: p1Draw.drawn,
+        player_b_rack: p2Draw.drawn,
+        scores: { [userId]: 0, [partnerId]: 0 },
+        current_turn: userId,
+        consecutive_passes: 0,
+        gameMode: setupMode,
+        timeLimit: setupMode === 'timeless' ? 0 : setupTimeLimit,
+      };
+
+      const { data: newSession, error: createError } = await supabase
+        .from('game_sessions')
+        .insert({
+          game_type: 'scrabble',
+          player_a_id: userId,
+          player_b_id: partnerId,
+          puzzle_data: initialPuzzleData,
+          player_states: {},
+        })
+        .select('*')
+        .single();
+
+      if (createError) throw createError;
+
+      if (newSession) {
+        setDbSessionId(newSession.id);
+        loadSessionData(newSession);
+        setShowSetup(false);
+
+        // Broadcast game start configuration to partner
+        broadcastMoveRef.current?.({
+          type: 'start',
+          session: newSession,
+        });
+      }
+    } catch (err) {
+      console.error('Error starting configured game:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Turn Actions
   const handleCellClick = (r, c) => {
@@ -635,6 +798,10 @@ export default function Scrabble({
   // Mobile touch drag/drop handlers
   const handleTouchStartRack = (e, index) => {
     if (!isMyTurn || winner) return;
+    const firstCell = document.querySelector('.scrabble-cell');
+    if (firstCell) {
+      setCellWidth(firstCell.clientWidth || 32);
+    }
     const touch = e.touches[0];
     setTouchDrag({
       type: 'rack',
@@ -643,11 +810,16 @@ export default function Scrabble({
       y: touch.clientY,
       letter: myRack[index],
       isBlank: myRack[index] === '_',
+      isOverBoard: false,
     });
   };
 
   const handleTouchStartBoard = (e, placementIndex) => {
     if (!isMyTurn || winner) return;
+    const firstCell = document.querySelector('.scrabble-cell');
+    if (firstCell) {
+      setCellWidth(firstCell.clientWidth || 32);
+    }
     const touch = e.touches[0];
     const placement = newPlacements[placementIndex];
     setTouchDrag({
@@ -657,6 +829,7 @@ export default function Scrabble({
       y: touch.clientY,
       letter: placement.letter,
       isBlank: placement.isBlank,
+      isOverBoard: true,
     });
   };
 
@@ -704,7 +877,19 @@ export default function Scrabble({
       // Prevent scrolling while dragging tiles
       if (e.cancelable) e.preventDefault();
       const touch = e.touches[0];
-      setTouchDrag((prev) => (prev ? { ...prev, x: touch.clientX, y: touch.clientY } : null));
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const isOverBoard = !!element?.closest('.scrabble-board');
+
+      setTouchDrag((prev) =>
+        prev
+          ? {
+              ...prev,
+              x: touch.clientX,
+              y: touch.clientY,
+              isOverBoard,
+            }
+          : null
+      );
     };
 
     const handleTouchEnd = (e) => {
@@ -791,10 +976,19 @@ export default function Scrabble({
 
       // 4. Validate words against dictionary API
       for (const wordTiles of words) {
-        const wordText = wordTiles.map((t) => t.letter).join('');
-        const res = await validateOnlineWord(wordText);
-        if (!res.valid) {
-          throw new Error(`"${wordText}" is not a valid word.`);
+        const wordText = wordTiles
+          .map((t) => t.letter)
+          .join('')
+          .toLowerCase();
+        if (wordText.length === 2) {
+          if (!SCRABBLE_2_LETTER_WORDS.has(wordText)) {
+            throw new Error(`"${wordText.toUpperCase()}" is not a valid 2-letter Scrabble word.`);
+          }
+        } else {
+          const res = await validateOnlineWord(wordText);
+          if (!res.valid) {
+            throw new Error(`"${wordText.toUpperCase()}" is not a valid word.`);
+          }
         }
       }
 
@@ -974,6 +1168,8 @@ export default function Scrabble({
       scores: { [userId]: 0, [partnerId]: 0 },
       current_turn: userId,
       consecutive_passes: 0,
+      gameMode: gameMode,
+      timeLimit: timeLimit,
     };
 
     const { data: newSession, error } = await supabase
@@ -1083,7 +1279,7 @@ export default function Scrabble({
         isMyTurn={isMyTurn && !winner}
         userScore={scores[userId] || 0}
         partnerScore={scores[partnerId] || 0}
-        timeLeft={seconds}
+        timeLeft={gameMode === 'timeless' ? undefined : seconds}
         onBack={handleBackAction}
         activeUserBubble={activeUserBubble}
         activePartnerBubble={activePartnerBubble}
@@ -1113,6 +1309,89 @@ export default function Scrabble({
           <h3 className="font-heading text-lg font-bold">Waiting for partner…</h3>
           <p className="text-xs text-text-muted max-w-xs leading-relaxed">
             We&apos;re waiting for {partner?.name || 'your partner'} to accept the game invite.
+          </p>
+        </div>
+      ) : showSetup ? (
+        <div className="flex flex-col items-center justify-center p-6 bg-surface/60 backdrop-blur-xl border border-surface-border rounded-3xl max-w-md mx-auto my-12 gap-6 shadow-2xl animate-slide-up flex-grow justify-self-center">
+          <div className="text-center space-y-2">
+            <Gamepad2 className="w-12 h-12 text-primary mx-auto" />
+            <h3 className="text-xl font-extrabold text-text-main">Scrabble Game Setup</h3>
+            <p className="text-xs text-text-muted">
+              Configure the rules for your match with {partner?.name || 'Partner'}
+            </p>
+          </div>
+
+          <div className="w-full space-y-2.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+              Gameplay Type
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setSetupMode('timed')}
+                className={`py-3.5 px-4 rounded-2xl border font-bold text-sm transition-all flex flex-col items-center gap-1.5 ${
+                  setupMode === 'timed'
+                    ? 'border-primary bg-primary/10 text-primary shadow-md'
+                    : 'border-surface-border bg-surface/40 text-text-muted hover:text-text-main hover:border-text-muted'
+                }`}
+              >
+                <Clock className="w-5 h-5" />
+                Timed Mode
+              </button>
+              <button
+                onClick={() => setSetupMode('timeless')}
+                className={`py-3.5 px-4 rounded-2xl border font-bold text-sm transition-all flex flex-col items-center gap-1.5 ${
+                  setupMode === 'timeless'
+                    ? 'border-primary bg-primary/10 text-primary shadow-md'
+                    : 'border-surface-border bg-surface/40 text-text-muted hover:text-text-main hover:border-text-muted'
+                }`}
+              >
+                <Wifi className="w-5 h-5" />
+                Timeless Mode
+              </button>
+            </div>
+          </div>
+
+          {setupMode === 'timed' && (
+            <div className="w-full space-y-2.5 animate-fade-in">
+              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                Turn Time Limit
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { label: '30 seconds', value: 30 },
+                  { label: '1 minute', value: 60 },
+                  { label: '2 minutes', value: 120 },
+                  { label: '5 minutes', value: 300 },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSetupTimeLimit(opt.value)}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all ${
+                      setupTimeLimit === opt.value
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-surface-border/60 bg-surface/20 text-text-muted hover:text-text-main'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleStartConfiguredGame}
+            className="w-full py-4 bg-primary hover:bg-primary-hover text-white font-extrabold rounded-2xl transition-all shadow-lg shadow-primary/20 text-sm mt-2"
+          >
+            Start Match
+          </button>
+        </div>
+      ) : !dbSessionId ? (
+        <div className="flex flex-col items-center justify-center gap-4 text-center py-24 px-6 max-w-md mx-auto animate-pulse flex-grow justify-self-center">
+          <LoadingSpinner size="md" />
+          <h3 className="font-heading text-lg font-bold">Waiting for host…</h3>
+          <p className="text-xs text-text-muted leading-relaxed">
+            We&apos;re waiting for {partner?.name || 'your partner'} to configure the game settings.
           </p>
         </div>
       ) : (
@@ -1349,14 +1628,18 @@ export default function Scrabble({
         <div
           style={{
             position: 'fixed',
-            left: touchDrag.x - 22,
-            top: touchDrag.y - 22,
+            left: touchDrag.x - (touchDrag.isOverBoard ? cellWidth / 2 : 22),
+            top: touchDrag.y - (touchDrag.isOverBoard ? cellWidth / 2 : 22),
             pointerEvents: 'none',
             zIndex: 1000,
-            width: '44px',
-            height: '44px',
+            width: touchDrag.isOverBoard ? `${cellWidth}px` : '44px',
+            height: touchDrag.isOverBoard ? `${cellWidth}px` : '44px',
           }}
-          className="rack-tile flex items-center justify-center font-extrabold text-lg select-none touch-drag-ghost"
+          className={
+            touchDrag.isOverBoard
+              ? 'scrabble-tile new-placement flex items-center justify-center font-extrabold text-sm select-none'
+              : 'rack-tile flex items-center justify-center font-extrabold text-lg select-none touch-drag-ghost'
+          }
         >
           {touchDrag.letter}
         </div>

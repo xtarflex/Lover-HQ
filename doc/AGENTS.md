@@ -29,6 +29,7 @@ This file contains the core knowledge, rules, and context for the Lover-HQ proje
 
 Agents must adhere to these rules to ensure production-grade code:
 
+*   **Workflow & Branching:** Always perform new development work on a dedicated feature branch. Do not commit or work directly on the `main` branch.
 *   **State Management:** Use Context API + `useReducer` for global state (e.g., `AppContext.jsx`). **DO NOT use prop drilling.**
 *   **Supabase Client:** Implement a **Singleton Pattern** for the Supabase API client (`src/lib/supabase.js`) to prevent multiple WebSocket connections and quota exhaustion.
 *   **Real-time Subscriptions:** Custom hooks (e.g., `useRealtimeSubscription`) MUST be used for Supabase real-time channels, and they **MUST include proper cleanup functions** on unmount to prevent memory leaks.

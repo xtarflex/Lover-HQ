@@ -43,7 +43,10 @@ export default function ScrabbleBoard({
       let cellClass = 'cell-plain';
       let multText = '';
 
-      if (mult.type === 'DL') {
+      if (r === 7 && c === 7) {
+        cellClass = 'cell-center';
+        multText = '★';
+      } else if (mult.type === 'DL') {
         cellClass = 'cell-dl';
         multText = 'DL';
       } else if (mult.type === 'TL') {
@@ -55,9 +58,6 @@ export default function ScrabbleBoard({
       } else if (mult.type === 'TW') {
         cellClass = 'cell-tw';
         multText = 'TW';
-      } else if (r === 7 && c === 7) {
-        cellClass = 'cell-center';
-        multText = '★';
       }
 
       const hasTile = !!tile || !!newPlacement;
