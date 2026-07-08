@@ -424,7 +424,9 @@ export default function Chat() {
     }
 
     setUploadingMedia(true);
-    const filePath = `chat/${userId}/${Date.now()}_${file.name}`;
+    const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const filePath = `chat/${userId}/${Date.now()}_${randId}_${sanitizedName}`;
 
     try {
       // Upload to storage
@@ -497,7 +499,8 @@ export default function Chat() {
   // Uploads recorded voice note blob and sends as message
   const uploadVoiceNote = async (audioBlob) => {
     setUploadingMedia(true);
-    const filePath = `chat/${userId}/${Date.now()}_voicenote.webm`;
+    const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    const filePath = `chat/${userId}/${Date.now()}_${randId}_voicenote.webm`;
 
     try {
       // Upload blob

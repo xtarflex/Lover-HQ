@@ -80,7 +80,8 @@ export function PhotoModal({ isOpen, onClose, userId, onSave }) {
 
       // 2. Upload to Supabase Storage Bucket 'fridge-media'
       const fileExt = 'webp';
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+      const fileName = `${userId}/${Date.now()}_${randId}.${fileExt}`;
 
       await uploadFridgeMedia(fileName, compressedBlob, {
         contentType: 'image/webp',
