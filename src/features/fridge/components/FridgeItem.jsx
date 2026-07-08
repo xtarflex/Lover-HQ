@@ -52,7 +52,7 @@ const getRotationAngle = (id) => {
   return (hash % 7) - 3; // rotation between -3deg and +3deg
 };
 
-export default function FridgeItem({
+const FridgeItem = React.memo(function FridgeItem({
   item,
   containerRef,
   isEditMode,
@@ -631,4 +631,6 @@ export default function FridgeItem({
       )}
     </motion.div>
   );
-}
+});
+
+export default FridgeItem;
