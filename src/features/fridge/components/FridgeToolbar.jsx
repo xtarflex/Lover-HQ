@@ -135,6 +135,7 @@ export default function FridgeToolbar({
             to="/settings?tab=fridge"
             className="p-1.5 text-text-muted hover:text-text-main rounded-md hover:bg-white/5 transition-colors flex-shrink-0"
             title="General Fridge Settings"
+            aria-label="General Fridge Settings"
           >
             <Settings className="w-3.5 h-3.5" />
           </Link>
@@ -146,6 +147,7 @@ export default function FridgeToolbar({
               isSnappingEnabled ? 'text-primary' : 'text-text-muted hover:text-text-main'
             }`}
             title={isSnappingEnabled ? 'Disable Grid Snapping' : 'Enable Grid Snapping'}
+            aria-label={isSnappingEnabled ? 'Disable Grid Snapping' : 'Enable Grid Snapping'}
           >
             <Grid className="w-3.5 h-3.5" />
           </button>
@@ -159,6 +161,7 @@ export default function FridgeToolbar({
               onClick={zoomOut}
               className="p-1 text-text-muted hover:text-text-main rounded-md hover:bg-white/5 transition-colors"
               title="Zoom Out"
+              aria-label="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
@@ -169,6 +172,7 @@ export default function FridgeToolbar({
               onClick={zoomIn}
               className="p-1 text-text-muted hover:text-text-main rounded-md hover:bg-white/5 transition-colors"
               title="Zoom In"
+              aria-label="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
@@ -176,6 +180,7 @@ export default function FridgeToolbar({
               onClick={resetZoom}
               className="p-1 text-text-muted hover:text-text-main rounded-md hover:bg-white/5 transition-colors"
               title="Reset Zoom"
+              aria-label="Reset Zoom"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
