@@ -145,6 +145,9 @@ export default function AccountPanel({
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={false}
+            aria-label="Toggle Hide Profile Status"
             className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-surface-border"
           >
             <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out translate-x-0" />
