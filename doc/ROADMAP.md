@@ -154,11 +154,11 @@
 7. **PR #4.7**: Add daily prompt rotation logic (day_of_year % prompts.length)
 
 ### Testing Checklist
-- [ ] New question appears at midnight (local time)
-- [ ] Partner's answer is blurred until user submits
-- [ ] Answers reveal simultaneously after both submit
-- [ ] Archive shows all past Q&As chronologically
-- [ ] Nudge sends push notification (if permissions granted)
+- [x] New question appears at midnight (local time)
+- [x] Partner's answer is blurred until user submits
+- [x] Answers reveal simultaneously after both submit
+- [x] Archive shows all past Q&As chronologically
+- [x] Nudge sends push notification (if permissions granted)
 
 ---
 
@@ -205,12 +205,12 @@
 - Real-time play/pause/seek sync
 
 ### Deliverables
-- [ ] Audio file upload (Supabase Storage)
-- [ ] Queue UI (add/remove tracks)
-- [ ] Playback controls
-- [ ] Real-time sync for uploaded tracks
-- [ ] External link support (YouTube embed)
-- [ ] Visualizer (waveform or spinning record)
+- [x] Audio file upload (Supabase Storage)
+- [x] Queue UI (add/remove tracks)
+- [x] Playback controls
+- [x] Real-time sync for uploaded tracks
+- [x] External link support (YouTube embed)
+- [x] Visualizer (waveform or spinning record)
 
 ### Jules PR Sequence
 1. **PR #6.1**: Create MusicPlayer component with HTML5 audio
@@ -224,12 +224,12 @@
 9. **PR #6.9**: Add "DJ Control" indicator (who started track)
 
 ### Testing Checklist
-- [ ] Can upload audio and add to queue
-- [ ] Play button starts playback on both devices (uploaded tracks)
-- [ ] Pause syncs in real-time
-- [ ] Seek bar drags sync timestamp
-- [ ] YouTube links play (with optional sync)
-- [ ] Visualizer animates during playback
+- [x] Can upload audio and add to queue
+- [x] Play button starts playback on both devices (uploaded tracks)
+- [x] Pause syncs in real-time
+- [x] Seek bar drags sync timestamp
+- [x] YouTube links play (with optional sync)
+- [x] Visualizer animates during playback
 
 ---
 
