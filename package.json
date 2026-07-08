@@ -12,6 +12,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@sentry/react": "^10.62.0",
     "@supabase/supabase-js": "^2.105.4",
     "framer-motion": "^12.39.0",
     "lucide-react": "^1.14.0",
