@@ -155,6 +155,7 @@ export default function FridgeSpeedDial({
       {/* Core FAB Plus Button */}
       <button
         onClick={() => setIsSpeedDialOpen(!isSpeedDialOpen)}
+        aria-label={isSpeedDialOpen ? 'Close speed dial' : 'Open speed dial'}
         className={`w-12 h-12 bg-primary hover:bg-primary-hover text-brand-surface rounded-full flex items-center justify-center shadow-2xl border-2 border-background/25 transition-transform duration-300 ${
           isSpeedDialOpen ? 'rotate-45 bg-amber-600 hover:bg-amber-700' : 'hover:scale-105'
         }`}

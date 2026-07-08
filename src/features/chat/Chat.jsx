@@ -596,19 +596,28 @@ export default function Chat() {
 
   // Group messages by date headings
   const groupedMessages = useMemo(() => {
+    // ⚡ BOLT OPTIMIZATION: Instantiate Date objects once outside the loop
+    // to prevent O(N) object creation on every render (e.g. typing keystrokes).
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const todayString = today.toDateString();
+    const yesterdayString = yesterday.toDateString();
+
     const groups = [];
     let lastDateLabel = '';
+    let prevMsg = null;
+    let prevMsgTime = 0;
 
     messages.forEach((msg) => {
       const date = new Date(msg.created_at);
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      const msgTime = date.getTime();
 
       let label = '';
-      if (date.toDateString() === today.toDateString()) {
+      const dateString = date.toDateString();
+      if (dateString === todayString) {
         label = 'Today';
-      } else if (date.toDateString() === yesterday.toDateString()) {
+      } else if (dateString === yesterdayString) {
         label = 'Yesterday';
       } else {
         label = date.toLocaleDateString(undefined, {
@@ -618,11 +627,26 @@ export default function Chat() {
         });
       }
 
+      let isFirstMessageOfDay = false;
       if (label !== lastDateLabel) {
         groups.push({ type: 'date', label });
         lastDateLabel = label;
+        isFirstMessageOfDay = true;
       }
-      groups.push({ type: 'message', data: msg });
+
+      // ⚡ BOLT OPTIMIZATION: Compute hideHeader here instead of in the render loop
+      let hideHeader = false;
+      if (!isFirstMessageOfDay && prevMsg) {
+        const diffTime = (msgTime - prevMsgTime) / 1000;
+        if (prevMsg.user_id === msg.user_id && diffTime < 120) {
+          hideHeader = true;
+        }
+      }
+
+      groups.push({ type: 'message', data: msg, hideHeader });
+
+      prevMsg = msg;
+      prevMsgTime = msgTime;
     });
 
     return groups;
@@ -726,15 +750,8 @@ export default function Chat() {
                 const msg = item.data;
                 const isSelf = msg.user_id === userId;
 
-                // Check grouping helper: same sender within 2 mins
-                let hideHeader = false;
-                if (idx > 0 && groupedMessages[idx - 1].type === 'message') {
-                  const prevMsg = groupedMessages[idx - 1].data;
-                  const diffTime = (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000;
-                  if (prevMsg.user_id === msg.user_id && diffTime < 120) {
-                    hideHeader = true;
-                  }
-                }
+                // ⚡ BOLT OPTIMIZATION: Read precomputed hideHeader instead of parsing Dates on every render
+                const hideHeader = item.hideHeader || false;
 
                 // Find quoted reply message
                 const quotedMsg = msg.reply_to_message_id

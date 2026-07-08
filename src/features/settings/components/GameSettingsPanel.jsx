@@ -45,6 +45,9 @@ export default function GameSettingsPanel({
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={autoJoinInvites}
+            aria-label="Toggle Auto-Join Game Invites"
             onClick={onToggleAutoJoin}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autoJoinInvites ? 'bg-primary' : 'bg-surface-border'}`}
           >
@@ -67,6 +70,9 @@ export default function GameSettingsPanel({
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={gameReactions}
+            aria-label="Toggle In-Game Reactions & Presets"
             onClick={onToggleGameReactions}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${gameReactions ? 'bg-primary' : 'bg-surface-border'}`}
           >

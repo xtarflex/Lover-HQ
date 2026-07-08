@@ -365,62 +365,77 @@ export default function Fridge() {
    * @param {number} newY - Percentage-based vertical coordinate.
    * @returns {Promise<void>}
    */
-  const handlePositionChange = async (itemId, newX, newY) => {
-    playWhiteboardSound('pin');
-    const backupItems = [...items];
-    const timestamp = new Date().toISOString();
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? { ...item, x_position: newX, y_position: newY, updated_at: timestamp, isPending: true }
-          : item
-      )
-    );
-
-    try {
-      if (!navigator.onLine) throw new Error('Offline');
-
-      await updateFridgeItem(itemId, { x_position: newX, y_position: newY, updated_at: timestamp });
+  const handlePositionChange = useCallback(
+    async (itemId, newX, newY) => {
+      playWhiteboardSound('pin');
+      const backupItems = [...items];
+      const timestamp = new Date().toISOString();
 
       setItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                x_position: newX,
+                y_position: newY,
+                updated_at: timestamp,
+                isPending: true,
+              }
+            : item
+        )
       );
-    } catch (err) {
-      console.error('Optimistic coordinate sync failed:', err);
-      const isNetwork =
-        !navigator.onLine || err.message?.includes('Failed to fetch') || err.message === 'Offline';
-      if (isNetwork) {
-        try {
-          addOfflineUpdate({
-            id: itemId,
-            x_position: newX,
-            y_position: newY,
-            updated_at: timestamp,
-          });
-          setItems((prev) =>
-            prev.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    x_position: newX,
-                    y_position: newY,
-                    updated_at: timestamp,
-                    isPending: true,
-                    isOfflineQueue: true,
-                  }
-                : item
-            )
-          );
-        } catch (e) {
-          console.error('Failed to queue offline update:', e);
+
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+
+        await updateFridgeItem(itemId, {
+          x_position: newX,
+          y_position: newY,
+          updated_at: timestamp,
+        });
+
+        setItems((prev) =>
+          prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+        );
+      } catch (err) {
+        console.error('Optimistic coordinate sync failed:', err);
+        const isNetwork =
+          !navigator.onLine ||
+          err.message?.includes('Failed to fetch') ||
+          err.message === 'Offline';
+        if (isNetwork) {
+          try {
+            addOfflineUpdate({
+              id: itemId,
+              x_position: newX,
+              y_position: newY,
+              updated_at: timestamp,
+            });
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === itemId
+                  ? {
+                      ...item,
+                      x_position: newX,
+                      y_position: newY,
+                      updated_at: timestamp,
+                      isPending: true,
+                      isOfflineQueue: true,
+                    }
+                  : item
+              )
+            );
+          } catch (e) {
+            console.error('Failed to queue offline update:', e);
+            setItems(backupItems);
+          }
+        } else {
           setItems(backupItems);
         }
-      } else {
-        setItems(backupItems);
       }
-    }
-  };
+    },
+    [items, setItems, playWhiteboardSound, addOfflineUpdate]
+  );
 
   /**
    * Toggles the pinned/locked status of a fridge magnet item.
@@ -429,60 +444,65 @@ export default function Fridge() {
    * @param {boolean} isPinned - The target pinned status.
    * @returns {Promise<void>}
    */
-  const handleTogglePin = async (itemId, isPinned) => {
-    playWhiteboardSound('pin');
-    const backupItems = [...items];
-    const timestamp = new Date().toISOString();
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? { ...item, is_pinned: isPinned, updated_at: timestamp, isPending: true }
-          : item
-      )
-    );
-
-    try {
-      if (!navigator.onLine) throw new Error('Offline');
-
-      await updateFridgeItem(itemId, { is_pinned: isPinned, updated_at: timestamp });
+  const handleTogglePin = useCallback(
+    async (itemId, isPinned) => {
+      playWhiteboardSound('pin');
+      const backupItems = [...items];
+      const timestamp = new Date().toISOString();
 
       setItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, is_pinned: isPinned, updated_at: timestamp, isPending: true }
+            : item
+        )
       );
-    } catch (err) {
-      console.error('Optimistic pin toggle failed:', err);
-      const isNetwork =
-        !navigator.onLine || err.message?.includes('Failed to fetch') || err.message === 'Offline';
-      if (isNetwork) {
-        try {
-          addOfflineUpdate({
-            id: itemId,
-            is_pinned: isPinned,
-            updated_at: timestamp,
-          });
-          setItems((prev) =>
-            prev.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    is_pinned: isPinned,
-                    updated_at: timestamp,
-                    isPending: true,
-                    isOfflineQueue: true,
-                  }
-                : item
-            )
-          );
-        } catch (e) {
-          console.error('Failed to queue offline update:', e);
+
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+
+        await updateFridgeItem(itemId, { is_pinned: isPinned, updated_at: timestamp });
+
+        setItems((prev) =>
+          prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+        );
+      } catch (err) {
+        console.error('Optimistic pin toggle failed:', err);
+        const isNetwork =
+          !navigator.onLine ||
+          err.message?.includes('Failed to fetch') ||
+          err.message === 'Offline';
+        if (isNetwork) {
+          try {
+            addOfflineUpdate({
+              id: itemId,
+              is_pinned: isPinned,
+              updated_at: timestamp,
+            });
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === itemId
+                  ? {
+                      ...item,
+                      is_pinned: isPinned,
+                      updated_at: timestamp,
+                      isPending: true,
+                      isOfflineQueue: true,
+                    }
+                  : item
+              )
+            );
+          } catch (e) {
+            console.error('Failed to queue offline update:', e);
+            setItems(backupItems);
+          }
+        } else {
           setItems(backupItems);
         }
-      } else {
-        setItems(backupItems);
       }
-    }
-  };
+    },
+    [items, setItems, playWhiteboardSound, addOfflineUpdate]
+  );
 
   /**
    * Optimistically deletes the specified magnet item and syncs the removal in
@@ -491,62 +511,67 @@ export default function Fridge() {
    * @param {string} itemId - The ID of the item to delete.
    * @returns {Promise<void>}
    */
-  const handleDeleteItem = async (itemId) => {
-    playWhiteboardSound('delete');
-    const itemToDelete = items.find((i) => i.id === itemId);
-    if (!itemToDelete) return;
+  const handleDeleteItem = useCallback(
+    async (itemId) => {
+      playWhiteboardSound('delete');
+      const itemToDelete = items.find((i) => i.id === itemId);
+      if (!itemToDelete) return;
 
-    const backupItems = [...items];
-    setItems((prev) => prev.filter((item) => item.id !== itemId));
+      const backupItems = [...items];
+      setItems((prev) => prev.filter((item) => item.id !== itemId));
 
-    try {
-      if (itemId.toString().startsWith('offline-')) {
-        removeOfflineItem(itemId);
-        return;
-      }
-
-      if (!navigator.onLine) throw new Error('Offline');
-
-      let fileUrl = null;
-      if (itemToDelete.type === 'photo') {
-        fileUrl = itemToDelete.content;
-      } else if (itemToDelete.type === 'voice') {
-        try {
-          const parsed = JSON.parse(itemToDelete.content);
-          fileUrl = parsed.url;
-        } catch {
-          fileUrl = itemToDelete.content;
+      try {
+        if (itemId.toString().startsWith('offline-')) {
+          removeOfflineItem(itemId);
+          return;
         }
-      }
 
-      if (fileUrl) {
-        const filePath = getStoragePathFromUrl(fileUrl);
-        if (filePath) {
+        if (!navigator.onLine) throw new Error('Offline');
+
+        let fileUrl = null;
+        if (itemToDelete.type === 'photo') {
+          fileUrl = itemToDelete.content;
+        } else if (itemToDelete.type === 'voice') {
           try {
-            await deleteFridgeMedia([filePath]);
-          } catch (storageDeleteError) {
-            console.error('Storage deletion warning:', storageDeleteError);
+            const parsed = JSON.parse(itemToDelete.content);
+            fileUrl = parsed.url;
+          } catch {
+            fileUrl = itemToDelete.content;
           }
         }
-      }
 
-      await deleteFridgeItem(itemId);
-    } catch (err) {
-      console.error('Failed to delete item:', err);
-      const isNetwork =
-        !navigator.onLine || err.message?.includes('Failed to fetch') || err.message === 'Offline';
-      if (isNetwork) {
-        try {
-          addOfflineDeletion(itemId);
-        } catch (e) {
-          console.error('Failed to queue offline deletion:', e);
+        if (fileUrl) {
+          const filePath = getStoragePathFromUrl(fileUrl);
+          if (filePath) {
+            try {
+              await deleteFridgeMedia([filePath]);
+            } catch (storageDeleteError) {
+              console.error('Storage deletion warning:', storageDeleteError);
+            }
+          }
+        }
+
+        await deleteFridgeItem(itemId);
+      } catch (err) {
+        console.error('Failed to delete item:', err);
+        const isNetwork =
+          !navigator.onLine ||
+          err.message?.includes('Failed to fetch') ||
+          err.message === 'Offline';
+        if (isNetwork) {
+          try {
+            addOfflineDeletion(itemId);
+          } catch (e) {
+            console.error('Failed to queue offline deletion:', e);
+            setItems(backupItems);
+          }
+        } else {
           setItems(backupItems);
         }
-      } else {
-        setItems(backupItems);
       }
-    }
-  };
+    },
+    [items, setItems, playWhiteboardSound, addOfflineDeletion, removeOfflineItem]
+  );
 
   /**
    * Pins an animated emoji magnet onto the Fridge board. Supports offline
@@ -687,7 +712,7 @@ export default function Fridge() {
    * @param {Object} item - Note item object to edit.
    * @returns {void}
    */
-  const handleEditNote = (item) => {
+  const handleEditNote = useCallback((item) => {
     let text = '';
     let color = 'yellow';
     try {
@@ -698,7 +723,7 @@ export default function Fridge() {
       text = item.content;
     }
     setEditingItem({ id: item.id, text, color });
-  };
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Render

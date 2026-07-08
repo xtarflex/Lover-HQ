@@ -85,6 +85,9 @@ export default function PreferencesPanel({
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={!soundMuted}
+            aria-label="Toggle App Sound Effects"
             onClick={onToggleSound}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!soundMuted ? 'bg-primary' : 'bg-surface-border'}`}
           >
@@ -126,6 +129,9 @@ export default function PreferencesPanel({
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={pushEnabled}
+            aria-label="Toggle Push Notifications"
             onClick={handlePushToggle}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${pushEnabled ? 'bg-primary' : 'bg-surface-border'}`}
           >
@@ -148,6 +154,9 @@ export default function PreferencesPanel({
           </div>
           <button
             type="button"
+            role="switch"
+            aria-checked={hapticsEnabled}
+            aria-label="Toggle Haptic Feedback (Vibration)"
             onClick={handleHapticsToggle}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${hapticsEnabled ? 'bg-primary' : 'bg-surface-border'}`}
           >
