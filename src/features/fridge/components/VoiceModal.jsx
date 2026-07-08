@@ -181,7 +181,8 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
     try {
       const mime = mediaRecorderRef.current?.mimeType || 'audio/wav';
       const fileExt = mime.includes('mp4') ? 'mp4' : mime.includes('webm') ? 'webm' : 'wav';
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+      const fileName = `${userId}/${Date.now()}_${randId}.${fileExt}`;
 
       // Upload to Supabase Storage
       await uploadFridgeMedia(fileName, audioBlob, { contentType: mime });
