@@ -182,6 +182,31 @@ export default function App() {
   const { user, preferences } = useAppContext();
   const dispatch = useAppDispatch();
 
+  // Dynamic Netlify -> Cloudflare redirect check
+  useEffect(() => {
+    const isNetlify = window.location.hostname.includes('netlify.app');
+    if (isNetlify) {
+      fetch('https://lover-hq.pages.dev/redirect-config.json')
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to load redirect config');
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.redirect === true) {
+            window.location.replace(
+              'https://lover-hq.pages.dev' +
+                window.location.pathname +
+                window.location.search +
+                window.location.hash
+            );
+          }
+        })
+        .catch((err) => {
+          console.warn('Redirect check failed:', err);
+        });
+    }
+  }, []);
+
   // Auth lifecycle: hydrate cache → fetch profile → realtime listener
   useAuthSync();
 

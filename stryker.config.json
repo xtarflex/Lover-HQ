@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.stryker-mutator.io/stryker-config.json",
+  "mutate": [
+    "src/utils/geometry.js",
+    "src/utils/notification.js",
+    "src/utils/compression.js"
+  ],
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.js"
+  },
+  "reporters": ["progress", "clear-text", "html"],
+  "concurrency": 2
+}

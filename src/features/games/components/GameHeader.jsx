@@ -121,18 +121,6 @@ export default function GameHeader({
         </div>
 
         <div className="flex items-center justify-end min-w-[40px]">
-          {timeLeft !== undefined && (
-            <div
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold transition-colors ${
-                timeLeft <= 10
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : 'bg-surface/60 text-text-main border border-surface-border/50'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              {timeLeft}s
-            </div>
-          )}
         </div>
       </div>
 
@@ -160,6 +148,13 @@ export default function GameHeader({
               {userScore}
             </span>
           </div>
+
+          {isMyTurn && timeLeft !== undefined && (
+            <div className="text-[10px] font-black text-primary px-1.5 py-0.5 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-0.5 flex-shrink-0 animate-pulse">
+              <Clock className="w-3 h-3" />
+              {timeLeft}s
+            </div>
+          )}
 
           {/* Chat Bubble */}
           {activeUserBubble && (
@@ -191,6 +186,13 @@ export default function GameHeader({
               : 'border-surface-border/40 opacity-60 scale-95 z-10'
           }`}
         >
+          {!isMyTurn && timeLeft !== undefined && (
+            <div className="text-[10px] font-black text-secondary px-1.5 py-0.5 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center gap-0.5 flex-shrink-0 animate-pulse">
+              <Clock className="w-3 h-3" />
+              {timeLeft}s
+            </div>
+          )}
+
           {/* Chat Bubble */}
           {activePartnerBubble && (
             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-brand-surface border border-secondary/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg whitespace-nowrap z-40 animate-slide-down-fade">

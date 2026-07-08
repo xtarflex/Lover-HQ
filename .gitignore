@@ -39,3 +39,6 @@ coverage/
 .vite/
 .vitest-cache/
 .supabase/
+*.zip
+reports/
+

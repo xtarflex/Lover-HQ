@@ -48,6 +48,9 @@ export async function validateOnlineWord(word) {
       const definition = entry?.meanings[0]?.definitions[0]?.definition || 'No definition found.';
       console.log(`Word "${cleanWord}" validated online via Free Dictionary API.`);
       return { valid: true, isLocal: false, definition, partOfSpeech };
+    } else if (res.status === 404) {
+      console.log(`Word "${cleanWord}" rejected via Free Dictionary API (404).`);
+      return { valid: false, reason: 'Not a valid English word.' };
     }
   } catch (error) {
     console.warn('Free Dictionary API request failed, trying Datamuse API...', error);

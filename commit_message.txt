@@ -1,5 +1,8 @@
-refactor: strip Profile.jsx to partner showroom and fix routing
+feat: implement arcade game timer updates and scrabble improvements
 
-- Completely rewrote Profile.jsx to only show the Partner's read-only details and connection widgets, removing the "Your Profile" edit forms and "Fridge Settings". My previous implementation was truncated or failed to overwrite the file properly.
-- Updated TopBar.jsx to properly route the user's avatar to `/settings` instead of `/profile`.
-- Updated App.jsx to properly resolve the route name for `/settings`.
+- Scrabble: added Timed vs Timeless gameplay modes, configurable turn time limits, and 2-letter word validation.
+- Scrabble: improved drag-and-drop mechanics and fixed center cell rendering.
+- Math Puzzle: added remote grid sharing upon game completion.
+- GameHeader: repositioned the timer badge next to the active user's avatar.
+- App: implemented dynamic Netlify-to-Cloudflare redirect detection.
+- Testing: added Stryker mutation test setup and unit tests for compression, geometry, and notification utilities.

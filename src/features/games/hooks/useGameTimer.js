@@ -16,12 +16,19 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 export function useGameTimer(initialSeconds, onExpire, autoStart = false) {
   const [seconds, setSeconds] = useState(initialSeconds);
   const [isRunning, setIsRunning] = useState(autoStart);
+  const [resetKey, setResetKey] = useState(0);
   const onExpireRef = useRef(onExpire);
   const intervalRef = useRef(null);
 
   useEffect(() => {
     onExpireRef.current = onExpire;
   }, [onExpire]);
+
+  const [prevInitialSeconds, setPrevInitialSeconds] = useState(initialSeconds);
+  if (initialSeconds !== prevInitialSeconds) {
+    setSeconds(initialSeconds);
+    setPrevInitialSeconds(initialSeconds);
+  }
 
   useEffect(() => {
     if (!isRunning) {
@@ -42,7 +49,7 @@ export function useGameTimer(initialSeconds, onExpire, autoStart = false) {
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [isRunning]);
+  }, [isRunning, resetKey]);
 
   /** Start or resume the timer. */
   const start = useCallback(() => setIsRunning(true), []);
@@ -60,6 +67,7 @@ export function useGameTimer(initialSeconds, onExpire, autoStart = false) {
       clearInterval(intervalRef.current);
       setSeconds(initialSeconds);
       setIsRunning(andStart);
+      setResetKey((prev) => prev + 1);
     },
     [initialSeconds]
   );
