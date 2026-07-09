@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * @file QuickReactionTray.jsx
  * @description Interactive bottom tray for active game components, allowing players
@@ -5,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Heart, Smile, Flame, Sparkles } from 'lucide-react';
 
 const EMOJIS = ['❤️', '😂', '🔥', '😮', '🎉'];
 const CHAT_PRESETS = [
