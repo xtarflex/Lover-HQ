@@ -135,3 +135,63 @@
   color: rgb(148, 163, 184);
   border: 1px solid rgba(51, 65, 85, 0.4);
 }
+
+/* Sliding Turn Badge */
+.morris-turn-badge {
+  position: absolute;
+  top: 6.25rem;
+  right: 0;
+  z-index: 40;
+  transform: translateX(105%);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.morris-turn-badge.active {
+  transform: translateX(0);
+}
+
+.morris-badge-capsule {
+  display: flex;
+  align-items: center;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  border-right: none;
+  border-radius: 9999px 0 0 9999px;
+  padding: 0.5rem 2rem 0.5rem 0.5rem;
+  box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.4),
+              inset 1px 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.morris-badge-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+  font-size: 0.75rem;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  margin-right: 0.75rem;
+}
+
+.morris-badge-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.morris-badge-text {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.1em;
+}
+
+

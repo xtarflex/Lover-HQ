@@ -71,6 +71,7 @@ export default function ThreeMensMorris({
   const [partnerEmojis, setPartnerEmojis] = useState([]);
   const [endReason, setEndReason] = useState('completion');
   const [rematchStatus, setRematchStatus] = useState('none');
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const {
     board,
@@ -83,6 +84,14 @@ export default function ThreeMensMorris({
     reset,
     forceWinner,
   } = useThreeMensMorrisLogic({ myPlayerKey });
+
+  const [prevIsMyTurn, setPrevIsMyTurn] = useState(isMyTurn);
+  if (isMyTurn !== prevIsMyTurn) {
+    setPrevIsMyTurn(isMyTurn);
+    if (isMyTurn) {
+      setBannerDismissed(false);
+    }
+  }
 
   // Hold refs of up-to-date state callbacks to ensure stable useGameSync subscription
   const handlersRef = useRef({
@@ -348,6 +357,22 @@ export default function ThreeMensMorris({
         partnerEmojis={partnerEmojis}
       />
 
+      {/* Sliding Turn Badge */}
+      <div
+        className={`morris-turn-badge ${isMyTurn && !winner && !bannerDismissed ? 'active' : ''}`}
+      >
+        <div className="morris-badge-capsule">
+          <button
+            className="morris-badge-close"
+            onClick={() => setBannerDismissed(true)}
+            aria-label="Close turn banner"
+          >
+            ✕
+          </button>
+          <span className="morris-badge-text">YOUR TURN</span>
+        </div>
+      </div>
+
       {!winner && !partnerOnline ? (
         <div className="flex-grow flex flex-col items-center justify-center gap-3 text-center py-16">
           <LoadingSpinner size="md" />
@@ -378,34 +403,140 @@ export default function ThreeMensMorris({
           {/* Interactive SVG Board */}
           <div className="morris-board-wrapper w-full max-w-[320px]">
             <svg viewBox="0 0 300 300" className="morris-board-svg select-none">
-              {/* Outer boundary lines */}
-              <line x1="30" y1="30" x2="270" y2="30" className="morris-board-line" />
-              <line x1="270" y1="30" x2="270" y2="270" className="morris-board-line" />
-              <line x1="270" y1="270" x2="30" y2="270" className="morris-board-line" />
-              <line x1="30" y1="270" x2="30" y2="30" className="morris-board-line" />
+              {/* Outer rounded rect channels (tactile outer groove) */}
+              <rect
+                x="30"
+                y="30"
+                width="240"
+                height="240"
+                rx="36"
+                ry="36"
+                stroke="#475569"
+                strokeWidth="36"
+                fill="none"
+              />
+              <rect
+                x="30"
+                y="30"
+                width="240"
+                height="240"
+                rx="36"
+                ry="36"
+                stroke="#e2e8f0"
+                strokeWidth="30"
+                fill="none"
+              />
 
-              {/* Horizontal & Vertical center lines */}
-              <line x1="30" y1="150" x2="270" y2="150" className="morris-board-line" />
-              <line x1="150" y1="30" x2="150" y2="270" className="morris-board-line" />
+              {/* Vertical carved track channel */}
+              <line
+                x1="150"
+                y1="30"
+                x2="150"
+                y2="270"
+                stroke="#475569"
+                strokeWidth="36"
+                strokeLinecap="round"
+              />
+              <line
+                x1="150"
+                y1="30"
+                x2="150"
+                y2="270"
+                stroke="#e2e8f0"
+                strokeWidth="30"
+                strokeLinecap="round"
+              />
 
-              {/* Diagonal lines */}
-              <line x1="30" y1="30" x2="270" y2="270" className="morris-board-line" />
-              <line x1="270" y1="30" x2="30" y2="270" className="morris-board-line" />
+              {/* Horizontal carved track channel */}
+              <line
+                x1="30"
+                y1="150"
+                x2="270"
+                y2="150"
+                stroke="#475569"
+                strokeWidth="36"
+                strokeLinecap="round"
+              />
+              <line
+                x1="30"
+                y1="150"
+                x2="270"
+                y2="150"
+                stroke="#e2e8f0"
+                strokeWidth="30"
+                strokeLinecap="round"
+              />
 
-              {/* Render Nodes / Intersections */}
+              {/* Diagonal carved track channels - Layered for overlap */}
+              <line
+                x1="270"
+                y1="30"
+                x2="30"
+                y2="270"
+                stroke="#475569"
+                strokeWidth="36"
+                strokeLinecap="round"
+              />
+              <line
+                x1="270"
+                y1="30"
+                x2="30"
+                y2="270"
+                stroke="#e2e8f0"
+                strokeWidth="30"
+                strokeLinecap="round"
+              />
+
+              <line
+                x1="30"
+                y1="30"
+                x2="270"
+                y2="270"
+                stroke="#475569"
+                strokeWidth="36"
+                strokeLinecap="round"
+              />
+              <line
+                x1="30"
+                y1="30"
+                x2="270"
+                y2="270"
+                stroke="#e2e8f0"
+                strokeWidth="30"
+                strokeLinecap="round"
+              />
+
+              {/* Render Nodes / Sockets */}
               {NODE_COORDINATES.map((coords, i) => {
                 const status = nodeStatus[i];
                 const isSelected = selectedPieceIndex === i;
 
                 return (
                   <g key={i}>
-                    {/* Node base marker (rendered underneath piece) */}
+                    {/* Node socket indentation (wood carved depth) */}
+                    <circle cx={coords.x} cy={coords.y} r="18" fill="#475569" />
                     <circle
                       cx={coords.x}
                       cy={coords.y}
-                      r="6"
-                      className={`morris-node-base ${status.isValidTarget ? 'valid-target' : ''}`}
+                      r="15"
+                      fill="#0f172a"
+                      stroke="#334155"
+                      strokeWidth="1.5"
                     />
+
+                    {/* Glowing highlight for valid target spots */}
+                    {status.isValidTarget && (
+                      <circle
+                        cx={coords.x}
+                        cy={coords.y}
+                        r="15"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="3"
+                        strokeDasharray="4,4"
+                        className="animate-pulse"
+                      />
+                    )}
 
                     {/* Active pieces */}
                     {status.isOccupied && (
