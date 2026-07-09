@@ -62,9 +62,18 @@ describe('parseFilenameMetadata', () => {
 describe('formatTime', () => {
   it('should format 0 and positive times correctly', () => {
     expect(formatTime(0)).toBe('0:00');
+    expect(formatTime(0.0)).toBe('0:00');
+    expect(formatTime(0.0001)).toBe('0:00');
+    expect(formatTime(0.9999)).toBe('0:00');
+    expect(formatTime(1)).toBe('0:01');
+    expect(formatTime(-0)).toBe('0:00');
     expect(formatTime(5)).toBe('0:05');
+    expect(formatTime(9)).toBe('0:09');
+    expect(formatTime(10)).toBe('0:10');
     expect(formatTime(59)).toBe('0:59');
     expect(formatTime(60)).toBe('1:00');
+    expect(formatTime(69)).toBe('1:09');
+    expect(formatTime(70)).toBe('1:10');
     expect(formatTime(125)).toBe('2:05');
     expect(formatTime(3599)).toBe('59:59');
   });
@@ -76,6 +85,7 @@ describe('formatTime', () => {
 
   it('should handle negative numbers and undefined gracefully', () => {
     expect(formatTime(-10)).toBe('0:00');
+    expect(formatTime(-0.1)).toBe('0:00');
     expect(formatTime(undefined)).toBe('0:00');
   });
 
@@ -95,8 +105,7 @@ describe('formatTime', () => {
     expect(formatTime('abc')).toBe('0:00');
     expect(formatTime([])).toBe('0:00');
     expect(formatTime({})).toBe('0:00');
-    // Note: formatTime(true) returns '0:01' in current implementation because isNaN(true) is false, true < 0 is false, true/60 is 0.016, true%60 is 1.
-    expect(formatTime(true)).toBe('0:01');
+    expect(formatTime(true)).toBe('0:00');
   });
 });
 
