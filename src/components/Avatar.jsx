@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Reusable Avatar component with online status indicators.
  * Supports image URLs, local presets (rendered as SVGs), and text/emoji fallbacks.
