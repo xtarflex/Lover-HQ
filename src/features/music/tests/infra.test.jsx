@@ -156,8 +156,13 @@ describe('MusicPlayer & Queue Integration Tests', () => {
     );
   };
 
-  it('renders standard blank/empty states when no music is queued', () => {
+  it('renders standard blank/empty states when no music is queued', async () => {
     renderPlayerWithProvider();
+
+    // Flush state updates to prevent act warnings
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(screen.getByText('Music Room Empty')).toBeInTheDocument();
     expect(screen.getByText('Add a song below to get started!')).toBeInTheDocument();
