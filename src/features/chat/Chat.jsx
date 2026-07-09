@@ -2776,12 +2776,14 @@ export default function Chat() {
                               <div className="flex justify-end space-x-2 text-[10px]">
                                 <button
                                   onClick={() => setEditingMessage(null)}
+                                  aria-label="Cancel edit"
                                   className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-gray-400 font-bold"
                                 >
                                   Cancel
                                 </button>
                                 <button
                                   onClick={() => handleSaveEdit(msg.id)}
+                                  aria-label="Save edit"
                                   className="px-2.5 py-1 rounded bg-primary text-white font-bold"
                                 >
                                   Save
