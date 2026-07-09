@@ -11,6 +11,7 @@ import {
   QuickDrawIcon,
   ScrabbleIcon,
   MathPuzzleIcon,
+  ThreeMensMorrisIcon,
 } from '../components/GameIcons';
 
 /**
@@ -76,6 +77,16 @@ export const GAME_REGISTRY = [
     avgDuration: 180,
     tags: ['speed-race', 'math-based', 'thinking'],
     Component: lazy(() => import('./mathPuzzle/MathPuzzle')),
+  },
+  {
+    id: 'three-mens-morris',
+    name: "Three Men's Morris",
+    description: 'Connect 3 pieces in a row. Place them, then move them dynamically.',
+    Icon: ThreeMensMorrisIcon,
+    difficulty: 'medium',
+    avgDuration: 240,
+    tags: ['classic', 'turn-based', 'thinking'],
+    Component: lazy(() => import('./threeMensMorris/ThreeMensMorris')),
   },
 ];
 
