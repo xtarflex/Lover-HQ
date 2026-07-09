@@ -189,4 +189,17 @@ describe('cleanArtistName', () => {
     expect(cleanArtistName('Jay-Z - Topic')).toBe('Jay-Z');
     expect(cleanArtistName('Slipknot - Topic')).toBe('Slipknot');
   });
+
+  it('should not remove "Topic" if it is part of the artist name (not a suffix)', () => {
+    expect(cleanArtistName('Topic')).toBe('Topic');
+    expect(cleanArtistName('Hot Topic')).toBe('Hot Topic');
+    expect(cleanArtistName('The Topic Band')).toBe('The Topic Band');
+    expect(cleanArtistName('Topic - The Band')).toBe('Topic - The Band');
+  });
+
+  it('should handle strings that become empty after cleaning', () => {
+    expect(cleanArtistName(' - Topic')).toBe('');
+    expect(cleanArtistName('-')).toBe('');
+    expect(cleanArtistName(' - ')).toBe('');
+  });
 });
