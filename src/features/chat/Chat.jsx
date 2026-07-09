@@ -604,10 +604,22 @@ export default function Chat() {
     const todayString = today.toDateString();
     const yesterdayString = yesterday.toDateString();
 
+    // ⚡ BOLT OPTIMIZATION: Instantiate Intl.DateTimeFormat once to avoid expensive
+    // toLocaleDateString calls inside the loop.
+    const dateFormatter = new Intl.DateTimeFormat(undefined, {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
+
     const groups = [];
     let lastDateLabel = '';
     let prevMsg = null;
     let prevMsgTime = 0;
+
+    // ⚡ BOLT OPTIMIZATION: Pre-map messages for O(1) reply lookups
+    const messageMap = new Map();
+    messages.forEach((m) => messageMap.set(m.id, m));
 
     messages.forEach((msg) => {
       const date = new Date(msg.created_at);
@@ -620,11 +632,7 @@ export default function Chat() {
       } else if (dateString === yesterdayString) {
         label = 'Yesterday';
       } else {
-        label = date.toLocaleDateString(undefined, {
-          weekday: 'long',
-          month: 'short',
-          day: 'numeric',
-        });
+        label = dateFormatter.format(date);
       }
 
       let isFirstMessageOfDay = false;
@@ -643,7 +651,11 @@ export default function Chat() {
         }
       }
 
-      groups.push({ type: 'message', data: msg, hideHeader });
+      const quotedMsg = msg.reply_to_message_id
+        ? messageMap.get(msg.reply_to_message_id) || null
+        : null;
+
+      groups.push({ type: 'message', data: msg, hideHeader, quotedMsg });
 
       prevMsg = msg;
       prevMsgTime = msgTime;
@@ -753,10 +765,8 @@ export default function Chat() {
                 // ⚡ BOLT OPTIMIZATION: Read precomputed hideHeader instead of parsing Dates on every render
                 const hideHeader = item.hideHeader || false;
 
-                // Find quoted reply message
-                const quotedMsg = msg.reply_to_message_id
-                  ? messages.find((m) => m.id === msg.reply_to_message_id)
-                  : null;
+                // ⚡ BOLT OPTIMIZATION: Read precomputed quotedMsg instead of O(N) .find on every render
+                const quotedMsg = item.quotedMsg || null;
 
                 return (
                   <div
