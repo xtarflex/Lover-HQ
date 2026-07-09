@@ -268,3 +268,42 @@ export function MathPuzzleIcon({ className = '' }) {
     </svg>
   );
 }
+
+/**
+ * Custom SVG icon representing a 3x3 Three Men's Morris board.
+ *
+ * @param {object} props
+ * @param {string} [props.className]
+ */
+export function ThreeMensMorrisIcon({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Grid lines */}
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="12" y1="3" x2="12" y2="21" />
+      <line x1="3" y1="3" x2="21" y2="21" />
+      <line x1="21" y1="3" x2="3" y2="21" />
+      {/* Nodes / intersection points */}
+      <circle cx="3" cy="3" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="3" r="1" fill="currentColor" stroke="none" />
+      <circle cx="21" cy="3" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="21" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="21" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="21" r="1" fill="currentColor" stroke="none" />
+      <circle cx="21" cy="21" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
