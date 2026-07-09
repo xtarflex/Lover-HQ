@@ -14,11 +14,16 @@ import { checkWinner, isValidPlacement, isValidMove } from '../utils/rules';
 export function useThreeMensMorrisLogic({ myPlayerKey }) {
   const [board, setBoard] = useState(Array(9).fill(null));
   const [currentTurn, setCurrentTurn] = useState('player1'); // player1 always starts
-  const [piecesPlaced, setPiecesPlaced] = useState({ player1: 0, player2: 0 });
   const [selectedPieceIndex, setSelectedPieceIndex] = useState(null);
   const [winner, setWinner] = useState(null); // 'player1', 'player2', or null
 
   const isMyTurn = currentTurn === myPlayerKey;
+
+  const piecesPlaced = useMemo(() => {
+    const player1 = board.filter((cell) => cell === 'player1').length;
+    const player2 = board.filter((cell) => cell === 'player2').length;
+    return { player1, player2 };
+  }, [board]);
 
   const phase = useMemo(() => {
     return piecesPlaced.player1 < 3 || piecesPlaced.player2 < 3 ? 'placement' : 'movement';
@@ -44,10 +49,6 @@ export function useThreeMensMorrisLogic({ myPlayerKey }) {
       if (type === 'place') {
         const { index } = move;
         nextBoard[index] = player;
-        setPiecesPlaced((prevPlaced) => ({
-          ...prevPlaced,
-          [player]: prevPlaced[player] + 1,
-        }));
       } else if (type === 'move') {
         const { from, to } = move;
         nextBoard[from] = null;
@@ -135,7 +136,6 @@ export function useThreeMensMorrisLogic({ myPlayerKey }) {
   const reset = useCallback(() => {
     setBoard(Array(9).fill(null));
     setCurrentTurn('player1');
-    setPiecesPlaced({ player1: 0, player2: 0 });
     setSelectedPieceIndex(null);
     setWinner(null);
   }, []);
