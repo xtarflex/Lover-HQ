@@ -134,6 +134,27 @@ describe('formatTime', () => {
 });
 
 describe('parseFilenameMetadata edge cases', () => {
+  it('should handle hidden files (starting with dot)', () => {
+    expect(parseFilenameMetadata('.hidden')).toEqual({ artist: '', title: '' });
+    expect(parseFilenameMetadata('.hidden.mp3')).toEqual({ artist: '', title: '.Hidden' });
+  });
+
+  it('should handle filenames with only spaces', () => {
+    expect(parseFilenameMetadata('   .mp3')).toEqual({ artist: '', title: '' });
+    expect(parseFilenameMetadata('   ')).toEqual({ artist: '', title: '' });
+  });
+
+  it('should handle non-string inputs safely', () => {
+    expect(parseFilenameMetadata(123)).toEqual({ title: '', artist: '' });
+    expect(parseFilenameMetadata(undefined)).toEqual({ title: '', artist: '' });
+    expect(parseFilenameMetadata({})).toEqual({ title: '', artist: '' });
+  });
+
+  it('should handle malformed artist - title spacing', () => {
+    expect(parseFilenameMetadata(' - .mp3')).toEqual({ artist: '', title: '' });
+    expect(parseFilenameMetadata(' - ')).toEqual({ artist: '', title: '' });
+  });
+
   it('should handle extremely long title strings with special characters', () => {
     const longArtist = 'A'.repeat(5000);
     const longTitle = 'B'.repeat(5000);

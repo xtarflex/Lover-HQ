@@ -1,6 +1,0 @@
-🧹 Remove unused imports in QuickReactionTray
-
-🎯 **What:** Removed unused icon imports (`Heart`, `Smile`, `Flame`, `Sparkles`) from `lucide-react` in `QuickReactionTray.jsx`.
-💡 **Why:** Improves code maintainability, reduces cognitive load, and cleans up dead code.
-✅ **Verification:** Ran `pnpm lint` and `pnpm test` successfully to ensure no functionality is broken.
-✨ **Result:** Cleaner component code without altering behavior.
