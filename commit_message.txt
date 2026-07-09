@@ -1,8 +1,6 @@
-feat: implement arcade game timer updates and scrabble improvements
+🧹 Remove unused imports in QuickReactionTray
 
-- Scrabble: added Timed vs Timeless gameplay modes, configurable turn time limits, and 2-letter word validation.
-- Scrabble: improved drag-and-drop mechanics and fixed center cell rendering.
-- Math Puzzle: added remote grid sharing upon game completion.
-- GameHeader: repositioned the timer badge next to the active user's avatar.
-- App: implemented dynamic Netlify-to-Cloudflare redirect detection.
-- Testing: added Stryker mutation test setup and unit tests for compression, geometry, and notification utilities.
+🎯 **What:** Removed unused icon imports (`Heart`, `Smile`, `Flame`, `Sparkles`) from `lucide-react` in `QuickReactionTray.jsx`.
+💡 **Why:** Improves code maintainability, reduces cognitive load, and cleans up dead code.
+✅ **Verification:** Ran `pnpm lint` and `pnpm test` successfully to ensure no functionality is broken.
+✨ **Result:** Cleaner component code without altering behavior.
