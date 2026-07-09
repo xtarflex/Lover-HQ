@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getGameById, getGamesByTag } from './index';
+import { GAME_REGISTRY, getGameById, getGamesByTag } from './index';
 
 describe('Game Registry', () => {
   describe('getGameById', () => {
@@ -22,26 +22,31 @@ describe('Game Registry', () => {
   });
 
   describe('getGamesByTag', () => {
-    it('returns games containing the specified tag', () => {
-      const classicGames = getGamesByTag('classic');
-      expect(classicGames.length).toBeGreaterThan(0);
-      expect(classicGames.every((game) => game.tags.includes('classic'))).toBe(true);
+    it('returns matching games when the tag exists', () => {
+      const expectedClassicGames = GAME_REGISTRY.filter((g) => g.tags.includes('classic'));
+      expect(expectedClassicGames.length).toBeGreaterThan(0);
 
-      const hasTicTacToe = classicGames.some((game) => game.id === 'tic-tac-toe');
-      const hasScrabble = classicGames.some((game) => game.id === 'scrabble');
-      expect(hasTicTacToe).toBe(true);
-      expect(hasScrabble).toBe(true);
+      const result = getGamesByTag('classic');
+      expect(result).toHaveLength(expectedClassicGames.length);
+      result.forEach((game) => {
+        expect(game.tags).toContain('classic');
+      });
     });
 
-    it('returns an empty array for a non-existent tag', () => {
-      const games = getGamesByTag('non-existent-tag');
-      expect(games).toEqual([]);
+    it('returns an empty array when the tag does not exist', () => {
+      const result = getGamesByTag('this-tag-does-not-exist');
+      expect(result).toEqual([]);
     });
 
-    it('returns games for a tag unique to one game', () => {
-      const drawingGames = getGamesByTag('creative');
-      expect(drawingGames.length).toBe(1);
-      expect(drawingGames[0].id).toBe('quick-draw');
+    it('returns games matching another valid tag', () => {
+      const expectedThinkingGames = GAME_REGISTRY.filter((g) => g.tags.includes('thinking'));
+      expect(expectedThinkingGames.length).toBeGreaterThan(0);
+
+      const result = getGamesByTag('thinking');
+      expect(result).toHaveLength(expectedThinkingGames.length);
+      result.forEach((game) => {
+        expect(game.tags).toContain('thinking');
+      });
     });
 
     it('returns an empty array when tag is not provided', () => {
