@@ -5,3 +5,6 @@
 ## 2026-07-07 - Expensive Date Parsing in Render Loops
 **Learning:** Creating `new Date()` instances inside a mapping function during a React component's render phase is exceptionally expensive. In `Chat.jsx`, grouping logic generated thousands of Date objects on every keystroke, severely degrading typing performance and causing input lag.
 **Action:** Always hoist Date instantiation and expensive calculations into `useMemo` or out of the render loop entirely. Precompute grouping conditions (like time differences) and store them in the data structure, rather than calculating them on the fly during render.
+## 2026-07-09 - 🧪 Added Tests for Game Registry lookups
+**Learning:** Testing simple array lookup methods like getGameById and getGamesByTag validates core utility functions that form the baseline of dynamic imports and routing.
+**Action:** Always test array lookups to cover the not found and empty params edge cases to prevent silent undefined rendering issues down the line.
