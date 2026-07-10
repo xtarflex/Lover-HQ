@@ -51,6 +51,7 @@ export default function ReconnectInvitesPanel({
                     onClick={() => onAccept(req)}
                     className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-xl transition-colors"
                     title="Accept"
+                    aria-label="Accept"
                   >
                     <Check className="w-4 h-4" />
                   </button>
@@ -58,6 +59,7 @@ export default function ReconnectInvitesPanel({
                     onClick={() => onDecline(req.id)}
                     className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-colors flex items-center justify-center"
                     title="Decline"
+                    aria-label="Decline"
                   >
                     <X className="w-4 h-4" />
                   </button>
