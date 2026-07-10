@@ -425,8 +425,11 @@ export default function Chat() {
 
     setUploadingMedia(true);
     const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const filePath = `chat/${userId}/${Date.now()}_${randId}_${sanitizedName}`;
+    const fileExt = file.name
+      .split('.')
+      .pop()
+      .replace(/[^a-zA-Z0-9]/g, '');
+    const filePath = `chat/${userId}/${Date.now()}_${randId}.${fileExt}`;
 
     try {
       // Upload to storage
