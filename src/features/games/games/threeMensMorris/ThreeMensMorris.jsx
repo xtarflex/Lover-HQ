@@ -72,6 +72,7 @@ export default function ThreeMensMorris({
   const [endReason, setEndReason] = useState('completion');
   const [rematchStatus, setRematchStatus] = useState('none');
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [badgeState, setBadgeState] = useState({ active: false, text: '', hasClose: false });
 
   const {
     board,
@@ -92,6 +93,44 @@ export default function ThreeMensMorris({
       setBannerDismissed(false);
     }
   }
+
+  // stable mapping of pieces to nodes to support smooth sliding transitions
+  const stablePieces = useMemo(() => {
+    const goldPositions = [];
+    const pinkPositions = [];
+
+    board.forEach((val, idx) => {
+      if (val === 'player1') {
+        goldPositions.push(idx);
+      } else if (val === 'player2') {
+        pinkPositions.push(idx);
+      }
+    });
+
+    const goldPieces = Array.from({ length: 3 }).map((_, j) => {
+      const hasPiece = j < goldPositions.length;
+      const nodeIdx = hasPiece ? goldPositions[j] : null;
+      return {
+        id: `gold-piece-${j}`,
+        player: 'player1',
+        nodeIdx,
+        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : null,
+      };
+    });
+
+    const pinkPieces = Array.from({ length: 3 }).map((_, j) => {
+      const hasPiece = j < pinkPositions.length;
+      const nodeIdx = hasPiece ? pinkPositions[j] : null;
+      return {
+        id: `pink-piece-${j}`,
+        player: 'player2',
+        nodeIdx,
+        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : null,
+      };
+    });
+
+    return [...goldPieces, ...pinkPieces];
+  }, [board]);
 
   // Hold refs of up-to-date state callbacks to ensure stable useGameSync subscription
   const handlersRef = useRef({
@@ -250,8 +289,32 @@ export default function ThreeMensMorris({
   const handleDeclineRematch = () => {
     setRematchStatus('none');
     broadcastMove({ type: 'rematch_decline' });
-  };
+  }; // Manage sliding turn badge animations on turn change
+  useEffect(() => {
+    const isMe = isMyTurn && !winner;
+    const turnText = isMe ? 'YOUR TURN' : `${partner?.name || 'PARTNER'}'S TURN`;
 
+    // 1. Slide out in next tick to avoid synchronous setState inside effect warning
+    const slideOutTimer = setTimeout(() => {
+      setBadgeState((prev) => ({ ...prev, active: false }));
+    }, 0);
+
+    // 2. Wait 350ms, change text, and slide in
+    const slideInTimer = setTimeout(() => {
+      if (!winner) {
+        setBadgeState({
+          active: !isMe || !bannerDismissed,
+          text: turnText,
+          hasClose: isMe,
+        });
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(slideOutTimer);
+      clearTimeout(slideInTimer);
+    };
+  }, [isMyTurn, winner, partner, bannerDismissed]);
   const handleBackAction = () => {
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
@@ -358,18 +421,18 @@ export default function ThreeMensMorris({
       />
 
       {/* Sliding Turn Badge */}
-      <div
-        className={`morris-turn-badge ${isMyTurn && !winner && !bannerDismissed ? 'active' : ''}`}
-      >
+      <div className={`morris-turn-badge ${badgeState.active ? 'active' : ''}`}>
         <div className="morris-badge-capsule">
-          <button
-            className="morris-badge-close"
-            onClick={() => setBannerDismissed(true)}
-            aria-label="Close turn banner"
-          >
-            ✕
-          </button>
-          <span className="morris-badge-text">YOUR TURN</span>
+          {badgeState.hasClose && (
+            <button
+              className="morris-badge-close"
+              onClick={() => setBannerDismissed(true)}
+              aria-label="Close turn banner"
+            >
+              ✕
+            </button>
+          )}
+          <span className="morris-badge-text">{badgeState.text}</span>
         </div>
       </div>
 
@@ -403,58 +466,40 @@ export default function ThreeMensMorris({
           {/* Interactive SVG Board */}
           <div className="morris-board-wrapper w-full max-w-[320px]">
             <svg viewBox="0 0 300 300" className="morris-board-svg select-none">
-              {/* Outer rounded rect channels (tactile outer groove) */}
+              {/* Wooden grid base card/tray backing */}
+              <rect
+                x="15"
+                y="15"
+                width="270"
+                height="270"
+                rx="30"
+                ry="30"
+                fill="#0f172a"
+                stroke="#1e293b"
+                strokeWidth="2"
+              />
+
+              {/* Grid perimeter track (thin carved groove) */}
               <rect
                 x="30"
                 y="30"
                 width="240"
                 height="240"
-                rx="36"
-                ry="36"
-                stroke="#475569"
-                strokeWidth="36"
-                fill="none"
-              />
-              <rect
-                x="30"
-                y="30"
-                width="240"
-                height="240"
-                rx="36"
-                ry="36"
-                stroke="#e2e8f0"
-                strokeWidth="30"
+                rx="24"
+                ry="24"
+                stroke="#334155"
+                strokeWidth="4"
                 fill="none"
               />
 
-              {/* Vertical carved track channel */}
+              {/* Center vertical and horizontal grid lines (thin carved grooves) */}
               <line
                 x1="150"
                 y1="30"
                 x2="150"
                 y2="270"
-                stroke="#475569"
-                strokeWidth="36"
-                strokeLinecap="round"
-              />
-              <line
-                x1="150"
-                y1="30"
-                x2="150"
-                y2="270"
-                stroke="#e2e8f0"
-                strokeWidth="30"
-                strokeLinecap="round"
-              />
-
-              {/* Horizontal carved track channel */}
-              <line
-                x1="30"
-                y1="150"
-                x2="270"
-                y2="150"
-                stroke="#475569"
-                strokeWidth="36"
+                stroke="#334155"
+                strokeWidth="4"
                 strokeLinecap="round"
               />
               <line
@@ -462,12 +507,13 @@ export default function ThreeMensMorris({
                 y1="150"
                 x2="270"
                 y2="150"
-                stroke="#e2e8f0"
-                strokeWidth="30"
+                stroke="#334155"
+                strokeWidth="4"
                 strokeLinecap="round"
               />
 
-              {/* Diagonal carved track channels - Layered for overlap */}
+              {/* Diagonal tracks (thick overlapping capsules) */}
+              {/* Diagonal 1 (2 to 6) */}
               <line
                 x1="270"
                 y1="30"
@@ -487,6 +533,7 @@ export default function ThreeMensMorris({
                 strokeLinecap="round"
               />
 
+              {/* Diagonal 2 (0 to 8) */}
               <line
                 x1="30"
                 y1="30"
@@ -506,61 +553,58 @@ export default function ThreeMensMorris({
                 strokeLinecap="round"
               />
 
-              {/* Render Nodes / Sockets */}
+              {/* Glowing highlight valid targets circles */}
               {NODE_COORDINATES.map((coords, i) => {
                 const status = nodeStatus[i];
-                const isSelected = selectedPieceIndex === i;
-
+                if (!status.isValidTarget) return null;
                 return (
-                  <g key={i}>
-                    {/* Node socket indentation (wood carved depth) */}
-                    <circle cx={coords.x} cy={coords.y} r="18" fill="#475569" />
-                    <circle
-                      cx={coords.x}
-                      cy={coords.y}
-                      r="15"
-                      fill="#0f172a"
-                      stroke="#334155"
-                      strokeWidth="1.5"
-                    />
-
-                    {/* Glowing highlight for valid target spots */}
-                    {status.isValidTarget && (
-                      <circle
-                        cx={coords.x}
-                        cy={coords.y}
-                        r="15"
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth="3"
-                        strokeDasharray="4,4"
-                        className="animate-pulse"
-                      />
-                    )}
-
-                    {/* Active pieces */}
-                    {status.isOccupied && (
-                      <circle
-                        cx={coords.x}
-                        cy={coords.y}
-                        r="12"
-                        className={`morris-piece ${board[i]} ${isSelected ? 'selected' : ''}`}
-                      />
-                    )}
-
-                    {/* Interactive overlay area for easy click targets */}
-                    <circle
-                      cx={coords.x}
-                      cy={coords.y}
-                      r="22"
-                      fill="transparent"
-                      className="morris-node-interactive"
-                      onClick={() => onNodeClick(i)}
-                      aria-label={`Node ${i + 1}`}
-                    />
-                  </g>
+                  <circle
+                    key={`target-${i}`}
+                    cx={coords.x}
+                    cy={coords.y}
+                    r="15"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="3"
+                    strokeDasharray="4,4"
+                    className="animate-pulse"
+                  />
                 );
               })}
+
+              {/* Render Active Pieces (Stable IDs for smooth sliding transitions) */}
+              {stablePieces.map((piece) => {
+                const isSelected = selectedPieceIndex === piece.nodeIdx;
+                const isPlaced = piece.nodeIdx !== null;
+
+                return (
+                  <circle
+                    key={piece.id}
+                    cx={isPlaced ? piece.coords.x : 150}
+                    cy={isPlaced ? piece.coords.y : 150}
+                    r="12"
+                    opacity={isPlaced ? 1 : 0}
+                    className={`morris-piece ${piece.player} ${isSelected ? 'selected' : ''}`}
+                    style={{
+                      pointerEvents: 'none',
+                    }}
+                  />
+                );
+              })}
+
+              {/* Interactive click overlay area for nodes (invisible triggers) */}
+              {NODE_COORDINATES.map((coords, i) => (
+                <circle
+                  key={`overlay-${i}`}
+                  cx={coords.x}
+                  cy={coords.y}
+                  r="22"
+                  fill="transparent"
+                  className="morris-node-interactive"
+                  onClick={() => onNodeClick(i)}
+                  aria-label={`Node ${i + 1}`}
+                />
+              ))}
             </svg>
           </div>
 
