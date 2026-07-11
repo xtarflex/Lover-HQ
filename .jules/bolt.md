@@ -5,3 +5,6 @@
 ## 2026-07-07 - Expensive Date Parsing in Render Loops
 **Learning:** Creating `new Date()` instances inside a mapping function during a React component's render phase is exceptionally expensive. In `Chat.jsx`, grouping logic generated thousands of Date objects on every keystroke, severely degrading typing performance and causing input lag.
 **Action:** Always hoist Date instantiation and expensive calculations into `useMemo` or out of the render loop entirely. Precompute grouping conditions (like time differences) and store them in the data structure, rather than calculating them on the fly during render.
+## 2024-07-11 - [Memoize expensive Array.prototype.map and Object initialisation]
+**Learning:** [In React, rendering components could happen often (e.g. typing a keystroke). If you have expensive operations to construct a variable such as array loops (`map`, `filter`, etc), ensure you memoize the calculation so that it doesn't run during every render cycle. I found a component, `Fridge.jsx`, where a `filteredItems` array was built with `map` inside `getFilteredItems` which was being evaluated every render cycle creating lots of `Date` objects. ]
+**Action:** [Use `useMemo` to memoize the variable building with its relevant dependencies so it only rebuilds when it needs to.]
