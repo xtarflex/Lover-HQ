@@ -5,6 +5,7 @@
  */
 
 import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import GameHeader from '../../components/GameHeader';
 import GameResults from '../../components/GameResults';
 import { useGameSync } from '../../hooks/useGameSync';
@@ -15,6 +16,8 @@ import ForfeitModal from '../../components/ForfeitModal';
 import QuickReactionTray from '../../components/QuickReactionTray';
 import { isValidMove } from './utils/rules';
 import { LoadingSpinner } from '../../../../components/LoadingSpinner';
+import { supabase } from '../../../../lib/supabase';
+import { triggerBuzz, triggerPush } from '../../../../utils/notification';
 import './threeMensMorris.css';
 
 /**
@@ -88,6 +91,61 @@ export default function ThreeMensMorris({
     syncState,
   } = useThreeMensMorrisLogic({ myPlayerKey });
 
+  const [scores, setScores] = useState({ user: 0, partner: 0 });
+
+  /**
+   * Fetches the completed game history from Supabase and aggregates win counts.
+   *
+   * @returns {Promise<void>}
+   */
+  useEffect(() => {
+    let active = true;
+    const fetchScorecard = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('game_replays')
+          .select('winner_id')
+          .eq('game_type', gameId)
+          .or(
+            `and(player_a_id.eq.${userId},player_b_id.eq.${partnerId}),and(player_a_id.eq.${partnerId},player_b_id.eq.${userId})`
+          );
+
+        if (error) throw error;
+
+        let userWins = 0;
+        let partnerWins = 0;
+        data?.forEach((replay) => {
+          if (replay.winner_id === userId) {
+            userWins++;
+          } else if (replay.winner_id === partnerId) {
+            partnerWins++;
+          }
+        });
+        if (active) {
+          setScores({ user: userWins, partner: partnerWins });
+        }
+      } catch (err) {
+        console.error('Error fetching scorecard:', err);
+      }
+    };
+
+    fetchScorecard();
+    return () => {
+      active = false;
+    };
+  }, [gameId, userId, partnerId, winner]);
+
+  // Trigger haptic vibration and push notification when it becomes the user's turn
+  useEffect(() => {
+    if (isMyTurn && !winner) {
+      triggerBuzz();
+      triggerPush(
+        "Three Men's Morris",
+        `It's your turn! ${partner?.name || 'Your partner'} made a move.`
+      );
+    }
+  }, [isMyTurn, winner, partner]);
+
   const [prevIsMyTurn, setPrevIsMyTurn] = useState(isMyTurn);
   if (isMyTurn !== prevIsMyTurn) {
     setPrevIsMyTurn(isMyTurn);
@@ -116,7 +174,7 @@ export default function ThreeMensMorris({
         id: `gold-piece-${j}`,
         player: 'player1',
         nodeIdx,
-        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : null,
+        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : { x: 35, y: 90 + j * 60 },
       };
     });
 
@@ -127,7 +185,7 @@ export default function ThreeMensMorris({
         id: `pink-piece-${j}`,
         player: 'player2',
         nodeIdx,
-        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : null,
+        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : { x: 265, y: 90 + j * 60 },
       };
     });
 
@@ -451,6 +509,8 @@ export default function ThreeMensMorris({
         user={user}
         partner={partner}
         isMyTurn={isMyTurn && !winner}
+        userScore={scores.user}
+        partnerScore={scores.partner}
         onBack={handleBackAction}
         activeUserBubble={activeUserBubble}
         activePartnerBubble={activePartnerBubble}
@@ -501,46 +561,63 @@ export default function ThreeMensMorris({
                   strokeWidth="6"
                   style={{ pointerEvents: 'none' }}
                 />
-
-                {/* LOWER LAYER: Horizontal & Vertical carved track channels */}
+                {/* TRACK CHANNELS: Outer perimeter, cross and diagonal tracks (Background layer) */}
                 <g
                   stroke="#334155"
                   strokeWidth="66"
                   strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
                   style={{ pointerEvents: 'none' }}
                 >
+                  <rect x="60" y="60" width="180" height="180" />
                   <line x1="150" y1="60" x2="150" y2="240" />
                   <line x1="60" y1="150" x2="240" y2="150" />
-                </g>
-                <g
-                  stroke="#0f172a"
-                  strokeWidth="54"
-                  strokeLinecap="round"
-                  style={{ pointerEvents: 'none' }}
-                >
-                  <line x1="150" y1="60" x2="150" y2="240" />
-                  <line x1="60" y1="150" x2="240" y2="150" />
+                  <line x1="60" y1="60" x2="240" y2="240" />
+                  <line x1="60" y1="240" x2="240" y2="60" />
                 </g>
 
-                {/* UPPER LAYER: Diagonal carved track channels */}
-                <g
-                  stroke="#334155"
-                  strokeWidth="66"
-                  strokeLinecap="round"
-                  style={{ pointerEvents: 'none' }}
-                >
-                  <line x1="60" y1="60" x2="240" y2="240" />
-                  <line x1="60" y1="240" x2="240" y2="60" />
-                </g>
+                {/* TRACK CHANNELS: Outer perimeter, cross and diagonal tracks (Inner groove layer) */}
                 <g
                   stroke="#0f172a"
                   strokeWidth="54"
                   strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
                   style={{ pointerEvents: 'none' }}
                 >
+                  <rect x="60" y="60" width="180" height="180" />
+                  <line x1="150" y1="60" x2="150" y2="240" />
+                  <line x1="60" y1="150" x2="240" y2="150" />
                   <line x1="60" y1="60" x2="240" y2="240" />
                   <line x1="60" y1="240" x2="240" y2="60" />
                 </g>
+
+                {/* Supply pockets on margins for unplaced pieces */}
+                {Array.from({ length: 3 }).map((_, j) => (
+                  <circle
+                    key={`supply-pocket-gold-${j}`}
+                    cx="35"
+                    cy={90 + j * 60}
+                    r="18"
+                    fill="#0f172a"
+                    stroke="#1e293b"
+                    strokeWidth="2"
+                    style={{ pointerEvents: 'none' }}
+                  />
+                ))}
+                {Array.from({ length: 3 }).map((_, j) => (
+                  <circle
+                    key={`supply-pocket-pink-${j}`}
+                    cx="265"
+                    cy={90 + j * 60}
+                    r="18"
+                    fill="#0f172a"
+                    stroke="#1e293b"
+                    strokeWidth="2"
+                    style={{ pointerEvents: 'none' }}
+                  />
+                ))}
 
                 {/* Empty Node Sockets (always behind pieces) */}
                 {NODE_COORDINATES.map((coords, i) => (
@@ -583,18 +660,23 @@ export default function ThreeMensMorris({
                   );
                 })}
 
-                {/* Render Active Pieces (Stable IDs for smooth sliding transitions) */}
+                {/* Render Active Pieces (Stable IDs for smooth sliding transitions using Framer Motion) */}
                 {stablePieces.map((piece) => {
                   const isSelected = selectedPieceIndex === piece.nodeIdx;
-                  const isPlaced = piece.nodeIdx !== null;
 
                   return (
-                    <circle
+                    <motion.circle
                       key={piece.id}
-                      cx={isPlaced ? piece.coords.x : 150}
-                      cy={isPlaced ? piece.coords.y : 150}
+                      animate={{
+                        cx: piece.coords.x,
+                        cy: piece.coords.y,
+                      }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 150,
+                        damping: 18,
+                      }}
                       r="15"
-                      opacity={isPlaced ? 1 : 0}
                       className={`morris-piece ${piece.player} ${isSelected ? 'selected' : ''}`}
                       style={{
                         pointerEvents: 'none',

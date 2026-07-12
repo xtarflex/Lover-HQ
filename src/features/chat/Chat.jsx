@@ -258,8 +258,23 @@ export default function Chat() {
   const pressTimer = useRef(null);
 
   // Pinned message state
-
   const [pinnedMessage, setPinnedMessage] = useState(null);
+
+  // Unread messages tracking
+  const [lastReadTimestamp] = useState(() => {
+    if (typeof window === 'undefined' || !userId || !partnerId) return 0;
+    const key = [userId, partnerId].sort().join('_');
+    const stored = localStorage.getItem(`last_read_chat_${key}`);
+    return stored ? new Date(stored).getTime() : Date.now() - 5000;
+  });
+
+  useEffect(() => {
+    if (!coupleKey) return;
+    const timer = setTimeout(() => {
+      localStorage.setItem(`last_read_chat_${coupleKey}`, new Date().toISOString());
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [coupleKey]);
 
   const messagesEndRef = useRef(null);
   const imageInputRef = useRef(null);
@@ -514,12 +529,12 @@ export default function Chat() {
 
       // Upload to storage with correct content type
       const { error: uploadError } = await supabase.storage
-        .from('fridge-media')
+        .from('chat-media')
         .upload(filePath, compressedBlob, { contentType: 'image/webp' });
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data } = supabase.storage.from('fridge-media').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
 
       // Send image message
@@ -588,12 +603,12 @@ export default function Chat() {
     try {
       // Upload blob
       const { error: uploadError } = await supabase.storage
-        .from('fridge-media')
+        .from('chat-media')
         .upload(filePath, audioBlob, { contentType: 'audio/webm' });
       if (uploadError) throw uploadError;
 
       // Get URL
-      const { data } = supabase.storage.from('fridge-media').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
 
       // Send voice message
@@ -723,7 +738,7 @@ export default function Chat() {
         content: 'Market_Logistics.pdf',
         media_type: 'document',
         media_url:
-          'https://oxqpmfdoytdfxmofmeno.supabase.co/storage/v1/object/public/fridge-media/dummy_market_logistics.pdf',
+          'https://oxqpmfdoytdfxmofmeno.supabase.co/storage/v1/object/public/chat-media/dummy_market_logistics.pdf',
         reply_to_message_id: replyMessage?.id || null,
       });
       if (error) throw error;
@@ -816,6 +831,12 @@ export default function Chat() {
     const todayString = today.toDateString();
     const yesterdayString = yesterday.toDateString();
 
+    const partnerUnreadMessages = messages.filter(
+      (m) => m.user_id !== userId && new Date(m.created_at).getTime() > lastReadTimestamp
+    );
+    const unreadCount = partnerUnreadMessages.length;
+    let hasInsertedUnreadDivider = false;
+
     const groups = [];
     let lastDateLabel = '';
     let prevMsg = null;
@@ -846,6 +867,12 @@ export default function Chat() {
         isFirstMessageOfDay = true;
       }
 
+      // Inject unread messages divider right before the first unread message from partner
+      if (unreadCount > 0 && !hasInsertedUnreadDivider && msg.id === partnerUnreadMessages[0].id) {
+        groups.push({ type: 'unread_divider', count: unreadCount });
+        hasInsertedUnreadDivider = true;
+      }
+
       // ⚡ BOLT OPTIMIZATION: Compute hideHeader here instead of in the render loop
       let hideHeader = false;
       if (!isFirstMessageOfDay && prevMsg) {
@@ -862,7 +889,7 @@ export default function Chat() {
     });
 
     return groups;
-  }, [messages]);
+  }, [messages, lastReadTimestamp, userId]);
 
   // Click handler to redirect and highlight tagged Fridge item
   const handleReferenceClick = useCallback(
@@ -932,12 +959,14 @@ export default function Chat() {
                 ) : presence.partner === 'online' ? (
                   <>
                     <span className="text-emerald-500 font-semibold">online</span>
-                    {presence.partnerRoom && presence.partnerRoom !== 'Lover-HQ' && (
-                      <span className="text-gray-400">
-                        {' '}
-                        • {presence.partnerRoom.replace(' Room', '').replace('Page', '')}
-                      </span>
-                    )}
+                    {presence.partnerRoom &&
+                      presence.partnerRoom !== 'Lover-HQ' &&
+                      presence.partnerRoom !== 'Chat Room' && (
+                        <span className="text-gray-400">
+                          {' '}
+                          • {presence.partnerRoom.replace(' Room', '').replace('Page', '')}
+                        </span>
+                      )}
                   </>
                 ) : (
                   formatLastSeen(partnerLastSeen)
@@ -1007,6 +1036,21 @@ export default function Chat() {
               </div>
             ) : (
               groupedMessages.map((item, idx) => {
+                if (item.type === 'unread_divider') {
+                  return (
+                    <div
+                      key={`unread-divider-${idx}`}
+                      className="flex items-center justify-center my-4 select-none animate-fade-in"
+                    >
+                      <div className="flex-1 h-[1px] bg-red-500/20" />
+                      <span className="mx-4 px-3 py-1 bg-red-950/40 border border-red-500/20 text-red-400 text-[10px] font-extrabold uppercase tracking-wider rounded-full shadow-sm">
+                        {item.count} Unread {item.count === 1 ? 'Message' : 'Messages'}
+                      </span>
+                      <div className="flex-1 h-[1px] bg-red-500/20" />
+                    </div>
+                  );
+                }
+
                 if (item.type === 'date') {
                   return (
                     <div key={`date-${item.label}-${idx}`} className="flex justify-center my-4">
@@ -1726,26 +1770,133 @@ export default function Chat() {
           <div className="bottom-sheet-panel max-w-[460px] max-h-[70vh] overflow-y-auto">
             <div className="bottom-sheet-drag-handle" onClick={() => setShowItemSelector(false)} />
 
-            {/* Action Grid (2x3 Grid of circular action icons) - Rendered at the Top */}
+            {/* 3x3 Grid: Gallery Trigger + 8 Most Recent Fridge Items */}
             <div className="mb-6">
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-2.5">
-                Actions
+                Recent Fridge Items
               </span>
-              <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center">
+              <div className="grid grid-cols-3 gap-2">
+                {/* Slot 1: Gallery Trigger */}
                 <button
                   type="button"
                   onClick={() => {
                     triggerImageSelect();
                     setShowItemSelector(false);
                   }}
-                  className="flex flex-col items-center gap-1.5 focus:outline-none group"
+                  className="aspect-square bg-slate-800/80 rounded-xl hover:bg-slate-700 transition-colors flex flex-col items-center justify-center text-text-muted hover:text-text-main gap-1.5"
                 >
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 hover:scale-105 transition-transform">
-                    <Image className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold text-gray-300">Gallery</span>
+                  <Image className="w-5 h-5 text-emerald-500" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Gallery</span>
                 </button>
 
+                {/* Slots 2-9: First 8 Fridge Items */}
+                {fridgeItems.slice(0, 8).map((item) => {
+                  let textPreview = '';
+                  let noteColor = 'yellow';
+
+                  if (item.type === 'note') {
+                    try {
+                      const parsed = JSON.parse(item.content);
+                      textPreview = parsed.text || '';
+                      noteColor = parsed.color || 'yellow';
+                    } catch {
+                      textPreview = item.content;
+                    }
+                  } else if (item.type === 'photo') {
+                    textPreview = 'Photo';
+                  } else if (item.type === 'voice') {
+                    textPreview = 'Voice';
+                  } else if (item.type === 'emoji') {
+                    textPreview = 'Sticker';
+                  }
+
+                  // Note style mappings
+                  const colorBg =
+                    item.type === 'note'
+                      ? noteColor === 'yellow'
+                        ? 'bg-amber-500/20 border-amber-500/30 text-amber-300'
+                        : noteColor === 'blue'
+                          ? 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+                          : noteColor === 'pink'
+                            ? 'bg-pink-500/20 border-pink-500/30 text-pink-300'
+                            : noteColor === 'green'
+                              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                              : 'bg-purple-500/20 border-purple-500/30 text-purple-300'
+                      : '';
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setReferencedItem(item);
+                        setShowItemSelector(false);
+                      }}
+                      className={`aspect-square rounded-xl overflow-hidden border flex flex-col justify-between p-2 text-left relative group hover:scale-[1.03] transition-transform duration-200 ${
+                        item.type === 'photo'
+                          ? 'bg-slate-900 border-slate-800'
+                          : item.type === 'note'
+                            ? colorBg
+                            : item.type === 'voice'
+                              ? 'bg-indigo-950/40 border-indigo-500/20 text-indigo-300'
+                              : 'bg-slate-900 border-slate-800'
+                      }`}
+                    >
+                      {item.type === 'photo' ? (
+                        <img
+                          src={item.content}
+                          alt="Fridge thumb"
+                          className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                        />
+                      ) : item.type === 'emoji' ? (
+                        (() => {
+                          const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === item.content);
+                          const imageUrl = emojiDef ? getEmojiCdnUrl(emojiDef.code) : '';
+                          return (
+                            <div className="absolute inset-0 flex items-center justify-center p-2">
+                              {imageUrl ? (
+                                <img
+                                  src={imageUrl}
+                                  alt="Sticker"
+                                  className="w-8 h-8 object-contain"
+                                />
+                              ) : (
+                                <span className="text-lg">✨</span>
+                              )}
+                            </div>
+                          );
+                        })()
+                      ) : item.type === 'voice' ? (
+                        <>
+                          <div className="flex-grow flex items-center justify-center">
+                            <Mic className="w-5 h-5 text-indigo-400" />
+                          </div>
+                          <span className="text-[7px] font-bold opacity-60 uppercase self-end">
+                            Voice
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[8px] leading-tight font-medium overflow-hidden line-clamp-3 break-words font-rounded">
+                            {textPreview}
+                          </span>
+                          <span className="text-[7px] font-bold opacity-60 uppercase self-end">
+                            Note
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Action Grid (2x3 Grid of circular action icons) - Rendered below the top grid */}
+            <div className="mb-6">
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-2.5">
+                Actions
+              </span>
+              <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center">
                 <button
                   type="button"
                   onClick={() => {
@@ -1842,6 +1993,17 @@ export default function Chat() {
                     let textPreview = '';
                     let itemEmoji = '📌';
                     let noteColor = 'yellow';
+                    let subtext = '';
+
+                    const formatTime = (dateStr) => {
+                      const d = new Date(dateStr);
+                      return d.toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      });
+                    };
 
                     if (item.type === 'note') {
                       itemEmoji = '📝';
@@ -1852,15 +2014,28 @@ export default function Chat() {
                       } catch {
                         textPreview = item.content;
                       }
+                      subtext = `Sticky Note • ${formatTime(item.created_at)}`;
                     } else if (item.type === 'photo') {
                       itemEmoji = '🖼️';
                       textPreview = 'Polaroid Photo';
+                      subtext = `Photo magnet • ${formatTime(item.created_at)}`;
                     } else if (item.type === 'voice') {
                       itemEmoji = '🎙️';
                       textPreview = 'Voice Memo';
+                      let voiceDur = '';
+                      try {
+                        const parsed = JSON.parse(item.content);
+                        if (parsed.duration) {
+                          voiceDur = `(${Math.round(parsed.duration)}s)`;
+                        }
+                      } catch {
+                        // ignore parsing error
+                      }
+                      subtext = `Voice magnet ${voiceDur} • ${formatTime(item.created_at)}`;
                     } else if (item.type === 'emoji') {
                       itemEmoji = '✨';
                       textPreview = `Emoji sticker`;
+                      subtext = `sticker • ${formatTime(item.created_at)}`;
                     }
 
                     return (
@@ -1888,7 +2063,14 @@ export default function Chat() {
                         ) : (
                           <span className="text-sm shrink-0">{itemEmoji}</span>
                         )}
-                        <span className="truncate flex-1 font-medium">{textPreview}</span>
+                        <div className="flex-1 min-w-0 flex flex-col">
+                          <span className="truncate font-semibold text-gray-200 text-xs">
+                            {textPreview}
+                          </span>
+                          <span className="truncate text-gray-400 text-[9px] mt-0.5">
+                            {subtext}
+                          </span>
+                        </div>
                       </button>
                     );
                   })

@@ -74,7 +74,7 @@
 /* Pieces */
 .morris-piece {
   stroke-width: 2;
-  transition: cx 0.4s cubic-bezier(0.25, 1, 0.5, 1), cy 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.3s ease, filter 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.3s ease, filter 0.3s ease;
 }
 
 .morris-piece.player1 {
