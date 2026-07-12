@@ -12,3 +12,7 @@
 **Learning:** Relying on standard dates without secure randomness allows malicious actors to guess file paths and potentially collide with other users' files. Using raw user inputs like `file.name` introduces the risk of path traversal attacks (`../../../`) if unvalidated.
 **Prevention:** Use `window.crypto.getRandomValues` to generate secure random strings when constructing file paths to prevent predictability, and use regex to strip out potentially dangerous characters from user-provided file names.
 
+## 2024-07-12 - Fix Path Traversal in AddTrackModal
+**Vulnerability:** Unsanitized file extension used in Supabase storage upload path in `AddTrackModal.jsx`.
+**Learning:** `file.name.split('.').pop()` returns the entire string if there is no dot, which could contain path traversal characters (like `/` or `\`).
+**Prevention:** Always sanitize extracted file extensions using regex (e.g. `replace(/[^a-zA-Z0-9]/g, '')`) before appending them to file paths.

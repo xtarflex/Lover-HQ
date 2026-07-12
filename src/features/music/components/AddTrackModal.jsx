@@ -204,7 +204,11 @@ export default function AddTrackModal({ isOpen, onClose }) {
         }
 
         // 1. Upload file to Supabase Storage
-        const fileExt = file.name.split('.').pop();
+        // Sanitize the extension to prevent path traversal
+        const fileExt = file.name
+          .split('.')
+          .pop()
+          .replace(/[^a-zA-Z0-9]/g, '');
         // Use crypto for secure random id generation per AGENTS.md instructions
         const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         const filePath = `${Date.now()}_${randId}.${fileExt}`;
