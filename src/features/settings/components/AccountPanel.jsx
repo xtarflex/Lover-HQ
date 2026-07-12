@@ -66,10 +66,14 @@ export default function AccountPanel({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+            <label
+              htmlFor="display-name"
+              className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+            >
               Display Name
             </label>
             <input
+              id="display-name"
               type="text"
               required
               value={name}
@@ -79,10 +83,14 @@ export default function AccountPanel({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+            <label
+              htmlFor="email-address"
+              className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+            >
               Email Address
             </label>
             <input
+              id="email-address"
               type="email"
               disabled
               value={user?.email || 'N/A'}
@@ -90,10 +98,14 @@ export default function AccountPanel({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+            <label
+              htmlFor="phone-number"
+              className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+            >
               Phone Number
             </label>
             <input
+              id="phone-number"
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -102,10 +114,14 @@ export default function AccountPanel({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+            <label
+              htmlFor="birthday"
+              className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+            >
               Birthday
             </label>
             <input
+              id="birthday"
               type="date"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
