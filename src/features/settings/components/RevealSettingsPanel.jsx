@@ -16,6 +16,7 @@ import GlassDropdown from '../../../components/GlassDropdown';
  *   onChangeFreq: Function,
  *   revealNudges: boolean,
  *   onToggleNudges: Function,
+ *   pushEnabled: boolean,
  * }} props
  * @returns {React.ReactElement}
  */
@@ -26,6 +27,7 @@ export default function RevealSettingsPanel({
   onChangeFreq,
   revealNudges,
   onToggleNudges,
+  pushEnabled,
 }) {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -38,51 +40,61 @@ export default function RevealSettingsPanel({
 
       <div className="space-y-4">
         {/* Daily Reminder Toggle */}
-        <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
+        <div
+          className={`flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border transition-opacity duration-200 ${!pushEnabled ? 'opacity-60' : ''}`}
+        >
           <div className="flex flex-col">
             <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
               <Bell className="w-4 h-4 text-primary" />
               Daily Q&A Reminders
             </span>
             <span className="text-xs text-text-muted mt-0.5">
-              Get notified when today&apos;s new question is active.
+              {!pushEnabled
+                ? 'Enable Push Notifications under App Preferences to turn this on.'
+                : "Get notified when today's new question is active."}
             </span>
           </div>
           <button
             type="button"
             role="switch"
+            disabled={!pushEnabled}
             aria-checked={revealReminders}
             aria-label="Toggle Daily Q&A Reminders"
             onClick={onToggleReminders}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${revealReminders ? 'bg-primary' : 'bg-surface-border'}`}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!pushEnabled ? 'cursor-not-allowed bg-surface-border/50' : revealReminders ? 'bg-primary' : 'bg-surface-border'}`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealReminders ? 'translate-x-5' : 'translate-x-0'}`}
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealReminders && pushEnabled ? 'translate-x-5' : 'translate-x-0'}`}
             />
           </button>
         </div>
 
         {/* Receive Answer Nudges Toggle */}
-        <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
+        <div
+          className={`flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border transition-opacity duration-200 ${!pushEnabled ? 'opacity-60' : ''}`}
+        >
           <div className="flex flex-col">
             <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
               <Smartphone className="w-4 h-4 text-primary" />
               Receive Answer Nudges
             </span>
             <span className="text-xs text-text-muted mt-0.5">
-              Vibrate and alert when your partner nudges you to answer today&apos;s question.
+              {!pushEnabled
+                ? 'Enable Push Notifications under App Preferences to turn this on.'
+                : "Vibrate and alert when your partner nudges you to answer today's question."}
             </span>
           </div>
           <button
             type="button"
             role="switch"
+            disabled={!pushEnabled}
             aria-checked={revealNudges}
             aria-label="Toggle Receive Answer Nudges"
             onClick={onToggleNudges}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${revealNudges ? 'bg-primary' : 'bg-surface-border'}`}
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!pushEnabled ? 'cursor-not-allowed bg-surface-border/50' : revealNudges ? 'bg-primary' : 'bg-surface-border'}`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealNudges ? 'translate-x-5' : 'translate-x-0'}`}
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${revealNudges && pushEnabled ? 'translate-x-5' : 'translate-x-0'}`}
             />
           </button>
         </div>

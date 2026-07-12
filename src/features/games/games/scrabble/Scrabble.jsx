@@ -199,6 +199,7 @@ export default function Scrabble({
   const [myRack, setMyRack] = useState([]);
   const [partnerRack, setPartnerRack] = useState([]);
   const [newPlacements, setNewPlacements] = useState([]);
+  const [partnerPlacements, setPartnerPlacements] = useState([]);
 
   // Game statuses
   const [scores, setScores] = useState({ [userId]: 0, [partnerId]: 0 });
@@ -376,6 +377,7 @@ export default function Scrabble({
     const letters = newPlacements.map((p) => (p.isBlank ? '_' : p.letter));
     setMyRack((prev) => [...prev, ...letters]);
     setNewPlacements([]);
+    setPartnerPlacements([]);
     setValidationError('');
   }, [newPlacements]);
 
@@ -387,6 +389,7 @@ export default function Scrabble({
       setWinner(null);
       setEndReason('completion');
       setNewPlacements([]);
+      setPartnerPlacements([]);
       recorder.current = new GameRecorder(gameId, userId, partnerId);
     },
     [gameId, userId, partnerId, loadSessionData]
@@ -434,6 +437,9 @@ export default function Scrabble({
         setConsecutivePasses(payload.consecutivePasses);
         setPartnerRack(payload.partnerRack);
         setNewPlacements([]);
+        setPartnerPlacements([]);
+      } else if (payload.type === 'placement_update') {
+        setPartnerPlacements(payload.placements);
       } else if (payload.type === 'rematch_request') {
         setRematchStatus('receiving');
       } else if (payload.type === 'rematch_accept') {
@@ -456,6 +462,16 @@ export default function Scrabble({
   useEffect(() => {
     broadcastMoveRef.current = broadcastMove;
   }, [broadcastMove]);
+
+  // Broadcast local uncommitted tile placements to partner in real-time
+  useEffect(() => {
+    if (isMyTurn && !winner) {
+      broadcastMoveRef.current?.({
+        type: 'placement_update',
+        placements: newPlacements,
+      });
+    }
+  }, [newPlacements, isMyTurn, winner]);
 
   // Listen for partner decline to exit game immediately without forfeit modal
   useEffect(() => {
@@ -1039,6 +1055,7 @@ export default function Scrabble({
       setScores(finalScores);
       setMyRack(newMyRack);
       setNewPlacements([]);
+      setPartnerPlacements([]);
       setCurrentTurn(nextTurn);
       setConsecutivePasses(0);
 
@@ -1414,7 +1431,7 @@ export default function Scrabble({
             {/* Board Component */}
             <ScrabbleBoard
               board={board}
-              newPlacements={newPlacements}
+              newPlacements={isMyTurn ? newPlacements : partnerPlacements}
               onCellClick={handleCellClick}
               onDragStartTile={handleBoardDragStart}
               onDragOverCell={(e) => e.preventDefault()}

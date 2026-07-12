@@ -81,6 +81,15 @@ export default function GameHeader({
           'You are racing in real-time. The first player to reach 100% correct board completion wins!',
         ],
       };
+    } else if (name.includes('morris') || name.includes("three men's")) {
+      return {
+        title: "Three Men's Morris Rules",
+        rules: [
+          'Placement Phase: Players take turns placing their 3 pieces on any empty circle on the board.',
+          'Movement Phase: Once all 6 pieces are placed, take turns sliding one piece to an adjacent empty spot connected by a track line.',
+          'Winning: The first player to align all 3 of their pieces in a straight line (horizontally, vertically, or diagonally) wins!',
+        ],
+      };
     } else {
       // Default to Tic-Tac-Toe
       return {

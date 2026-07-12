@@ -133,6 +133,9 @@ export function useThreeMensMorrisLogic({ myPlayerKey }) {
   /**
    * Reset game state for rematch.
    */
+  /**
+   * Reset game state for rematch.
+   */
   const reset = useCallback(() => {
     setBoard(Array(9).fill(null));
     setCurrentTurn('player1');
@@ -150,6 +153,20 @@ export function useThreeMensMorrisLogic({ myPlayerKey }) {
     setCurrentTurn(null);
   }, []);
 
+  /**
+   * Synchronize the local board state with the partner's state.
+   *
+   * @param {Array<string|null>} remoteBoard
+   * @param {string} remoteTurn
+   * @param {string|null} remoteWinner
+   */
+  const syncState = useCallback((remoteBoard, remoteTurn, remoteWinner) => {
+    setBoard(remoteBoard);
+    setCurrentTurn(remoteTurn);
+    setWinner(remoteWinner);
+    setSelectedPieceIndex(null);
+  }, []);
+
   return {
     board,
     phase,
@@ -162,5 +179,6 @@ export function useThreeMensMorrisLogic({ myPlayerKey }) {
     applyRemoteMove: applyMove,
     reset,
     forceWinner,
+    syncState,
   };
 }

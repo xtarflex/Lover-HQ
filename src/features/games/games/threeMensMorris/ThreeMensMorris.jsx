@@ -13,8 +13,8 @@ import { GameRecorder } from '../../lib/gameRecorder';
 import { generateSessionId } from '../../lib/gameEngine';
 import ForfeitModal from '../../components/ForfeitModal';
 import QuickReactionTray from '../../components/QuickReactionTray';
-import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 import { isValidMove } from './utils/rules';
+import { LoadingSpinner } from '../../../../components/LoadingSpinner';
 import './threeMensMorris.css';
 
 /**
@@ -22,15 +22,15 @@ import './threeMensMorris.css';
  * @type {Array<{x: number, y: number}>}
  */
 const NODE_COORDINATES = [
-  { x: 30, y: 30 }, // 0: Top-Left
-  { x: 150, y: 30 }, // 1: Top-Center
-  { x: 270, y: 30 }, // 2: Top-Right
-  { x: 30, y: 150 }, // 3: Middle-Left
+  { x: 60, y: 60 }, // 0: Top-Left
+  { x: 150, y: 60 }, // 1: Top-Center
+  { x: 240, y: 60 }, // 2: Top-Right
+  { x: 60, y: 150 }, // 3: Middle-Left
   { x: 150, y: 150 }, // 4: Center
-  { x: 270, y: 150 }, // 5: Middle-Right
-  { x: 30, y: 270 }, // 6: Bottom-Left
-  { x: 150, y: 270 }, // 7: Bottom-Center
-  { x: 270, y: 270 }, // 8: Bottom-Right
+  { x: 240, y: 150 }, // 5: Middle-Right
+  { x: 60, y: 240 }, // 6: Bottom-Left
+  { x: 150, y: 240 }, // 7: Bottom-Center
+  { x: 240, y: 240 }, // 8: Bottom-Right
 ];
 
 /**
@@ -84,6 +84,8 @@ export default function ThreeMensMorris({
     applyRemoteMove,
     reset,
     forceWinner,
+    currentTurn,
+    syncState,
   } = useThreeMensMorrisLogic({ myPlayerKey });
 
   const [prevIsMyTurn, setPrevIsMyTurn] = useState(isMyTurn);
@@ -147,25 +149,11 @@ export default function ThreeMensMorris({
     setActivePartnerBubble,
     setEndReason,
     setRematchStatus,
-  });
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    handlersRef.current = {
-      applyRemoteMove,
-      reset,
-      recorder,
-      partnerId,
-      gameId,
-      userId,
-      forceWinner,
-      myPlayerKey,
-      setUserEmojis,
-      setPartnerEmojis,
-      setActivePartnerBubble,
-      setEndReason,
-      setRematchStatus,
-    };
+    board,
+    currentTurn,
+    syncState,
+    winner,
+    broadcastMove: null,
   });
 
   const handleRemoteMove = useCallback((payload) => {
@@ -193,6 +181,29 @@ export default function ThreeMensMorris({
           from: payload.move.from,
           to: payload.move.to,
         });
+      }
+    } else if (payload.type === 'sync_request') {
+      const {
+        board: latestBoard,
+        currentTurn: latestTurn,
+        winner: latestWinner,
+        broadcastMove: sendSync,
+      } = handlersRef.current;
+      const isBoardEmpty = latestBoard.every((cell) => cell === null);
+      if (!isBoardEmpty) {
+        sendSync?.({
+          type: 'sync_state',
+          board: latestBoard,
+          currentTurn: latestTurn,
+          winner: latestWinner,
+        });
+      }
+    } else if (payload.type === 'sync_state') {
+      const { board: latestBoard, syncState: doSync } = handlersRef.current;
+      const isRemoteEmpty = payload.board.every((cell) => cell === null);
+      const isLocalEmpty = latestBoard.every((cell) => cell === null);
+      if (!isRemoteEmpty || isLocalEmpty) {
+        doSync(payload.board, payload.currentTurn, payload.winner);
       }
     } else if (payload.type === 'rematch_request') {
       setRematchStatus('receiving');
@@ -244,6 +255,30 @@ export default function ThreeMensMorris({
 
   const broadcastMove = useGameSync(gameId, sessionId, handleRemoteMove);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    handlersRef.current = {
+      applyRemoteMove,
+      reset,
+      recorder,
+      partnerId,
+      gameId,
+      userId,
+      forceWinner,
+      myPlayerKey,
+      setUserEmojis,
+      setPartnerEmojis,
+      setActivePartnerBubble,
+      setEndReason,
+      setRematchStatus,
+      board,
+      currentTurn,
+      syncState,
+      winner,
+      broadcastMove,
+    };
+  });
+
   // Auto-save replay when game completes (only host saves to prevent duplicate DB writes)
   useEffect(() => {
     if (!winner || !isHost) return;
@@ -292,7 +327,7 @@ export default function ThreeMensMorris({
   }; // Manage sliding turn badge animations on turn change
   useEffect(() => {
     const isMe = isMyTurn && !winner;
-    const turnText = isMe ? 'YOUR TURN' : `${partner?.name || 'PARTNER'}'S TURN`;
+    const turnText = isMe ? 'YOUR TURN' : `${(partner?.name || 'PARTNER').toUpperCase()}'S TURN`;
 
     // 1. Slide out in next tick to avoid synchronous setState inside effect warning
     const slideOutTimer = setTimeout(() => {
@@ -406,6 +441,9 @@ export default function ThreeMensMorris({
     });
   }, [board, phase, selectedPieceIndex, isMyTurn, myPlayerKey, winner]);
 
+  const isPlayer1Active =
+    (isMyTurn && myPlayerKey === 'player1') || (!isMyTurn && myPlayerKey === 'player2');
+
   return (
     <div className="flex flex-col h-full relative">
       <GameHeader
@@ -420,22 +458,6 @@ export default function ThreeMensMorris({
         partnerEmojis={partnerEmojis}
       />
 
-      {/* Sliding Turn Badge */}
-      <div className={`morris-turn-badge ${badgeState.active ? 'active' : ''}`}>
-        <div className="morris-badge-capsule">
-          {badgeState.hasClose && (
-            <button
-              className="morris-badge-close"
-              onClick={() => setBannerDismissed(true)}
-              aria-label="Close turn banner"
-            >
-              ✕
-            </button>
-          )}
-          <span className="morris-badge-text">{badgeState.text}</span>
-        </div>
-      </div>
-
       {!winner && !partnerOnline ? (
         <div className="flex-grow flex flex-col items-center justify-center gap-3 text-center py-16">
           <LoadingSpinner size="md" />
@@ -445,181 +467,171 @@ export default function ThreeMensMorris({
           </p>
         </div>
       ) : (
-        <div className="flex-grow flex flex-col items-center justify-center p-6 gap-6">
-          {/* Status Instruction Text */}
-          <div
-            className={`morris-status-banner ${
-              isMyTurn && !winner ? 'my-turn animate-pulse' : 'partner-turn'
-            }`}
-          >
-            {winner
-              ? `${winner === myPlayerKey ? 'You' : partner?.name || 'Partner'} Won the Game!`
-              : isMyTurn
-                ? phase === 'placement'
-                  ? 'Your Turn: Place a piece'
-                  : selectedPieceIndex === null
-                    ? 'Your Turn: Select a piece to move'
-                    : 'Your Turn: Tap adjacent spot to move'
-                : `Waiting for ${partner?.name || 'partner'} to play…`}
+        <>
+          {/* Sliding Turn Badge */}
+          <div className="morris-turn-badge-container">
+            <div
+              className={`morris-turn-badge ${badgeState.active ? 'active' : ''} ${
+                isPlayer1Active ? 'gold-theme' : 'pink-theme'
+              }`}
+            >
+              {badgeState.hasClose && (
+                <button onClick={() => setBannerDismissed(true)} className="custom-close-x">
+                  &times;
+                </button>
+              )}
+              <span className="morris-badge-text">{badgeState.text}</span>
+            </div>
           </div>
 
-          {/* Interactive SVG Board */}
-          <div className="morris-board-wrapper w-full max-w-[320px]">
-            <svg viewBox="0 0 300 300" className="morris-board-svg select-none">
-              {/* Wooden grid base card/tray backing */}
-              <rect
-                x="15"
-                y="15"
-                width="270"
-                height="270"
-                rx="30"
-                ry="30"
-                fill="#0f172a"
-                stroke="#1e293b"
-                strokeWidth="2"
-              />
+          <div className="flex-grow flex flex-col items-center justify-center p-6 gap-6">
+            {/* Interactive SVG Board */}
+            <div className="morris-board-wrapper w-full max-w-[400px]">
+              <svg viewBox="0 0 300 300" className="morris-board-svg select-none">
+                {/* Board base card backing */}
+                <rect
+                  x="15"
+                  y="15"
+                  width="270"
+                  height="270"
+                  rx="30"
+                  ry="30"
+                  fill="rgba(15, 23, 42, 0.6)"
+                  stroke="#1e293b"
+                  strokeWidth="6"
+                  style={{ pointerEvents: 'none' }}
+                />
 
-              {/* Grid perimeter track (thin carved groove) */}
-              <rect
-                x="30"
-                y="30"
-                width="240"
-                height="240"
-                rx="24"
-                ry="24"
-                stroke="#334155"
-                strokeWidth="4"
-                fill="none"
-              />
+                {/* LOWER LAYER: Horizontal & Vertical carved track channels */}
+                <g
+                  stroke="#334155"
+                  strokeWidth="66"
+                  strokeLinecap="round"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <line x1="150" y1="60" x2="150" y2="240" />
+                  <line x1="60" y1="150" x2="240" y2="150" />
+                </g>
+                <g
+                  stroke="#0f172a"
+                  strokeWidth="54"
+                  strokeLinecap="round"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <line x1="150" y1="60" x2="150" y2="240" />
+                  <line x1="60" y1="150" x2="240" y2="150" />
+                </g>
 
-              {/* Center vertical and horizontal grid lines (thin carved grooves) */}
-              <line
-                x1="150"
-                y1="30"
-                x2="150"
-                y2="270"
-                stroke="#334155"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-              <line
-                x1="30"
-                y1="150"
-                x2="270"
-                y2="150"
-                stroke="#334155"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
+                {/* UPPER LAYER: Diagonal carved track channels */}
+                <g
+                  stroke="#334155"
+                  strokeWidth="66"
+                  strokeLinecap="round"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <line x1="60" y1="60" x2="240" y2="240" />
+                  <line x1="60" y1="240" x2="240" y2="60" />
+                </g>
+                <g
+                  stroke="#0f172a"
+                  strokeWidth="54"
+                  strokeLinecap="round"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <line x1="60" y1="60" x2="240" y2="240" />
+                  <line x1="60" y1="240" x2="240" y2="60" />
+                </g>
 
-              {/* Diagonal tracks (thick overlapping capsules) */}
-              {/* Diagonal 1 (2 to 6) */}
-              <line
-                x1="270"
-                y1="30"
-                x2="30"
-                y2="270"
-                stroke="#475569"
-                strokeWidth="36"
-                strokeLinecap="round"
-              />
-              <line
-                x1="270"
-                y1="30"
-                x2="30"
-                y2="270"
-                stroke="#e2e8f0"
-                strokeWidth="30"
-                strokeLinecap="round"
-              />
-
-              {/* Diagonal 2 (0 to 8) */}
-              <line
-                x1="30"
-                y1="30"
-                x2="270"
-                y2="270"
-                stroke="#475569"
-                strokeWidth="36"
-                strokeLinecap="round"
-              />
-              <line
-                x1="30"
-                y1="30"
-                x2="270"
-                y2="270"
-                stroke="#e2e8f0"
-                strokeWidth="30"
-                strokeLinecap="round"
-              />
-
-              {/* Glowing highlight valid targets circles */}
-              {NODE_COORDINATES.map((coords, i) => {
-                const status = nodeStatus[i];
-                if (!status.isValidTarget) return null;
-                return (
+                {/* Empty Node Sockets (always behind pieces) */}
+                {NODE_COORDINATES.map((coords, i) => (
                   <circle
-                    key={`target-${i}`}
+                    key={`socket-${i}`}
                     cx={coords.x}
                     cy={coords.y}
-                    r="15"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="3"
-                    strokeDasharray="4,4"
-                    className="animate-pulse"
+                    r="18"
+                    fill="#0f172a"
+                    stroke="#334155"
+                    strokeWidth="2"
+                    style={{ pointerEvents: 'none' }}
                   />
-                );
-              })}
+                ))}
 
-              {/* Render Active Pieces (Stable IDs for smooth sliding transitions) */}
-              {stablePieces.map((piece) => {
-                const isSelected = selectedPieceIndex === piece.nodeIdx;
-                const isPlaced = piece.nodeIdx !== null;
+                {/* Glowing highlight valid targets circles */}
+                {NODE_COORDINATES.map((coords, i) => {
+                  const status = nodeStatus[i];
+                  if (!status.isValidTarget) return null;
+                  const themeColor = myPlayerKey === 'player1' ? '#f59e0b' : '#e11d48';
+                  const glowColor =
+                    myPlayerKey === 'player1'
+                      ? 'rgba(245, 158, 11, 0.6)'
+                      : 'rgba(225, 29, 72, 0.6)';
+                  return (
+                    <circle
+                      key={`target-${i}`}
+                      cx={coords.x}
+                      cy={coords.y}
+                      r="18"
+                      fill="none"
+                      stroke={themeColor}
+                      strokeWidth="3"
+                      className="animate-pulse"
+                      style={{
+                        filter: `drop-shadow(0 0 6px ${glowColor})`,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  );
+                })}
 
-                return (
+                {/* Render Active Pieces (Stable IDs for smooth sliding transitions) */}
+                {stablePieces.map((piece) => {
+                  const isSelected = selectedPieceIndex === piece.nodeIdx;
+                  const isPlaced = piece.nodeIdx !== null;
+
+                  return (
+                    <circle
+                      key={piece.id}
+                      cx={isPlaced ? piece.coords.x : 150}
+                      cy={isPlaced ? piece.coords.y : 150}
+                      r="15"
+                      opacity={isPlaced ? 1 : 0}
+                      className={`morris-piece ${piece.player} ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  );
+                })}
+
+                {/* Interactive click overlay area for nodes (invisible triggers) */}
+                {NODE_COORDINATES.map((coords, i) => (
                   <circle
-                    key={piece.id}
-                    cx={isPlaced ? piece.coords.x : 150}
-                    cy={isPlaced ? piece.coords.y : 150}
-                    r="12"
-                    opacity={isPlaced ? 1 : 0}
-                    className={`morris-piece ${piece.player} ${isSelected ? 'selected' : ''}`}
-                    style={{
-                      pointerEvents: 'none',
-                    }}
+                    key={`overlay-${i}`}
+                    cx={coords.x}
+                    cy={coords.y}
+                    r="22"
+                    fill="transparent"
+                    className="morris-node-interactive"
+                    onClick={() => onNodeClick(i)}
+                    aria-label={`Node ${i + 1}`}
                   />
-                );
-              })}
+                ))}
+              </svg>
+            </div>
 
-              {/* Interactive click overlay area for nodes (invisible triggers) */}
-              {NODE_COORDINATES.map((coords, i) => (
-                <circle
-                  key={`overlay-${i}`}
-                  cx={coords.x}
-                  cy={coords.y}
-                  r="22"
-                  fill="transparent"
-                  className="morris-node-interactive"
-                  onClick={() => onNodeClick(i)}
-                  aria-label={`Node ${i + 1}`}
-                />
-              ))}
-            </svg>
+            {/* Player color legend */}
+            <div className="flex gap-6 text-[11px] font-bold text-text-muted uppercase tracking-widest">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
+                {isHost ? 'You (Gold)' : `${partner?.name || 'Partner'} (Gold)`}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-error-bg" />
+                {isHost ? `${partner?.name || 'Partner'} (Pink)` : 'You (Pink)'}
+              </span>
+            </div>
           </div>
-
-          {/* Player color legend */}
-          <div className="flex gap-6 text-[11px] font-bold text-text-muted uppercase tracking-widest">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
-              {isHost ? 'You (Gold)' : `${partner?.name || 'Partner'} (Gold)`}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-error-bg" />
-              {isHost ? `${partner?.name || 'Partner'} (Pink)` : 'You (Pink)'}
-            </span>
-          </div>
-        </div>
+        </>
       )}
 
       {gameResult && (
@@ -676,9 +688,7 @@ export default function ThreeMensMorris({
         ))}
       </div>
 
-      {(winner || partnerOnline) && (
-        <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
-      )}
+      <QuickReactionTray onSendReaction={handleSendReaction} onSendChat={handleSendChat} />
       <ForfeitModal
         isOpen={showForfeitModal}
         onClose={() => setShowForfeitModal(false)}

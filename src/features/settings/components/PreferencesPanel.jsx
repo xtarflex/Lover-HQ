@@ -31,13 +31,29 @@ export default function PreferencesPanel({
    * Toggles push notifications and requests permissions if enabled.
    */
   const handlePushToggle = async () => {
-    onTogglePush();
-    // Request permission if they are turning it on
-    if (!pushEnabled && typeof window !== 'undefined' && 'Notification' in window) {
+    if (pushEnabled) {
+      // Turning it off is always allowed
+      onTogglePush();
+      return;
+    }
+
+    // Turning it on: check browser permissions
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'denied') {
+        alert(
+          'Notification permission is blocked by your browser. Please allow notifications in your browser settings to receive notifications.'
+        );
+        return;
+      }
+
       if (Notification.permission === 'default') {
-        await Notification.requestPermission();
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          return; // Don't enable if they didn't grant permission
+        }
       }
     }
+    onTogglePush();
   };
 
   /**
