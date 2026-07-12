@@ -928,7 +928,7 @@ export default function Chat() {
               </span>
               <span className="text-[10px] text-text-muted font-medium truncate mt-0.5 leading-none">
                 {partnerIsTyping ? (
-                  <span className="text-amber-500 font-bold animate-pulse">typing...</span>
+                  <span className="text-amber-500 font-bold">typing...</span>
                 ) : presence.partner === 'online' ? (
                   <>
                     <span className="text-emerald-500 font-semibold">online</span>

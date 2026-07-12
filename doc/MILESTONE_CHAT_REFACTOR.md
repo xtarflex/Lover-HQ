@@ -12,7 +12,7 @@ This document outlines the accomplishments of the chat interface overhaul, curre
 - **Auto-Scroll Behavior**: Implemented smooth scroll-to-bottom on new messages and active typing indicators.
 
 ### 2. Custom Presence Header
-- **Typing Indicator**: Real-time pulsing `typing...` state synced over Supabase channels.
+- **Typing Indicator**: Real-time `typing...` state synced over Supabase channels.
 - **Simplified Presence**: Shows standard `online` if the partner is in the chat room. If they are online and in another part of the app, it displays `online • Home`. If offline, computes relative last-seen (e.g., `Last seen 15m ago`) transitioning to full date/time formatting after 24 hours.
 
 ### 3. Telegram-Style Message Bubbles
