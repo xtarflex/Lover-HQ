@@ -561,7 +561,7 @@ export default function ThreeMensMorris({
                   strokeWidth="6"
                   style={{ pointerEvents: 'none' }}
                 />
-                {/* TRACK CHANNELS: Outer perimeter, cross and diagonal tracks (Background layer) */}
+                {/* TRACK CHANNELS: Cross and diagonal tracks (Background layer) */}
                 <g
                   stroke="#334155"
                   strokeWidth="66"
@@ -570,14 +570,13 @@ export default function ThreeMensMorris({
                   fill="none"
                   style={{ pointerEvents: 'none' }}
                 >
-                  <rect x="60" y="60" width="180" height="180" />
                   <line x1="150" y1="60" x2="150" y2="240" />
                   <line x1="60" y1="150" x2="240" y2="150" />
                   <line x1="60" y1="60" x2="240" y2="240" />
                   <line x1="60" y1="240" x2="240" y2="60" />
                 </g>
 
-                {/* TRACK CHANNELS: Outer perimeter, cross and diagonal tracks (Inner groove layer) */}
+                {/* TRACK CHANNELS: Cross and diagonal tracks (Inner groove layer) */}
                 <g
                   stroke="#0f172a"
                   strokeWidth="54"
@@ -586,7 +585,6 @@ export default function ThreeMensMorris({
                   fill="none"
                   style={{ pointerEvents: 'none' }}
                 >
-                  <rect x="60" y="60" width="180" height="180" />
                   <line x1="150" y1="60" x2="150" y2="240" />
                   <line x1="60" y1="150" x2="240" y2="150" />
                   <line x1="60" y1="60" x2="240" y2="240" />
@@ -670,6 +668,7 @@ export default function ThreeMensMorris({
                       animate={{
                         cx: piece.coords.x,
                         cy: piece.coords.y,
+                        opacity: 1,
                       }}
                       transition={{
                         type: 'spring',

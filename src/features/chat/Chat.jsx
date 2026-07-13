@@ -261,6 +261,12 @@ export default function Chat() {
   const [pinnedMessage, setPinnedMessage] = useState(null);
 
   // Unread messages tracking
+  const mountTimeRef = useRef(0);
+
+  useEffect(() => {
+    mountTimeRef.current = Date.now();
+  }, []);
+
   const [lastReadTimestamp] = useState(() => {
     if (typeof window === 'undefined' || !userId || !partnerId) return 0;
     const key = [userId, partnerId].sort().join('_');
@@ -832,7 +838,10 @@ export default function Chat() {
     const yesterdayString = yesterday.toDateString();
 
     const partnerUnreadMessages = messages.filter(
-      (m) => m.user_id !== userId && new Date(m.created_at).getTime() > lastReadTimestamp
+      (m) =>
+        m.user_id !== userId &&
+        new Date(m.created_at).getTime() > lastReadTimestamp &&
+        new Date(m.created_at).getTime() < mountTimeRef.current
     );
     const unreadCount = partnerUnreadMessages.length;
     let hasInsertedUnreadDivider = false;
@@ -1526,9 +1535,13 @@ export default function Chat() {
                                   {isSelf && (
                                     <span>
                                       {presence.partner === 'online' ? (
-                                        <CheckCheck className="w-3 h-3 text-emerald-500" />
+                                        presence.partnerRoom === 'Chat Room' ? (
+                                          <CheckCheck className="w-3 h-3 text-emerald-500" />
+                                        ) : (
+                                          <CheckCheck className="w-3 h-3 text-gray-400" />
+                                        )
                                       ) : (
-                                        <Check className="w-3 h-3 text-gray-300" />
+                                        <Check className="w-3 h-3 text-gray-400" />
                                       )}
                                     </span>
                                   )}
@@ -1540,9 +1553,13 @@ export default function Chat() {
                                   {isSelf && (
                                     <span>
                                       {presence.partner === 'online' ? (
-                                        <CheckCheck className="w-3 h-3 text-emerald-500" />
+                                        presence.partnerRoom === 'Chat Room' ? (
+                                          <CheckCheck className="w-3 h-3 text-emerald-500" />
+                                        ) : (
+                                          <CheckCheck className="w-3 h-3 text-gray-400" />
+                                        )
                                       ) : (
-                                        <Check className="w-3 h-3" />
+                                        <Check className="w-3 h-3 text-gray-400" />
                                       )}
                                     </span>
                                   )}
@@ -1590,6 +1607,7 @@ export default function Chat() {
             partner,
             user,
             presence.partner,
+            presence.partnerRoom,
             messages,
             editingMessage?.id,
             editText,
