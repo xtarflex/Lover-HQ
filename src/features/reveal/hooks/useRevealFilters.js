@@ -7,6 +7,9 @@
 import { useMemo, useCallback } from 'react';
 import promptsData from '../prompts.json';
 
+// ⚡ BOLT OPTIMIZATION: O(1) map lookup for static default prompts
+const promptsMap = new Map(promptsData.map((p) => [p.id, p]));
+
 /**
  * Provides a question-detail resolver and a filtered/sorted archive list
  * derived from the current search, category, and tab filter state.
@@ -39,22 +42,29 @@ export function useRevealFilters({
    * @param {string} qId - The question ID string.
    * @returns {{ content: string, category: string }}
    */
+  // ⚡ BOLT OPTIMIZATION: O(1) map lookup for dynamic custom questions
+  const customQuestionsMap = useMemo(() => {
+    return new Map(customQuestions.map((q) => [`custom-${q.id}`, q]));
+  }, [customQuestions]);
+
   const getQuestionDetails = useCallback(
     (qId) => {
       if (qId.startsWith('default-')) {
-        const defaultQ = promptsData.find((p) => p.id === qId.replace('default-', ''));
+        const pId = qId.replace('default-', '');
+        const defaultQ = promptsMap.get(pId);
         return {
           content: defaultQ?.content ?? 'Relationship Question',
           category: defaultQ?.category ?? 'general',
         };
       }
-      const customQ = customQuestions.find((q) => `custom-${q.id}` === qId);
+
+      const customQ = customQuestionsMap.get(qId);
       return {
         content: customQ?.content ?? 'Custom Relationship Question',
         category: 'custom',
       };
     },
-    [customQuestions]
+    [customQuestionsMap]
   );
 
   /**

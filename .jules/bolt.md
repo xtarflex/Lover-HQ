@@ -17,3 +17,7 @@
 **Learning:** Browsers enforce a hardware limit (often around 6) on the number of concurrently active `AudioContext` instances. Instantiating a new `AudioContext` on every sound playback will eventually hit this limit and crash/stop sound from playing.
 **Action:** Use a singleton / shared `AudioContext` variable at module level, checking for its existence and resuming it if its state is `suspended`.
 
+## 2024-05-19 - O(N) Array Searches in Render Loops (useRevealFilters.js)
+**Learning:** Performing multiple array `.find()` or `.filter()` operations inside a list-rendering component (or its hooks) creates an O(N * M) bottleneck, especially when the lists (like `promptsData` and `archiveMemories`) grow large.
+**Action:** Convert static arrays to Maps outside the component scope for O(1) lookups. For dynamic arrays, use `useMemo` to construct a Map, then perform O(1) lookups inside the render/callback cycles.
+
