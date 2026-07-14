@@ -331,14 +331,14 @@ export default function Chat() {
     fetchChatHistory();
     fetchFridgeItemsList();
 
-    // Fetch initial partner last_seen value
+    // Fetch initial partner last_seen value from presence table
     const fetchPartnerLastSeen = async () => {
       if (!partnerId) return;
       try {
         const { data } = await supabase
-          .from('users')
+          .from('presence')
           .select('last_seen')
-          .eq('id', partnerId)
+          .eq('user_id', partnerId)
           .single();
         if (data) {
           setPartnerLastSeen(data.last_seen);
@@ -349,14 +349,16 @@ export default function Chat() {
     };
     fetchPartnerLastSeen();
 
-    // Subscribe to partner user record changes for real-time last_seen updates
-    const partnerUserChannel = supabase
-      .channel(`partner_user_profile:${partnerId}`)
+    // Subscribe to partner presence record changes for real-time last_seen updates
+    const partnerPresenceChannel = supabase
+      .channel(`partner_user_presence:${partnerId}`)
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${partnerId}` },
+        { event: '*', schema: 'public', table: 'presence', filter: `user_id=eq.${partnerId}` },
         (payload) => {
-          setPartnerLastSeen(payload.new.last_seen);
+          if (payload.new) {
+            setPartnerLastSeen(payload.new.last_seen);
+          }
         }
       )
       .subscribe();
@@ -425,7 +427,7 @@ export default function Chat() {
 
     return () => {
       supabase.removeChannel(messageChannel);
-      supabase.removeChannel(partnerUserChannel);
+      supabase.removeChannel(partnerPresenceChannel);
       if (typingChannelRef.current) supabase.removeChannel(typingChannelRef.current);
     };
   }, [coupleKey, partnerId, fetchChatHistory, fetchFridgeItemsList, scrollToBottom]);
