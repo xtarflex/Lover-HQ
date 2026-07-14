@@ -12,3 +12,8 @@
 **Learning:** Relying on standard dates without secure randomness allows malicious actors to guess file paths and potentially collide with other users' files. Using raw user inputs like `file.name` introduces the risk of path traversal attacks (`../../../`) if unvalidated.
 **Prevention:** Use `window.crypto.getRandomValues` to generate secure random strings when constructing file paths to prevent predictability, and use regex to strip out potentially dangerous characters from user-provided file names.
 
+
+## 2024-10-24 - Path Traversal in File Uploads using split('.').pop()
+**Vulnerability:** Untrusted user input (`file.name`) was used directly in constructing file paths for file uploads to Supabase storage. The vulnerability occurred by fetching the file extension using `file.name.split('.').pop()`. If the file name didn't have a dot or contained a string without dots, the entire malicious path-traversing name could be appended.
+**Learning:** Using raw user input, or unsanitized parts of it like the assumed file extension, in file paths allows attackers to manipulate the upload destination by including path traversal characters (like `../`).
+**Prevention:** Always sanitize any parts of filenames taken from user uploads (e.g., stripping non-alphanumeric characters using `replace(/[^a-zA-Z0-9]/g, '')`) before using them to construct paths.
