@@ -583,17 +583,6 @@ export default function Chat() {
     [userId]
   );
 
-  // Format creation timestamp
-  const getFormattedTime = useCallback((isoString) => {
-    if (!isoString) return '';
-    const d = new Date(isoString);
-    let hours = d.getHours();
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    return `${hours}:${mins} ${ampm}`;
-  }, []);
-
   // Group messages by date headings
   const groupedMessages = useMemo(() => {
     // ⚡ BOLT OPTIMIZATION: Instantiate Date objects once outside the loop
@@ -608,6 +597,10 @@ export default function Chat() {
     let lastDateLabel = '';
     let prevMsg = null;
     let prevMsgTime = 0;
+
+    // ⚡ BOLT OPTIMIZATION: Map for O(1) lookups of quoted messages instead of O(N^2) Array.find()
+    const messageMap = new Map();
+    messages.forEach((msg) => messageMap.set(msg.id, msg));
 
     messages.forEach((msg) => {
       const date = new Date(msg.created_at);
@@ -643,7 +636,17 @@ export default function Chat() {
         }
       }
 
-      groups.push({ type: 'message', data: msg, hideHeader });
+      // ⚡ BOLT OPTIMIZATION: Precompute formatted time to avoid new Date() parsing in render loop
+      let hours = date.getHours();
+      const mins = String(date.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      const formattedTime = `${hours}:${mins} ${ampm}`;
+
+      // ⚡ BOLT OPTIMIZATION: Precompute quotedMsg to avoid O(N) lookup during render
+      const quotedMsg = msg.reply_to_message_id ? messageMap.get(msg.reply_to_message_id) : null;
+
+      groups.push({ type: 'message', data: msg, hideHeader, formattedTime, quotedMsg });
 
       prevMsg = msg;
       prevMsgTime = msgTime;
@@ -752,11 +755,8 @@ export default function Chat() {
 
                 // ⚡ BOLT OPTIMIZATION: Read precomputed hideHeader instead of parsing Dates on every render
                 const hideHeader = item.hideHeader || false;
-
-                // Find quoted reply message
-                const quotedMsg = msg.reply_to_message_id
-                  ? messages.find((m) => m.id === msg.reply_to_message_id)
-                  : null;
+                const formattedTime = item.formattedTime;
+                const quotedMsg = item.quotedMsg;
 
                 return (
                   <div
@@ -905,7 +905,7 @@ export default function Chat() {
                           {/* Bubble footer (Timestamp, Read double check, Edited indicator) */}
                           <div className="flex items-center justify-end space-x-1 mt-1 text-[9px] text-text-muted font-mono leading-none">
                             {msg.is_edited && <span>edited</span>}
-                            <span>{getFormattedTime(msg.created_at)}</span>
+                            <span>{formattedTime}</span>
                             {isSelf && (
                               <span>
                                 {presence.partner === 'online' ? (
@@ -1018,13 +1018,11 @@ export default function Chat() {
             partner,
             user,
             presence.partner,
-            messages,
             editingMessage?.id,
             editText,
             handleReferenceClick,
             handleSaveEdit,
             handleToggleReaction,
-            getFormattedTime,
             handleDeleteMessage,
             handleScrollToMessage,
           ]

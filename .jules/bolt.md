@@ -5,3 +5,7 @@
 ## 2026-07-07 - Expensive Date Parsing in Render Loops
 **Learning:** Creating `new Date()` instances inside a mapping function during a React component's render phase is exceptionally expensive. In `Chat.jsx`, grouping logic generated thousands of Date objects on every keystroke, severely degrading typing performance and causing input lag.
 **Action:** Always hoist Date instantiation and expensive calculations into `useMemo` or out of the render loop entirely. Precompute grouping conditions (like time differences) and store them in the data structure, rather than calculating them on the fly during render.
+
+## 2024-05-18 - Chat Render Loop Performance Bottleneck
+**Learning:** Found O(N^2) complexity where an `Array.prototype.find()` lookup (for finding quoted reply messages) and repeated `new Date()` instantiations were occurring inside the render loop for every message in `Chat.jsx`. When editing a message (which triggers a state update on every keystroke), this caused severe typing latency.
+**Action:** Always precompute expensive conditions (like O(N) lookups by using a Map, and date formatting strings) inside the memoized state derivation block (`useMemo`) instead of running them on the fly in the component's render loop.
