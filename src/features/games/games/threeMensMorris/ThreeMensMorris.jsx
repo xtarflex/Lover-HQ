@@ -167,29 +167,39 @@ export default function ThreeMensMorris({
       }
     });
 
-    const goldPieces = Array.from({ length: 3 }).map((_, j) => {
-      const hasPiece = j < goldPositions.length;
-      const nodeIdx = hasPiece ? goldPositions[j] : null;
-      return {
-        id: `gold-piece-${j}`,
-        player: 'player1',
-        nodeIdx,
-        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : { x: 35, y: 90 + j * 60 },
-      };
-    });
+    // Only pieces that are actually placed on the board go into the SVG.
+    // Unplaced pieces are represented in the HTML inventory HUD instead.
+    const goldPieces = goldPositions.map((nodeIdx, j) => ({
+      id: `gold-piece-${j}`,
+      player: 'player1',
+      nodeIdx,
+      coords: NODE_COORDINATES[nodeIdx],
+    }));
 
-    const pinkPieces = Array.from({ length: 3 }).map((_, j) => {
-      const hasPiece = j < pinkPositions.length;
-      const nodeIdx = hasPiece ? pinkPositions[j] : null;
-      return {
-        id: `pink-piece-${j}`,
-        player: 'player2',
-        nodeIdx,
-        coords: nodeIdx !== null ? NODE_COORDINATES[nodeIdx] : { x: 265, y: 90 + j * 60 },
-      };
-    });
+    const pinkPieces = pinkPositions.map((nodeIdx, j) => ({
+      id: `pink-piece-${j}`,
+      player: 'player2',
+      nodeIdx,
+      coords: NODE_COORDINATES[nodeIdx],
+    }));
 
     return [...goldPieces, ...pinkPieces];
+  }, [board]);
+
+  /**
+   * Counts how many pieces each player still has in their reserve (not yet placed).
+   * Used to drive the inventory HUD dots above the board.
+   */
+  const reserveCounts = useMemo(() => {
+    const placed = { player1: 0, player2: 0 };
+    board.forEach((val) => {
+      if (val === 'player1') placed.player1++;
+      else if (val === 'player2') placed.player2++;
+    });
+    return {
+      gold: 3 - placed.player1,
+      pink: 3 - placed.player2,
+    };
   }, [board]);
 
   // Hold refs of up-to-date state callbacks to ensure stable useGameSync subscription
@@ -545,6 +555,42 @@ export default function ThreeMensMorris({
           </div>
 
           <div className="flex-grow flex flex-col items-center justify-center p-6 gap-6">
+            {/* Inventory HUD: remaining pieces as coloured dots, hidden once all are placed */}
+            {phase === 'placement' && (
+              <div className="flex justify-between w-full max-w-[280px] px-2">
+                {/* Gold reserve (left) */}
+                <div className="flex gap-2 items-center">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <span
+                      key={`hud-gold-${i}`}
+                      className="block w-3 h-3 rounded-full transition-all duration-300"
+                      style={{
+                        background: i < reserveCounts.gold ? '#f59e0b' : 'transparent',
+                        boxShadow: i < reserveCounts.gold ? '0 0 6px rgba(245,158,11,0.7)' : 'none',
+                        border: i < reserveCounts.gold ? 'none' : '1.5px solid #334155',
+                        opacity: i < reserveCounts.gold ? 1 : 0.3,
+                      }}
+                    />
+                  ))}
+                </div>
+                {/* Pink reserve (right) */}
+                <div className="flex gap-2 items-center">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <span
+                      key={`hud-pink-${i}`}
+                      className="block w-3 h-3 rounded-full transition-all duration-300"
+                      style={{
+                        background: i < reserveCounts.pink ? '#e11d48' : 'transparent',
+                        boxShadow: i < reserveCounts.pink ? '0 0 6px rgba(225,29,72,0.7)' : 'none',
+                        border: i < reserveCounts.pink ? 'none' : '1.5px solid #334155',
+                        opacity: i < reserveCounts.pink ? 1 : 0.3,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Interactive SVG Board */}
             <div className="morris-board-wrapper w-full max-w-[400px]">
               <svg viewBox="0 0 300 300" className="morris-board-svg select-none">
@@ -590,32 +636,6 @@ export default function ThreeMensMorris({
                   <line x1="60" y1="60" x2="240" y2="240" />
                   <line x1="60" y1="240" x2="240" y2="60" />
                 </g>
-
-                {/* Supply pockets on margins for unplaced pieces */}
-                {Array.from({ length: 3 }).map((_, j) => (
-                  <circle
-                    key={`supply-pocket-gold-${j}`}
-                    cx="35"
-                    cy={90 + j * 60}
-                    r="18"
-                    fill="#0f172a"
-                    stroke="#1e293b"
-                    strokeWidth="2"
-                    style={{ pointerEvents: 'none' }}
-                  />
-                ))}
-                {Array.from({ length: 3 }).map((_, j) => (
-                  <circle
-                    key={`supply-pocket-pink-${j}`}
-                    cx="265"
-                    cy={90 + j * 60}
-                    r="18"
-                    fill="#0f172a"
-                    stroke="#1e293b"
-                    strokeWidth="2"
-                    style={{ pointerEvents: 'none' }}
-                  />
-                ))}
 
                 {/* Empty Node Sockets (always behind pieces) */}
                 {NODE_COORDINATES.map((coords, i) => (
@@ -703,11 +723,11 @@ export default function ThreeMensMorris({
             {/* Player color legend */}
             <div className="flex gap-6 text-[11px] font-bold text-text-muted uppercase tracking-widest">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" />
                 {isHost ? 'You (Gold)' : `${partner?.name || 'Partner'} (Gold)`}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-error-bg" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#e11d48]" />
                 {isHost ? `${partner?.name || 'Partner'} (Pink)` : 'You (Pink)'}
               </span>
             </div>
