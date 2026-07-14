@@ -15,16 +15,54 @@ export function usePresence(roomName) {
   const supabase = useSupabase();
   const dispatch = useAppDispatch();
   const { user } = useAppContext();
-  const channelRef = useRef(null);
 
-  // Effect 1: Long-lived subscription to the presence channel
+  // Track last assigned room in a ref to avoid database write race conditions on page changes
+  const lastAssignedRoomRef = useRef(roomName);
+
+  useEffect(() => {
+    lastAssignedRoomRef.current = roomName;
+  }, [roomName]);
+
+  // Single effect to manage the presence subscription and track updates
   useEffect(() => {
     if (!user || !user.id || !user.partner_id) return;
 
     const sortedIds = [user.id, user.partner_id].sort();
     const channelName = `presence:pair:${sortedIds.join('_')}`;
     const channel = supabase.channel(channelName);
-    channelRef.current = channel;
+
+    /**
+     * Updates the user's presence record in the database.
+     *
+     * @param {boolean} isOnline - Whether the user is currently online.
+     * @param {string|null} currentRoom - The room the user is currently in, or null.
+     * @returns {Promise<void>}
+     */
+    const updateDbPresence = async (isOnline, currentRoom) => {
+      // If setting offline/null, ensure we aren't overriding a newer active room update
+      if (!isOnline && lastAssignedRoomRef.current !== roomName) {
+        return;
+      }
+      try {
+        const { error } = await supabase.from('presence').upsert(
+          {
+            user_id: user.id,
+            is_online: isOnline,
+            current_room: currentRoom,
+            last_seen: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
+
+        if (error) {
+          console.error('Error updating presence in DB:', error);
+        }
+      } catch (err) {
+        console.error('Failed to update presence in DB:', err);
+      }
+    };
+
+    let heartbeatInterval = null;
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -91,75 +129,38 @@ export function usePresence(roomName) {
           triggerPush('Reveal Q&A Nudge ⏳', `${payload.hostName} is waiting for your answer!`);
         }
       })
-      .subscribe();
-
-    return () => {
-      channel.untrack();
-      supabase.removeChannel(channel);
-      channelRef.current = null;
-    };
-  }, [user, supabase, dispatch]);
-
-  // Effect 2: Short-lived track updates when the roomName changes
-  useEffect(() => {
-    const channel = channelRef.current;
-    if (!channel || !user || !user.id || !roomName) return;
-
-    /**
-     * Updates the user's presence record in the database.
-     *
-     * @param {boolean} isOnline - Whether the user is currently online.
-     * @param {string|null} currentRoom - The room the user is currently in, or null.
-     * @returns {Promise<void>}
-     */
-    const updateDbPresence = async (isOnline, currentRoom) => {
-      try {
-        const { error } = await supabase.from('presence').upsert(
-          {
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          channel.track({
             user_id: user.id,
-            is_online: isOnline,
-            current_room: currentRoom,
+            current_room: roomName,
+            is_online: true,
             last_seen: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' }
-        );
-
-        if (error) {
-          console.error('Error updating presence in DB:', error);
+          });
+          updateDbPresence(true, roomName);
         }
-      } catch (err) {
-        console.error('Failed to update presence in DB:', err);
-      }
-    };
-
-    let heartbeatInterval = null;
-
-    const trackPresence = async () => {
-      // Track presence status on the channel
-      await channel.track({
-        user_id: user.id,
-        current_room: roomName,
-        is_online: true,
-        last_seen: new Date().toISOString(),
       });
-      // Update database presence as online
-      await updateDbPresence(true, roomName);
 
-      // Keep DB last_seen heartbeat updated every 10 seconds while active
-      heartbeatInterval = setInterval(() => {
-        updateDbPresence(true, roomName);
-      }, 10000);
-    };
+    // Keep DB last_seen heartbeat updated every 10 seconds while active
+    heartbeatInterval = setInterval(() => {
+      if (channel.state === 'joined') {
+        channel.track({
+          user_id: user.id,
+          current_room: roomName,
+          is_online: true,
+          last_seen: new Date().toISOString(),
+        });
+      }
+      updateDbPresence(true, roomName);
+    }, 10000);
 
-    trackPresence();
-
-    // Cleanup when roomName changes or component unmounts
     return () => {
       if (heartbeatInterval) {
         clearInterval(heartbeatInterval);
       }
-      // Set presence to offline in the database
+      channel.untrack();
+      supabase.removeChannel(channel);
       updateDbPresence(false, null);
     };
-  }, [roomName, user, supabase]);
+  }, [roomName, user, supabase, dispatch]);
 }
