@@ -232,7 +232,16 @@ export default function Chat() {
     return [userId, partnerId].sort().join('_');
   }, [userId, partnerId]);
 
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    if (typeof window === 'undefined' || !userId || !partnerId) return [];
+    const key = [userId, partnerId].sort().join('_');
+    try {
+      const cached = localStorage.getItem(`chat_history_${key}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [newMessageText, setNewMessageText] = useState('');
   const [referencedItem, setReferencedItem] = useState(null);
@@ -251,7 +260,10 @@ export default function Chat() {
   const typingTimeoutRef = useRef(null);
 
   // Partner offline last seen state
-  const [partnerLastSeen, setPartnerLastSeen] = useState(partner?.last_seen);
+  const [partnerLastSeen, setPartnerLastSeen] = useState(() => {
+    if (typeof window === 'undefined' || !partnerId) return partner?.last_seen;
+    return localStorage.getItem(`partner_last_seen_${partnerId}`) || partner?.last_seen;
+  });
 
   // Long-press interactions state
   const [longPressedMessage, setLongPressedMessage] = useState(null);
@@ -281,6 +293,24 @@ export default function Chat() {
     }, 2500);
     return () => clearTimeout(timer);
   }, [coupleKey]);
+
+  // Sync messages to localStorage for offline support (limit to last 150 messages)
+  useEffect(() => {
+    if (coupleKey && messages.length > 0) {
+      try {
+        localStorage.setItem(`chat_history_${coupleKey}`, JSON.stringify(messages.slice(-150)));
+      } catch (e) {
+        console.error('Failed to cache chat history:', e);
+      }
+    }
+  }, [messages, coupleKey]);
+
+  // Sync partnerLastSeen to localStorage for offline support
+  useEffect(() => {
+    if (partnerId && partnerLastSeen) {
+      localStorage.setItem(`partner_last_seen_${partnerId}`, partnerLastSeen);
+    }
+  }, [partnerLastSeen, partnerId]);
 
   const messagesEndRef = useRef(null);
   const imageInputRef = useRef(null);
