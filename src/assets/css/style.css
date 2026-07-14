@@ -14,5 +14,6 @@
 @import "./components/heart.css";
 @import "./components/scrollbar.css";
 @import "./components/music.css";
+@import "./components/chat.css";
 
 @import "tailwindcss/utilities";

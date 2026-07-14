@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
+import { usePreferences } from '../../hooks/usePreferences';
 import { supabase } from '../../lib/supabase';
 import { Notification } from '../../components/Notification';
 import avatarManifest from '../../assets/avatars_manifest.json';
@@ -51,6 +52,8 @@ export default function Settings() {
 
   const userId = user?.id;
   const partnerId = partner?.id;
+
+  const { updatePreference } = usePreferences(userId);
 
   // Active Category State
   const [activeCategory, setActiveCategory] = useState('account');
@@ -178,6 +181,27 @@ export default function Settings() {
   const handlePreferenceChange = (key, value, setter, successMessage) => {
     localStorage.setItem(key, value.toString());
     setter(value);
+
+    // Map localStorage keys to DB column names
+    const dbKeyMap = {
+      theme: 'theme',
+      fridge_sound_muted: 'sound_muted',
+      fridge_grid_snapping: 'grid_snapping',
+      fridge_background: 'fridge_background',
+      fridge_note_font: 'fridge_note_font',
+      fridge_auto_compact_days: 'auto_compact_days',
+      preferences_push_enabled: 'push_notifications_enabled',
+    };
+
+    const dbKey = dbKeyMap[key];
+    if (dbKey && userId) {
+      let dbValue = value;
+      if (dbKey === 'auto_compact_days') {
+        dbValue = value === 'off' ? null : parseInt(value, 10);
+      }
+      updatePreference(dbKey, dbValue);
+    }
+
     if (successMessage) setMessage({ type: 'success', text: successMessage });
   };
 
@@ -637,6 +661,7 @@ export default function Settings() {
                     null
                   )
                 }
+                pushEnabled={pushEnabled}
               />
             )}
             {activeCategory === 'games' && (
@@ -659,6 +684,7 @@ export default function Settings() {
                     null
                   )
                 }
+                pushEnabled={pushEnabled}
               />
             )}
             {activeCategory === 'music' && <MusicSettingsPanel />}

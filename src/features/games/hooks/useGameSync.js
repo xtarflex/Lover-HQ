@@ -20,7 +20,7 @@ export function useGameSync(gameType, sessionId, onRemoteMove) {
   const channelRef = useRef(null);
   const onRemoteMoveRef = useRef(onRemoteMove);
 
-  // Keep ref up to date without re-subscribing
+  // Keep refs up to date without re-subscribing
   useEffect(() => {
     onRemoteMoveRef.current = onRemoteMove;
   }, [onRemoteMove]);
@@ -37,7 +37,16 @@ export function useGameSync(gameType, sessionId, onRemoteMove) {
       .on('broadcast', { event: 'move' }, ({ payload }) => {
         onRemoteMoveRef.current?.(payload);
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // Automatically request game state synchronization from partner upon channel connection
+          channel.send({
+            type: 'broadcast',
+            event: 'move',
+            payload: { type: 'sync_request', ts: Date.now() },
+          });
+        }
+      });
 
     channelRef.current = channel;
 

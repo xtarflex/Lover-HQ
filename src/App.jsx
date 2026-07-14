@@ -106,16 +106,18 @@ function MainLayout() {
 
   const isFridgeRoute = location.pathname === '/fridge';
   const isGamesRoute = location.pathname === '/games';
-  const isFullHeight = isFridgeRoute || isGamesRoute;
+  const isChatRoute = location.pathname === '/chat';
+  const isFullHeight = isFridgeRoute || isGamesRoute || isChatRoute;
 
-  // Hide global navigation and mini player inside active games
-  const showGlobalNav = !activeGameId;
+  // Hide global navigation and mini player inside active games or on the chat screen
+  const showGlobalNav = !activeGameId && !isChatRoute;
 
   let containerClass = 'flex flex-col min-h-screen bg-background pb-24';
   if (isFullHeight) {
-    containerClass = activeGameId
-      ? 'flex flex-col h-[100dvh] overflow-hidden bg-background'
-      : 'flex flex-col h-[100dvh] overflow-hidden bg-background pb-20';
+    containerClass =
+      activeGameId || isChatRoute
+        ? 'flex flex-col h-[100dvh] overflow-hidden bg-background'
+        : 'flex flex-col h-[100dvh] overflow-hidden bg-background pb-20';
   } else if (activeGameId) {
     containerClass = 'flex flex-col min-h-screen bg-background';
   }
@@ -220,6 +222,34 @@ export default function App() {
   useEffect(() => {
     if (prefs) {
       dispatch({ type: 'SET_PREFERENCES', payload: prefs });
+      // Sync DB preferences to localStorage for consistency across pages
+      if (prefs.theme) {
+        localStorage.setItem('theme', prefs.theme);
+      }
+      if (prefs.sound_muted !== undefined) {
+        localStorage.setItem('fridge_sound_muted', prefs.sound_muted.toString());
+      }
+      if (prefs.grid_snapping !== undefined) {
+        localStorage.setItem('fridge_grid_snapping', prefs.grid_snapping.toString());
+      }
+      if (prefs.fridge_background) {
+        localStorage.setItem('fridge_background', prefs.fridge_background);
+      }
+      if (prefs.fridge_note_font) {
+        localStorage.setItem('fridge_note_font', prefs.fridge_note_font);
+      }
+      if (prefs.auto_compact_days !== undefined) {
+        localStorage.setItem(
+          'fridge_auto_compact_days',
+          prefs.auto_compact_days === null ? 'off' : prefs.auto_compact_days.toString()
+        );
+      }
+      if (prefs.push_notifications_enabled !== undefined) {
+        localStorage.setItem(
+          'preferences_push_enabled',
+          prefs.push_notifications_enabled.toString()
+        );
+      }
     }
   }, [prefs, dispatch]);
 
