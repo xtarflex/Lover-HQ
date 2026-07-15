@@ -12,3 +12,7 @@
 **Learning:** Relying on standard dates without secure randomness allows malicious actors to guess file paths and potentially collide with other users' files. Using raw user inputs like `file.name` introduces the risk of path traversal attacks (`../../../`) if unvalidated.
 **Prevention:** Use `window.crypto.getRandomValues` to generate secure random strings when constructing file paths to prevent predictability, and use regex to strip out potentially dangerous characters from user-provided file names.
 
+## 2024-07-15 - Sanitizing User-Provided File Extensions in Storage Paths
+**Vulnerability:** Path traversal and injection via unsanitized file extensions in user-uploaded media files.
+**Learning:** Even simple string splits (`file.name.split('.').pop()`) can leave harmful characters (e.g., path navigators, script tags) in the file extension if the initial input is malicious.
+**Prevention:** Always use regex (`.replace(/[^a-zA-Z0-9]/g, '')`) to sanitize file extensions and restrict them to safe, alphanumeric formats before constructing storage paths.
