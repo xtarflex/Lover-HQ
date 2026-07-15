@@ -11,7 +11,7 @@
  * - Tagging Fridge items as clickable reference link cards.
  * - Real-time partner typing indicators (pulsing header and side bubble).
  */
-/* eslint-disable react-hooks/refs */
+/* eslint-disable react-hooks/refs, react-hooks/immutability */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +30,6 @@ import {
   Check,
   Play,
   Pause,
-  Loader2,
   X,
   Tag,
   ArrowLeft,
@@ -44,6 +43,7 @@ import {
   User as UserIcon,
   BarChart3,
   Camera,
+  Plus,
 } from 'lucide-react';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
@@ -337,13 +337,56 @@ export default function Chat() {
     }
   }, [partnerLastSeen, partnerId]);
 
+  // Cleanup active audio recorder/players and loops on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+      }
+      if (audioPreviewRef.current) {
+        audioPreviewRef.current.pause();
+        audioPreviewRef.current = null;
+      }
+    };
+  }, []);
+
   const messagesEndRef = useRef(null);
   const imageInputRef = useRef(null);
 
   // Voice note recorder state
   const [isRecording, setIsRecording] = useState(false);
+  const [isRecordingPaused, setIsRecordingPaused] = useState(false);
+  const [recordDuration, setRecordDuration] = useState(0);
+  const [recordLevels, setRecordLevels] = useState([]);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState(null);
+  const [audioPreviewPlaying, setAudioPreviewPlaying] = useState(false);
+  const [audioPreviewDuration, setAudioPreviewDuration] = useState(0);
+  const [audioPreviewCurrentTime, setAudioPreviewCurrentTime] = useState(0);
+
+  // Active voice recording timer effect
+  useEffect(() => {
+    if (!isRecording || isRecordingPaused) return;
+    const timer = setInterval(() => {
+      setRecordDuration((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isRecording, isRecordingPaused]);
+
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const audioPreviewRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationFrameIdRef = useRef(null);
+
+  // Custom media previews, captioning, and lightbox states
+  const [activeLightboxImage, setActiveLightboxImage] = useState(null);
+  const [pendingMediaFiles, setPendingMediaFiles] = useState([]);
+  const [mediaCaption, setMediaCaption] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(null);
 
   // Auto-scroll to bottom of chat
   const scrollToBottom = useCallback((behavior = 'smooth') => {
@@ -571,65 +614,104 @@ export default function Chat() {
     imageInputRef.current?.click();
   };
 
-  // Uploads photo and sends as message
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handles selection of one or more images from local files
+  const handleImageSelected = useCallback(
+    (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
 
-    if (!file.type.startsWith('image/')) {
-      dispatch({
-        type: 'SET_GLOBAL_NOTIFICATION',
-        payload: { message: 'Please select a valid image file. 🖼️', type: 'error' },
-      });
-      return;
-    }
+      const validFiles = files.filter((f) => f.type.startsWith('image/'));
+      if (validFiles.length < files.length) {
+        dispatch({
+          type: 'SET_GLOBAL_NOTIFICATION',
+          payload: {
+            message: 'Some selected files were not valid images and were ignored.',
+            type: 'info',
+          },
+        });
+      }
 
+      if (validFiles.length === 0) return;
+      setPendingMediaFiles((prev) => [...prev, ...validFiles]);
+      e.target.value = '';
+    },
+    [dispatch]
+  );
+
+  // Uploads all pending images as a batch with the caption
+  const handleBatchUpload = async () => {
+    if (pendingMediaFiles.length === 0) return;
+
+    const filesToUpload = [...pendingMediaFiles];
+    const captionToSend = mediaCaption.trim();
+
+    setPendingMediaFiles([]);
+    setMediaCaption('');
     setUploadingMedia(true);
-    const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-    const sanitizedBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const filePath = `chat/${userId}/${Date.now()}_${randId}_${sanitizedBase}.webp`;
+    setUploadProgress({ current: 0, total: filesToUpload.length });
 
     try {
-      // Compress the image client-side to WebP format at 0.5 quality for maximum compression size savings
-      const compressedBlob = await compressImage(file, 1024, 0.5);
+      for (let i = 0; i < filesToUpload.length; i++) {
+        setUploadProgress({ current: i + 1, total: filesToUpload.length });
+        const file = filesToUpload[i];
 
-      // Upload to storage with correct content type
-      const { error: uploadError } = await supabase.storage
-        .from('chat-media')
-        .upload(filePath, compressedBlob, { contentType: 'image/webp' });
-      if (uploadError) throw uploadError;
+        const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+        const sanitizedBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const filePath = `chat/${userId}/${Date.now()}_${randId}_${sanitizedBase}.webp`;
 
-      // Get public URL
-      const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
-      const publicUrl = data.publicUrl;
+        const compressedBlob = await compressImage(file, 1024, 0.5);
 
-      // Send image message
-      const { error: dbError } = await supabase.from('messages').insert({
-        user_id: userId,
-        content: 'Shared a photo',
-        media_url: publicUrl,
-        media_type: 'image',
-        reply_to_message_id: replyMessage?.id || null,
-      });
+        const { error: uploadError } = await supabase.storage
+          .from('chat-media')
+          .upload(filePath, compressedBlob, { contentType: 'image/webp' });
 
-      if (dbError) throw dbError;
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
+        const publicUrl = data.publicUrl;
+
+        const { error: dbError } = await supabase.from('messages').insert({
+          user_id: userId,
+          content: i === 0 && captionToSend ? captionToSend : 'Shared a photo',
+          media_url: publicUrl,
+          media_type: 'image',
+          reply_to_message_id: replyMessage?.id || null,
+        });
+
+        if (dbError) throw dbError;
+      }
       setReplyMessage(null);
     } catch (err) {
-      console.error('Failed to upload image:', err);
+      console.error('Failed batch upload:', err);
       dispatch({
         type: 'SET_GLOBAL_NOTIFICATION',
-        payload: { message: 'Failed to upload image. Please try again. ❌', type: 'error' },
+        payload: { message: 'Failed to upload some media files. Please try again.', type: 'error' },
       });
     } finally {
       setUploadingMedia(false);
+      setUploadProgress(null);
     }
   };
 
-  // Starts Voice Note Recording
+  // Starts Voice Note Recording with Real-time Waveform visualizer
   const startRecording = async () => {
     if (isRecording) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioContextClass();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+
+      audioContextRef.current = audioCtx;
+      analyserRef.current = analyser;
+      setRecordLevels([]);
+      setIsRecordingPaused(false);
+      setAudioPreviewUrl(null);
+
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -640,16 +722,34 @@ export default function Chat() {
         }
       };
 
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await uploadVoiceNote(audioBlob);
-
-        // Stop all track feeds
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
       mediaRecorder.start();
       setIsRecording(true);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const drawWaveform = () => {
+        if (!analyserRef.current || mediaRecorder.state === 'inactive') return;
+
+        analyserRef.current.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = (dataArray[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / bufferLength);
+        const level = Math.min(Math.max(rms * 150, 4), 48);
+
+        setRecordLevels((prev) => {
+          const next = [...prev, level];
+          return next.slice(-35);
+        });
+
+        animationFrameIdRef.current = requestAnimationFrame(drawWaveform);
+      };
+
+      animationFrameIdRef.current = requestAnimationFrame(drawWaveform);
     } catch (err) {
       console.error('Microphone access denied:', err);
       dispatch({
@@ -659,34 +759,168 @@ export default function Chat() {
     }
   };
 
-  // Stops voice recording
-  const stopRecording = () => {
-    if (!isRecording || !mediaRecorderRef.current) return;
-    mediaRecorderRef.current.stop();
-    setIsRecording(false);
-  };
+  // Pauses current recording
+  const pauseRecording = useCallback(() => {
+    if (
+      !isRecording ||
+      !mediaRecorderRef.current ||
+      mediaRecorderRef.current.state !== 'recording'
+    ) {
+      return;
+    }
+    mediaRecorderRef.current.pause();
+    setIsRecordingPaused(true);
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+    }
+    if (audioContextRef.current && audioContextRef.current.state === 'running') {
+      audioContextRef.current.suspend();
+    }
+  }, [isRecording]);
 
-  // Uploads recorded voice note blob and sends as message
-  const uploadVoiceNote = async (audioBlob) => {
+  // Resumes paused recording
+  const resumeRecording = useCallback(() => {
+    if (!isRecording || !mediaRecorderRef.current || mediaRecorderRef.current.state !== 'paused') {
+      return;
+    }
+    mediaRecorderRef.current.resume();
+    setIsRecordingPaused(false);
+
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+
+    const bufferLength = analyserRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const drawWaveform = () => {
+      if (!analyserRef.current || mediaRecorderRef.current.state === 'inactive') return;
+      analyserRef.current.getByteTimeDomainData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        const v = (dataArray[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / bufferLength);
+      const level = Math.min(Math.max(rms * 150, 4), 48);
+      setRecordLevels((prev) => [...prev, level].slice(-35));
+      animationFrameIdRef.current = requestAnimationFrame(drawWaveform);
+    };
+    animationFrameIdRef.current = requestAnimationFrame(drawWaveform);
+  }, [isRecording]);
+
+  // Discards current voice recording (Trash bin)
+  const discardRecording = useCallback(() => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.onstop = null;
+      if (mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      }
+    }
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+    }
+    mediaRecorderRef.current = null;
+    audioChunksRef.current = [];
+    setIsRecording(false);
+    setIsRecordingPaused(false);
+    setRecordLevels([]);
+    setAudioPreviewUrl(null);
+  }, []);
+
+  // Stops recording and sets up preview stage
+  const stopRecordingAndPreview = useCallback(() => {
+    if (!isRecording || !mediaRecorderRef.current) return;
+
+    mediaRecorderRef.current.onstop = () => {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      const url = URL.createObjectURL(audioBlob);
+      setAudioPreviewUrl(url);
+      setAudioPreviewPlaying(false);
+      setAudioPreviewCurrentTime(0);
+
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+      }
+      setIsRecording(false);
+      setIsRecordingPaused(false);
+    };
+
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+    }
+    mediaRecorderRef.current.stop();
+  }, [isRecording]);
+
+  // Toggles play/pause state for recorded preview
+  const handleTogglePreviewPlay = useCallback(() => {
+    if (!audioPreviewUrl) return;
+
+    if (!audioPreviewRef.current) {
+      const audio = new Audio(audioPreviewUrl);
+      audioPreviewRef.current = audio;
+
+      audio.addEventListener('loadedmetadata', () => {
+        setAudioPreviewDuration(audio.duration || 0);
+      });
+      audio.addEventListener('timeupdate', () => {
+        setAudioPreviewCurrentTime(audio.currentTime || 0);
+      });
+      audio.addEventListener('ended', () => {
+        setAudioPreviewPlaying(false);
+        setAudioPreviewCurrentTime(0);
+      });
+    }
+
+    if (audioPreviewPlaying) {
+      audioPreviewRef.current.pause();
+      setAudioPreviewPlaying(false);
+    } else {
+      audioPreviewRef.current.play().catch((err) => console.error(err));
+      setAudioPreviewPlaying(true);
+    }
+  }, [audioPreviewUrl, audioPreviewPlaying]);
+
+  // Uploads and sends the previewed recording
+  const sendRecording = useCallback(async () => {
+    if (!audioPreviewUrl || audioChunksRef.current.length === 0) return;
+
+    if (audioPreviewRef.current) {
+      audioPreviewRef.current.pause();
+      audioPreviewRef.current = null;
+    }
+
+    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+
+    setAudioPreviewUrl(null);
+    setAudioPreviewPlaying(false);
+    setAudioPreviewCurrentTime(0);
     setUploadingMedia(true);
+
     const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     const filePath = `chat/${userId}/${Date.now()}_${randId}_voicenote.webm`;
 
     try {
-      // Upload blob
       const { error: uploadError } = await supabase.storage
         .from('chat-media')
         .upload(filePath, audioBlob, { contentType: 'audio/webm' });
       if (uploadError) throw uploadError;
 
-      // Get URL
       const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
+      const durationVal = audioPreviewDuration || 0;
 
-      // Send voice message
       const { error: dbError } = await supabase.from('messages').insert({
         user_id: userId,
-        content: '🎙️ Voice Note',
+        content: JSON.stringify({ url: publicUrl, duration: durationVal }),
         media_url: publicUrl,
         media_type: 'voice',
         reply_to_message_id: replyMessage?.id || null,
@@ -696,10 +930,74 @@ export default function Chat() {
       setReplyMessage(null);
     } catch (err) {
       console.error('Failed to upload voice note:', err);
+      dispatch({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: { message: 'Failed to upload voice note. Please try again.', type: 'error' },
+      });
     } finally {
       setUploadingMedia(false);
+      audioChunksRef.current = [];
     }
-  };
+  }, [audioPreviewUrl, audioPreviewDuration, replyMessage, userId, dispatch]);
+
+  // Uploads voice note immediately without preview
+  const sendRecordingImmediately = useCallback(() => {
+    if (!isRecording || !mediaRecorderRef.current) return;
+
+    mediaRecorderRef.current.onstop = async () => {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+      }
+
+      setIsRecording(false);
+      setIsRecordingPaused(false);
+      setRecordLevels([]);
+      setUploadingMedia(true);
+
+      const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+      const filePath = `chat/${userId}/${Date.now()}_${randId}_voicenote.webm`;
+
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('chat-media')
+          .upload(filePath, audioBlob, { contentType: 'audio/webm' });
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
+        const publicUrl = data.publicUrl;
+
+        const { error: dbError } = await supabase.from('messages').insert({
+          user_id: userId,
+          content: JSON.stringify({ url: publicUrl, duration: 0 }),
+          media_url: publicUrl,
+          media_type: 'voice',
+          reply_to_message_id: replyMessage?.id || null,
+        });
+
+        if (dbError) throw dbError;
+        setReplyMessage(null);
+      } catch (err) {
+        console.error('Failed to upload voice note immediately:', err);
+        dispatch({
+          type: 'SET_GLOBAL_NOTIFICATION',
+          payload: { message: 'Failed to upload voice note. Please try again.', type: 'error' },
+        });
+      } finally {
+        setUploadingMedia(false);
+        audioChunksRef.current = [];
+      }
+    };
+
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+    }
+    mediaRecorderRef.current.stop();
+  }, [isRecording, userId, replyMessage, dispatch]);
 
   // Saves edited text of own message
   const handleSaveEdit = useCallback(
@@ -978,6 +1276,13 @@ export default function Chat() {
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el?.classList.add('animate-pulse-gold');
     setTimeout(() => el?.classList.remove('animate-pulse-gold'), 2000);
+  }, []);
+
+  const formatVoiceDuration = useCallback((seconds) => {
+    if (isNaN(seconds) || seconds === Infinity) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   }, []);
 
   const bgStyles = {
@@ -1511,7 +1816,7 @@ export default function Chat() {
                                     src={msg.media_url}
                                     alt="Shared upload"
                                     className="w-full h-full object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300"
-                                    onClick={() => window.open(msg.media_url, '_blank')}
+                                    onClick={() => setActiveLightboxImage(msg.media_url)}
                                   />
                                 </div>
                               )}
@@ -1703,11 +2008,39 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Uploading indicator overlay */}
+      {/* Uploading progress modal */}
       {uploadingMedia && (
-        <div className="absolute inset-0 bg-slate-950/70 flex items-center justify-center z-[80] space-x-2">
-          <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          <span className="text-xs text-text-main font-bold">Uploading file...</span>
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xs w-full space-y-4 shadow-2xl text-center">
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <LoadingSpinner size="md" className="text-primary" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-extrabold text-white">Sending Memories...</h4>
+                {uploadProgress ? (
+                  <p className="text-[10px] text-text-muted font-bold">
+                    Uploading {uploadProgress.current} of {uploadProgress.total} file
+                    {uploadProgress.total === 1 ? '' : 's'}
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-text-muted font-bold">Processing voice message</p>
+                )}
+              </div>
+            </div>
+
+            {uploadProgress && (
+              <div className="space-y-1">
+                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-850">
+                  <div
+                    style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                    className="bg-primary h-full rounded-full transition-all duration-300"
+                  />
+                </div>
+                <span className="text-[9px] text-text-muted font-mono block text-right">
+                  {Math.round((uploadProgress.current / uploadProgress.total) * 100)}%
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1759,68 +2092,202 @@ export default function Chat() {
           </div>
         )}
 
-        {/* Main form & Attachment controls */}
-        <form onSubmit={handleSendMessage} className="flex items-center space-x-2 relative">
-          <input
-            type="file"
-            ref={imageInputRef}
-            onChange={handleImageUpload}
-            accept="image/*"
-            className="hidden"
-          />
-
-          {/* Attachment options trigger button */}
-          <div className="relative">
+        {/* Voice Note Recording / Preview Dashboard (WhatsApp / Telegram style) */}
+        {isRecording || audioPreviewUrl ? (
+          <div className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-full px-4 py-2 w-full animate-slide-up space-x-3">
+            {/* Trash Bin / Discard Button */}
             <button
               type="button"
-              onClick={() => setShowItemSelector(!showItemSelector)}
-              className={`w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center text-text-muted hover:text-text-main transition-colors ${
-                showItemSelector ? 'bg-slate-800 text-text-main' : ''
-              }`}
-              aria-label="Add attachment"
+              onClick={discardRecording}
+              className="text-text-muted hover:text-red-500 p-2 rounded-full transition-colors flex-shrink-0"
+              aria-label="Discard recording"
             >
-              <Paperclip className="w-5 h-5" />
+              <Trash2 className="w-5 h-5" />
             </button>
+
+            {/* Middle Section: Waveform or Preview Player */}
+            <div className="flex-1 flex items-center justify-center min-w-0">
+              {audioPreviewUrl ? (
+                /* PREVIEW MODE PLAYER */
+                <div className="flex items-center space-x-3 w-full">
+                  <button
+                    type="button"
+                    onClick={handleTogglePreviewPlay}
+                    className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center transition-all hover:scale-105"
+                    aria-label={audioPreviewPlaying ? 'Pause preview' : 'Play preview'}
+                  >
+                    {audioPreviewPlaying ? (
+                      <Pause className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                    )}
+                  </button>
+                  {/* Preview Time Progress Slider */}
+                  <div className="flex-1 flex items-center space-x-2">
+                    <span className="text-[10px] text-text-muted font-mono">
+                      {formatVoiceDuration(audioPreviewCurrentTime)}
+                    </span>
+                    <input
+                      type="range"
+                      min="0"
+                      max={audioPreviewDuration || 1}
+                      step="0.05"
+                      value={audioPreviewCurrentTime}
+                      onChange={(e) => {
+                        const newTime = parseFloat(e.target.value);
+                        setAudioPreviewCurrentTime(newTime);
+                        if (audioPreviewRef.current) {
+                          audioPreviewRef.current.currentTime = newTime;
+                        }
+                      }}
+                      className="flex-1 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                    <span className="text-[10px] text-text-muted font-mono">
+                      {formatVoiceDuration(audioPreviewDuration)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* ACTIVE RECORDING MODE */
+                <div className="flex items-center space-x-3 w-full">
+                  {/* Timer & Pulsing Dot */}
+                  <div className="flex items-center space-x-1.5 flex-shrink-0">
+                    <div
+                      className={`w-2.5 h-2.5 rounded-full bg-red-500 ${isRecordingPaused ? '' : 'animate-pulse'}`}
+                    />
+                    <span className="text-xs font-bold text-gray-200 font-mono">
+                      {formatVoiceDuration(recordDuration)}
+                    </span>
+                  </div>
+
+                  {/* Active Recording Animated Dynamic Waveform */}
+                  <div className="flex-1 h-8 flex items-center justify-center space-x-[2px] overflow-hidden select-none">
+                    {recordLevels.length === 0 ? (
+                      <div className="text-[10px] text-text-muted tracking-wider uppercase font-bold animate-pulse">
+                        Say something...
+                      </div>
+                    ) : (
+                      recordLevels.map((lvl, index) => (
+                        <div
+                          key={`rec-wave-${index}`}
+                          style={{ height: `${lvl}px` }}
+                          className="w-[3px] bg-primary rounded-full transition-all duration-75"
+                        />
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Buttons: Pause/Resume, Stop/Preview, Send */}
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              {audioPreviewUrl ? (
+                /* Preview Send Button */
+                <button
+                  type="button"
+                  onClick={sendRecording}
+                  className="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover flex items-center justify-center text-white shadow-lg transition-all hover:scale-105"
+                  aria-label="Send voice note"
+                >
+                  <Send className="w-4.5 h-4.5" />
+                </button>
+              ) : (
+                /* Active Recording Controls */
+                <>
+                  {/* Pause / Resume button */}
+                  <button
+                    type="button"
+                    onClick={isRecordingPaused ? resumeRecording : pauseRecording}
+                    className="w-8 h-8 rounded-full border border-slate-700/60 text-text-muted hover:text-text-main flex items-center justify-center transition-colors"
+                    aria-label={isRecordingPaused ? 'Resume recording' : 'Pause recording'}
+                  >
+                    {isRecordingPaused ? (
+                      <Play className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Pause className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Stop and Listen (Preview) Button */}
+                  <button
+                    type="button"
+                    onClick={stopRecordingAndPreview}
+                    className="w-8 h-8 rounded-full bg-slate-800 text-text-main hover:bg-slate-700 flex items-center justify-center transition-colors"
+                    aria-label="Stop and preview voice note"
+                  >
+                    <Square className="w-3.5 h-3.5 fill-current" />
+                  </button>
+
+                  {/* Immediate Send Button */}
+                  <button
+                    type="button"
+                    onClick={sendRecordingImmediately}
+                    className="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover flex items-center justify-center text-white shadow-lg transition-all hover:scale-105"
+                    aria-label="Send immediately"
+                  >
+                    <Send className="w-4.5 h-4.5" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
+        ) : (
+          /* STANDARD FORM */
+          <form onSubmit={handleSendMessage} className="flex items-center space-x-2 relative">
+            <input
+              type="file"
+              ref={imageInputRef}
+              onChange={handleImageSelected}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
 
-          {/* Text message Input field */}
-          <input
-            type="text"
-            value={newMessageText}
-            onChange={handleInputChange}
-            placeholder={isRecording ? 'Recording voice message...' : 'Message your partner...'}
-            disabled={isRecording}
-            className="flex-1 bg-slate-950 border border-slate-800 rounded-full h-10 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-white font-medium"
-          />
+            {/* Attachment options trigger button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowItemSelector(!showItemSelector)}
+                className={`w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center text-text-muted hover:text-text-main transition-colors ${
+                  showItemSelector ? 'bg-slate-800 text-text-main' : ''
+                }`}
+                aria-label="Add attachment"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+            </div>
 
-          {/* Microphone VN recording toggle button */}
-          <button
-            type="button"
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center transition-colors shrink-0 ${
-              isRecording
-                ? 'bg-red-500 border-red-500 text-white animate-pulse'
-                : 'text-text-muted hover:text-text-main'
-            }`}
-            aria-label={isRecording ? 'Stop recording voice note' : 'Record voice note'}
-          >
-            {isRecording ? (
-              <Square className="w-4 h-4 fill-current" />
-            ) : (
+            {/* Text message Input field */}
+            <input
+              type="text"
+              value={newMessageText}
+              onChange={handleInputChange}
+              placeholder="Message your partner..."
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-full h-10 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-white font-medium"
+            />
+
+            {/* Microphone VN recording toggle button */}
+            <button
+              type="button"
+              onClick={startRecording}
+              className="w-10 h-10 rounded-full border border-slate-700/60 flex items-center justify-center transition-colors text-text-muted hover:text-text-main shrink-0"
+              aria-label="Record voice note"
+            >
               <Mic className="w-5 h-5" />
-            )}
-          </button>
+            </button>
 
-          {/* Send text button */}
-          <button
-            type="submit"
-            disabled={!newMessageText.trim() && !referencedItem}
-            className="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:hover:bg-primary flex items-center justify-center text-white shadow-lg transition-all shrink-0 hover:scale-105"
-            aria-label="Send message"
-          >
-            <Send className="w-4.5 h-4.5" />
-          </button>
-        </form>
+            {/* Send text button */}
+            <button
+              type="submit"
+              disabled={!newMessageText.trim() && !referencedItem}
+              className="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:hover:bg-primary flex items-center justify-center text-white shadow-lg transition-all shrink-0 hover:scale-105"
+              aria-label="Send message"
+            >
+              <Send className="w-4.5 h-4.5" />
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Sliding Bottom Sheet Attachment Menu (W4) */}
@@ -2177,6 +2644,139 @@ export default function Chat() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Media Batch Preview & Captioning Stage */}
+      {pendingMediaFiles.length > 0 && (
+        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-[70] flex flex-col justify-between animate-fade-in select-none">
+          {/* Header */}
+          <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-bold text-white">Preview Media</span>
+              <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                {pendingMediaFiles.length} {pendingMediaFiles.length === 1 ? 'file' : 'files'}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setPendingMediaFiles([]);
+                setMediaCaption('');
+              }}
+              className="p-1.5 rounded-full text-text-muted hover:text-text-main hover:bg-slate-800 transition-colors"
+              aria-label="Cancel preview"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Main Preview Carousel */}
+          <div className="flex-1 flex flex-col items-center justify-center p-4 relative min-h-0">
+            {/* Show first image as active preview */}
+            <div className="max-w-md w-full max-h-[60%] rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl relative flex items-center justify-center">
+              <img
+                src={URL.createObjectURL(pendingMediaFiles[0])}
+                alt="Upload preview"
+                className="max-w-full max-h-[350px] object-contain"
+              />
+            </div>
+
+            {/* Thumbnail selector row */}
+            <div className="w-full max-w-md overflow-x-auto flex items-center space-x-2.5 py-4 px-2 mt-4 scrollbar-none">
+              {pendingMediaFiles.map((file, idx) => (
+                <div
+                  key={`pending-thumb-${idx}`}
+                  className="w-14 h-14 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 shrink-0 relative group"
+                >
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="Thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => {
+                      setPendingMediaFiles((prev) => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute -top-1 -right-1 bg-rose-600 text-white rounded-full p-0.5 shadow hover:bg-rose-500"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {/* Add more button */}
+              <button
+                type="button"
+                onClick={triggerImageSelect}
+                className="w-14 h-14 rounded-lg border border-dashed border-slate-650 hover:border-primary hover:bg-primary/5 flex items-center justify-center text-text-muted hover:text-primary transition-all shrink-0"
+                aria-label="Add more media"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom Caption and Send bar */}
+          <div className="p-4 bg-slate-900 border-t border-slate-800/80 space-y-3">
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={mediaCaption}
+                onChange={(e) => setMediaCaption(e.target.value)}
+                placeholder="Add a caption..."
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-full h-10 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-white font-medium"
+              />
+              <button
+                onClick={handleBatchUpload}
+                className="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover flex items-center justify-center text-white shadow-lg transition-all hover:scale-105 shrink-0"
+                aria-label="Send media"
+              >
+                <Send className="w-4.5 h-4.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Modal Overlay */}
+      {activeLightboxImage && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex flex-col justify-between animate-fade-in select-none">
+          {/* Header */}
+          <div className="p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
+            <span className="text-xs font-bold text-gray-300">Shared Photo</span>
+            <button
+              onClick={() => setActiveLightboxImage(null)}
+              className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              aria-label="Close lightbox"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Image */}
+          <div
+            className="flex-1 flex items-center justify-center p-4 cursor-zoom-out"
+            onClick={() => setActiveLightboxImage(null)}
+          >
+            <img
+              src={activeLightboxImage}
+              alt="Shared details"
+              className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 hover:scale-[1.01]"
+            />
+          </div>
+
+          {/* Footer controls */}
+          <div className="p-6 flex justify-center space-x-6 bg-gradient-to-t from-black/80 to-transparent">
+            <a
+              href={activeLightboxImage}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-full text-xs font-bold transition-all border border-white/10 flex items-center space-x-1.5"
+            >
+              <span>Download Image</span>
+            </a>
           </div>
         </div>
       )}
