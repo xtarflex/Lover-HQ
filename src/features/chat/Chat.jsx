@@ -44,6 +44,7 @@ import {
   User as UserIcon,
   BarChart3,
   Camera,
+  Palette,
 } from 'lucide-react';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
@@ -73,6 +74,7 @@ export function VoiceMessagePlayer({ src }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   useEffect(() => {
     const audio = new Audio(src);
@@ -102,6 +104,12 @@ export function VoiceMessagePlayer({ src }) {
       audio.removeEventListener('ended', handleEnded);
     };
   }, [src]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -156,7 +164,7 @@ export function VoiceMessagePlayer({ src }) {
   };
 
   return (
-    <div className="flex items-center space-x-3 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 min-w-[200px]">
+    <div className="flex items-center space-x-3 bg-transparent border-none p-0 min-w-[200px]">
       <button
         onClick={togglePlay}
         className="w-8 h-8 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center text-primary transition-all shrink-0"
@@ -205,9 +213,20 @@ export function VoiceMessagePlayer({ src }) {
             );
           })}
         </div>
-        <div className="flex justify-between text-[9px] text-text-muted mt-1 font-mono">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+        <div className="flex items-center justify-between text-[9px] text-text-muted mt-1 font-mono">
+          <span>
+            {isPlaying || currentTime > 0 ? formatTime(currentTime) : formatTime(duration)}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPlaybackRate((prev) => (prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1));
+            }}
+            className="px-1.5 py-0.5 rounded bg-slate-800/60 hover:bg-slate-700/60 text-gray-300 font-extrabold text-[8px] transition-colors leading-none"
+          >
+            {playbackRate}x
+          </button>
         </div>
       </div>
     </div>
@@ -264,6 +283,13 @@ export default function Chat() {
     if (typeof window === 'undefined' || !partnerId) return partner?.last_seen;
     return localStorage.getItem(`partner_last_seen_${partnerId}`) || partner?.last_seen;
   });
+
+  // Chat wallpaper customization state
+  const [chatBg, setChatBg] = useState(() => {
+    if (typeof window === 'undefined') return 'doodle';
+    return localStorage.getItem('chat_background_preset') || 'doodle';
+  });
+  const [showBgSelector, setShowBgSelector] = useState(false);
 
   // Long-press interactions state
   const [longPressedMessage, setLongPressedMessage] = useState(null);
@@ -952,6 +978,24 @@ export default function Chat() {
     setTimeout(() => el?.classList.remove('animate-pulse-gold'), 2000);
   }, []);
 
+  const bgStyles = {
+    doodle: {
+      backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)), url('/board-chat-bg.png')`,
+      backgroundSize: 'cover',
+    },
+    midnight: {
+      background: 'linear-gradient(to bottom, #0b0f19, #020617)',
+    },
+    sunset: {
+      background: 'linear-gradient(to bottom right, #1e1b4b, #3b0764, #500724)',
+    },
+    neon: {
+      background:
+        'linear-gradient(rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.92)), linear-gradient(to right, rgba(99, 102, 241, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.15) 1px, transparent 1px)',
+      backgroundSize: '100% 100%, 32px 32px, 32px 32px',
+    },
+  };
+
   return (
     <motion.div
       initial={{ x: '100%' }}
@@ -959,10 +1003,7 @@ export default function Chat() {
       exit={{ x: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       className="flex flex-col h-full w-full bg-slate-950 text-white relative overflow-hidden"
-      style={{
-        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)), url('/board-chat-bg.png')`,
-        backgroundSize: 'cover',
-      }}
+      style={bgStyles[chatBg] || bgStyles.doodle}
     >
       {/* Bespoke Chat Header */}
       <div className="bg-slate-900/90 backdrop-blur border-b border-slate-800/80 px-4 py-3 flex items-center justify-between z-10 shrink-0 select-none">
@@ -1021,6 +1062,18 @@ export default function Chat() {
         <div className="flex items-center space-x-1 shrink-0">
           <button
             type="button"
+            onClick={() => setShowBgSelector(!showBgSelector)}
+            aria-label="Change wallpaper"
+            className={`p-2 rounded-full transition-colors flex items-center justify-center ${
+              showBgSelector
+                ? 'bg-primary/20 text-primary'
+                : 'text-text-muted hover:text-text-main hover:bg-slate-800/40'
+            }`}
+          >
+            <Palette className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
             onClick={() =>
               dispatch({
                 type: 'SET_GLOBAL_NOTIFICATION',
@@ -1047,6 +1100,43 @@ export default function Chat() {
           </button>
         </div>
       </div>
+
+      {/* Background Selector Dropdown */}
+      {showBgSelector && (
+        <div className="absolute top-[60px] right-4 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-2xl p-3 shadow-2xl z-20 w-48 flex flex-col space-y-1.5 animate-slide-down">
+          <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider mb-1 px-1">
+            Choose Chat Wallpaper
+          </span>
+          {[
+            { id: 'doodle', label: 'Classic Doodle', bg: 'bg-slate-900 border-slate-800' },
+            { id: 'midnight', label: 'Sleek Midnight', bg: 'bg-slate-950 border-slate-900' },
+            {
+              id: 'sunset',
+              label: 'Romantic Sunset',
+              bg: 'bg-gradient-to-r from-indigo-900 via-purple-950 to-pink-950',
+            },
+            { id: 'neon', label: 'Neon Grid', bg: 'bg-slate-950 border-indigo-950/40' },
+          ].map((bgOpt) => (
+            <button
+              key={bgOpt.id}
+              type="button"
+              onClick={() => {
+                setChatBg(bgOpt.id);
+                localStorage.setItem('chat_background_preset', bgOpt.id);
+                setShowBgSelector(false);
+              }}
+              className={`w-full px-3 py-2 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between border ${
+                chatBg === bgOpt.id
+                  ? 'border-primary bg-primary/10 text-white'
+                  : 'border-slate-800/40 hover:bg-slate-800/40 text-gray-300'
+              }`}
+            >
+              <span>{bgOpt.label}</span>
+              <div className={`w-3.5 h-3.5 rounded-full border border-white/20 ${bgOpt.bg}`} />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Dimmed Backdrop for Long-press Action state */}
       {longPressedMessage && (
@@ -1263,63 +1353,21 @@ export default function Chat() {
                       </div>
                     )}
 
-                    {/* Sender Tag */}
-                    {!isSelf && !hideHeader && (
-                      <span className="text-[10px] font-bold text-primary font-rounded mb-0.5 ml-2.5">
-                        {partner?.name || 'Partner'}
-                      </span>
-                    )}
-
                     <div
-                      className={`flex items-end space-x-2 ${isSelf ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}
+                      className={`flex items-end w-full ${isSelf ? 'justify-end' : 'justify-start'}`}
                     >
-                      {/* Avatar */}
-                      {!hideHeader ? (
-                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold font-rounded">
-                          {isSelf ? (
-                            user?.avatar_url ? (
-                              <img
-                                src={user.avatar_url}
-                                alt="avatar"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              'Y'
-                            )
-                          ) : partner?.avatar_url ? (
-                            <img
-                              src={partner.avatar_url}
-                              alt="avatar"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            'P'
-                          )}
-                        </div>
-                      ) : (
-                        <div className="w-8 flex-shrink-0" />
-                      )}
-
                       {/* Message Bubble Container */}
-                      <div className="flex flex-col relative max-w-[280px] xs:max-w-[320px] sm:max-w-[420px]">
+                      <div className="flex flex-col relative max-w-[75%]">
                         <div
-                          className={`relative shadow-lg ${
+                          className={`relative ${
                             isMediaOnly
-                              ? `rounded-2xl ${
-                                  isSelf
-                                    ? `bg-slate-900/40 border border-slate-800/40 text-white ${
-                                        isHighlighted ? 'message-bubble-highlighted-self' : ''
-                                      }`
-                                    : `bg-slate-900 border border-slate-850 text-gray-205 ${
-                                        isHighlighted ? 'message-bubble-highlighted-partner' : ''
-                                      }`
-                                } ${msg.media_type === 'image' ? 'p-0.5' : 'p-2'}`
-                              : `p-3 ${
+                              ? 'bg-transparent border-none shadow-none p-0'
+                              : `p-3 shadow-md ${
                                   isSelf
                                     ? `bg-primary/20 border border-primary/30 text-white bubble-self ${
                                         isHighlighted ? 'message-bubble-highlighted-self' : ''
                                       }`
-                                    : `bg-slate-900 border border-slate-805 text-gray-210 bubble-partner ${
+                                    : `bg-slate-800 border border-slate-700/80 text-white bubble-partner ${
                                         isHighlighted ? 'message-bubble-highlighted-partner' : ''
                                       }`
                                 } ${hideHeader ? (isSelf ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''}`
@@ -1492,10 +1540,20 @@ export default function Chat() {
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-2 message-text-container">
+                            <div
+                              className={
+                                isMediaOnly ? 'relative' : 'space-y-2 message-text-container'
+                              }
+                            >
                               {/* Image Render (Full Bleed borderless W2) */}
                               {msg.media_type === 'image' && msg.media_url && (
-                                <div className="-mx-3 -mt-3 mb-2 rounded-t-xl overflow-hidden max-h-[220px]">
+                                <div
+                                  className={`${
+                                    isMediaOnly
+                                      ? 'rounded-2xl overflow-hidden max-h-[280px] w-full relative'
+                                      : '-mx-3 -mt-3 mb-2 rounded-t-xl overflow-hidden max-h-[220px]'
+                                  }`}
+                                >
                                   <img
                                     src={msg.media_url}
                                     alt="Shared upload"
@@ -1637,7 +1695,6 @@ export default function Chat() {
             groupedMessages,
             userId,
             partner,
-            user,
             presence.partner,
             presence.partnerRoom,
             messages,
