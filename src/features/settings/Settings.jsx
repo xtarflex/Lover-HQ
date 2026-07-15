@@ -22,6 +22,7 @@ import {
   Sparkles,
   Gamepad2,
   Music,
+  MessageSquare,
 } from 'lucide-react';
 import {
   getFridgeItemsCount,
@@ -38,6 +39,7 @@ import RevealSettingsPanel from './components/RevealSettingsPanel';
 import GameSettingsPanel from './components/GameSettingsPanel';
 import DataManagementPanel from './components/DataManagementPanel';
 import MusicSettingsPanel from './components/MusicSettingsPanel';
+import ChatSettingsPanel from './components/ChatSettingsPanel';
 
 /**
  * Main Settings page. Owns all settings state and handler functions,
@@ -436,6 +438,12 @@ export default function Settings() {
         icon: Database,
       },
       {
+        id: 'chat',
+        label: 'Chat Room',
+        desc: 'Chat wallpaper customization, preferences',
+        icon: MessageSquare,
+      },
+      {
         id: 'music',
         label: 'Music Room',
         desc: 'Crossfade transitions, player settings',
@@ -688,6 +696,7 @@ export default function Settings() {
               />
             )}
             {activeCategory === 'music' && <MusicSettingsPanel />}
+            {activeCategory === 'chat' && <ChatSettingsPanel />}
             {activeCategory === 'data' && <DataManagementPanel onLogout={handleLogout} />}
           </div>
         </section>

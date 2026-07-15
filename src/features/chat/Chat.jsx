@@ -44,7 +44,6 @@ import {
   User as UserIcon,
   BarChart3,
   Camera,
-  Palette,
 } from 'lucide-react';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
@@ -285,11 +284,10 @@ export default function Chat() {
   });
 
   // Chat wallpaper customization state
-  const [chatBg, setChatBg] = useState(() => {
+  const [chatBg] = useState(() => {
     if (typeof window === 'undefined') return 'doodle';
     return localStorage.getItem('chat_background_preset') || 'doodle';
   });
-  const [showBgSelector, setShowBgSelector] = useState(false);
 
   // Long-press interactions state
   const [longPressedMessage, setLongPressedMessage] = useState(null);
@@ -1062,18 +1060,6 @@ export default function Chat() {
         <div className="flex items-center space-x-1 shrink-0">
           <button
             type="button"
-            onClick={() => setShowBgSelector(!showBgSelector)}
-            aria-label="Change wallpaper"
-            className={`p-2 rounded-full transition-colors flex items-center justify-center ${
-              showBgSelector
-                ? 'bg-primary/20 text-primary'
-                : 'text-text-muted hover:text-text-main hover:bg-slate-800/40'
-            }`}
-          >
-            <Palette className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
             onClick={() =>
               dispatch({
                 type: 'SET_GLOBAL_NOTIFICATION',
@@ -1100,43 +1086,6 @@ export default function Chat() {
           </button>
         </div>
       </div>
-
-      {/* Background Selector Dropdown */}
-      {showBgSelector && (
-        <div className="absolute top-[60px] right-4 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-2xl p-3 shadow-2xl z-20 w-48 flex flex-col space-y-1.5 animate-slide-down">
-          <span className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider mb-1 px-1">
-            Choose Chat Wallpaper
-          </span>
-          {[
-            { id: 'doodle', label: 'Classic Doodle', bg: 'bg-slate-900 border-slate-800' },
-            { id: 'midnight', label: 'Sleek Midnight', bg: 'bg-slate-950 border-slate-900' },
-            {
-              id: 'sunset',
-              label: 'Romantic Sunset',
-              bg: 'bg-gradient-to-r from-indigo-900 via-purple-950 to-pink-950',
-            },
-            { id: 'neon', label: 'Neon Grid', bg: 'bg-slate-950 border-indigo-950/40' },
-          ].map((bgOpt) => (
-            <button
-              key={bgOpt.id}
-              type="button"
-              onClick={() => {
-                setChatBg(bgOpt.id);
-                localStorage.setItem('chat_background_preset', bgOpt.id);
-                setShowBgSelector(false);
-              }}
-              className={`w-full px-3 py-2 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between border ${
-                chatBg === bgOpt.id
-                  ? 'border-primary bg-primary/10 text-white'
-                  : 'border-slate-800/40 hover:bg-slate-800/40 text-gray-300'
-              }`}
-            >
-              <span>{bgOpt.label}</span>
-              <div className={`w-3.5 h-3.5 rounded-full border border-white/20 ${bgOpt.bg}`} />
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Dimmed Backdrop for Long-press Action state */}
       {longPressedMessage && (
