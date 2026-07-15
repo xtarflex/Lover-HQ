@@ -291,6 +291,7 @@ export default function Chat() {
 
   // Long-press interactions state
   const [longPressedMessage, setLongPressedMessage] = useState(null);
+  const [messageToDelete, setMessageToDelete] = useState(null);
   const pressTimer = useRef(null);
 
   // Pinned message state
@@ -576,7 +577,10 @@ export default function Chat() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file.');
+      dispatch({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: { message: 'Please select a valid image file. 🖼️', type: 'error' },
+      });
       return;
     }
 
@@ -612,7 +616,10 @@ export default function Chat() {
       setReplyMessage(null);
     } catch (err) {
       console.error('Failed to upload image:', err);
-      alert('Failed to upload image. Please try again.');
+      dispatch({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: { message: 'Failed to upload image. Please try again. ❌', type: 'error' },
+      });
     } finally {
       setUploadingMedia(false);
     }
@@ -645,7 +652,10 @@ export default function Chat() {
       setIsRecording(true);
     } catch (err) {
       console.error('Microphone access denied:', err);
-      alert('Could not access microphone for voice recording.');
+      dispatch({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: { message: 'Could not access microphone for voice recording. 🎤', type: 'error' },
+      });
     }
   };
 
@@ -711,14 +721,8 @@ export default function Chat() {
   );
 
   // Deletes a message from DB
-  const handleDeleteMessage = useCallback(async (mId) => {
-    if (!confirm('Delete this message for everyone?')) return;
-    try {
-      const { error } = await supabase.from('messages').delete().eq('id', mId);
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to delete message:', err);
-    }
+  const handleDeleteMessage = useCallback((mId) => {
+    setMessageToDelete(mId);
   }, []);
 
   // Toggles message emoji reactions
@@ -2132,6 +2136,46 @@ export default function Chat() {
                   })
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {messageToDelete && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl animate-scale-up">
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold text-white">Delete Message?</h3>
+              <p className="text-xs text-text-muted leading-relaxed">
+                Are you sure you want to delete this message? This action will delete the message
+                for everyone and cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setMessageToDelete(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-text-main hover:bg-slate-800/60 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const mId = messageToDelete;
+                  setMessageToDelete(null);
+                  try {
+                    const { error } = await supabase.from('messages').delete().eq('id', mId);
+                    if (error) throw error;
+                  } catch (err) {
+                    console.error('Failed to delete message:', err);
+                  }
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-rose-950/40"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
