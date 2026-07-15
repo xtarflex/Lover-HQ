@@ -5,3 +5,6 @@
 ## 2026-07-07 - Expensive Date Parsing in Render Loops
 **Learning:** Creating `new Date()` instances inside a mapping function during a React component's render phase is exceptionally expensive. In `Chat.jsx`, grouping logic generated thousands of Date objects on every keystroke, severely degrading typing performance and causing input lag.
 **Action:** Always hoist Date instantiation and expensive calculations into `useMemo` or out of the render loop entirely. Precompute grouping conditions (like time differences) and store them in the data structure, rather than calculating them on the fly during render.
+## 2024-07-15 - [React State Extraction Anti-Pattern]
+**Learning:** Attempting to extract the original item state by assigning a local variable inside a state updater function (`setItems(prev => { itemToDelete = prev.find(...); return prev; })`) fails critically because the queued updater function runs asynchronously, meaning the local variable remains null outside of the updater.
+**Action:** Do not mutate variables outside of a state updater function's scope. If you need to decouple a complex event handler from the dependency array, use a ref (e.g., `itemsRef.current = items`) to read the latest state synchronously, or extract the item synchronously before calling the updater function.
