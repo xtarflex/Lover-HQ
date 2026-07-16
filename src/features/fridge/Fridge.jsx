@@ -15,7 +15,7 @@
  *   - {@link FridgeSpeedDial} – Floating-action-button speed dial
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ChevronsRight } from 'lucide-react';
 import {
@@ -311,15 +311,17 @@ export default function Fridge() {
   /**
    * Filters the active list of magnets, conditionally hiding items older than
    * `cleanThreshold` days when clean mode is active.
-   *
-   * @returns {Array<Object>} The filtered array of fridge items.
    */
-  const getFilteredItems = () => {
+  // ⚡ BOLT OPTIMIZATION: Memoize filtered items to avoid O(N) date parsing on every render
+  const filteredItems = useMemo(() => {
     if (!hideOld) return items;
     const cutOffDate = new Date();
     cutOffDate.setDate(cutOffDate.getDate() - cleanThreshold);
     return items.filter((item) => new Date(item.created_at) >= cutOffDate);
-  };
+  }, [items, hideOld, cleanThreshold]);
+
+  // ⚡ BOLT OPTIMIZATION: Memoize the lastVisited date to avoid instantiating it N times in the map loop
+  const lastVisitedDate = useMemo(() => new Date(lastVisited), [lastVisited]);
 
   /**
    * Generates dynamic styling for the whiteboard canvas background.
@@ -729,8 +731,6 @@ export default function Fridge() {
   // Render
   // ---------------------------------------------------------------------------
 
-  const filteredItems = getFilteredItems();
-
   return (
     <div className="w-full h-full bg-slate-950 overflow-hidden relative">
       {/* Header Overlay */}
@@ -801,7 +801,7 @@ export default function Fridge() {
               {/* Render Draggable Items */}
               {filteredItems.map((item) => {
                 const isNew =
-                  new Date(item.updated_at) > new Date(lastVisited) && item.user_id !== userId;
+                  new Date(item.updated_at) > lastVisitedDate && item.user_id !== userId;
                 return (
                   <FridgeItem
                     key={item.id}
@@ -817,7 +817,8 @@ export default function Fridge() {
                     partnerLastSeen={partnerLastSeen}
                     isPartnerInFridge={isPartnerInFridge}
                     commentCount={commentsCount[item.id] || 0}
-                    onOpenComments={(targetItem) => setSelectedCommentItem(targetItem)}
+                    // ⚡ BOLT OPTIMIZATION: Pass stable setter directly to preserve React.memo on FridgeItem
+                    onOpenComments={setSelectedCommentItem}
                     onZoomPhoto={setSelectedPhotoUrl}
                     isSnappingEnabled={isSnappingEnabled}
                     noteFont={noteFont}

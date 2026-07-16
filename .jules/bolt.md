@@ -5,3 +5,7 @@
 ## 2026-07-07 - Expensive Date Parsing in Render Loops
 **Learning:** Creating `new Date()` instances inside a mapping function during a React component's render phase is exceptionally expensive. In `Chat.jsx`, grouping logic generated thousands of Date objects on every keystroke, severely degrading typing performance and causing input lag.
 **Action:** Always hoist Date instantiation and expensive calculations into `useMemo` or out of the render loop entirely. Precompute grouping conditions (like time differences) and store them in the data structure, rather than calculating them on the fly during render.
+
+## 2024-05-18 - Avoid breaking React.memo with inline arrows
+**Learning:** In React, passing inline arrow functions like `onOpenComments={(item) => setSelectedCommentItem(item)}` to a memoized component (like `FridgeItem`) defeats `React.memo` entirely because the arrow function is a new reference on every render.
+**Action:** Use the stable setter function provided by `useState` directly (e.g. `onOpenComments={setSelectedCommentItem}`) or wrap the callback in a `useCallback` to preserve referential equality and ensure memoized children can skip re-renders.
