@@ -22,9 +22,55 @@ try {
 } catch (_error) {
   console.warn('Could not read .env file for proxy configuration:', _error);
 }
+// Dynamic DevTools Automatic Workspace Folders setup (M-135+)
+const devtoolsWorkspacePlugin = () => {
+  const uuidFile = path.resolve(cwd, '.devtools-uuid');
+  let uuid;
+  try {
+    if (fs.existsSync(uuidFile)) {
+      uuid = fs.readFileSync(uuidFile, 'utf-8').trim();
+    } else {
+      uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+      fs.writeFileSync(uuidFile, uuid, 'utf-8');
+    }
+  } catch {
+    uuid = '53b029bb-c989-4dca-969b-835fecec3717'; // fallback static uuid if write fails
+  }
+
+  return {
+    name: 'vite-plugin-devtools-workspace',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url === '/.well-known/appspecific/com.chrome.devtools.json') {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.end(
+            JSON.stringify(
+              {
+                workspace: {
+                  root: cwd,
+                  uuid: uuid,
+                },
+              },
+              null,
+              2
+            )
+          );
+          return;
+        }
+        next();
+      });
+    },
+  };
+};
 
 export default defineConfig({
   plugins: [
+    devtoolsWorkspacePlugin(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -100,7 +146,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/storage-proxy': {
-        target: `${supabaseUrl}/storage/v1/object/public/music-media`,
+        target: `${supabaseUrl}/storage/v1/object/public`,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/storage-proxy/, ''),
       },

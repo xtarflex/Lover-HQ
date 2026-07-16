@@ -190,17 +190,20 @@
 .message-bubble-highlighted {
   position: relative;
   z-index: 50 !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
 }
 
 .message-bubble-highlighted-self {
   outline: 2px solid #f59e0b; /* primary / Amber-500 */
   outline-offset: 2px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+  transition: box-shadow 0.3s ease;
 }
 
 .message-bubble-highlighted-partner {
   outline: 2px solid #db2777; /* pink-600 */
   outline-offset: 2px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+  transition: box-shadow 0.3s ease;
 }
 
 /* Floating reactions tray */

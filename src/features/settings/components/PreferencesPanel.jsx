@@ -41,7 +41,7 @@ export default function PreferencesPanel({
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'denied') {
         alert(
-          'Notification permission is blocked by your browser. Please allow notifications in your browser settings to receive notifications.'
+          'Notification permission is blocked. Please click the 🔒 icon in your browser address bar to reset permissions. 🔓'
         );
         return;
       }
@@ -49,6 +49,9 @@ export default function PreferencesPanel({
       if (Notification.permission === 'default') {
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
+          alert(
+            'Notification permission was not granted. If you change your mind, you can enable it by clicking the 🔒 icon in your browser address bar. 🔓'
+          );
           return; // Don't enable if they didn't grant permission
         }
       }
@@ -70,7 +73,6 @@ export default function PreferencesPanel({
       try {
         navigator.vibrate([100]);
       } catch (err) {
-
         // ignore vibrate restrictions
       }
     }
