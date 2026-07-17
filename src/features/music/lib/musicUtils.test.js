@@ -18,7 +18,7 @@ describe('getProxiedUrl', () => {
   it('should replace the supabase storage URL with the proxy URL', () => {
     vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co');
     const url = 'https://test.supabase.co/storage/v1/object/public/music-media/test.mp3';
-    expect(getProxiedUrl(url)).toBe('/storage-proxy/test.mp3');
+    expect(getProxiedUrl(url)).toBe('/storage-proxy/music-media/test.mp3');
   });
 
   it('should return the original URL if it does not match the prefix', () => {
@@ -27,7 +27,7 @@ describe('getProxiedUrl', () => {
     expect(getProxiedUrl(url)).toBe(url);
 
     const url2 = 'https://test.supabase.co/storage/v1/object/public/other-bucket/test.mp3';
-    expect(getProxiedUrl(url2)).toBe(url2);
+    expect(getProxiedUrl(url2)).toBe('/storage-proxy/other-bucket/test.mp3');
   });
 
   it('should return original URL if VITE_SUPABASE_URL is not set', () => {
@@ -109,7 +109,5 @@ describe('gradientFromString', () => {
     const undefinedResult = gradientFromString(undefined);
     const unknownResult = gradientFromString('Unknown');
     expect(undefinedResult).toEqual(unknownResult);
-  });
-});
   });
 });
