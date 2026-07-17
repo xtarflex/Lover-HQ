@@ -14,6 +14,11 @@ describe('Game Registry', () => {
       const game = getGameById('non-existent-game-id');
       expect(game).toBeUndefined();
     });
+
+    it('returns undefined when ID is not provided', () => {
+      const game = getGameById();
+      expect(game).toBeUndefined();
+    });
   });
 
   describe('getGamesByTag', () => {
@@ -22,7 +27,6 @@ describe('Game Registry', () => {
       expect(classicGames.length).toBeGreaterThan(0);
       expect(classicGames.every((game) => game.tags.includes('classic'))).toBe(true);
 
-      // We know tic-tac-toe and scrabble have 'classic' from the registry
       const hasTicTacToe = classicGames.some((game) => game.id === 'tic-tac-toe');
       const hasScrabble = classicGames.some((game) => game.id === 'scrabble');
       expect(hasTicTacToe).toBe(true);
@@ -38,6 +42,11 @@ describe('Game Registry', () => {
       const drawingGames = getGamesByTag('creative');
       expect(drawingGames.length).toBe(1);
       expect(drawingGames[0].id).toBe('quick-draw');
+    });
+
+    it('returns an empty array when tag is not provided', () => {
+      const games = getGamesByTag();
+      expect(games).toEqual([]);
     });
   });
 });
