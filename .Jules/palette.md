@@ -4,3 +4,7 @@
 ## 2024-05-18 - Avoid redundant aria-labels
 **Learning:** `aria-label` attributes shouldn't be added to buttons that already have sufficiently descriptive visible text. It creates clutter and redundancy for screen reader users, who will just read the `aria-label` anyway.
 **Action:** Only add `aria-label` to icon-only buttons or elements where the visible text is missing or non-descriptive.
+
+## 2024-07-09 - Added missing aria-labels to interactive buttons
+**Learning:** Some small inline functional buttons (like emoji reaction buttons in Chat or "Copy/Share" controls inside PairingSetup) lacked `aria-label`s, rendering them ambiguous for screen readers since they rely heavily on icons or shorthand text.
+**Action:** Always verify that interactive buttons relying heavily on icons, or context-dependent shorthand text (e.g., "Cancel", "Save"), include explicit descriptive `aria-label` attributes.

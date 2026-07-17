@@ -66,6 +66,7 @@ export default function PairingSetup({
               <div className="flex gap-2 w-full">
                 <button
                   type="button"
+                  aria-label="Copy pairing code"
                   onClick={() => {
                     navigator.clipboard.writeText(user.pairing_code);
                     setMessage({ type: 'success', text: 'Pairing code copied!' });
@@ -77,6 +78,7 @@ export default function PairingSetup({
                 </button>
                 <button
                   type="button"
+                  aria-label="Share pairing link"
                   onClick={async () => {
                     const shareUrl = window.location.origin + '/auth?pair=' + user.pairing_code;
                     if (navigator.share) {
@@ -106,6 +108,7 @@ export default function PairingSetup({
           ) : (
             <button
               type="button"
+              aria-label="Generate new pairing code"
               onClick={onGenerateCode}
               disabled={pairCodeLoading}
               className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
