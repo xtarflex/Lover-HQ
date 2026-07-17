@@ -30,6 +30,30 @@ describe('extractYoutubeId', () => {
   it('should parse embed URLs', () => {
     expect(extractYoutubeId('https://www.youtube.com/embed/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
   });
+
+  it('should parse v/ URLs', () => {
+    expect(extractYoutubeId('https://www.youtube.com/v/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+  });
+
+  it('should parse u/user/ URLs', () => {
+    expect(extractYoutubeId('https://www.youtube.com/u/1/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+    expect(extractYoutubeId('https://youtube.com/u/a/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+  });
+
+  it('should parse &v= URLs', () => {
+    expect(
+      extractYoutubeId('https://www.youtube.com/watch?feature=player_embedded&v=dQw4w9WgXcQ')
+    ).toBe('dQw4w9WgXcQ');
+  });
+
+  it('should return null if the extracted ID is not exactly 11 characters long', () => {
+    expect(extractYoutubeId('https://www.youtube.com/watch?v=dQw4w9WgXc')).toBeNull(); // 10 chars
+    expect(extractYoutubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQQ')).toBeNull(); // 12 chars
+  });
+
+  it('should return null for URLs that match pattern but have empty IDs', () => {
+    expect(extractYoutubeId('https://www.youtube.com/watch?v=')).toBeNull();
+  });
 });
 
 describe('parseFilenameMetadata', () => {
