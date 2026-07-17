@@ -190,15 +190,21 @@ describe('AddTrackModal', () => {
 
     // Fill inputs
     const urlInput = screen.getByPlaceholderText(/watch\?v=/i);
-    fireEvent.change(urlInput, {
-      target: { value: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+    await act(async () => {
+      fireEvent.change(urlInput, {
+        target: { value: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+      });
     });
 
     const titleInput = screen.getByPlaceholderText(/e\.g\. Yellow/i);
-    fireEvent.change(titleInput, { target: { value: 'Never Gonna Give You Up' } });
+    await act(async () => {
+      fireEvent.change(titleInput, { target: { value: 'Never Gonna Give You Up' } });
+    });
 
     const artistInput = screen.getByPlaceholderText(/e\.g\. Coldplay/i);
-    fireEvent.change(artistInput, { target: { value: 'Rick Astley' } });
+    await act(async () => {
+      fireEvent.change(artistInput, { target: { value: 'Rick Astley' } });
+    });
 
     // Submit inside act to flush all async state
     await act(async () => {

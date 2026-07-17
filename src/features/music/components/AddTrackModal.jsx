@@ -382,7 +382,7 @@ export default function AddTrackModal({ isOpen, onClose }) {
               <input
                 type="url"
                 placeholder="https://www.youtube.com/watch?v=..."
-                value={ytUrl}
+                value={ytUrl || ''}
                 onChange={(e) => {
                   const urlValue = e.target.value;
                   setYtUrl(urlValue);
@@ -432,7 +432,7 @@ export default function AddTrackModal({ isOpen, onClose }) {
               <input
                 type="text"
                 placeholder="e.g. Yellow"
-                value={title}
+                value={title || ''}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-main placeholder-slate-600 focus:outline-none"
               />
@@ -445,7 +445,7 @@ export default function AddTrackModal({ isOpen, onClose }) {
               <input
                 type="text"
                 placeholder="e.g. Coldplay"
-                value={artist}
+                value={artist || ''}
                 onChange={(e) => setArtist(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-main placeholder-slate-600 focus:outline-none"
               />
