@@ -54,8 +54,7 @@ export function parseFilenameMetadata(filename) {
  * @returns {string} The formatted timestamp.
  */
 export function formatTime(timeInSecs) {
-  if (timeInSecs === null || timeInSecs === undefined || isNaN(timeInSecs) || timeInSecs < 0)
-    return '0:00';
+  if (typeof timeInSecs !== 'number' || Number.isNaN(timeInSecs) || timeInSecs < 0) return '0:00';
   const mins = Math.floor(timeInSecs / 60);
   const secs = Math.floor(timeInSecs % 60);
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
