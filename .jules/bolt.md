@@ -12,3 +12,8 @@
 ## 2024-05-18 - Avoid Date Instantiation in Render Loops
 **Learning:** Comparing Supabase timestamps in React mapping loops by converting them to Date objects (`new Date(created_at) > new Date(last_seen)`) creates massive performance overhead on every keystroke/render in long lists.
 **Action:** Since Supabase timestamps are standard ISO 8601 strings (YYYY-MM-DDTHH:mm:ss.sssZ), they can be safely compared using standard JavaScript string comparison operators (`created_at > last_seen`), completely eliminating the Date instantiation overhead in hot paths.
+
+## 2025-01-20 - [Hardware limits on AudioContexts]
+**Learning:** Browsers enforce a hardware limit (often around 6) on the number of concurrently active `AudioContext` instances. Instantiating a new `AudioContext` on every sound playback will eventually hit this limit and crash/stop sound from playing.
+**Action:** Use a singleton / shared `AudioContext` variable at module level, checking for its existence and resuming it if its state is `suspended`.
+

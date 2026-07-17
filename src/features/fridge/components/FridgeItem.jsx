@@ -5,7 +5,7 @@
  * freely positioned, deleted, edited (notes only), commented on, and reacted to.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
 import {
   Play,
@@ -110,57 +110,34 @@ const FridgeItem = React.memo(function FridgeItem({
    *
    * @returns {string} Space-separated Tailwind class names.
    */
-  const getSizeClasses = () => {
-    if (item.type === 'note') {
-      return 'w-36 h-36 md:w-40 md:h-40 p-4';
-    }
-    if (item.type === 'photo') {
-      return 'w-32 h-40 md:w-36 md:h-44 p-2 pb-6';
-    }
-    if (item.type === 'voice') {
-      return 'w-28 h-28 md:w-32 md:h-32 p-3';
-    }
-    if (item.type === 'emoji') {
-      return 'w-20 h-20 md:w-24 md:h-24 p-2';
-    }
+  const sizeClasses = useMemo(() => {
+    if (item.type === 'note') return 'w-36 h-36 md:w-40 md:h-40 p-4';
+    if (item.type === 'photo') return 'w-32 h-40 md:w-36 md:h-44 p-2 pb-6';
+    if (item.type === 'voice') return 'w-28 h-28 md:w-32 md:h-32 p-3';
+    if (item.type === 'emoji') return 'w-20 h-20 md:w-24 md:h-24 p-2';
     return '';
-  };
+  }, [item.type]);
 
   /**
    * Returns the Tailwind typography class for the note font chosen in Settings.
    *
    * @returns {string} Space-separated Tailwind class names.
    */
-  const getNoteFontClass = () => {
+  const noteFontClass = useMemo(() => {
     const font = noteFont || 'handwriting';
-
-    if (font === 'sans') {
-      return 'font-body text-xs md:text-sm';
-    }
-    if (font === 'serif') {
-      return 'font-serif text-xs md:text-sm';
-    }
-    if (font === 'mono') {
-      return 'font-mono text-xs md:text-sm';
-    }
-    if (font === 'kalam') {
-      return 'font-kalam text-sm md:text-base';
-    }
-    if (font === 'patrick') {
-      return 'font-patrick text-sm md:text-base';
-    }
-    // handwriting (default - Caveat)
+    if (font === 'sans') return 'font-body text-xs md:text-sm';
+    if (font === 'serif') return 'font-serif text-xs md:text-sm';
+    if (font === 'mono') return 'font-mono text-xs md:text-sm';
+    if (font === 'kalam') return 'font-kalam text-sm md:text-base';
+    if (font === 'patrick') return 'font-patrick text-sm md:text-base';
     return 'font-handwriting text-sm md:text-lg';
-  };
+  }, [noteFont]);
 
   /**
    * Returns the CSS line-clamp class for the note text content.
    *
    * @returns {string} A Tailwind line-clamp class name.
    */
-  const getLineClampClass = () => {
-    return 'line-clamp-5';
-  };
 
   /**
    * Returns a structured object of Tailwind class strings for each badge/button
@@ -177,8 +154,8 @@ const FridgeItem = React.memo(function FridgeItem({
    *   reactions: string
    * }}
    */
-  const getBadgeClasses = () => {
-    return {
+  const badgeClasses = useMemo(
+    () => ({
       comments:
         'absolute -top-3 -right-3 px-2 py-1 bg-slate-900/95 border border-slate-700/80 backdrop-blur-md rounded-full flex items-center gap-1 shadow-lg text-white hover:scale-110 active:scale-95 transition-all z-30 font-sans',
       commentsIcon: 'w-3 h-3',
@@ -190,8 +167,9 @@ const FridgeItem = React.memo(function FridgeItem({
       editIcon: 'w-3 h-3',
       reactions:
         'absolute -bottom-3 -left-2 flex flex-wrap gap-1 max-w-[120px] pointer-events-auto cursor-pointer z-30 font-sans',
-    };
-  };
+    }),
+    []
+  );
 
   const renderAudioControls = () => {
     const svgSize = 'w-14 h-14';
@@ -315,7 +293,7 @@ const FridgeItem = React.memo(function FridgeItem({
   };
 
   // Deterministic styling properties
-  const rotation = getRotationAngle(item.id);
+  const rotation = useMemo(() => getRotationAngle(item.id), [item.id]);
   const colorClasses = NOTE_COLOR_MAP[noteColor] || NOTE_COLOR_MAP.yellow;
 
   // Format recording durations nicely
@@ -418,18 +396,16 @@ const FridgeItem = React.memo(function FridgeItem({
             e.stopPropagation();
             if (onOpenComments) onOpenComments(item);
           }}
-          className={`${getBadgeClasses().comments} ${
+          className={`${badgeClasses.comments} ${
             commentCount > 0 ? 'opacity-100' : 'opacity-40 hover:opacity-100'
           }`}
           title={commentCount > 0 ? 'View comments' : 'Start conversation'}
           aria-label={commentCount > 0 ? 'View comments' : 'Start conversation'}
         >
           <MessageSquare
-            className={`${getBadgeClasses().commentsIcon} text-primary ${commentCount > 0 ? 'fill-primary/10' : ''}`}
+            className={`${badgeClasses.commentsIcon} text-primary ${commentCount > 0 ? 'fill-primary/10' : ''}`}
           />
-          {commentCount > 0 && (
-            <span className={getBadgeClasses().commentsText}>{commentCount}</span>
-          )}
+          {commentCount > 0 && <span className={badgeClasses.commentsText}>{commentCount}</span>}
         </button>
       )}
 
@@ -440,7 +416,7 @@ const FridgeItem = React.memo(function FridgeItem({
             e.stopPropagation();
             if (onOpenComments) onOpenComments(item);
           }}
-          className={getBadgeClasses().reactions}
+          className={badgeClasses.reactions}
         >
           {Object.entries(item.reactions)
             .filter(([_, userIds]) => Array.isArray(userIds) && userIds.length > 0)
@@ -467,11 +443,11 @@ const FridgeItem = React.memo(function FridgeItem({
             e.stopPropagation();
             onDelete(item.id);
           }}
-          className={getBadgeClasses().delete}
+          className={badgeClasses.delete}
           title="Delete item"
           aria-label="Delete item"
         >
-          <Trash2 className={getBadgeClasses().deleteIcon} />
+          <Trash2 className={badgeClasses.deleteIcon} />
         </button>
       )}
 
@@ -482,11 +458,11 @@ const FridgeItem = React.memo(function FridgeItem({
             e.stopPropagation();
             if (onEdit) onEdit(item);
           }}
-          className={getBadgeClasses().edit}
+          className={badgeClasses.edit}
           title="Edit note"
           aria-label="Edit note"
         >
-          <Pencil className={getBadgeClasses().editIcon} />
+          <Pencil className={badgeClasses.editIcon} />
         </button>
       )}
 
@@ -512,7 +488,7 @@ const FridgeItem = React.memo(function FridgeItem({
       {/* Render Note Variant */}
       {item.type === 'note' && (
         <div
-          className={`border-b-4 rounded shadow-md flex flex-col justify-between relative overflow-visible ${getSizeClasses()} ${colorClasses}`}
+          className={`border-b-4 rounded shadow-md flex flex-col justify-between relative overflow-visible ${sizeClasses} ${colorClasses}`}
         >
           {/* Visual Magnet/Pin */}
           {item.is_pinned ? (
@@ -525,7 +501,7 @@ const FridgeItem = React.memo(function FridgeItem({
             </div>
           )}
           <p
-            className={`leading-snug overflow-hidden text-ellipsis ${getLineClampClass()} flex-grow ${getNoteFontClass()}`}
+            className={`leading-snug overflow-hidden text-ellipsis ${'line-clamp-5'} flex-grow ${noteFontClass}`}
           >
             {noteText}
           </p>
@@ -541,7 +517,7 @@ const FridgeItem = React.memo(function FridgeItem({
       {/* Render Photo Variant */}
       {item.type === 'photo' && (
         <div
-          className={`text-gray-800 border border-gray-200 rounded shadow-lg flex flex-col justify-between items-center relative bg-[#fafafa] ${getSizeClasses()}`}
+          className={`text-gray-800 border border-gray-200 rounded shadow-lg flex flex-col justify-between items-center relative bg-[#fafafa] ${sizeClasses}`}
         >
           {/* Visual Magnet/Pin */}
           {item.is_pinned ? (
@@ -579,7 +555,7 @@ const FridgeItem = React.memo(function FridgeItem({
       {/* Render Voice Variant */}
       {item.type === 'voice' && (
         <div
-          className={`bg-gradient-to-br from-brand-slate/90 to-surface border border-surface-border/80 rounded-2xl shadow-xl flex flex-col justify-between items-center relative overflow-visible ${getSizeClasses()}`}
+          className={`bg-gradient-to-br from-brand-slate/90 to-surface border border-surface-border/80 rounded-2xl shadow-xl flex flex-col justify-between items-center relative overflow-visible ${sizeClasses}`}
         >
           {/* Visual Magnet/Pin */}
           {item.is_pinned ? (
@@ -605,7 +581,7 @@ const FridgeItem = React.memo(function FridgeItem({
       {/* Render Emoji Variant */}
       {item.type === 'emoji' && (
         <div
-          className={`flex flex-col justify-between items-center relative group select-none ${getSizeClasses()}`}
+          className={`flex flex-col justify-between items-center relative group select-none ${sizeClasses}`}
         >
           {/* Visual Pin for Emoji */}
           {item.is_pinned && (
