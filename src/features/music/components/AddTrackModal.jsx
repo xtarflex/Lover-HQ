@@ -204,7 +204,8 @@ export default function AddTrackModal({ isOpen, onClose }) {
         }
 
         // 1. Upload file to Supabase Storage
-        const fileExt = file.name.split('.').pop();
+        const parts = file.name.split('.');
+        const fileExt = parts.length > 1 ? parts.pop().replace(/[^a-zA-Z0-9]/g, '') : 'mp3';
         // Use crypto for secure random id generation per AGENTS.md instructions
         const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         const filePath = `${Date.now()}_${randId}.${fileExt}`;
