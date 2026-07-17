@@ -10,7 +10,7 @@
 
 import React, { Suspense, lazy, useEffect } from 'react';
 import {
-  BrowserRouter as Router,
+  Router,
   Routes,
   Route,
   Navigate,
