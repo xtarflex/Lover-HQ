@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getTrackArtwork } from './musicUtils';
+import { getTrackArtwork, gradientFromString } from './musicUtils';
 
 describe('getTrackArtwork', () => {
   it('should return null if track is null or undefined', () => {
@@ -32,5 +32,46 @@ describe('getTrackArtwork', () => {
     expect(getTrackArtwork(track)).toBeNull();
     const track2 = {};
     expect(getTrackArtwork(track2)).toBeNull();
+  });
+});
+
+describe('gradientFromString', () => {
+  it('should return an object with background and color properties', () => {
+    const result = gradientFromString('Test String');
+    expect(result).toHaveProperty('background');
+    expect(result).toHaveProperty('color');
+    expect(result.color).toBe('#ffffff');
+    expect(typeof result.background).toBe('string');
+    expect(result.background).toContain('linear-gradient');
+  });
+
+  it('should return deterministic results for the same input', () => {
+    const result1 = gradientFromString('deterministic string');
+    const result2 = gradientFromString('deterministic string');
+    expect(result1).toEqual(result2);
+  });
+
+  it('should return different results for different inputs', () => {
+    const result1 = gradientFromString('string one');
+    const result2 = gradientFromString('string two');
+    expect(result1.background).not.toBe(result2.background);
+  });
+
+  it('should use "Unknown" for empty string input', () => {
+    const emptyResult = gradientFromString('');
+    const unknownResult = gradientFromString('Unknown');
+    expect(emptyResult).toEqual(unknownResult);
+  });
+
+  it('should use "Unknown" for null input', () => {
+    const nullResult = gradientFromString(null);
+    const unknownResult = gradientFromString('Unknown');
+    expect(nullResult).toEqual(unknownResult);
+  });
+
+  it('should use "Unknown" for undefined input', () => {
+    const undefinedResult = gradientFromString(undefined);
+    const unknownResult = gradientFromString('Unknown');
+    expect(undefinedResult).toEqual(unknownResult);
   });
 });
