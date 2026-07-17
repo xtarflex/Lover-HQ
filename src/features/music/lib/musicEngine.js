@@ -25,7 +25,7 @@ export function extractYoutubeId(url) {
  * @returns {{ title: string, artist: string }} The parsed metadata.
  */
 export function parseFilenameMetadata(filename) {
-  if (!filename) return { title: '', artist: '' };
+  if (!filename || typeof filename !== 'string') return { title: '', artist: '' };
 
   const baseName = filename.split(/[/\\]/).pop();
   const nameWithoutExt = baseName.replace(/\.[^/.]+$/, '');
