@@ -109,7 +109,14 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
       }, 1000);
     } catch (err) {
       console.error('Failed to start recording:', err);
-      setError('Microphone access denied or audio recording failed.');
+      let errorMessage = 'Microphone access denied or audio recording failed. 🎙️';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage =
+          'Microphone is blocked. Please click the 🔒 icon in your browser address bar to reset permissions. 🔓';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = 'No microphone found. Please connect a recording device. 🎤';
+      }
+      setError(errorMessage);
     }
   };
 

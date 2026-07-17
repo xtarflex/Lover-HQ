@@ -26,7 +26,7 @@
 
 [[redirects]]
   from = "/storage-proxy/*"
-  to = "https://oxqpmfdoytdfxmofmeno.supabase.co/storage/v1/object/public/music-media/:splat"
+  to = "https://oxqpmfdoytdfxmofmeno.supabase.co/storage/v1/object/public/:splat"
   status = 200
   force = true
 

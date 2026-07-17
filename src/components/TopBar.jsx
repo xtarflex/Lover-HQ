@@ -33,6 +33,7 @@ const getShortRoomName = (room) => {
   if (r.includes('board')) return 'Board';
   if (r.includes('setting')) return 'Settings';
   if (r.includes('profile')) return 'Profile';
+  if (r.includes('chat')) return 'Chat';
   return 'Home';
 };
 

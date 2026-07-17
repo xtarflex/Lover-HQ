@@ -71,7 +71,8 @@ export function useAuthSync() {
       // Setup real-time subscription for profile updates (to detect unpairing/pairing in real-time).
       // Done synchronously at the start of fetchProfile to prevent concurrent race-condition subscriptions.
       if (authUser?.id && !profileSubscription) {
-        const channel = supabase.channel(`public:users:id=eq.${authUser.id}`);
+        const uniqueId = Math.random().toString(36).substring(2, 9);
+        const channel = supabase.channel(`public:users:id=eq.${authUser.id}_${uniqueId}`);
         profileSubscription = channel;
         channel
           .on(

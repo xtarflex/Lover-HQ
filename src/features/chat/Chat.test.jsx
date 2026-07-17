@@ -48,7 +48,7 @@ describe('VoiceMessagePlayer', () => {
       expect(screen.getByText('3:00')).toBeInTheDocument();
     });
 
-    const waveformContainer = container.querySelector('.flex.items-center.space-x-\\[2px\\]');
+    const waveformContainer = container.querySelector('.flex.items-center.justify-between');
     expect(waveformContainer).toBeInTheDocument();
 
     // Mock getBoundingClientRect

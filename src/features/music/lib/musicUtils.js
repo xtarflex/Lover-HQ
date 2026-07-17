@@ -79,7 +79,7 @@ export function getProxiedUrl(url) {
   if (!url) return '';
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   if (supabaseUrl) {
-    const prefix = `${supabaseUrl}/storage/v1/object/public/music-media/`;
+    const prefix = `${supabaseUrl}/storage/v1/object/public/`;
     if (url.startsWith(prefix)) {
       return url.replace(prefix, '/storage-proxy/');
     }

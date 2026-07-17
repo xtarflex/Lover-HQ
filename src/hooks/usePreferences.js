@@ -57,8 +57,9 @@ export function usePreferences(userId) {
     }, 0);
 
     // Subscribe to real-time changes on the preference record for this user
+    const uniqueId = Math.random().toString(36).substring(2, 9);
     const channel = supabase
-      .channel(`user_preferences_sync:${userId}`)
+      .channel(`user_preferences_sync:${userId}_${uniqueId}`)
       .on(
         'postgres_changes',
         {
