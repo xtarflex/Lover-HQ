@@ -207,6 +207,7 @@ export function NoteModal({
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text-main transition-colors"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -239,6 +240,7 @@ export function NoteModal({
                   : 'border-slate-300 dark:border-slate-700 hover:scale-105'
               }`}
               title={`Choose ${color.id}`}
+              aria-label={`Choose ${color.id}`}
             />
           ))}
         </div>

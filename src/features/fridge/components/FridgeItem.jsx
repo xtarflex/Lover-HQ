@@ -229,6 +229,7 @@ const FridgeItem = React.memo(function FridgeItem({
 
         <button
           onClick={handlePlayToggle}
+          aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
           className={`absolute ${btnSize} bg-primary hover:bg-primary-hover text-brand-surface rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-md focus:outline-none`}
         >
           {isPlaying ? (
@@ -421,6 +422,7 @@ const FridgeItem = React.memo(function FridgeItem({
             commentCount > 0 ? 'opacity-100' : 'opacity-40 hover:opacity-100'
           }`}
           title={commentCount > 0 ? 'View comments' : 'Start conversation'}
+          aria-label={commentCount > 0 ? 'View comments' : 'Start conversation'}
         >
           <MessageSquare
             className={`${getBadgeClasses().commentsIcon} text-primary ${commentCount > 0 ? 'fill-primary/10' : ''}`}
@@ -467,6 +469,7 @@ const FridgeItem = React.memo(function FridgeItem({
           }}
           className={getBadgeClasses().delete}
           title="Delete item"
+          aria-label="Delete item"
         >
           <Trash2 className={getBadgeClasses().deleteIcon} />
         </button>
@@ -481,6 +484,7 @@ const FridgeItem = React.memo(function FridgeItem({
           }}
           className={getBadgeClasses().edit}
           title="Edit note"
+          aria-label="Edit note"
         >
           <Pencil className={getBadgeClasses().editIcon} />
         </button>
@@ -499,6 +503,7 @@ const FridgeItem = React.memo(function FridgeItem({
               : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
           }`}
           title={item.is_pinned ? 'Unlock magnet' : 'Lock/Pin magnet'}
+          aria-label={item.is_pinned ? 'Unlock magnet' : 'Lock/Pin magnet'}
         >
           <Pin className="w-3.5 h-3.5" />
         </button>

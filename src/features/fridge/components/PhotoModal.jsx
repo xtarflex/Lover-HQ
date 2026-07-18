@@ -121,6 +121,7 @@ export function PhotoModal({ isOpen, onClose, userId, onSave }) {
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text-main transition-colors"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
