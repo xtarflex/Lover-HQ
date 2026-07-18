@@ -204,10 +204,13 @@ export default function AddTrackModal({ isOpen, onClose }) {
         }
 
         // 1. Upload file to Supabase Storage
-        const fileExt = file.name.split('.').pop();
+        // Security fix: Avoid path traversal by entirely randomizing the filename and strictly sanitizing extension
+        const rawExt = file.name.includes('.') ? file.name.split('.').pop() : '';
+        const cleanExt = rawExt.replace(/[^a-zA-Z0-9]/g, '');
+        const extSuffix = cleanExt ? `.${cleanExt}` : '';
         // Use crypto for secure random id generation per AGENTS.md instructions
         const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-        const filePath = `${Date.now()}_${randId}.${fileExt}`;
+        const filePath = `${Date.now()}_${randId}${extSuffix}`;
 
         const { error: uploadErr } = await supabase.storage
           .from('music-media')

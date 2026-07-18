@@ -784,9 +784,11 @@ export default function Chat() {
         const isVideo = file.type.startsWith('video/');
 
         const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-        const sanitizedBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        const ext = file.name.substring(file.name.lastIndexOf('.')) || (isVideo ? '.mp4' : '.webp');
-        const filePath = `chat/${userId}/${Date.now()}_${randId}_${sanitizedBase}${isVideo ? ext : '.webp'}`;
+        // Security fix: Avoid path traversal by entirely randomizing the filename and strictly sanitizing extension
+        const rawExt = file.name.includes('.') ? file.name.split('.').pop() : '';
+        const cleanExt = rawExt ? `.${rawExt.replace(/[^a-zA-Z0-9]/g, '')}` : '';
+        const finalExt = isVideo ? cleanExt || '.mp4' : '.webp';
+        const filePath = `chat/${userId}/${Date.now()}_${randId}${finalExt}`;
 
         let processedBlob;
         if (isVideo) {
