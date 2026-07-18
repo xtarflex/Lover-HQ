@@ -8,3 +8,7 @@
 ## 2026-07-09 - 🧪 Added Tests for Game Registry lookups
 **Learning:** Testing simple array lookup methods like getGameById and getGamesByTag validates core utility functions that form the baseline of dynamic imports and routing.
 **Action:** Always test array lookups to cover the not found and empty params edge cases to prevent silent undefined rendering issues down the line.
+
+## 2024-05-18 - Avoid Date Instantiation in Render Loops
+**Learning:** Comparing Supabase timestamps in React mapping loops by converting them to Date objects (`new Date(created_at) > new Date(last_seen)`) creates massive performance overhead on every keystroke/render in long lists.
+**Action:** Since Supabase timestamps are standard ISO 8601 strings (YYYY-MM-DDTHH:mm:ss.sssZ), they can be safely compared using standard JavaScript string comparison operators (`created_at > last_seen`), completely eliminating the Date instantiation overhead in hot paths.
