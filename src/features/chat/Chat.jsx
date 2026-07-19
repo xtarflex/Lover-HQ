@@ -785,7 +785,9 @@ export default function Chat() {
 
         const randId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         const sanitizedBase = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        const ext = file.name.substring(file.name.lastIndexOf('.')) || (isVideo ? '.mp4' : '.webp');
+        const ext =
+          file.name.substring(file.name.lastIndexOf('.')).replace(/[^a-zA-Z0-9.]/g, '') ||
+          (isVideo ? '.mp4' : '.webp');
         const filePath = `chat/${userId}/${Date.now()}_${randId}_${sanitizedBase}${isVideo ? ext : '.webp'}`;
 
         let processedBlob;
