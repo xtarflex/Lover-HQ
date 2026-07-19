@@ -224,6 +224,7 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text-main transition-colors"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -280,6 +281,7 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
               onClick={startRecording}
               className="w-14 h-14 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg transition-transform hover:scale-105"
               title="Start Recording"
+              aria-label="Start Recording"
             >
               <Mic className="w-6 h-6" />
             </button>
@@ -290,6 +292,7 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
               onClick={stopRecording}
               className="w-14 h-14 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white border border-gray-500 shadow-lg animate-pulse"
               title="Stop Recording"
+              aria-label="Stop Recording"
             >
               <Square className="w-5 h-5 text-red-500 fill-red-500" />
             </button>
@@ -301,6 +304,7 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
                 onClick={handlePlayToggle}
                 className="w-12 h-12 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center text-text-main border border-surface-border transition-transform hover:scale-105"
                 title={isPlaying ? 'Pause' : 'Play'}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? (
                   <Pause className="w-5 h-5 fill-current" />
@@ -316,6 +320,7 @@ export function VoiceModal({ isOpen, onClose, userId, onSave }) {
                 }}
                 className="w-12 h-12 bg-red-950/20 hover:bg-red-950/40 text-red-500 rounded-full flex items-center justify-center border border-red-500/20 transition-transform hover:scale-105"
                 title="Discard"
+                aria-label="Discard"
               >
                 <X className="w-5 h-5" />
               </button>
