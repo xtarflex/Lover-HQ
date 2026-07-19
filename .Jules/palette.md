@@ -8,3 +8,6 @@
 ## 2024-07-09 - Added missing aria-labels to interactive buttons
 **Learning:** Some small inline functional buttons (like emoji reaction buttons in Chat or "Copy/Share" controls inside PairingSetup) lacked `aria-label`s, rendering them ambiguous for screen readers since they rely heavily on icons or shorthand text.
 **Action:** Always verify that interactive buttons relying heavily on icons, or context-dependent shorthand text (e.g., "Cancel", "Save"), include explicit descriptive `aria-label` attributes.
+## 2024-07-19 - Form Input Accessibility
+**Learning:** React form inputs must have `id` attributes that match the `htmlFor` of their corresponding `<label>` to be accessible to screen readers, allowing users to click the label text to focus the input field.
+**Action:** When adding or modifying `<label>` and `<input>` elements, always pair them explicitly using `htmlFor` and `id` attributes.
