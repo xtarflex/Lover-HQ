@@ -15,15 +15,25 @@ import { useCallback } from 'react';
  *
  * @returns {{ playSound: (type: 'pin'|'pop'|'rustle'|'delete') => void }}
  */
+let sharedAudioCtx = null;
+
 export function useFridgeAudio() {
   const playSound = useCallback((type) => {
     const isMuted = localStorage.getItem('fridge_sound_muted') === 'true';
     if (isMuted) return;
 
     try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      if (!sharedAudioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        sharedAudioCtx = new AudioContext();
+      }
+      const ctx = sharedAudioCtx;
+
+      // Resume context if it was suspended (browsers suspend audio contexts not created during a user gesture)
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
 
       if (type === 'pin') {
         const playTone = (freq, delay, duration) => {

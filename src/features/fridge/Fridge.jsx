@@ -326,7 +326,7 @@ export default function Fridge() {
    *
    * @returns {object} CSS style object.
    */
-  const getCanvasBackgroundStyle = () => {
+  const canvasBackgroundStyle = React.useMemo(() => {
     if (boardBg === 'dotted') {
       return {
         backgroundColor: '#0f172a',
@@ -341,7 +341,6 @@ export default function Fridge() {
         backgroundSize: '384px',
       };
     }
-    // 'metallic'
     return {
       background: `
         radial-gradient(ellipse at 50% 30%, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%),
@@ -350,7 +349,7 @@ export default function Fridge() {
       `,
       backgroundSize: '100% 100%, 40px 40px, 40px 40px',
     };
-  };
+  }, [boardBg]);
 
   // ---------------------------------------------------------------------------
   // Event handlers
@@ -776,7 +775,7 @@ export default function Fridge() {
                 transform: `scale(${zoom})`,
                 transformOrigin: 'top left',
                 overflow: 'hidden',
-                ...getCanvasBackgroundStyle(),
+                ...canvasBackgroundStyle,
               }}
             >
               {/* Subtle Metallic Brushed Highlights */}
