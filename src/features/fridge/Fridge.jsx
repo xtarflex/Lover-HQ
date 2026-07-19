@@ -15,7 +15,7 @@
  *   - {@link FridgeSpeedDial} – Floating-action-button speed dial
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ChevronsRight } from 'lucide-react';
 import {
@@ -309,17 +309,17 @@ export default function Fridge() {
   };
 
   /**
-   * Filters the active list of magnets, conditionally hiding items older than
-   * `cleanThreshold` days when clean mode is active.
-   *
-   * @returns {Array<Object>} The filtered array of fridge items.
+   * ⚡ BOLT OPTIMIZATION: Memoize filtered items to prevent O(N) filtering on every render.
+   * Uses direct ISO 8601 string comparison instead of `new Date()` instantiation for each item
+   * to drastically reduce GC pressure and CPU usage during heavy interactions like dragging.
    */
-  const getFilteredItems = () => {
+  const filteredItems = useMemo(() => {
     if (!hideOld) return items;
     const cutOffDate = new Date();
     cutOffDate.setDate(cutOffDate.getDate() - cleanThreshold);
-    return items.filter((item) => new Date(item.created_at) >= cutOffDate);
-  };
+    const cutOffIsoString = cutOffDate.toISOString();
+    return items.filter((item) => item.created_at >= cutOffIsoString);
+  }, [items, hideOld, cleanThreshold]);
 
   /**
    * Generates dynamic styling for the whiteboard canvas background.
@@ -728,8 +728,6 @@ export default function Fridge() {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-
-  const filteredItems = getFilteredItems();
 
   return (
     <div className="w-full h-full bg-slate-950 overflow-hidden relative">
