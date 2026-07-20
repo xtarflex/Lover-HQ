@@ -309,8 +309,7 @@ const FridgeItem = React.memo(function FridgeItem({
 
     const isRead =
       !item.isPending &&
-      (isPartnerInFridge ||
-        (partnerLastSeen && new Date(partnerLastSeen) >= new Date(item.updated_at)));
+      (isPartnerInFridge || (partnerLastSeen && partnerLastSeen >= item.updated_at));
 
     let indicatorNode;
     if (item.isOfflineQueue) {
