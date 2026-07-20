@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
@@ -12,13 +11,13 @@ import { getProxiedUrl } from '../features/music/lib/musicUtils';
 const MusicContext = createContext(null);
 
 /**
- * Global Music Player Context Provider.
+ * @description Global Music Player Context Provider.
  * Orchestrates decomposed hooks for queue database sync, HTML5 media elements,
  * YouTube player instances, crossfading transitions, and real-time partner sync.
  *
- * @param {Object} props
- * @param {React.ReactNode} props.children
- * @returns {React.ReactElement} The Context Provider.
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.children - Child nodes to be wrapped by the provider.
+ * @returns {React.ReactElement} The Context Provider element.
  */
 export function MusicProvider({ children }) {
   const supabase = useSupabase();
@@ -46,11 +45,21 @@ export function MusicProvider({ children }) {
   const playTrackByIdRef = useRef(null);
   const handleTrackEndedRef = useRef(null);
 
-  useEffect(() => { volumeRef.current = volume; }, [volume]);
-  useEffect(() => { crossfadeDurationRef.current = crossfadeDuration; }, [crossfadeDuration]);
-  useEffect(() => { currentTrackRef.current = currentTrack; }, [currentTrack]);
-  useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
-  useEffect(() => { currentTimeRef.current = currentTime; }, [currentTime]);
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
+  useEffect(() => {
+    crossfadeDurationRef.current = crossfadeDuration;
+  }, [crossfadeDuration]);
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
+  useEffect(() => {
+    activePlayerRef.current = activePlayer;
+  }, [activePlayer]);
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
 
   const ytContainerRef = useRef(null);
 
@@ -76,11 +85,6 @@ export function MusicProvider({ children }) {
     ytReady,
     pendingYtAction,
     activeYtIndex,
-    playVideo,
-    pauseVideo,
-    loadVideo,
-    seekVideo,
-    setVolume: setYtVolume,
   } = useYoutubePlayer({
     user,
     isPlaying,
@@ -121,32 +125,42 @@ export function MusicProvider({ children }) {
    * Pauses the currently active player (local only or broadcast).
    *
    * @param {boolean} [shouldBroadcast=true] - Whether to sync-broadcast pause.
+   * @returns {void}
    */
-  const pauseLocalPlayback = useCallback((shouldBroadcast = true) => {
-    setIsPlaying(false);
-    if (pendingYtAction.current) {
-      pendingYtAction.current.startPaused = true;
-    }
-    const ap = activePlayerRef.current;
-    if (ap === 'html5' && audioRef.current) {
-      audioRef.current.pause();
-    } else if (ap === 'youtube') {
-      const activeYt = ytPlayers.current[activeYtIndex.current];
-      if (ytReady.current[activeYtIndex.current] && activeYt?.pauseVideo) {
-        activeYt.pauseVideo();
+  // pendingYtAction is a mutable ref object passed into hook orchestrators.
+  // eslint-disable-next-line react-hooks/immutability
+  const pauseLocalPlayback = useCallback(
+    (shouldBroadcast = true) => {
+      setIsPlaying(false);
+      if (pendingYtAction.current) {
+        pendingYtAction.current.startPaused = true;
       }
-    }
-    if (shouldBroadcast && !isRemoteAction.current) {
-      broadcastPause();
-    }
-  }, [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]);
+      const ap = activePlayerRef.current;
+      if (ap === 'html5' && audioRef.current) {
+        audioRef.current.pause();
+      } else if (ap === 'youtube') {
+        const activeYt = ytPlayers.current[activeYtIndex.current];
+        if (ytReady.current[activeYtIndex.current] && activeYt?.pauseVideo) {
+          activeYt.pauseVideo();
+        }
+      }
+      if (shouldBroadcast && !isRemoteAction.current) {
+        broadcastPause();
+      }
+    },
+    [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
+  );
 
   /**
    * Plays a track by its queue database ID, setting up HTML5 or YouTube resources.
    *
    * @param {string} trackId - The queue ID of the track to play.
    * @param {number} [startTime=0] - Playback offset in seconds.
+   * @param {boolean} [startPaused=false] - Whether to load without playing immediately.
+   * @returns {Promise<void>}
    */
+  // pendingYtAction is a mutable ref; broadcastPlay and queueRef are forward references.
+  // eslint-disable-next-line react-hooks/immutability, no-use-before-define
   const playTrackById = useCallback(
     async (trackId, startTime = 0, startPaused = false) => {
       const track = queueRef.current.find((t) => t.id === trackId);
@@ -243,7 +257,11 @@ export function MusicProvider({ children }) {
 
   /**
    * Resumes local playback from the current track position.
+   *
+   * @returns {Promise<void>}
    */
+  // pendingYtAction is a mutable ref; broadcastPlay is a lazy-captured forward reference.
+  // eslint-disable-next-line react-hooks/immutability, no-use-before-define
   const resumeLocalPlayback = useCallback(async () => {
     if (!currentTrackRef.current) return;
 
@@ -279,7 +297,10 @@ export function MusicProvider({ children }) {
       } else {
         console.log(`YouTube player not ready for resume. Queuing play action.`);
         if (currentTrackRef.current) {
-          pendingYtAction.current = { trackId: currentTrackRef.current.id, startTime: currentTimeRef.current };
+          pendingYtAction.current = {
+            trackId: currentTrackRef.current.id,
+            startTime: currentTimeRef.current,
+          };
         }
       }
     }
@@ -293,45 +314,59 @@ export function MusicProvider({ children }) {
    * Seeks the active player to a specific timestamp and syncs.
    *
    * @param {number} timestamp - Playback seek target in seconds.
+   * @returns {void}
    */
-  const seekLocalPlayback = useCallback((timestamp) => {
-    setCurrentTime(timestamp);
-    const ap = activePlayerRef.current;
-    if (ap === 'html5' && audioRef.current) {
-      audioRef.current.currentTime = timestamp;
-    } else if (ap === 'youtube') {
-      const isReady = ytReady.current[activeYtIndex.current];
-      if (isReady) {
-        ytPlayers.current[activeYtIndex.current]?.seekTo?.(timestamp, true);
-      } else if (pendingYtAction.current) {
-        pendingYtAction.current.startTime = timestamp;
+  // pendingYtAction is a mutable ref object used to queue seek target offsets.
+  // eslint-disable-next-line react-hooks/immutability
+  const seekLocalPlayback = useCallback(
+    (timestamp) => {
+      setCurrentTime(timestamp);
+      const ap = activePlayerRef.current;
+      if (ap === 'html5' && audioRef.current) {
+        audioRef.current.currentTime = timestamp;
+      } else if (ap === 'youtube') {
+        const isReady = ytReady.current[activeYtIndex.current];
+        if (isReady) {
+          ytPlayers.current[activeYtIndex.current]?.seekTo?.(timestamp, true);
+        } else if (pendingYtAction.current) {
+          pendingYtAction.current.startTime = timestamp;
+        }
       }
-    }
-    if (!isRemoteAction.current) {
-      broadcastSeek(timestamp);
-    }
-  }, [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]);
+      if (!isRemoteAction.current) {
+        broadcastSeek(timestamp);
+      }
+    },
+    [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
+  );
 
   /**
    * Changes the output volume of the active player.
    *
    * @param {number} newVolume - Volume level from 0 to 1.
+   * @returns {void}
    */
-  const changeVolume = useCallback((newVolume) => {
-    setVolumeState(newVolume);
-    if (activePlayerRef.current === 'html5' && audioRef.current) {
-      audioRef.current.volume = newVolume;
-    } else if (activePlayerRef.current === 'youtube') {
-      const isReady = ytReady.current[activeYtIndex.current];
-      if (isReady) {
-        ytPlayers.current[activeYtIndex.current]?.setVolume?.(newVolume * 100);
+  const changeVolume = useCallback(
+    (newVolume) => {
+      setVolumeState(newVolume);
+      if (activePlayerRef.current === 'html5' && audioRef.current) {
+        audioRef.current.volume = newVolume;
+      } else if (activePlayerRef.current === 'youtube') {
+        const isReady = ytReady.current[activeYtIndex.current];
+        if (isReady) {
+          ytPlayers.current[activeYtIndex.current]?.setVolume?.(newVolume * 100);
+        }
       }
-    }
-  }, [audioRef, ytPlayers, ytReady, activeYtIndex]);
+    },
+    [audioRef, ytPlayers, ytReady, activeYtIndex]
+  );
 
   /**
    * Transitions playback to the next track in the queue once current track ends.
+   *
+   * @returns {void}
    */
+  // queueRef is a stable mutable ref; playTrackById indirectly touches pendingYtAction.
+  // eslint-disable-next-line react-hooks/immutability, react-hooks/exhaustive-deps
   const handleTrackEnded = useCallback(() => {
     const q = queueRef.current;
     const ct = currentTrackRef.current;
@@ -353,15 +388,7 @@ export function MusicProvider({ children }) {
   }, [handleTrackEnded]);
 
   // ─── Hook 4: Database Queue CRUD & Subscriptions ───────────────────────────
-  const {
-    queue,
-    setQueue,
-    queueRef,
-    fetchQueue,
-    addToQueue,
-    removeFromQueue,
-    reorderQueue,
-  } = useQueueDb({
+  const { queue, queueRef, addToQueue, removeFromQueue, reorderQueue } = useQueueDb({
     user,
     supabase,
     currentTrackRef,
@@ -439,6 +466,8 @@ export function MusicProvider({ children }) {
   }, [isPlaying, currentTrack, broadcastHeartbeat]);
 
   // ─── OS Media Session Listeners ────────────────────────────────────────────
+  // Handlers read live values via currentTrackRef/queueRef; adding queueRef causes unnecessary re-registration.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentTrack) return;
     navigator.mediaSession.setActionHandler('play', resumeLocalPlayback);
@@ -452,6 +481,8 @@ export function MusicProvider({ children }) {
   }, [currentTrack, resumeLocalPlayback, pauseLocalPlayback, playTrackById, seekLocalPlayback]);
 
   // ─── Crossfade Monitor Loop ────────────────────────────────────────────────
+  // Reads live values via queueRef/crossfadeDurationRef; adding queueRef causes infinite loops or stale closures.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!isPlaying || isCrossfading.current || !currentTrack || duration <= 0) return;
     const remainingTime = duration - currentTime;
@@ -516,6 +547,36 @@ export function MusicProvider({ children }) {
   );
 }
 
+/**
+ * @description Consumes the MusicContext. Must be used inside a {@link MusicProvider}.
+ * Throws an error if called outside the provider tree.
+ *
+ * @returns {{
+ *   queue: Array<object>,
+ *   currentTrack: object|null,
+ *   isPlaying: boolean,
+ *   currentTime: number,
+ *   duration: number,
+ *   volume: number,
+ *   crossfadeDuration: number,
+ *   activePlayer: 'html5'|'youtube'|'none',
+ *   isListenAlongBlocked: boolean,
+ *   analyserNode: AnalyserNode|null,
+ *   setCrossfadeDuration: React.Dispatch<React.SetStateAction<number>>,
+ *   playTrackById: (trackId: string, startTime?: number, startPaused?: boolean) => Promise<void>,
+ *   pauseLocalPlayback: (shouldBroadcast?: boolean) => void,
+ *   resumeLocalPlayback: () => Promise<void>,
+ *   seekLocalPlayback: (timestamp: number) => void,
+ *   changeVolume: (newVolume: number) => void,
+ *   handleListenAlong: () => void,
+ *   addToQueue: Function,
+ *   removeFromQueue: Function,
+ *   reorderQueue: Function,
+ *   ytReady: React.MutableRefObject<boolean[]>,
+ *   ytPlayers: React.MutableRefObject<object[]>,
+ *   preparePlayer: Function,
+ * }} The full music player context value.
+ */
 export const useMusic = () => {
   const context = useContext(MusicContext);
   if (!context) throw new Error('useMusic must be used within a MusicProvider');
