@@ -28,6 +28,7 @@ import { usePresence } from './hooks/usePresence';
 import { usePreferences } from './hooks/usePreferences';
 import { useAuthSync } from './hooks/useAuthSync';
 import { useSpeculativePreload } from './hooks/useSpeculativePreload';
+import { useSyncPreferencesToStorage } from './hooks/useSyncPreferencesToStorage';
 import GameInviteModal from './components/GameInviteModal';
 import { Notification } from './components/Notification';
 import { MusicProvider } from './contexts/MusicContext';
@@ -154,7 +155,7 @@ function MainLayout() {
  * Route wrapper that redirects unauthenticated or un-onboarded users to the
  * appropriate screen before rendering protected content.
  *
- * @param {object} props
+ * @param {object} props - Component props.
  * @param {React.ReactNode} props.children - The protected content to render.
  * @returns {React.ReactElement}
  */
@@ -174,11 +175,11 @@ function ProtectedRoute({ children }) {
 }
 
 /**
- * Root application component. Sets up the Router, applies the active theme class
+ * @description Root application component. Sets up the Router, applies the active theme class
  * to `document.documentElement`, captures the pairing code from the URL search
  * params, and delegates auth sync + speculative preloading to dedicated hooks.
  *
- * @returns {React.ReactElement}
+ * @returns {React.ReactElement} The rendered root App element.
  */
 export default function App() {
   const { user, preferences } = useAppContext();
@@ -218,40 +219,8 @@ export default function App() {
   // Load and sync preferences from DB
   const { prefs } = usePreferences(user?.id);
 
-  // Sync loaded preferences with AppContext
-  useEffect(() => {
-    if (prefs) {
-      dispatch({ type: 'SET_PREFERENCES', payload: prefs });
-      // Sync DB preferences to localStorage for consistency across pages
-      if (prefs.theme) {
-        localStorage.setItem('theme', prefs.theme);
-      }
-      if (prefs.sound_muted !== undefined) {
-        localStorage.setItem('fridge_sound_muted', prefs.sound_muted.toString());
-      }
-      if (prefs.grid_snapping !== undefined) {
-        localStorage.setItem('fridge_grid_snapping', prefs.grid_snapping.toString());
-      }
-      if (prefs.fridge_background) {
-        localStorage.setItem('fridge_background', prefs.fridge_background);
-      }
-      if (prefs.fridge_note_font) {
-        localStorage.setItem('fridge_note_font', prefs.fridge_note_font);
-      }
-      if (prefs.auto_compact_days !== undefined) {
-        localStorage.setItem(
-          'fridge_auto_compact_days',
-          prefs.auto_compact_days === null ? 'off' : prefs.auto_compact_days.toString()
-        );
-      }
-      if (prefs.push_notifications_enabled !== undefined) {
-        localStorage.setItem(
-          'preferences_push_enabled',
-          prefs.push_notifications_enabled.toString()
-        );
-      }
-    }
-  }, [prefs, dispatch]);
+  // Sync DB preferences → AppContext store + localStorage mirrors
+  useSyncPreferencesToStorage(prefs, dispatch);
 
   // Apply theme class (dark or light) dynamically to documentElement
   useEffect(() => {
@@ -299,25 +268,19 @@ export default function App() {
               )
             }
           />
-
           <Route
             path="/onboarding"
             element={
-              !user ? (
-                <Navigate to="/auth" replace />
-              ) : user.onboarding_completed ? (
-                <Navigate to="/home" replace />
-              ) : (
+              user ? (
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <Onboarding />
                 </Suspense>
+              ) : (
+                <Navigate to="/auth" replace />
               )
             }
           />
-
-          {/* Main application routes wrapped in layout and protection */}
           <Route
-            path="/"
             element={
               <ProtectedRoute>
                 <MusicProvider>
@@ -326,20 +289,17 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/home" replace />} />
-            <Route path="home" element={<Home />} />
-            <Route path="fridge" element={<Fridge />} />
-            <Route path="music" element={<Music />} />
-            <Route path="games" element={<Games />} />
-            <Route path="reveal" element={<Reveal />} />
-            <Route path="board" element={<Board />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="chat" element={<Chat />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/fridge" element={<Fridge />} />
+            <Route path="/music" element={<Music />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/reveal" element={<Reveal />} />
+            <Route path="/board" element={<Board />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
-
-          {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <InstallPrompt />
       </div>
