@@ -95,8 +95,9 @@ export function useYoutubePlayer({
       // Clean up previous elements to prevent iframe duplication if any
       const player0El = document.getElementById('yt-player-0');
       const player1El = document.getElementById('yt-player-1');
-      if (player0El) player0El.innerHTML = '';
-      if (player1El) player1El.innerHTML = '';
+      // Fix: avoid innerHTML for DOM manipulation to prevent XSS risks and SAST warnings
+      if (player0El) player0El.replaceChildren();
+      if (player1El) player1El.replaceChildren();
 
       const makePlayer = (divId, idx) => {
         return new YT.Player(divId, {
