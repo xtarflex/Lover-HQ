@@ -168,6 +168,7 @@ export default function MemoryLane({
 
                   <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <button
+                      aria-label={isStarred ? 'Remove from starred' : 'Add to starred'}
                       onClick={() => onToggleFavorite(mem.question_id)}
                       className={`p-1.5 rounded-lg border transition-all ${
                         isStarred
@@ -178,6 +179,7 @@ export default function MemoryLane({
                       <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-500' : ''}`} />
                     </button>
                     <button
+                      aria-label="View memory details"
                       onClick={() => setExpandedMemoryId(mem.question_id)}
                       className="p-1.5 rounded-lg border border-transparent text-text-muted hover:text-text-main hover:bg-white/5 transition-all"
                     >
@@ -221,6 +223,7 @@ export default function MemoryLane({
                     </h4>
                   </div>
                   <button
+                    aria-label="Close memory details"
                     onClick={() => setExpandedMemoryId(null)}
                     className="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-white/5 transition-all"
                   >
@@ -319,6 +322,7 @@ export default function MemoryLane({
                     }}
                   />
                   <button
+                    aria-label="Send comment"
                     onClick={() => onAddComment(selectedMemory.question_id)}
                     disabled={!(newCommentTexts[selectedMemory.question_id] || '').trim()}
                     className="bg-primary hover:bg-primary-hover disabled:opacity-50 text-white p-2 rounded-xl transition-all shadow"
