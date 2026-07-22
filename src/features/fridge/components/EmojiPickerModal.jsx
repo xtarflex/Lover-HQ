@@ -31,6 +31,7 @@ export default function EmojiPickerModal({ isOpen, onClose, onSelect }) {
             onClick={onClose}
             className="text-text-muted hover:text-text-main transition-colors p-1 rounded-lg hover:bg-white/5"
             title="Close picker"
+            aria-label="Close picker"
           >
             <X className="w-5 h-5" />
           </button>

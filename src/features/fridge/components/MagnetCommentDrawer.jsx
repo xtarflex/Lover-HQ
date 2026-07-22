@@ -233,6 +233,7 @@ export default function MagnetCommentDrawer({
             onClick={onClose}
             className="text-text-muted hover:text-text-main transition-colors p-1.5 rounded-lg hover:bg-white/5"
             title="Close comments"
+            aria-label="Close comments"
           >
             <X className="w-5 h-5" />
           </button>
@@ -440,6 +441,7 @@ export default function MagnetCommentDrawer({
             disabled={!inputText.trim()}
             className="bg-primary hover:bg-primary-hover text-brand-surface disabled:opacity-50 disabled:hover:bg-primary p-2.5 rounded-xl transition-all shadow-md flex items-center justify-center flex-shrink-0"
             title="Send"
+            aria-label="Send message"
           >
             <Send className="w-4.5 h-4.5" />
           </button>
