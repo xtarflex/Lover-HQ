@@ -33,3 +33,52 @@ export const formatChatDate = (dateStr) => {
     minute: '2-digit',
   });
 };
+
+/**
+ * Formats the partner's last seen ISO string into a friendly relative or absolute date.
+ *
+ * @param {string} lastSeenIso - ISO date string
+ * @returns {string} Friendly last seen message
+ */
+export function formatLastSeen(lastSeenIso) {
+  if (!lastSeenIso) return 'Last seen offline';
+  const lastSeenDate = new Date(lastSeenIso);
+  const diffMs = Date.now() - lastSeenDate.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffMins < 1) {
+    return 'Last seen just now';
+  }
+  if (diffMins < 60) {
+    return `Last seen ${diffMins}m ago`;
+  }
+  if (diffHours < 24) {
+    return `Last seen ${diffHours}h ago`;
+  }
+
+  const formattedDate = lastSeenDate.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+  const formattedTime = lastSeenDate.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `Last seen ${formattedDate} at ${formattedTime}`;
+}
+
+/**
+ * Formats a message creation timestamp into a short time string (e.g., "10:45 AM").
+ *
+ * @param {string} isoString - ISO date string
+ * @returns {string} Formatted time string
+ */
+export function getFormattedTime(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  return d.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
