@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/immutability, react-hooks/no-use-before-define */
+/* eslint-disable react-hooks/immutability, no-use-before-define */
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
