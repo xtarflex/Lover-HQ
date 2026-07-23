@@ -55,7 +55,7 @@ export function MediaPreviewSheet({
   setNaturalDims,
   handleBatchUpload,
 }) {
-  if (pendingMediaFiles.length === 0) return null;
+  if (!pendingMediaFiles || pendingMediaFiles.length === 0) return null;
 
   return (
     <div className="absolute inset-0 bg-black z-[70] flex flex-col justify-between animate-fade-in select-none">

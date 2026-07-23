@@ -73,7 +73,7 @@ export function MessageList({
           <LoadingSpinner size="md" />
           <span className="text-xs text-text-muted">Fetching your digital diary...</span>
         </div>
-      ) : groupedMessages.length === 0 ? (
+      ) : !groupedMessages || groupedMessages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full space-y-4 text-center px-8">
           <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
             <Smile className="w-8 h-8 text-primary" />
@@ -115,8 +115,8 @@ export function MessageList({
           }
 
           if (item.type === 'media_group') {
-            const groupMsgs = item.messages;
-            const isSelf = item.user_id === userId;
+            const groupMsgs = item.messages || [];
+            const isSelf = (item?.user_id || groupMsgs[0]?.user_id) === userId;
             const hideHeader = item.hideHeader || false;
 
             const highlightedMsg = groupMsgs.find((m) => longPressedMessage?.id === m.id);
@@ -387,11 +387,15 @@ export function MessageList({
             );
           }
 
-          const msg = item.data;
-          const isSelf = msg.user_id === userId;
+          const msg = item.data || item;
+          const isSelf = msg?.user_id === userId;
           const isHighlighted = longPressedMessage?.id === msg.id;
           const hideHeader = item.hideHeader || false;
-          const quotedMsg = msg.reply_to_message_id ? quotedMessagesMap.get(msg.id) : null;
+          const quotedMsg = msg.reply_to_message_id
+            ? typeof quotedMessagesMap?.get === 'function'
+              ? quotedMessagesMap.get(msg.reply_to_message_id)
+              : quotedMessagesMap?.[msg.reply_to_message_id]
+            : null;
 
           const hasText =
             msg.content &&

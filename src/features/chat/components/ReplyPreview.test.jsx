@@ -13,6 +13,13 @@ const USER_ID = 'user-a';
 const partner = { name: 'Alex' };
 
 describe('ReplyPreview', () => {
+  it('renders null when replyMessage is null', () => {
+    const { container } = render(
+      <ReplyPreview replyMessage={null} userId={USER_ID} partner={partner} onDismiss={vi.fn()} />
+    );
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders the reply message content', () => {
     const msg = { id: '1', user_id: 'user-b', content: 'Original message' };
     render(

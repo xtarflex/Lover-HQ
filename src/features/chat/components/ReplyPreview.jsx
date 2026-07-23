@@ -20,6 +20,8 @@ import { X } from 'lucide-react';
  * @returns {React.ReactElement}
  */
 export function ReplyPreview({ replyMessage, userId, partner, onDismiss }) {
+  if (!replyMessage) return null;
+
   return (
     <div className="bg-slate-950 border border-slate-850 rounded-xl p-2.5 flex items-center justify-between text-xs animate-slide-up">
       <div className="truncate flex-1">

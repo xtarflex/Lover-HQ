@@ -4,7 +4,7 @@
  * Refactored Orchestrator Component.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
@@ -67,9 +67,30 @@ export default function Chat() {
 
   const [showUnreadDivider, setShowUnreadDivider] = useState(true);
 
+  // Scroll to Bottom Helper
+  const messagesEndRef = useRef(null);
+  const imageInputRef = useRef(null);
+
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  const coupleKey = [userId, partnerId].filter(Boolean).sort().join('_');
+
   // 1. Hook: Messages & Realtime Sync
-  const { messages, setMessages, loading, coupleKey, quotedMessagesMap, groupedMessages } =
-    useChatMessages(userId, partnerId);
+  const { messages, setMessages, loading } = useChatMessages(coupleKey, scrollToBottom);
+
+  const quotedMessagesMap = useMemo(() => {
+    const map = {};
+    (messages || []).forEach((m) => {
+      if (m?.id) map[m.id] = m;
+    });
+    return map;
+  }, [messages]);
+
+  const groupedMessages = useMemo(() => {
+    return messages || [];
+  }, [messages]);
 
   // 2. Hook: Partner Presence
   const { partnerLastSeen } = usePartnerPresence(partnerId, partner?.last_seen);
@@ -128,14 +149,6 @@ export default function Chat() {
   }, [fetchFridgeItemsList]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Scroll to Bottom Helper
-  const messagesEndRef = useRef(null);
-  const imageInputRef = useRef(null);
-
-  const scrollToBottom = useCallback((behavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
-
   const handleScrollToMessage = useCallback((messageId) => {
     const el = document.getElementById(`msg-${messageId}`);
     if (el) {
@@ -174,15 +187,17 @@ export default function Chat() {
     setTimeout(() => scrollToBottom('smooth'), 50);
 
     try {
+      const insertPayload = {
+        user_id: userId,
+        content: textToSend || (currentRefId ? 'Attached a fridge item' : ''),
+      };
+      if (coupleKey) insertPayload.couple_key = coupleKey;
+      if (currentReplyId) insertPayload.reply_to_message_id = currentReplyId;
+      if (currentRefId) insertPayload.referenced_fridge_item_id = currentRefId;
+
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          couple_key: coupleKey,
-          user_id: userId,
-          content: textToSend || (currentRefId ? 'Attached a fridge item' : ''),
-          reply_to_message_id: currentReplyId,
-          referenced_fridge_item_id: currentRefId,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
