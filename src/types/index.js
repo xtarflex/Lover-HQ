@@ -42,6 +42,7 @@
  * @property {RoomType | null} currentRoom - The currently active feature/room.
  * @property {PairingStatus} pairingStatus - The pairing status between the user and partner.
  * @property {ThemeType} theme - The currently active visual theme.
+ * @property {boolean} isAuthLoading - True if Supabase session is still initializing.
  */
 
 /**

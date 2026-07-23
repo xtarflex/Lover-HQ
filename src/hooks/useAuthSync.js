@@ -47,6 +47,7 @@ export function useAuthSync() {
 
         if (cachedUser) {
           dispatch({ type: 'SET_USER', payload: JSON.parse(cachedUser) });
+          dispatch({ type: 'SET_AUTH_LOADING', payload: false });
         }
         if (cachedPartner) {
           dispatch({ type: 'SET_PARTNER', payload: JSON.parse(cachedPartner) });
@@ -162,6 +163,8 @@ export function useAuthSync() {
         }
       } catch (err) {
         console.error('Profile sync failed:', err);
+      } finally {
+        dispatch({ type: 'SET_AUTH_LOADING', payload: false });
       }
     };
 
@@ -182,10 +185,12 @@ export function useAuthSync() {
             localStorage.removeItem('lover_hq_pairing_status');
             dispatch({ type: 'RESET_STATE' });
           }
+          dispatch({ type: 'SET_AUTH_LOADING', payload: false });
         }
       })
       .catch((err) => {
         console.error('Session retrieval failed:', err);
+        dispatch({ type: 'SET_AUTH_LOADING', payload: false });
       });
 
     // 3. Ongoing auth state listener

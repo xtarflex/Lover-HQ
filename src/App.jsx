@@ -161,7 +161,11 @@ function MainLayout() {
  * @returns {React.ReactElement}
  */
 function ProtectedRoute({ children }) {
-  const { user } = useAppContext();
+  const { user, isAuthLoading } = useAppContext();
+
+  if (isAuthLoading) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   if (!user) {
     return <Navigate to="/auth" replace />;

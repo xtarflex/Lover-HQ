@@ -109,6 +109,7 @@ export function useYoutubePlayer({
             fs: 0,
             rel: 0,
             modestbranding: 1,
+            enablejsapi: 1,
             origin: window.location.origin,
           },
           events: {

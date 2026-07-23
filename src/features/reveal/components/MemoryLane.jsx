@@ -77,6 +77,9 @@ export default function MemoryLane({
             <Search className="h-4 w-4 text-text-muted" />
           </span>
           <input
+            id="search-answers-input"
+            name="searchAnswers"
+            aria-label="Search answers"
             type="text"
             placeholder="Search answers..."
             value={searchQuery}
@@ -304,6 +307,9 @@ export default function MemoryLane({
                 {/* Add Comment Input sticky at the bottom */}
                 <div className="p-4 border-t border-surface-border/20 dark:border-slate-800/80 bg-surface/95 dark:bg-slate-900/95 flex gap-2 items-center shrink-0">
                   <input
+                    id={`add-comment-input-${selectedMemory.question_id}`}
+                    name="newComment"
+                    aria-label="Add a comment"
                     type="text"
                     value={newCommentTexts[selectedMemory.question_id] || ''}
                     onChange={(e) =>

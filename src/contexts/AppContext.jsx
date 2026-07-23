@@ -16,6 +16,7 @@ const initialState = {
   autoJoinGameId: null,
   globalNotification: null,
   activeGameId: null,
+  isAuthLoading: true,
 };
 
 const AppContext = createContext(null);
@@ -64,6 +65,8 @@ function appReducer(state, action) {
   switch (action.type) {
     case 'SET_USER':
       return { ...state, user: action.payload };
+    case 'SET_AUTH_LOADING':
+      return { ...state, isAuthLoading: action.payload };
     case 'SET_PARTNER':
       return { ...state, partner: action.payload };
     case 'SET_PRESENCE':
@@ -93,7 +96,7 @@ function appReducer(state, action) {
     case 'SET_ACTIVE_GAME':
       return { ...state, activeGameId: action.payload };
     case 'RESET_STATE':
-      return initialState;
+      return { ...initialState, isAuthLoading: false };
     default:
       console.warn(`Unhandled action type: ${action.type}`);
       return state;

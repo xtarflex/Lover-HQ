@@ -139,6 +139,9 @@ export default function CustomQuestionQueue({
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
               <input
+                id="queue-search-input"
+                name="queueSearch"
+                aria-label="Search custom questions"
                 type="text"
                 value={queueSearch}
                 onChange={(e) => setQueueSearch(e.target.value)}
@@ -276,6 +279,9 @@ export default function CustomQuestionQueue({
                               <Calendar className="w-3.5 h-3.5" />
                             </button>
                             <input
+                              id={`custom-date-picker-${q.id}`}
+                              name="customDatePicker"
+                              aria-label="Choose custom date"
                               type="date"
                               min={todayDateStr}
                               onChange={(e) => {
