@@ -33,6 +33,7 @@ import GameInviteModal from './components/GameInviteModal';
 import { Notification } from './components/Notification';
 import { MusicProvider } from './contexts/MusicContext';
 import { MiniPlayer } from './components/MiniPlayer';
+import { SEO } from './components/SEO';
 
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
@@ -249,6 +250,7 @@ export default function App() {
 
   return (
     <Router>
+      <SEO />
       <div className="min-h-screen bg-background">
         <OfflineIndicator />
         <Routes>

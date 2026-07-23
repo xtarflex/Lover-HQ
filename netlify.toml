@@ -1,7 +1,7 @@
 [build]
-  command = "pnpm run build"
+  command = "pnpm build"
   publish = "dist"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- src/ public/ index.html vite.config.js package.json postcss.config.js tailwind.config.js"
+  ignore = "bash -c 'if [ \"$BRANCH\" = \"main\" ] && git log -1 --pretty=%B | grep -iqE \"\\\\[release\\\\]|\\\\[feature release\\\\]|\\\\[deploy\\\\]|\\\\[major\\\\]\"; then exit 1; else exit 0; fi'"
 
 [build.environment]
   NODE_VERSION = "20"
