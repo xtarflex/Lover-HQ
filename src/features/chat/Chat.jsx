@@ -1281,8 +1281,7 @@ export default function Chat() {
         user_id: userId,
         content: 'Market_Logistics.pdf',
         media_type: 'document',
-        media_url:
-          'https://oxqpmfdoytdfxmofmeno.supabase.co/storage/v1/object/public/chat-media/dummy_market_logistics.pdf',
+        media_url: `${import.meta.env.VITE_SUPABASE_URL || ''}/storage/v1/object/public/chat-media/dummy_market_logistics.pdf`,
         reply_to_message_id: replyMessage?.id || null,
       });
       if (error) throw error;
@@ -1902,11 +1901,10 @@ export default function Chat() {
   // In-app CORS-safe image download helper
   const handleDownloadImage = useCallback(async (url) => {
     try {
-      const supabaseUrl =
-        import.meta.env.VITE_SUPABASE_URL || 'https://oxqpmfdoytdfxmofmeno.supabase.co';
-      const prefix = `${supabaseUrl}/storage/v1/object/public/`;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const prefix = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/` : '';
       let downloadUrl = url;
-      if (url.startsWith(prefix)) {
+      if (prefix && url.startsWith(prefix)) {
         downloadUrl = url.replace(prefix, '/storage-proxy/');
       }
       const response = await fetch(downloadUrl);

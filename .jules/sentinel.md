@@ -16,3 +16,7 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+## 2026-06-25 - Prevent Hardcoded Infrastructure URLs
+**Vulnerability:** Found hardcoded URLs pointing to a specific development/testing Supabase instance (e.g., `https://oxqpmfdoytdfxmofmeno.supabase.co`) in fallback logic and simulated functions.
+**Learning:** Hardcoded environment URLs can inadvertently leak testing infrastructure details or cause subtle cross-environment issues where staging code hits production resources (or vice versa).
+**Prevention:** Always construct backend service URLs dynamically using environment variables (`import.meta.env.VITE_SUPABASE_URL`), and ensure fallback logic handles missing values securely (e.g., empty string or throwing an error) without exposing specific instances.
