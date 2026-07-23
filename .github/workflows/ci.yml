@@ -13,28 +13,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install pnpm
-      uses: pnpm/action-setup@v3
-      with:
-        version: 9
-
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm'
+        cache: 'npm'
 
     - name: Install dependencies
-      run: pnpm install
+      run: npm ci
 
     - name: Lint
-      run: pnpm run lint
-      
+      run: npm run lint
+
     - name: Run Unit Tests
-      run: pnpm run test:run
+      run: npm run test:run
 
     - name: Build
-      run: pnpm run build
+      run: npm run build
       env:
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
