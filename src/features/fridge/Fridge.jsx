@@ -797,8 +797,7 @@ export default function Fridge() {
 
               {/* Render Draggable Items */}
               {filteredItems.map((item) => {
-                const isNew =
-                  new Date(item.updated_at) > new Date(lastVisited) && item.user_id !== userId;
+                const isNew = item.updated_at > lastVisited && item.user_id !== userId;
                 return (
                   <FridgeItem
                     key={item.id}

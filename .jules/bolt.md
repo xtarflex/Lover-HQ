@@ -21,3 +21,6 @@
 **Learning:** Performing multiple array `.find()` or `.filter()` operations inside a list-rendering component (or its hooks) creates an O(N * M) bottleneck, especially when the lists (like `promptsData` and `archiveMemories`) grow large.
 **Action:** Convert static arrays to Maps outside the component scope for O(1) lookups. For dynamic arrays, use `useMemo` to construct a Map, then perform O(1) lookups inside the render/callback cycles.
 
+## 2024-05-24 - Compare ISO 8601 strings directly in render loop
+**Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
+**Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
