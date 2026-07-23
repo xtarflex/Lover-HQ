@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { VoiceMessagePlayer } from './Chat';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 
 /**
  * Unit tests for the VoiceMessagePlayer component.
