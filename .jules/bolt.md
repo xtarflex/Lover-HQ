@@ -24,7 +24,3 @@
 ## 2024-05-24 - Compare ISO 8601 strings directly in render loop
 **Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
 **Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
-
-## 2024-05-30 - Network Overhead with Realtime Websockets in Typing Handlers
-**Learning:** Attaching a Supabase Realtime `.send()` broadcast event directly to an input's `onChange` handler triggers a network request on every single keystroke. This causes excessive network overhead and backend usage for features like "partner typing indicators" without any throttling.
-**Action:** Use a local mutable `useRef` boolean (e.g., `isTypingLocal`) combined with `setTimeout` to throttle broadcast emissions. Only send the "start typing" event on the first keystroke, and use the timeout to send the "stop typing" event after a period of inactivity. This reduces network requests from O(N) keystrokes to O(1) per typing burst.
