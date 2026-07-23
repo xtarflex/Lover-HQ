@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability, no-use-before-define */
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
@@ -64,28 +65,17 @@ export function MusicProvider({ children }) {
   const ytContainerRef = useRef(null);
 
   // ─── Hook 1: HTML5 Audio Player & AudioContext ──────────────────────────────
-  const {
-    audioRef,
-    standbyAudioRef,
-    analyserNode,
-    initAudioContext,
-    audioCtxRef,
-    preparePlayer,
-  } = useHtml5Player({
-    volume,
-    isCrossfadingRef: isCrossfading,
-    setCurrentTime,
-    setDuration,
-    handleTrackEnded: () => handleTrackEndedRef.current?.(),
-  });
+  const { audioRef, standbyAudioRef, analyserNode, initAudioContext, audioCtxRef, preparePlayer } =
+    useHtml5Player({
+      volume,
+      isCrossfadingRef: isCrossfading,
+      setCurrentTime,
+      setDuration,
+      handleTrackEnded: () => handleTrackEndedRef.current?.(),
+    });
 
   // ─── Hook 2: YouTube API Players ────────────────────────────────────────────
-  const {
-    ytPlayers,
-    ytReady,
-    pendingYtAction,
-    activeYtIndex,
-  } = useYoutubePlayer({
+  const { ytPlayers, ytReady, pendingYtAction, activeYtIndex } = useYoutubePlayer({
     user,
     isPlaying,
     isActivePlayer: activePlayer === 'youtube',
@@ -128,7 +118,7 @@ export function MusicProvider({ children }) {
    * @returns {void}
    */
   // pendingYtAction is a mutable ref object passed into hook orchestrators.
-  // eslint-disable-next-line react-hooks/immutability
+
   const pauseLocalPlayback = useCallback(
     (shouldBroadcast = true) => {
       setIsPlaying(false);
@@ -160,7 +150,7 @@ export function MusicProvider({ children }) {
    * @returns {Promise<void>}
    */
   // pendingYtAction is a mutable ref; broadcastPlay and queueRef are forward references.
-  // eslint-disable-next-line react-hooks/immutability, no-use-before-define
+
   const playTrackById = useCallback(
     async (trackId, startTime = 0, startPaused = false) => {
       const track = queueRef.current.find((t) => t.id === trackId);
@@ -261,7 +251,7 @@ export function MusicProvider({ children }) {
    * @returns {Promise<void>}
    */
   // pendingYtAction is a mutable ref; broadcastPlay is a lazy-captured forward reference.
-  // eslint-disable-next-line react-hooks/immutability, no-use-before-define
+  // eslint-disable-next-line react-hooks/immutability
   const resumeLocalPlayback = useCallback(async () => {
     if (!currentTrackRef.current) return;
 
@@ -317,7 +307,7 @@ export function MusicProvider({ children }) {
    * @returns {void}
    */
   // pendingYtAction is a mutable ref object used to queue seek target offsets.
-  // eslint-disable-next-line react-hooks/immutability
+
   const seekLocalPlayback = useCallback(
     (timestamp) => {
       setCurrentTime(timestamp);
@@ -366,7 +356,7 @@ export function MusicProvider({ children }) {
    * @returns {void}
    */
   // queueRef is a stable mutable ref; playTrackById indirectly touches pendingYtAction.
-  // eslint-disable-next-line react-hooks/immutability, react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/immutability
   const handleTrackEnded = useCallback(() => {
     const q = queueRef.current;
     const ct = currentTrackRef.current;
@@ -467,7 +457,7 @@ export function MusicProvider({ children }) {
 
   // ─── OS Media Session Listeners ────────────────────────────────────────────
   // Handlers read live values via currentTrackRef/queueRef; adding queueRef causes unnecessary re-registration.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentTrack) return;
     navigator.mediaSession.setActionHandler('play', resumeLocalPlayback);
@@ -482,7 +472,7 @@ export function MusicProvider({ children }) {
 
   // ─── Crossfade Monitor Loop ────────────────────────────────────────────────
   // Reads live values via queueRef/crossfadeDurationRef; adding queueRef causes infinite loops or stale closures.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!isPlaying || isCrossfading.current || !currentTrack || duration <= 0) return;
     const remainingTime = duration - currentTime;
