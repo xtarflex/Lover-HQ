@@ -33,6 +33,10 @@ dev-dist/
 avatar batch.html
 .devtools-uuid
 
+# Cloudflare & Wrangler dev assets
+.wrangler/
+.dev.vars
+
 
 # Test outputs & caches
 test-results/
