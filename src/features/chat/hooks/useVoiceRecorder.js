@@ -15,20 +15,22 @@ import { supabase } from '../../../lib/supabase';
 /**
  * Manages the complete voice note recording and preview state.
  *
- * @param {string|null} userId - The current user's ID (for upload path).
- * @param {object|null} replyMessage - The message being replied to (for reply_to_message_id).
- * @param {Function} dispatch - AppContext dispatch for global notifications.
- * @param {Function} setUploadingMedia - Setter to signal media upload in progress to parent.
- * @param {Function} setReplyMessage - Setter to clear reply context after send.
+ * @param {object} options - Options object.
+ * @param {string|null} options.userId - The current user's ID.
+ * @param {string|null} options.partnerId - The partner's ID.
+ * @param {object|null} options.replyMessage - The message being replied to (if any).
+ * @param {Function} options.dispatch - AppContext dispatch for global notifications.
+ * @param {string|null} options.coupleKey - Sorted, joined user+partner ID key.
+ * @param {Function} options.setReplyMessage - Setter to clear reply context after send.
  * @returns {object} All recorder state values and action handlers.
  */
-export function useVoiceRecorder(
+export function useVoiceRecorder({
   userId,
   replyMessage,
   dispatch,
-  setUploadingMedia,
-  setReplyMessage
-) {
+  coupleKey,
+  setReplyMessage,
+} = {}) {
   // ── Recording state ────────────────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [isRecordingPaused, setIsRecordingPaused] = useState(false);
@@ -40,6 +42,10 @@ export function useVoiceRecorder(
   const [audioPreviewPlaying, setAudioPreviewPlaying] = useState(false);
   const [audioPreviewDuration, setAudioPreviewDuration] = useState(0);
   const [audioPreviewCurrentTime, setAudioPreviewCurrentTime] = useState(0);
+
+  // ── Upload state ───────────────────────────────────────────────────────────
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
 
   // ── Internal refs ──────────────────────────────────────────────────────────
   const mediaRecorderRef = useRef(null);
@@ -145,10 +151,12 @@ export function useVoiceRecorder(
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         errorMessage = 'No microphone found. Please connect a recording device. 🎤';
       }
-      dispatch({
-        type: 'SET_GLOBAL_NOTIFICATION',
-        payload: { message: errorMessage, type: 'error' },
-      });
+      if (dispatch) {
+        dispatch({
+          type: 'SET_GLOBAL_NOTIFICATION',
+          payload: { message: errorMessage, type: 'error' },
+        });
+      }
     }
   };
 
@@ -335,22 +343,27 @@ export function useVoiceRecorder(
       const publicUrl = data.publicUrl;
       const durationVal = audioPreviewDuration || 0;
 
-      const { error: dbError } = await supabase.from('messages').insert({
+      const insertPayload = {
         user_id: userId,
         content: JSON.stringify({ url: publicUrl, duration: durationVal }),
         media_url: publicUrl,
         media_type: 'voice',
-        reply_to_message_id: replyMessage?.id || null,
-      });
+      };
+      if (coupleKey) insertPayload.couple_key = coupleKey;
+      if (replyMessage?.id) insertPayload.reply_to_message_id = replyMessage.id;
+
+      const { error: dbError } = await supabase.from('messages').insert(insertPayload);
 
       if (dbError) throw dbError;
-      setReplyMessage(null);
+      if (setReplyMessage) setReplyMessage(null);
     } catch (err) {
       console.error('Failed to upload voice note:', err);
-      dispatch({
-        type: 'SET_GLOBAL_NOTIFICATION',
-        payload: { message: 'Failed to upload voice note. Please try again.', type: 'error' },
-      });
+      if (dispatch) {
+        dispatch({
+          type: 'SET_GLOBAL_NOTIFICATION',
+          payload: { message: 'Failed to upload voice note. Please try again.', type: 'error' },
+        });
+      }
     } finally {
       setUploadingMedia(false);
       audioChunksRef.current = [];
@@ -360,8 +373,8 @@ export function useVoiceRecorder(
     audioPreviewDuration,
     replyMessage,
     userId,
+    coupleKey,
     dispatch,
-    setUploadingMedia,
     setReplyMessage,
   ]);
 
@@ -400,22 +413,27 @@ export function useVoiceRecorder(
         const { data } = supabase.storage.from('chat-media').getPublicUrl(filePath);
         const publicUrl = data.publicUrl;
 
-        const { error: dbError } = await supabase.from('messages').insert({
+        const insertPayload = {
           user_id: userId,
           content: JSON.stringify({ url: publicUrl, duration: 0 }),
           media_url: publicUrl,
           media_type: 'voice',
-          reply_to_message_id: replyMessage?.id || null,
-        });
+        };
+        if (coupleKey) insertPayload.couple_key = coupleKey;
+        if (replyMessage?.id) insertPayload.reply_to_message_id = replyMessage.id;
+
+        const { error: dbError } = await supabase.from('messages').insert(insertPayload);
 
         if (dbError) throw dbError;
-        setReplyMessage(null);
+        if (setReplyMessage) setReplyMessage(null);
       } catch (err) {
         console.error('Failed to upload voice note immediately:', err);
-        dispatch({
-          type: 'SET_GLOBAL_NOTIFICATION',
-          payload: { message: 'Failed to upload voice note. Please try again.', type: 'error' },
-        });
+        if (dispatch) {
+          dispatch({
+            type: 'SET_GLOBAL_NOTIFICATION',
+            payload: { message: 'Failed to upload voice note. Please try again.', type: 'error' },
+          });
+        }
       } finally {
         setUploadingMedia(false);
         audioChunksRef.current = [];
@@ -426,7 +444,7 @@ export function useVoiceRecorder(
       cancelAnimationFrame(animationFrameIdRef.current);
     }
     mediaRecorderRef.current.stop();
-  }, [isRecording, userId, replyMessage, dispatch, setUploadingMedia, setReplyMessage]);
+  }, [isRecording, userId, coupleKey, replyMessage, dispatch, setReplyMessage]);
 
   return {
     // State
@@ -439,6 +457,10 @@ export function useVoiceRecorder(
     audioPreviewPlaying,
     audioPreviewDuration,
     audioPreviewCurrentTime,
+    uploadingMedia,
+    setUploadingMedia,
+    uploadProgress,
+    setUploadProgress,
     // Refs (needed by parent for unmount cleanup guard)
     animationFrameIdRef,
     audioContextRef,

@@ -20,6 +20,7 @@ import { useVoiceRecorder } from './hooks/useVoiceRecorder';
 import { usePinnedMessage } from './hooks/usePinnedMessage';
 import { useChatBatchSelect } from './hooks/useChatBatchSelect';
 import { usePartnerPresence } from './hooks/usePartnerPresence';
+import { groupChatMessages } from './utils/messageGrouping';
 
 // Extracted UI Sub-components
 import { ChatHeader } from './components/ChatHeader';
@@ -88,9 +89,14 @@ export default function Chat() {
     return map;
   }, [messages]);
 
+  const lastReadTimestamp = useMemo(() => {
+    if (typeof window === 'undefined' || !coupleKey) return null;
+    return localStorage.getItem(`last_read_chat_${coupleKey}`);
+  }, [coupleKey]);
+
   const groupedMessages = useMemo(() => {
-    return messages || [];
-  }, [messages]);
+    return groupChatMessages(messages, userId, lastReadTimestamp);
+  }, [messages, userId, lastReadTimestamp]);
 
   // 2. Hook: Partner Presence
   const { partnerLastSeen } = usePartnerPresence(partnerId, partner?.last_seen);
@@ -118,7 +124,14 @@ export default function Chat() {
   } = useChatBatchSelect();
 
   // 6. Hook: Voice Recorder & Upload Handlers
-  const voiceRecorderProps = useVoiceRecorder({ userId, partnerId, dispatch, coupleKey });
+  const voiceRecorderProps = useVoiceRecorder({
+    userId,
+    partnerId,
+    replyMessage,
+    dispatch,
+    coupleKey,
+    setReplyMessage,
+  });
   const { isRecording, audioPreviewUrl, setPendingMediaFiles, uploadingMedia, uploadProgress } =
     voiceRecorderProps;
 
