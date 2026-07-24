@@ -22,7 +22,7 @@ export function useMediaUploader({ userId, replyMessage, setReplyMessage, dispat
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [mediaCaption, setMediaCaption] = useState('');
   const [isCropping, setIsCropping] = useState(false);
-  const [cropRect, setCropRect] = useState({ x: 0, y: 0, w: 100, h: 100 });
+  const [cropRect, setCropRect] = useState({ x: 10, y: 10, w: 80, h: 80 });
   const [cropAspectRatio, setCropAspectRatio] = useState('free');
   const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
   const [naturalDims, setNaturalDims] = useState({ w: 0, h: 0 });
@@ -30,6 +30,7 @@ export function useMediaUploader({ userId, replyMessage, setReplyMessage, dispat
   const [uploadProgress, setUploadProgress] = useState(null);
 
   const previewContainerRef = useRef(null);
+  const dragRef = useRef(null);
 
   const activeItem = pendingMediaFiles[activePreviewIndex] || pendingMediaFiles[0];
   const activeObjectUrl = activeItem?.file ? URL.createObjectURL(activeItem.file) : '';
@@ -113,7 +114,109 @@ export function useMediaUploader({ userId, replyMessage, setReplyMessage, dispat
     setNaturalDims({ w: e.target.naturalWidth || 0, h: e.target.naturalHeight || 0 });
   }, []);
 
-  const handleCropPointerDown = useCallback(() => {}, []);
+  // Interactive mouse/touch drag handler for resizable crop box
+  const handleCropPointerDown = useCallback(
+    (e, handle) => {
+      e.stopPropagation();
+
+      const cropBoxContainer = e.currentTarget.parentElement;
+      if (!cropBoxContainer) return;
+      const containerRect = cropBoxContainer.getBoundingClientRect();
+
+      const startX = e.clientX !== undefined ? e.clientX : e.touches?.[0]?.clientX;
+      const startY = e.clientY !== undefined ? e.clientY : e.touches?.[0]?.clientY;
+
+      dragRef.current = {
+        handle,
+        startX,
+        startY,
+        startCrop: { ...cropRect },
+        containerRect,
+      };
+
+      const handlePointerMove = (moveEvent) => {
+        if (!dragRef.current) return;
+        const curX =
+          moveEvent.clientX !== undefined ? moveEvent.clientX : moveEvent.touches?.[0]?.clientX;
+        const curY =
+          moveEvent.clientY !== undefined ? moveEvent.clientY : moveEvent.touches?.[0]?.clientY;
+        if (curX === undefined || curY === undefined) return;
+
+        const deltaX =
+          ((curX - dragRef.current.startX) / dragRef.current.containerRect.width) * 100;
+        const deltaY =
+          ((curY - dragRef.current.startY) / dragRef.current.containerRect.height) * 100;
+
+        let { x, y, w, h } = dragRef.current.startCrop;
+        const activeHandle = dragRef.current.handle;
+
+        let dx = deltaX;
+        let dy = deltaY;
+        const activeItem = pendingMediaFiles[activePreviewIndex] || pendingMediaFiles[0];
+        const rotation = activeItem?.rotation || 0;
+
+        if (rotation === 90) {
+          dx = deltaY;
+          dy = -deltaX;
+        } else if (rotation === 180) {
+          dx = -deltaX;
+          dy = -deltaY;
+        } else if (rotation === 270) {
+          dx = -deltaY;
+          dy = deltaX;
+        }
+
+        if (activeHandle === 'move') {
+          x = Math.max(0, Math.min(100 - w, x + dx));
+          y = Math.max(0, Math.min(100 - h, y + dy));
+        } else if (activeHandle === 'top-left') {
+          const newW = Math.max(15, w - dx);
+          const newH = Math.max(15, h - dy);
+          x = x + (w - newW);
+          y = y + (h - newH);
+          w = newW;
+          h = newH;
+        } else if (activeHandle === 'top-right') {
+          const newW = Math.max(15, w + dx);
+          const newH = Math.max(15, h - dy);
+          y = y + (h - newH);
+          w = newW;
+          h = newH;
+        } else if (activeHandle === 'bottom-left') {
+          const newW = Math.max(15, w - dx);
+          const newH = Math.max(15, h + dy);
+          x = x + (w - newW);
+          w = newW;
+          h = newH;
+        } else if (activeHandle === 'bottom-right') {
+          w = Math.max(15, w + dx);
+          h = Math.max(15, h + dy);
+        }
+
+        setCropRect({
+          x: Math.max(0, Math.min(100 - w, x)),
+          y: Math.max(0, Math.min(100 - h, y)),
+          w: Math.min(100, w),
+          h: Math.min(100, h),
+        });
+      };
+
+      const handlePointerUp = () => {
+        dragRef.current = null;
+        window.removeEventListener('mousemove', handlePointerMove);
+        window.removeEventListener('mouseup', handlePointerUp);
+        window.removeEventListener('touchmove', handlePointerMove);
+        window.removeEventListener('touchend', handlePointerUp);
+      };
+
+      window.addEventListener('mousemove', handlePointerMove);
+      window.addEventListener('mouseup', handlePointerUp);
+      window.addEventListener('touchmove', handlePointerMove);
+      window.addEventListener('touchend', handlePointerUp);
+    },
+    [cropRect, activePreviewIndex, pendingMediaFiles]
+  );
+
   const handleTouchStart = useCallback(() => {}, []);
   const handleTouchEnd = useCallback(() => {}, []);
 

@@ -215,9 +215,8 @@ export default function Chat() {
         user_id: userId,
         content: textToSend || (currentRefId ? 'Attached a fridge item' : ''),
       };
-      if (coupleKey) insertPayload.couple_key = coupleKey;
       if (currentReplyId) insertPayload.reply_to_message_id = currentReplyId;
-      if (currentRefId) insertPayload.referenced_fridge_item_id = currentRefId;
+      if (currentRefId) insertPayload.fridge_item_id = currentRefId;
 
       const { data, error } = await supabase
         .from('messages')
@@ -375,16 +374,41 @@ export default function Chat() {
 
   const handleDownloadImage = async (url) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `lover_hq_${Date.now()}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width || 800;
+        canvas.height = img.naturalHeight || img.height || 800;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = `lover_hq_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+          } else {
+            window.open(url, '_blank');
+          }
+        }, 'image/png');
+      };
+      img.onerror = () => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lover_hq_${Date.now()}`;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+      img.src = url;
     } catch (err) {
       console.error('Failed to download image:', err);
       window.open(url, '_blank');
