@@ -17,6 +17,7 @@ import { getFormattedTime } from '../../utils/time';
 import { useChatMessages } from './hooks/useChatMessages';
 import { useChatTyping } from './hooks/useChatTyping';
 import { useVoiceRecorder } from './hooks/useVoiceRecorder';
+import { useMediaUploader } from './hooks/useMediaUploader';
 import { usePinnedMessage } from './hooks/usePinnedMessage';
 import { useChatBatchSelect } from './hooks/useChatBatchSelect';
 import { usePartnerPresence } from './hooks/usePartnerPresence';
@@ -132,8 +133,18 @@ export default function Chat() {
     coupleKey,
     setReplyMessage,
   });
-  const { isRecording, audioPreviewUrl, setPendingMediaFiles, uploadingMedia, uploadProgress } =
-    voiceRecorderProps;
+
+  // 7. Hook: Multi-Media Attachment & Editing Uploader
+  const mediaUploaderProps = useMediaUploader({
+    userId,
+    replyMessage,
+    setReplyMessage,
+    dispatch,
+  });
+
+  const { isRecording, audioPreviewUrl } = voiceRecorderProps;
+  const uploadingMedia = mediaUploaderProps.uploadingMedia || voiceRecorderProps.uploadingMedia;
+  const uploadProgress = mediaUploaderProps.uploadProgress || voiceRecorderProps.uploadProgress;
 
   // Unread divider auto-dismiss
   useEffect(() => {
@@ -330,7 +341,7 @@ export default function Chat() {
       filter: 'none',
       isMuted: false,
     }));
-    setPendingMediaFiles(formatted);
+    mediaUploaderProps.setPendingMediaFiles(formatted);
     e.target.value = '';
   };
 
@@ -362,14 +373,22 @@ export default function Chat() {
   // Lightbox State
   const [activeLightboxImage, setActiveLightboxImage] = useState(null);
 
-  const handleDownloadImage = (url) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'lover_hq_media';
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownloadImage = async (url) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `lover_hq_${Date.now()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Failed to download image:', err);
+      window.open(url, '_blank');
+    }
   };
 
   const bgStyles = {
@@ -533,36 +552,36 @@ export default function Chat() {
 
       {/* 9. Media Batch Preview Sheet */}
       <MediaPreviewSheet
-        pendingMediaFiles={voiceRecorderProps.pendingMediaFiles}
-        setPendingMediaFiles={voiceRecorderProps.setPendingMediaFiles}
-        activePreviewIndex={voiceRecorderProps.activePreviewIndex}
-        setActivePreviewIndex={voiceRecorderProps.setActivePreviewIndex}
-        mediaCaption={voiceRecorderProps.mediaCaption}
-        setMediaCaption={voiceRecorderProps.setMediaCaption}
-        isCropping={voiceRecorderProps.isCropping}
-        setIsCropping={voiceRecorderProps.setIsCropping}
-        cropRect={voiceRecorderProps.cropRect}
-        cropAspectRatio={voiceRecorderProps.cropAspectRatio}
-        setCropAspectRatio={voiceRecorderProps.setCropAspectRatio}
-        showFiltersDrawer={voiceRecorderProps.showFiltersDrawer}
-        setShowFiltersDrawer={voiceRecorderProps.setShowFiltersDrawer}
-        previewContainerRef={voiceRecorderProps.previewContainerRef}
-        activeObjectUrl={voiceRecorderProps.activeObjectUrl}
-        handleToggleMuteActive={voiceRecorderProps.handleToggleMuteActive}
-        handleStartCropping={voiceRecorderProps.handleStartCropping}
-        handleRotateActive={voiceRecorderProps.handleRotateActive}
-        handleFlipActive={voiceRecorderProps.handleFlipActive}
-        handleTouchStart={voiceRecorderProps.handleTouchStart}
-        handleTouchEnd={voiceRecorderProps.handleTouchEnd}
-        getScaleAndDims={voiceRecorderProps.getScaleAndDims}
-        handleImageLoad={voiceRecorderProps.handleImageLoad}
-        handleCropPointerDown={voiceRecorderProps.handleCropPointerDown}
-        applyAspectRatio={voiceRecorderProps.applyAspectRatio}
-        handleSaveCrop={voiceRecorderProps.handleSaveCrop}
-        handleFilterActive={voiceRecorderProps.handleFilterActive}
+        pendingMediaFiles={mediaUploaderProps.pendingMediaFiles}
+        setPendingMediaFiles={mediaUploaderProps.setPendingMediaFiles}
+        activePreviewIndex={mediaUploaderProps.activePreviewIndex}
+        setActivePreviewIndex={mediaUploaderProps.setActivePreviewIndex}
+        mediaCaption={mediaUploaderProps.mediaCaption}
+        setMediaCaption={mediaUploaderProps.setMediaCaption}
+        isCropping={mediaUploaderProps.isCropping}
+        setIsCropping={mediaUploaderProps.setIsCropping}
+        cropRect={mediaUploaderProps.cropRect}
+        cropAspectRatio={mediaUploaderProps.cropAspectRatio}
+        setCropAspectRatio={mediaUploaderProps.setCropAspectRatio}
+        showFiltersDrawer={mediaUploaderProps.showFiltersDrawer}
+        setShowFiltersDrawer={mediaUploaderProps.setShowFiltersDrawer}
+        previewContainerRef={mediaUploaderProps.previewContainerRef}
+        activeObjectUrl={mediaUploaderProps.activeObjectUrl}
+        handleToggleMuteActive={mediaUploaderProps.handleToggleMuteActive}
+        handleStartCropping={mediaUploaderProps.handleStartCropping}
+        handleRotateActive={mediaUploaderProps.handleRotateActive}
+        handleFlipActive={mediaUploaderProps.handleFlipActive}
+        handleTouchStart={mediaUploaderProps.handleTouchStart}
+        handleTouchEnd={mediaUploaderProps.handleTouchEnd}
+        getScaleAndDims={mediaUploaderProps.getScaleAndDims}
+        handleImageLoad={mediaUploaderProps.handleImageLoad}
+        handleCropPointerDown={mediaUploaderProps.handleCropPointerDown}
+        applyAspectRatio={mediaUploaderProps.applyAspectRatio}
+        handleSaveCrop={mediaUploaderProps.handleSaveCrop}
+        handleFilterActive={mediaUploaderProps.handleFilterActive}
         triggerImageSelect={triggerImageSelect}
-        setNaturalDims={voiceRecorderProps.setNaturalDims}
-        handleBatchUpload={voiceRecorderProps.handleBatchUpload}
+        setNaturalDims={mediaUploaderProps.setNaturalDims}
+        handleBatchUpload={mediaUploaderProps.handleBatchUpload}
       />
 
       {/* 10. Lightbox Overlay */}
