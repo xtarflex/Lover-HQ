@@ -349,7 +349,6 @@ export function useVoiceRecorder({
         media_url: publicUrl,
         media_type: 'voice',
       };
-      if (coupleKey) insertPayload.couple_key = coupleKey;
       if (replyMessage?.id) insertPayload.reply_to_message_id = replyMessage.id;
 
       const { error: dbError } = await supabase.from('messages').insert(insertPayload);
@@ -373,7 +372,6 @@ export function useVoiceRecorder({
     audioPreviewDuration,
     replyMessage,
     userId,
-    coupleKey,
     dispatch,
     setReplyMessage,
   ]);
@@ -419,7 +417,6 @@ export function useVoiceRecorder({
           media_url: publicUrl,
           media_type: 'voice',
         };
-        if (coupleKey) insertPayload.couple_key = coupleKey;
         if (replyMessage?.id) insertPayload.reply_to_message_id = replyMessage.id;
 
         const { error: dbError } = await supabase.from('messages').insert(insertPayload);
@@ -444,7 +441,7 @@ export function useVoiceRecorder({
       cancelAnimationFrame(animationFrameIdRef.current);
     }
     mediaRecorderRef.current.stop();
-  }, [isRecording, userId, coupleKey, replyMessage, dispatch, setReplyMessage]);
+  }, [isRecording, userId, replyMessage, dispatch, setReplyMessage]);
 
   return {
     // State

@@ -62,7 +62,7 @@ describe('useVoiceRecorder', () => {
     expect(result.current.audioPreviewUrl).toBeNull();
   });
 
-  it('sends recording payload including couple_key to Supabase insert', async () => {
+  it('sends recording payload to Supabase insert', async () => {
     const setReplyMessage = vi.fn();
     const dispatch = vi.fn();
     const { result } = renderHook(() =>
