@@ -219,6 +219,7 @@ export default function QuickDrawCanvas({
           />
           <button
             type="submit"
+            aria-label="Submit guess"
             className="px-4 py-3 bg-primary hover:bg-primary-hover text-white rounded-2xl flex items-center gap-1 transition-all active:scale-95"
           >
             <Pen className="w-4 h-4" />
