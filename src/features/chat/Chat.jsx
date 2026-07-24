@@ -216,55 +216,80 @@ export default function Chat() {
   };
 
   // Reactions Handler
-  const handleToggleReaction = async (messageObj, emoji) => {
-    if (!userId) return;
-    const currentReactions = messageObj.reactions || {};
-    const currentUsers = currentReactions[emoji] || [];
-    const hasReacted = currentUsers.includes(userId);
+  const handleToggleReaction = useCallback(
+    async (messageObj, emoji) => {
+      if (!userId) return;
+      const currentReactions = messageObj.reactions || {};
+      const currentUsers = currentReactions[emoji] || [];
+      const hasReacted = currentUsers.includes(userId);
 
-    const newUsers = hasReacted
-      ? currentUsers.filter((id) => id !== userId)
-      : [...currentUsers, userId];
+      const newUsers = hasReacted
+        ? currentUsers.filter((id) => id !== userId)
+        : [...currentUsers, userId];
 
-    const updatedReactions = { ...currentReactions, [emoji]: newUsers };
+      const updatedReactions = { ...currentReactions, [emoji]: newUsers };
 
-    setMessages((prev) =>
-      prev.map((m) => (m.id === messageObj.id ? { ...m, reactions: updatedReactions } : m))
-    );
+      // Optimistic UI update
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageObj.id ? { ...m, reactions: updatedReactions } : m))
+      );
 
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ reactions: updatedReactions })
-        .eq('id', messageObj.id);
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ reactions: updatedReactions })
+          .eq('id', messageObj.id);
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to toggle reaction:', err);
-    }
-  };
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error toggling reaction:', err);
+        // Revert on error
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageObj.id ? { ...m, reactions: currentReactions } : m))
+        );
+      }
+    },
+    [userId, setMessages]
+  );
 
-  // Edit Message Handlers
-  const handleSaveEdit = async (messageId) => {
-    if (!editText.trim()) return;
-    const newContent = editText.trim();
-    setEditingMessage(null);
+  const handleSaveEdit = useCallback(
+    async (messageId) => {
+      if (!editText.trim()) return;
+      const newContent = editText.trim();
+      setEditingMessage(null);
 
-    setMessages((prev) =>
-      prev.map((m) => (m.id === messageId ? { ...m, content: newContent, is_edited: true } : m))
-    );
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, content: newContent, is_edited: true } : m))
+      );
 
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ content: newContent, is_edited: true })
-        .eq('id', messageId);
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({
+            content: newContent,
+            is_edited: true,
+          })
+          .eq('id', messageId);
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to save edit:', err);
-    }
-  };
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error saving edit:', err);
+        dispatch({
+          type: 'SET_GLOBAL_NOTIFICATION',
+          payload: { message: 'Failed to edit message.', type: 'error' },
+        });
+      }
+    },
+    [editText, setMessages, dispatch]
+  );
+
+  const handleReferenceClick = useCallback(() => {
+    navigate('/fridge');
+    dispatch({
+      type: 'SET_GLOBAL_NOTIFICATION',
+      payload: { message: 'Navigated to Fridge item! 📌', type: 'info' },
+    });
+  }, [navigate, dispatch]);
 
   // Batch Delete/Pin/Forward Actions
   const handleDeleteSelectedMessages = async () => {
@@ -322,14 +347,6 @@ export default function Chat() {
   };
 
   const triggerImageSelect = () => imageInputRef.current?.click();
-
-  const handleReferenceClick = () => {
-    navigate('/fridge');
-    dispatch({
-      type: 'SET_GLOBAL_NOTIFICATION',
-      payload: { message: 'Navigated to Fridge item! 📌', type: 'info' },
-    });
-  };
 
   // Stubs for Document / Location
   const simulateSendDocument = () => {
