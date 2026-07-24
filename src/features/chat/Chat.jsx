@@ -347,8 +347,12 @@ export default function Chat() {
 
   const triggerImageSelect = () => imageInputRef.current?.click();
 
-  const handleReferenceClick = () => {
-    navigate('/fridge');
+  const handleReferenceClick = (itemId) => {
+    if (itemId) {
+      navigate(`/fridge?item=${itemId}`);
+    } else {
+      navigate('/fridge');
+    }
     dispatch({
       type: 'SET_GLOBAL_NOTIFICATION',
       payload: { message: 'Navigated to Fridge item! 📌', type: 'info' },
