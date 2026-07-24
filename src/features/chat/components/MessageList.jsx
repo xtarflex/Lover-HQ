@@ -405,13 +405,15 @@ export function MessageList({
             msg.content !== 'Attached a fridge item' &&
             msg.content !== '🎙️ Voice Note';
 
+          const fridgeItem = msg.fridge_items || msg.fridge_item || msg.referenced_fridge_item;
+
           const isMediaOnly =
             (msg.media_type === 'image' ||
               msg.media_type === 'video' ||
               msg.media_type === 'document' ||
               msg.media_type === 'location') &&
             !hasText &&
-            !msg.fridge_items;
+            !fridgeItem;
 
           return (
             <div
@@ -629,21 +631,21 @@ export function MessageList({
                       </div>
                     )}
 
-                    {msg.fridge_items && (
+                    {fridgeItem && (
                       <div
-                        onClick={() => handleReferenceClick(msg.fridge_items.id)}
+                        onClick={() => handleReferenceClick(fridgeItem.id)}
                         className="cursor-pointer"
                       >
-                        {msg.fridge_items.type === 'note' &&
+                        {fridgeItem.type === 'note' &&
                           (() => {
                             let noteText = '';
                             let noteColor = 'yellow';
                             try {
-                              const parsed = JSON.parse(msg.fridge_items.content);
+                              const parsed = JSON.parse(fridgeItem.content);
                               noteText = parsed.text || '';
                               noteColor = parsed.color || 'yellow';
                             } catch {
-                              noteText = msg.fridge_items.content;
+                              noteText = fridgeItem.content;
                             }
                             return (
                               <div
@@ -664,11 +666,11 @@ export function MessageList({
                             );
                           })()}
 
-                        {msg.fridge_items.type === 'photo' && (
+                        {fridgeItem.type === 'photo' && (
                           <div className="mb-2.5 p-1.5 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center space-x-2.5 text-[10px] hover:bg-slate-950 transition-all">
                             <div className="w-10 h-10 rounded overflow-hidden bg-slate-900 border border-slate-800 shrink-0">
                               <img
-                                src={msg.fridge_items.content}
+                                src={fridgeItem.content}
                                 alt="Fridge preview"
                                 className="w-full h-full object-cover"
                               />
@@ -684,11 +686,11 @@ export function MessageList({
                           </div>
                         )}
 
-                        {msg.fridge_items.type === 'voice' &&
+                        {fridgeItem.type === 'voice' &&
                           (() => {
                             let voiceDurStr = '';
                             try {
-                              const parsed = JSON.parse(msg.fridge_items.content);
+                              const parsed = JSON.parse(fridgeItem.content);
                               if (parsed.duration) {
                                 voiceDurStr = `${Math.floor(parsed.duration)}s`;
                               }
@@ -712,9 +714,9 @@ export function MessageList({
                             );
                           })()}
 
-                        {msg.fridge_items.type === 'emoji' &&
+                        {fridgeItem.type === 'emoji' &&
                           (() => {
-                            const emojiId = msg.fridge_items.content;
+                            const emojiId = fridgeItem.content;
                             const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
                             const imageUrl = emojiDef ? getEmojiCdnUrl(emojiDef.code) : '';
                             return (

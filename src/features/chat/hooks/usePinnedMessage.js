@@ -33,7 +33,7 @@ export function usePinnedMessage(coupleKeyOrOptions, messagesArr) {
   const [pinnedMessage, setPinnedMessage] = useState(null);
 
   // Resolve pinned message when messages load/change or on custom event
-  /* eslint-disable react-hooks/exhaustive-deps */
+
   useEffect(() => {
     const list = Array.isArray(messages) ? messages : [];
     if (!coupleKey || list.length === 0) return;
@@ -53,7 +53,6 @@ export function usePinnedMessage(coupleKeyOrOptions, messagesArr) {
     window.addEventListener('resolve-pinned-message', resolvePin);
     return () => window.removeEventListener('resolve-pinned-message', resolvePin);
   }, [messages, coupleKey]);
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handlePinMessage = useCallback(
     (msg) => {

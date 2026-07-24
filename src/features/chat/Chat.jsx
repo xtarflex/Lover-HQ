@@ -202,7 +202,8 @@ export default function Chat() {
       user_id: userId,
       content: textToSend || (currentRefId ? 'Attached a fridge item' : ''),
       reply_to_message_id: currentReplyId,
-      referenced_fridge_item_id: currentRefId,
+      fridge_item_id: currentRefId,
+      fridge_items: referencedItem,
       created_at: new Date().toISOString(),
       pending: true,
     };
