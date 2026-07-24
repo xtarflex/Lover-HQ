@@ -16,3 +16,8 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+
+## 2024-05-24 - [Medium] Fix insecure PRNG for Supabase channel IDs
+**Vulnerability:** `Math.random()` was being used to generate unique suffixes for Supabase real-time channel identifiers (`useAuthSync.js`, `usePreferences.js`).
+**Learning:** While these channel IDs aren't persistent auth tokens, they define the channel name a client subscribes to. If a channel name is guessable, an attacker could potentially subscribe to it and listen to sensitive real-time broadcasts (like preference updates or auth changes) for a specific user.
+**Prevention:** Always use a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG), such as `window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36)`, for generating unique IDs that are used to establish communication channels or sessions.

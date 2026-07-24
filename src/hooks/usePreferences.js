@@ -57,7 +57,7 @@ export function usePreferences(userId) {
     }, 0);
 
     // Subscribe to real-time changes on the preference record for this user
-    const uniqueId = Math.random().toString(36).substring(2, 9);
+    const uniqueId = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
     const channel = supabase
       .channel(`user_preferences_sync:${userId}_${uniqueId}`)
       .on(
