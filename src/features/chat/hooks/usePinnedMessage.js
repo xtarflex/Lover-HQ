@@ -3,31 +3,45 @@
  * @description Custom hook that manages the pinned message state for the Lover-HQ chat feature.
  * Responsibilities:
  * - Resolves the pinned message from localStorage on messages load / change.
- * - Listens to the custom `resolve-pinned-message` window event dispatched when
- *   the typing channel receives `pin_message` / `unpin_message` broadcasts.
- * - Exposes `pinnedMessage` and `setPinnedMessage` to the parent orchestrator.
+ * - Manages pin / unpin actions and updates state & localStorage.
+ * - Exposes `pinnedMessage`, `setPinnedMessage`, `handlePinMessage`, and `handleUnpinMessage`.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /**
- * Manages pinned message state: localStorage resolution and custom event subscription.
+ * Manages pinned message state: localStorage resolution and action handlers.
+ * Supports flexible signature:
+ * - `usePinnedMessage(coupleKey, messages)`
+ * - `usePinnedMessage({ coupleKey, messages, setMessages })`
  *
- * @param {string|null} coupleKey - Sorted, joined user+partner ID key (e.g. "uuid1_uuid2").
- * @param {Array} messages - The current messages array (used to resolve the pinned message object).
- * @returns {{ pinnedMessage: object|null, setPinnedMessage: Function }}
+ * @param {string|object|null} coupleKeyOrOptions - Sorted couple key string or options object.
+ * @param {Array} [messagesArr] - The current messages array.
+ * @returns {{ pinnedMessage: object|null, setPinnedMessage: Function, handlePinMessage: Function, handleUnpinMessage: Function }}
  */
-export function usePinnedMessage(coupleKey, messages) {
+export function usePinnedMessage(coupleKeyOrOptions, messagesArr) {
+  let coupleKey = null;
+  let messages = [];
+
+  if (typeof coupleKeyOrOptions === 'object' && coupleKeyOrOptions !== null) {
+    ({ coupleKey, messages } = coupleKeyOrOptions);
+  } else {
+    coupleKey = coupleKeyOrOptions;
+    messages = messagesArr;
+  }
+
   const [pinnedMessage, setPinnedMessage] = useState(null);
 
-  // Resolve pinned message when messages load/change or on the custom window event
+  // Resolve pinned message when messages load/change or on custom event
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!coupleKey || messages.length === 0) return;
+    const list = Array.isArray(messages) ? messages : [];
+    if (!coupleKey || list.length === 0) return;
 
     const resolvePin = () => {
       const storedId = localStorage.getItem(`pinned_msg_${coupleKey}`);
       if (storedId) {
-        const found = messages.find((m) => m.id === storedId);
+        const found = list.find((m) => m?.id === storedId);
         if (found) {
           setPinnedMessage(found);
         }
@@ -39,6 +53,30 @@ export function usePinnedMessage(coupleKey, messages) {
     window.addEventListener('resolve-pinned-message', resolvePin);
     return () => window.removeEventListener('resolve-pinned-message', resolvePin);
   }, [messages, coupleKey]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
-  return { pinnedMessage, setPinnedMessage };
+  const handlePinMessage = useCallback(
+    (msg) => {
+      if (!coupleKey || !msg?.id) return;
+      try {
+        localStorage.setItem(`pinned_msg_${coupleKey}`, msg.id);
+        setPinnedMessage(msg);
+      } catch (err) {
+        console.error('Failed to pin message:', err);
+      }
+    },
+    [coupleKey]
+  );
+
+  const handleUnpinMessage = useCallback(() => {
+    if (!coupleKey) return;
+    try {
+      localStorage.removeItem(`pinned_msg_${coupleKey}`);
+      setPinnedMessage(null);
+    } catch (err) {
+      console.error('Failed to unpin message:', err);
+    }
+  }, [coupleKey]);
+
+  return { pinnedMessage, setPinnedMessage, handlePinMessage, handleUnpinMessage };
 }

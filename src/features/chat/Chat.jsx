@@ -112,7 +112,7 @@ export default function Chat() {
   // 4. Hook: Pinned Message
   const { pinnedMessage, handlePinMessage, handleUnpinMessage } = usePinnedMessage(
     coupleKey,
-    setMessages
+    messages
   );
 
   // 5. Hook: Batch Selection Mode
@@ -308,7 +308,7 @@ export default function Chat() {
   const handlePinSelectedMessages = () => {
     if (selectedMessageIds.size !== 1) return;
     const selectedId = Array.from(selectedMessageIds)[0];
-    const msg = messages.find((m) => m.id === selectedId);
+    const msg = Array.isArray(messages) ? messages.find((m) => m.id === selectedId) : null;
     if (msg) {
       if (pinnedMessage?.id === msg.id) {
         handleUnpinMessage();
