@@ -30,8 +30,10 @@ const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
 /**
  * MessageList Component.
+ * Wrapped in React.memo to prevent expensive list re-renders when the parent Chat
+ * component updates unrelated state (like typing indicators or input changes).
  */
-export function MessageList({
+export const MessageList = React.memo(function MessageList({
   loading,
   groupedMessages,
   userId,
@@ -965,4 +967,4 @@ export function MessageList({
       <div ref={messagesEndRef} />
     </div>
   );
-}
+});
