@@ -213,6 +213,7 @@ export default function Fridge() {
     const params = new URLSearchParams(window.location.search);
     const targetId = params.get('item') || params.get('highlight');
     if (targetId) {
+      window.history.replaceState({}, '', window.location.pathname);
       const timer = setTimeout(() => {
         scrollToItem(targetId);
         const el = scrollContainerRef.current?.querySelector(
