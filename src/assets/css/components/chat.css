@@ -186,24 +186,45 @@
   to { opacity: 1; }
 }
 
-/* Highlighted message card */
+@keyframes tiktokScaleBounce {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.08);
+  }
+  45% {
+    transform: scale(0.96);
+  }
+  65% {
+    transform: scale(1.03);
+  }
+  85% {
+    transform: scale(0.99);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* TikTok-style spring bounce highlighted message container */
 .message-bubble-highlighted {
   position: relative;
   z-index: 50 !important;
+  animation: tiktokScaleBounce 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center center;
 }
 
 .message-bubble-highlighted-self {
-  outline: 2px solid #f59e0b; /* primary / Amber-500 */
-  outline-offset: 2px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
-  transition: box-shadow 0.3s ease;
+  animation: tiktokScaleBounce 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center center;
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3) !important;
 }
 
 .message-bubble-highlighted-partner {
-  outline: 2px solid #db2777; /* pink-600 */
-  outline-offset: 2px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
-  transition: box-shadow 0.3s ease;
+  animation: tiktokScaleBounce 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center center;
+  box-shadow: 0 10px 25px -5px rgba(219, 39, 119, 0.3) !important;
 }
 
 /* Floating reactions tray */

@@ -66,6 +66,28 @@ export function MessageList({
   messagesEndRef,
   pressTimer,
 }) {
+  const partnerLastSeen = partner?.last_seen;
+
+  const renderReadStatus = (msg) => {
+    if (!msg) return null;
+    const isRead =
+      presence?.partnerRoom === 'Chat Room' ||
+      (partnerLastSeen &&
+        msg.created_at &&
+        new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+
+    if (isRead) {
+      return <CheckCheck className="w-3 h-3 text-emerald-500" />;
+    }
+
+    const isDelivered = presence?.partner === 'online' || !msg.pending;
+    if (isDelivered) {
+      return <CheckCheck className="w-3 h-3 text-gray-400" />;
+    }
+
+    return <Check className="w-3 h-3 text-gray-400" />;
+  };
+
   const content = useMemo(
     () =>
       loading ? (
@@ -366,19 +388,7 @@ export function MessageList({
 
                       <div className="flex items-center justify-end space-x-1.5 text-[8px] text-text-muted self-end">
                         <span>{getFormattedTime(groupMsgs[0].created_at, groupMsgs[0].id)}</span>
-                        {isSelf && (
-                          <span>
-                            {presence?.partner === 'online' ? (
-                              presence?.partnerRoom === 'Chat Room' ? (
-                                <CheckCheck className="w-3 h-3 text-emerald-500" />
-                              ) : (
-                                <CheckCheck className="w-3 h-3 text-gray-400" />
-                              )
-                            ) : (
-                              <Check className="w-3 h-3 text-gray-400" />
-                            )}
-                          </span>
-                        )}
+                        {isSelf && <span>{renderReadStatus(groupMsgs[0])}</span>}
                       </div>
                     </div>
                   </div>
@@ -857,37 +867,13 @@ export function MessageList({
                           <div className="message-media-footer">
                             {msg.is_edited && <span>edited</span>}
                             <span>{getFormattedTime(msg.created_at, msg.id)}</span>
-                            {isSelf && (
-                              <span>
-                                {presence?.partner === 'online' ? (
-                                  presence?.partnerRoom === 'Chat Room' ? (
-                                    <CheckCheck className="w-3 h-3 text-emerald-500" />
-                                  ) : (
-                                    <CheckCheck className="w-3 h-3 text-gray-400" />
-                                  )
-                                ) : (
-                                  <Check className="w-3 h-3 text-gray-400" />
-                                )}
-                              </span>
-                            )}
+                            {isSelf && <span>{renderReadStatus(msg)}</span>}
                           </div>
                         ) : (
                           <div className="message-bubble-footer">
                             {msg.is_edited && <span>edited</span>}
                             <span>{getFormattedTime(msg.created_at, msg.id)}</span>
-                            {isSelf && (
-                              <span>
-                                {presence?.partner === 'online' ? (
-                                  presence?.partnerRoom === 'Chat Room' ? (
-                                    <CheckCheck className="w-3 h-3 text-emerald-500" />
-                                  ) : (
-                                    <CheckCheck className="w-3 h-3 text-gray-400" />
-                                  )
-                                ) : (
-                                  <Check className="w-3 h-3 text-gray-400" />
-                                )}
-                              </span>
-                            )}
+                            {isSelf && <span>{renderReadStatus(msg)}</span>}
                           </div>
                         )}
                       </div>

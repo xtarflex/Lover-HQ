@@ -146,14 +146,23 @@ export default function Chat() {
   const uploadingMedia = mediaUploaderProps.uploadingMedia || voiceRecorderProps.uploadingMedia;
   const uploadProgress = mediaUploaderProps.uploadProgress || voiceRecorderProps.uploadProgress;
 
-  // Unread divider auto-dismiss
+  // Unread divider auto-dismiss & last_read timestamp update
   useEffect(() => {
     if (!coupleKey) return;
-    const timer = setTimeout(() => {
+    const updateLastRead = () => {
       localStorage.setItem(`last_read_chat_${coupleKey}`, new Date().toISOString());
+    };
+
+    updateLastRead();
+
+    const timer = setTimeout(() => {
       setShowUnreadDivider(false);
     }, 5000);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      updateLastRead();
+    };
   }, [coupleKey]);
 
   // Fetch Fridge Items List
@@ -227,7 +236,9 @@ export default function Chat() {
 
       if (error) throw error;
       if (data) {
-        setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)));
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...data, fridge_items: referencedItem } : m))
+        );
       }
     } catch (err) {
       console.error('Failed to send message:', err);
