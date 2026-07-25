@@ -240,55 +240,61 @@ export default function Chat() {
   };
 
   // Reactions Handler
-  const handleToggleReaction = async (messageObj, emoji) => {
-    if (!userId) return;
-    const currentReactions = messageObj.reactions || {};
-    const currentUsers = currentReactions[emoji] || [];
-    const hasReacted = currentUsers.includes(userId);
+  const handleToggleReaction = useCallback(
+    async (messageObj, emoji) => {
+      if (!userId) return;
+      const currentReactions = messageObj.reactions || {};
+      const currentUsers = currentReactions[emoji] || [];
+      const hasReacted = currentUsers.includes(userId);
 
-    const newUsers = hasReacted
-      ? currentUsers.filter((id) => id !== userId)
-      : [...currentUsers, userId];
+      const newUsers = hasReacted
+        ? currentUsers.filter((id) => id !== userId)
+        : [...currentUsers, userId];
 
-    const updatedReactions = { ...currentReactions, [emoji]: newUsers };
+      const updatedReactions = { ...currentReactions, [emoji]: newUsers };
 
-    setMessages((prev) =>
-      prev.map((m) => (m.id === messageObj.id ? { ...m, reactions: updatedReactions } : m))
-    );
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageObj.id ? { ...m, reactions: updatedReactions } : m))
+      );
 
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ reactions: updatedReactions })
-        .eq('id', messageObj.id);
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ reactions: updatedReactions })
+          .eq('id', messageObj.id);
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to toggle reaction:', err);
-    }
-  };
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to toggle reaction:', err);
+      }
+    },
+    [userId, setMessages]
+  );
 
   // Edit Message Handlers
-  const handleSaveEdit = async (messageId) => {
-    if (!editText.trim()) return;
-    const newContent = editText.trim();
-    setEditingMessage(null);
+  const handleSaveEdit = useCallback(
+    async (messageId) => {
+      if (!editText.trim()) return;
+      const newContent = editText.trim();
+      setEditingMessage(null);
 
-    setMessages((prev) =>
-      prev.map((m) => (m.id === messageId ? { ...m, content: newContent, is_edited: true } : m))
-    );
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, content: newContent, is_edited: true } : m))
+      );
 
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ content: newContent, is_edited: true })
-        .eq('id', messageId);
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ content: newContent, is_edited: true })
+          .eq('id', messageId);
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to save edit:', err);
-    }
-  };
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to save edit:', err);
+      }
+    },
+    [editText, setMessages]
+  );
 
   // Batch Delete/Pin/Forward Actions
   const handleDeleteSelectedMessages = async () => {
@@ -345,34 +351,37 @@ export default function Chat() {
     e.target.value = '';
   };
 
-  const triggerImageSelect = () => imageInputRef.current?.click();
+  const triggerImageSelect = useCallback(() => imageInputRef.current?.click(), []);
 
-  const handleReferenceClick = (itemId) => {
-    if (itemId) {
-      navigate(`/fridge?item=${itemId}`);
-    } else {
-      navigate('/fridge');
-    }
-    dispatch({
-      type: 'SET_GLOBAL_NOTIFICATION',
-      payload: { message: 'Navigated to Fridge item! 📌', type: 'info' },
-    });
-  };
+  const handleReferenceClick = useCallback(
+    (itemId) => {
+      if (itemId) {
+        navigate(`/fridge?item=${itemId}`);
+      } else {
+        navigate('/fridge');
+      }
+      dispatch({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: { message: 'Navigated to Fridge item! 📌', type: 'info' },
+      });
+    },
+    [navigate, dispatch]
+  );
 
   // Stubs for Document / Location
-  const simulateSendDocument = () => {
+  const simulateSendDocument = useCallback(() => {
     dispatch({
       type: 'SET_GLOBAL_NOTIFICATION',
       payload: { message: 'Document sharing coming soon! 📄', type: 'info' },
     });
-  };
+  }, [dispatch]);
 
-  const simulateSendLocation = () => {
+  const simulateSendLocation = useCallback(() => {
     dispatch({
       type: 'SET_GLOBAL_NOTIFICATION',
       payload: { message: 'Location sharing coming soon! 📍', type: 'info' },
     });
-  };
+  }, [dispatch]);
 
   // Lightbox State
   const [activeLightboxImage, setActiveLightboxImage] = useState(null);
@@ -476,7 +485,7 @@ export default function Chat() {
         handlePinMessage={handlePinMessage}
         setIsSelectionMode={setIsSelectionMode}
         setSelectedMessageIds={setSelectedMessageIds}
-        handleDeleteMessage={(id) => setMessageToDelete(id)}
+        handleDeleteMessage={setMessageToDelete}
         selectedMessageIds={selectedMessageIds}
         handleToggleSelectMessage={handleToggleSelectMessage}
         setActiveLightboxImage={setActiveLightboxImage}
