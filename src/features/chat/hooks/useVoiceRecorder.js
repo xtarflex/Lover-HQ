@@ -117,15 +117,15 @@ export function useVoiceRecorder({ userId, replyMessage, dispatch, setReplyMessa
       const drawWaveform = () => {
         if (!analyserRef.current || mediaRecorder.state === 'inactive') return;
 
-        analyserRef.current.getByteTimeDomainData(dataArray);
+        analyserRef.current.getByteFrequencyData(dataArray);
 
         let sum = 0;
         for (let i = 0; i < bufferLength; i++) {
-          const v = (dataArray[i] - 128) / 128;
-          sum += v * v;
+          sum += dataArray[i];
         }
-        const rms = Math.sqrt(sum / bufferLength);
-        const level = Math.min(Math.max(rms * 150, 4), 48);
+        const avg = sum / bufferLength;
+        const normalized = Math.pow(avg / 90, 0.75) * 32;
+        const level = Math.min(Math.max(normalized, 6), 36);
 
         setRecordLevels((prev) => {
           const next = [level, ...prev];
@@ -197,14 +197,14 @@ export function useVoiceRecorder({ userId, replyMessage, dispatch, setReplyMessa
     const dataArray = new Uint8Array(bufferLength);
     const drawWaveform = () => {
       if (!analyserRef.current || mediaRecorderRef.current.state === 'inactive') return;
-      analyserRef.current.getByteTimeDomainData(dataArray);
+      analyserRef.current.getByteFrequencyData(dataArray);
       let sum = 0;
       for (let i = 0; i < bufferLength; i++) {
-        const v = (dataArray[i] - 128) / 128;
-        sum += v * v;
+        sum += dataArray[i];
       }
-      const rms = Math.sqrt(sum / bufferLength);
-      const level = Math.min(Math.max(rms * 150, 4), 48);
+      const avg = sum / bufferLength;
+      const normalized = Math.pow(avg / 90, 0.75) * 32;
+      const level = Math.min(Math.max(normalized, 6), 36);
       setRecordLevels((prev) => [level, ...prev].slice(0, 11));
       animationFrameIdRef.current = requestAnimationFrame(drawWaveform);
     };

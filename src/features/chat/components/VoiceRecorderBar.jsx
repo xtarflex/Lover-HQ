@@ -125,13 +125,22 @@ export function VoiceRecorderBar({
               ) : (
                 (() => {
                   const mirrored = [...recordLevels].reverse().concat(recordLevels.slice(1));
-                  return mirrored.map((lvl, index) => (
-                    <div
-                      key={`rec-wave-${index}`}
-                      style={{ height: `${lvl}px` }}
-                      className="w-[5px] bg-primary rounded-full transition-all duration-75 shrink-0"
-                    />
-                  ));
+                  const total = mirrored.length;
+                  const centerIdx = Math.floor(total / 2);
+
+                  return mirrored.map((lvl, index) => {
+                    const distFromCenter = Math.abs(index - centerIdx) / (centerIdx || 1);
+                    const edgeTaper = Math.max(0.35, 1 - Math.pow(distFromCenter, 1.4) * 0.65);
+                    const finalHeight = Math.max(5, Math.round(lvl * edgeTaper));
+
+                    return (
+                      <div
+                        key={`rec-wave-${index}`}
+                        style={{ height: `${finalHeight}px` }}
+                        className="w-[5px] bg-primary rounded-full transition-all duration-75 shrink-0"
+                      />
+                    );
+                  });
                 })()
               )}
             </div>
