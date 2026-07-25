@@ -127,10 +127,8 @@ export default function Chat() {
   // 6. Hook: Voice Recorder & Upload Handlers
   const voiceRecorderProps = useVoiceRecorder({
     userId,
-    partnerId,
     replyMessage,
     dispatch,
-    coupleKey,
     setReplyMessage,
   });
 

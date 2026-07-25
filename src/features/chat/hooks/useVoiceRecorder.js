@@ -24,13 +24,7 @@ import { supabase } from '../../../lib/supabase';
  * @param {Function} options.setReplyMessage - Setter to clear reply context after send.
  * @returns {object} All recorder state values and action handlers.
  */
-export function useVoiceRecorder({
-  userId,
-  replyMessage,
-  dispatch,
-  coupleKey,
-  setReplyMessage,
-} = {}) {
+export function useVoiceRecorder({ userId, replyMessage, dispatch, setReplyMessage } = {}) {
   // ── Recording state ────────────────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [isRecordingPaused, setIsRecordingPaused] = useState(false);
@@ -367,14 +361,7 @@ export function useVoiceRecorder({
       setUploadingMedia(false);
       audioChunksRef.current = [];
     }
-  }, [
-    audioPreviewUrl,
-    audioPreviewDuration,
-    replyMessage,
-    userId,
-    dispatch,
-    setReplyMessage,
-  ]);
+  }, [audioPreviewUrl, audioPreviewDuration, replyMessage, userId, dispatch, setReplyMessage]);
 
   /**
    * Stops the recording immediately and uploads without entering the preview stage.
