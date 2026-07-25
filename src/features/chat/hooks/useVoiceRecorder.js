@@ -28,7 +28,7 @@ export function useVoiceRecorder({
   userId,
   replyMessage,
   dispatch,
-  coupleKey,
+
   setReplyMessage,
 } = {}) {
   // ── Recording state ────────────────────────────────────────────────────────
@@ -367,14 +367,7 @@ export function useVoiceRecorder({
       setUploadingMedia(false);
       audioChunksRef.current = [];
     }
-  }, [
-    audioPreviewUrl,
-    audioPreviewDuration,
-    replyMessage,
-    userId,
-    dispatch,
-    setReplyMessage,
-  ]);
+  }, [audioPreviewUrl, audioPreviewDuration, replyMessage, userId, dispatch, setReplyMessage]);
 
   /**
    * Stops the recording immediately and uploads without entering the preview stage.
