@@ -207,6 +207,26 @@ export default function Fridge() {
     };
   }, [scrollToItem]);
 
+  // On mount / items loaded, check URL query params for tagged fridge item and trigger gold pulse highlight
+  useEffect(() => {
+    if (isLoading || !items || items.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get('item') || params.get('highlight');
+    if (targetId) {
+      const timer = setTimeout(() => {
+        scrollToItem(targetId);
+        const el = scrollContainerRef.current?.querySelector(
+          `.fridge-item[data-item-id="${targetId}"]`
+        );
+        if (el) {
+          el.classList.add('animate-pulse-gold');
+          setTimeout(() => el.classList.remove('animate-pulse-gold'), 2500);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, items, scrollToItem]);
+
   // Toolbar scroll-gradient detection
   const checkScroll = () => {
     if (!toolbarRef.current) return;

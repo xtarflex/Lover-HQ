@@ -37,6 +37,7 @@ export function MessageList({
   userId,
   partner,
   presence,
+  partnerLastSeen: partnerLastSeenProp,
   showUnreadDivider,
   longPressedMessage,
   setLongPressedMessage,
@@ -66,7 +67,7 @@ export function MessageList({
   messagesEndRef,
   pressTimer,
 }) {
-  const partnerLastSeen = partner?.last_seen;
+  const partnerLastSeen = partnerLastSeenProp || partner?.last_seen;
 
   const renderReadStatus = (msg) => {
     if (!msg) return null;

@@ -476,6 +476,7 @@ export default function Chat() {
         userId={userId}
         partner={partner}
         presence={presence}
+        partnerLastSeen={partnerLastSeen}
         showUnreadDivider={showUnreadDivider}
         longPressedMessage={longPressedMessage}
         setLongPressedMessage={setLongPressedMessage}
