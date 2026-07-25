@@ -57,6 +57,7 @@ export default function Chat() {
 
   const [fridgeItems, setFridgeItems] = useState([]);
   const [showItemSelector, setShowItemSelector] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const [chatBg] = useState(() => {
     if (typeof window === 'undefined') return 'doodle';
@@ -565,9 +566,15 @@ export default function Chat() {
               showItemSelector={showItemSelector}
               setShowItemSelector={setShowItemSelector}
               newMessageText={newMessageText}
+              setNewMessageText={setNewMessageText}
               handleInputChange={handleInputChange}
               startRecording={voiceRecorderProps.startRecording}
               referencedItem={referencedItem}
+              showEmojiPicker={showEmojiPicker}
+              setShowEmojiPicker={setShowEmojiPicker}
+              onSelectSticker={(sticker) => {
+                setNewMessageText((prev) => (prev ? `${prev} ${sticker.char}` : sticker.char));
+              }}
             />
           )}
         </div>
