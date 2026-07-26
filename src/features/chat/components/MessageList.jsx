@@ -428,6 +428,12 @@ export function MessageList({
             !hasText &&
             !fridgeItem;
 
+          const isSingleEmoji =
+            hasText &&
+            !fridgeItem &&
+            !quotedMsg &&
+            ANIMATED_EMOJIS.some((e) => e.char === msg.content.trim());
+
           return (
             <div
               key={`msg-${msg.id}`}
@@ -599,7 +605,7 @@ export function MessageList({
                 <div className="flex flex-col relative max-w-[75%]">
                   <div
                     className={`relative ${
-                      isMediaOnly
+                      isMediaOnly || isSingleEmoji
                         ? `bg-transparent border-none shadow-none p-0 ${
                             isSelf
                               ? isHighlighted
@@ -882,8 +888,17 @@ export function MessageList({
                             );
                           })()}
 
-                        {(msg.media_type === 'image' || msg.media_type === 'video') && !hasText ? (
+                        {(msg.media_type === 'image' ||
+                          msg.media_type === 'video' ||
+                          isSingleEmoji) &&
+                        !hasText ? (
                           <div className="message-media-footer">
+                            {msg.is_edited && <span>edited</span>}
+                            <span>{getFormattedTime(msg.created_at, msg.id)}</span>
+                            {isSelf && <span>{renderReadStatus(msg)}</span>}
+                          </div>
+                        ) : isSingleEmoji ? (
+                          <div className="message-media-footer flex items-center justify-end space-x-1 text-[9px] text-text-muted mt-1 px-1">
                             {msg.is_edited && <span>edited</span>}
                             <span>{getFormattedTime(msg.created_at, msg.id)}</span>
                             {isSelf && <span>{renderReadStatus(msg)}</span>}

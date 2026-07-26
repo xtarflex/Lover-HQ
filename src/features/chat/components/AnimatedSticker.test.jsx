@@ -40,7 +40,9 @@ describe('AnimatedSticker', () => {
   });
 
   it('re-triggers animation key playback when clicked/tapped', () => {
-    const { container } = render(<AnimatedSticker src="https://example.com/emoji.webp" alt="Heart Emoji" />);
+    const { container } = render(
+      <AnimatedSticker src="https://example.com/emoji.webp" alt="Heart Emoji" />
+    );
     const wrapper = container.firstChild;
 
     expect(screen.getByAltText('Heart Emoji')).toBeInTheDocument();

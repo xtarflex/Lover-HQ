@@ -1,13 +1,14 @@
 /**
  * @file EmojiStickerDrawer.jsx
- * @description Premium Emoji & Animated Sticker picker drawer component.
- * Features categorized full emoji sets (Smileys, Love, Gestures, Sparks, Food)
- * and animated sticker magnets.
+ * @description Premium Emoji & Sticker picker drawer component.
+ * Features:
+ * - Categorized Emoji collections (Smileys, Love, Gestures, Sparks).
+ * - Animated category pills: Shows compact emoji icons normally, expands to reveal category title when active.
+ * - Dedicated Stickers tab reserved for future custom animated sticker packs.
  */
 
 import React, { useState } from 'react';
 import { Smile, Sparkles } from 'lucide-react';
-import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
 const EMOJI_CATEGORIES = [
   {
@@ -219,7 +220,7 @@ const EMOJI_CATEGORIES = [
       '🙏',
       '✍️',
       '💅',
-      '🤳',
+      '<ctrl42>',
       '💪',
     ],
   },
@@ -272,17 +273,11 @@ const EMOJI_CATEGORIES = [
  * @param {{
  *   showEmojiPicker: boolean,
  *   setShowEmojiPicker: Function,
- *   onSelectEmoji: Function,
- *   onSelectSticker: Function
+ *   onSelectEmoji: Function
  * }} props
  * @returns {React.ReactElement|null}
  */
-export function EmojiStickerDrawer({
-  showEmojiPicker,
-  setShowEmojiPicker,
-  onSelectEmoji,
-  onSelectSticker,
-}) {
+export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSelectEmoji }) {
   const [activeTab, setActiveTab] = useState('emojis');
   const [activeCategory, setActiveCategory] = useState('smileys');
 
@@ -292,7 +287,7 @@ export function EmojiStickerDrawer({
     EMOJI_CATEGORIES.find((c) => c.id === activeCategory) || EMOJI_CATEGORIES[0];
 
   return (
-    <div className="absolute bottom-full mb-3 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-3 shadow-2xl animate-scale-up">
+    <div className="absolute bottom-full mb-3 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-3 shadow-2xl animate-scale-up select-none">
       {/* Header Tabs & Close */}
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
         <div className="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-full border border-slate-800">
@@ -333,22 +328,29 @@ export function EmojiStickerDrawer({
 
       {/* Category Pills (Only shown when Emojis tab is active) */}
       {activeTab === 'emojis' && (
-        <div className="flex items-center space-x-1 mb-2 overflow-x-auto custom-scrollbar pb-1">
-          {EMOJI_CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all shrink-0 ${
-                activeCategory === cat.id
-                  ? 'bg-slate-800 text-primary border border-primary/30'
-                  : 'text-text-muted hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <span>{cat.icon}</span>
-              <span>{cat.name}</span>
-            </button>
-          ))}
+        <div className="flex items-center space-x-1.5 mb-2 overflow-x-auto custom-scrollbar pb-1">
+          {EMOJI_CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center px-2.5 py-1 rounded-full text-xs font-bold transition-all duration-300 shrink-0 ${
+                  isActive
+                    ? 'bg-slate-800 text-primary border border-primary/40 shadow-md scale-105'
+                    : 'text-text-muted hover:text-white hover:bg-slate-800/40 opacity-75'
+                }`}
+              >
+                <span className="text-sm">{cat.icon}</span>
+                {isActive && (
+                  <span className="text-[10px] font-extrabold tracking-wider uppercase ml-1 animate-fade-in whitespace-nowrap">
+                    {cat.name}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -370,30 +372,14 @@ export function EmojiStickerDrawer({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
-            {ANIMATED_EMOJIS.map((sticker) => {
-              const url = getEmojiCdnUrl(sticker.code);
-              return (
-                <button
-                  key={sticker.id}
-                  type="button"
-                  onClick={() => {
-                    if (onSelectSticker) onSelectSticker(sticker);
-                    setShowEmojiPicker(false);
-                  }}
-                  className="aspect-square bg-slate-950/60 rounded-xl border border-slate-800 p-1.5 hover:bg-slate-800/80 hover:border-primary/50 flex flex-col items-center justify-center transition-all group shrink-0"
-                >
-                  <img
-                    src={url}
-                    alt={sticker.label}
-                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
-                  />
-                  <span className="text-[8px] font-bold text-text-muted mt-1 truncate max-w-full">
-                    {sticker.label}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="py-6 px-4 flex flex-col items-center justify-center text-center space-y-2">
+            <div className="w-11 h-11 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-center text-primary shadow-inner">
+              <Sparkles className="w-5 h-5 animate-pulse" />
+            </div>
+            <span className="text-xs font-extrabold text-white">Animated Sticker Magnet Packs</span>
+            <span className="text-[10px] font-medium text-text-muted max-w-[220px]">
+              Custom animated sticker packs are coming soon! 🎨
+            </span>
           </div>
         )}
       </div>
