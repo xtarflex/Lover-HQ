@@ -1,6 +1,6 @@
 /**
  * @file src/features/fridge/components/emojiData.js
- * @description Defines the collection of 24 supported animated Noto Emojis, and helpers for resolving their CDN assets.
+ * @description Defines the collection of 50 supported animated Noto Emojis, and helpers for resolving their CDN assets.
  */
 
 /**
@@ -37,6 +37,32 @@ export const ANIMATED_EMOJIS = [
   { id: 'shushing', label: 'Shushing', code: '1f92b', char: '🤫' },
   { id: 'zany', label: 'Zany', code: '1f92a', char: '🤪' },
   { id: 'party_popper', label: 'Party Popper', code: '1f389', char: '🎉' },
+  { id: 'star', label: 'Star', code: '2b50', char: '⭐' },
+  { id: 'rocket', label: 'Rocket', code: '1f680', char: '🚀' },
+  { id: 'crown', label: 'Crown', code: '1f451', char: '👑' },
+  { id: 'rose', label: 'Rose', code: '1f339', char: '🌹' },
+  { id: 'ring', label: 'Ring', code: '1f48d', char: '💍' },
+  { id: 'sparkling_heart', label: 'Sparkling Heart', code: '1f496', char: '💖' },
+  { id: 'revolving_hearts', label: 'Revolving Hearts', code: '1f49e', char: '💞' },
+  { id: 'two_hearts', label: 'Two Hearts', code: '1f495', char: '💕' },
+  { id: 'drooling', label: 'Drooling', code: '1f924', char: '🤤' },
+  { id: 'yawning', label: 'Yawning', code: '1f971', char: '🥱' },
+  { id: 'sleeping', label: 'Sleeping', code: '1f634', char: '😴' },
+  { id: 'halo', label: 'Halo', code: '1f607', char: '😇' },
+  { id: 'hugging', label: 'Hugging', code: '1f917', char: '🤗' },
+  { id: 'saluting', label: 'Saluting', code: '1f6e1', char: '🫡' },
+  { id: 'pleading', label: 'Pleading', code: '1f97a', char: '🥺' },
+  { id: 'cold_face', label: 'Cold Face', code: '1f976', char: '🥶' },
+  { id: 'hot_face', label: 'Hot Face', code: '1f975', char: '🥵' },
+  { id: 'money_face', label: 'Money Face', code: '1f911', char: '🤑' },
+  { id: 'cowboy', label: 'Cowboy', code: '1f920', char: '🤠' },
+  { id: 'skull', label: 'Skull', code: '1f480', char: '💀' },
+  { id: 'alien', label: 'Alien', code: '1f47d', char: '👽' },
+  { id: 'robot', label: 'Robot', code: '1f916', char: '🤖' },
+  { id: 'wave', label: 'Wave', code: '1f44b', char: '👋' },
+  { id: 'pray', label: 'Pray', code: '1f64f', char: '🙏' },
+  { id: 'flex', label: 'Flex', code: '1f4aa', char: '💪' },
+  { id: 'balloon', label: 'Balloon', code: '1f388', char: '🎈' },
 ];
 
 /**
