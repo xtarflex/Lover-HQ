@@ -178,3 +178,5 @@ export function ChatInputForm({
     </form>
   );
 }
+
+export default ChatInputForm;

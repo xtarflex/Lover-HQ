@@ -397,3 +397,5 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
     </div>
   );
 }
+
+export default EmojiStickerDrawer;

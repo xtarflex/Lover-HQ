@@ -319,3 +319,5 @@ export function AttachmentBottomSheet({
     </AnimatePresence>
   );
 }
+
+export default AttachmentBottomSheet;

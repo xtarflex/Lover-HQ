@@ -138,3 +138,5 @@ export function AnimatedSticker({ src, alt, className = 'w-14 h-14 object-contai
     </div>
   );
 }
+
+export default AnimatedSticker;
