@@ -75,7 +75,7 @@ export function MessageList({
       presence?.partnerRoom === 'Chat Room' ||
       (partnerLastSeen &&
         msg.created_at &&
-        new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+        Date.parse(msg.created_at) <= Date.parse(partnerLastSeen));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-emerald-500" />;

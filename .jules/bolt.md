@@ -24,3 +24,6 @@
 ## 2024-05-24 - Compare ISO 8601 strings directly in render loop
 **Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
 **Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
+## 2024-07-26 - Efficient Time Comparison in Render Loops
+**Learning:** Instantiating `new Date()` within render loops just to compare dates introduces unnecessary overhead, garbage collection pressure, and memory allocation. This is especially problematic in list rendering components like `MessageList` and `MagnetCommentDrawer`.
+**Action:** When comparing ISO 8601 strings, use `Date.parse()` to get the timestamp integer directly. This avoids creating new `Date` objects and performs the comparison safely and efficiently, handling sub-second precision properly.
