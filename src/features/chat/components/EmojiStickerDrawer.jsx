@@ -367,11 +367,13 @@ export function EmojiStickerDrawer({
     EMOJI_CATEGORIES.find((c) => c.id === activeCategory) || EMOJI_CATEGORIES[0];
   const currentPackData = STICKER_PACKS.find((p) => p.id === activePackId) || STICKER_PACKS[0];
 
-  const filteredStickers = currentPackData.stickers.filter((st) => {
-    if (activeStickerFilter === 'animated') return st.type === 'animated';
-    if (activeStickerFilter === 'static') return st.type === 'static';
-    return true;
-  });
+  const filteredStickers = currentPackData
+    ? currentPackData.stickers.filter((st) => {
+        if (activeStickerFilter === 'animated') return st.type === 'animated';
+        if (activeStickerFilter === 'static') return st.type === 'static';
+        return true;
+      })
+    : [];
 
   return (
     <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-2.5 shadow-2xl animate-scale-up select-none">
@@ -452,7 +454,7 @@ export function EmojiStickerDrawer({
       )}
 
       {/* Sticker Filter & Pack Selector (Stickers Tab) */}
-      {activeTab === 'stickers' && (
+      {activeTab === 'stickers' && STICKER_PACKS.length > 0 && (
         <div className="flex items-center justify-between space-x-2 mb-2 pb-1 border-b border-slate-800/60">
           <div className="flex items-center space-x-1 overflow-x-auto custom-scrollbar">
             {STICKER_PACKS.map((pack) => (
@@ -508,7 +510,7 @@ export function EmojiStickerDrawer({
               </button>
             ))}
           </div>
-        ) : (
+        ) : filteredStickers.length > 0 ? (
           <div className="grid grid-cols-4 gap-2">
             {filteredStickers.map((sticker) => (
               <button
@@ -533,6 +535,18 @@ export function EmojiStickerDrawer({
                 )}
               </button>
             ))}
+          </div>
+        ) : (
+          <div className="py-8 px-4 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center mb-3 shadow-inner text-primary">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <h4 className="text-xs font-extrabold text-white tracking-wide uppercase mb-1">
+              Sticker Packs Coming Soon
+            </h4>
+            <p className="text-[10px] text-text-muted max-w-[200px]">
+              Custom animated &amp; static sticker magnet packs will appear here.
+            </p>
           </div>
         )}
       </div>

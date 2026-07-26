@@ -45,7 +45,9 @@ export function ChatInputForm({
   onSelectSticker,
 }) {
   const textareaRef = useRef(null);
-  const hasContent = !!(newMessageText.trim() || referencedItem);
+  const hasContent = Boolean(
+    (typeof newMessageText === 'string' ? newMessageText.trim() : '') || referencedItem
+  );
 
   // Auto-expand textarea height up to 100px
   useEffect(() => {
