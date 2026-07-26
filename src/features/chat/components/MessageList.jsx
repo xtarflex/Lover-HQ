@@ -24,6 +24,7 @@ import {
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
+import { AnimatedSticker } from './AnimatedSticker';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
@@ -866,7 +867,7 @@ export function MessageList({
                             if (singleEmojiDef) {
                               return (
                                 <div className="py-1 px-1 flex justify-center items-center">
-                                  <img
+                                  <AnimatedSticker
                                     src={getEmojiCdnUrl(singleEmojiDef.code)}
                                     alt={singleEmojiDef.label}
                                     className="w-16 h-16 object-contain"
