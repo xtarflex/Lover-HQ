@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AnimatedSticker } from './AnimatedSticker';
@@ -24,9 +24,15 @@ describe('AnimatedSticker', () => {
     }
 
     window.IntersectionObserver = MockIntersectionObserver;
+
+    // Mock HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+    });
   });
 
-  it('renders sticker image with given alt and src', () => {
+  it('renders sticker image with given alt and src during active playback', () => {
     render(<AnimatedSticker src="https://example.com/emoji.webp" alt="Heart Emoji" />);
     const img = screen.getByAltText('Heart Emoji');
     expect(img).toBeInTheDocument();
