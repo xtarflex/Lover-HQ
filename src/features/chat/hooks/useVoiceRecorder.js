@@ -24,7 +24,13 @@ import { supabase } from '../../../lib/supabase';
  * @param {Function} options.setReplyMessage - Setter to clear reply context after send.
  * @returns {object} All recorder state values and action handlers.
  */
-export function useVoiceRecorder({ userId, replyMessage, dispatch, setReplyMessage } = {}) {
+export function useVoiceRecorder({
+  userId,
+  replyMessage,
+  dispatch,
+  setReplyMessage,
+  broadcastRecordingStatus,
+} = {}) {
   // ── Recording state ────────────────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [isRecordingPaused, setIsRecordingPaused] = useState(false);
@@ -110,6 +116,7 @@ export function useVoiceRecorder({ userId, replyMessage, dispatch, setReplyMessa
 
       mediaRecorder.start();
       setIsRecording(true);
+      if (broadcastRecordingStatus) broadcastRecordingStatus(true);
 
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
@@ -238,7 +245,8 @@ export function useVoiceRecorder({ userId, replyMessage, dispatch, setReplyMessa
     setIsRecordingPaused(false);
     setRecordLevels([]);
     setAudioPreviewUrl(null);
-  }, []);
+    if (broadcastRecordingStatus) broadcastRecordingStatus(false);
+  }, [broadcastRecordingStatus]);
 
   /**
    * Stops the recording and transitions to the preview stage.

@@ -49,6 +49,7 @@ export function useChatTyping(arg1, arg2, arg3, arg4) {
   }
 
   const [partnerIsTyping, setPartnerIsTyping] = useState(false);
+  const [partnerIsRecording, setPartnerIsRecording] = useState(false);
   const isTypingLocal = useRef(false);
   const typingTimeoutRef = useRef(null);
   const internalChannelRef = useRef(null);
@@ -64,6 +65,11 @@ export function useChatTyping(arg1, arg2, arg3, arg4) {
       .on('broadcast', { event: 'typing' }, (payload) => {
         if (payload?.payload?.userId && payload.payload.userId !== userId) {
           setPartnerIsTyping(!!payload.payload.isTyping);
+        }
+      })
+      .on('broadcast', { event: 'recording' }, (payload) => {
+        if (payload?.payload?.userId && payload.payload.userId !== userId) {
+          setPartnerIsRecording(!!payload.payload.isRecording);
         }
       })
       .subscribe();
@@ -92,6 +98,28 @@ export function useChatTyping(arg1, arg2, arg3, arg4) {
         });
       } catch (err) {
         console.error('Failed to send typing status:', err);
+      }
+    },
+    [userId, activeChannelRef]
+  );
+
+  /**
+   * Broadcasts the current voice recording status to the partner via the active channel.
+   *
+   * @param {boolean} isRecording - Whether the local user is currently recording a voice note.
+   * @returns {void}
+   */
+  const broadcastRecordingStatus = useCallback(
+    (isRecording) => {
+      if (!activeChannelRef || !activeChannelRef.current) return;
+      try {
+        activeChannelRef.current.send({
+          type: 'broadcast',
+          event: 'recording',
+          payload: { userId, isRecording },
+        });
+      } catch (err) {
+        console.error('Failed to send recording status:', err);
       }
     },
     [userId, activeChannelRef]
@@ -147,8 +175,10 @@ export function useChatTyping(arg1, arg2, arg3, arg4) {
 
   return {
     partnerIsTyping,
+    partnerIsRecording,
     isTypingLocal,
     broadcastTypingStatus,
+    broadcastRecordingStatus,
     handleInputChange,
     handlePartnerTypingBroadcast,
   };

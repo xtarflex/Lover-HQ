@@ -24,6 +24,7 @@ import { formatLastSeen } from '../../../utils/time';
 export function ChatHeader({
   partner,
   partnerIsTyping,
+  partnerIsRecording,
   presence,
   partnerLastSeen,
   navigate,
@@ -60,7 +61,12 @@ export function ChatHeader({
               {partner?.name || 'Partner'}
             </span>
             <span className="text-[10px] text-text-muted font-medium truncate mt-0.5 leading-none">
-              {partnerIsTyping ? (
+              {partnerIsRecording ? (
+                <span className="text-pink-500 font-bold flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping inline-block mr-1" />
+                  recording audio...
+                </span>
+              ) : partnerIsTyping ? (
                 <span className="text-amber-500 font-bold">typing...</span>
               ) : presence?.partner === 'online' ? (
                 <>

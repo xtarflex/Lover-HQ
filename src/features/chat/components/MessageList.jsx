@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
-import { TypingIndicator } from './TypingIndicator';
+import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
@@ -64,6 +64,7 @@ export function MessageList({
   handleSaveEdit,
   isSelectionMode,
   partnerIsTyping,
+  partnerIsRecording,
   messagesEndRef,
   pressTimer,
 }) {
@@ -965,7 +966,7 @@ export function MessageList({
     <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 custom-scrollbar relative">
       {content}
 
-      {partnerIsTyping && <TypingIndicator partner={partner} />}
+      {partnerIsRecording ? <RecordingIndicator /> : partnerIsTyping ? <TypingIndicator /> : null}
 
       <div ref={messagesEndRef} />
     </div>

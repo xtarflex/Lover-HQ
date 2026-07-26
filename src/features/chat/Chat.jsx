@@ -104,11 +104,8 @@ export default function Chat() {
   const { partnerLastSeen } = usePartnerPresence(partnerId, partner?.last_seen);
 
   // 3. Hook: Partner Typing Broadcast
-  const { partnerIsTyping, handleInputChange } = useChatTyping(
-    coupleKey,
-    userId,
-    setNewMessageText
-  );
+  const { partnerIsTyping, partnerIsRecording, broadcastRecordingStatus, handleInputChange } =
+    useChatTyping(coupleKey, userId, setNewMessageText);
 
   // 4. Hook: Pinned Message
   const { pinnedMessage, handlePinMessage, handleUnpinMessage } = usePinnedMessage(
@@ -133,6 +130,7 @@ export default function Chat() {
     dispatch,
     coupleKey,
     setReplyMessage,
+    broadcastRecordingStatus,
   });
 
   // 7. Hook: Multi-Media Attachment & Editing Uploader
@@ -452,6 +450,7 @@ export default function Chat() {
       <ChatHeader
         partner={partner}
         partnerIsTyping={partnerIsTyping}
+        partnerIsRecording={partnerIsRecording}
         presence={presence}
         partnerLastSeen={partnerLastSeen}
         navigate={navigate}
@@ -504,6 +503,7 @@ export default function Chat() {
         handleSaveEdit={handleSaveEdit}
         isSelectionMode={isSelectionMode}
         partnerIsTyping={partnerIsTyping}
+        partnerIsRecording={partnerIsRecording}
         messagesEndRef={messagesEndRef}
         pressTimer={pressTimer}
       />
