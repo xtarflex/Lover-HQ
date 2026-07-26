@@ -9,6 +9,7 @@
 
 import React, { useState } from 'react';
 import { Smile, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const EMOJI_CATEGORIES = [
   {
@@ -332,23 +333,33 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
           {EMOJI_CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
-              <button
+              <motion.button
                 key={cat.id}
+                layout
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-300 shrink-0 ${
+                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                className={`flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0 ${
                   isActive
                     ? 'bg-slate-800 text-primary border border-primary/40 shadow-sm'
                     : 'text-text-muted hover:text-white hover:bg-slate-800/40 opacity-75'
                 }`}
               >
                 <span className="text-xs">{cat.icon}</span>
-                {isActive && (
-                  <span className="text-[9px] font-extrabold tracking-wider uppercase ml-1 animate-fade-in whitespace-nowrap">
-                    {cat.name}
-                  </span>
-                )}
-              </button>
+                <AnimatePresence initial={false}>
+                  {isActive && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
+                      className="text-[9px] font-extrabold tracking-wider uppercase ml-1 whitespace-nowrap overflow-hidden inline-block"
+                    >
+                      {cat.name}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
             );
           })}
         </div>
