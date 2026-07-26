@@ -888,20 +888,19 @@ export function MessageList({
                             );
                           })()}
 
-                        {(msg.media_type === 'image' ||
-                          msg.media_type === 'video' ||
-                          isSingleEmoji) &&
-                        !hasText ? (
+                        {(msg.media_type === 'image' || msg.media_type === 'video') && !hasText ? (
                           <div className="message-media-footer">
                             {msg.is_edited && <span>edited</span>}
                             <span>{getFormattedTime(msg.created_at, msg.id)}</span>
                             {isSelf && <span>{renderReadStatus(msg)}</span>}
                           </div>
                         ) : isSingleEmoji ? (
-                          <div className="message-media-footer flex items-center justify-end space-x-1 text-[9px] text-text-muted mt-1 px-1">
-                            {msg.is_edited && <span>edited</span>}
-                            <span>{getFormattedTime(msg.created_at, msg.id)}</span>
-                            {isSelf && <span>{renderReadStatus(msg)}</span>}
+                          <div className="flex items-center justify-end space-x-1.5 text-[10px] text-text-muted mt-2 px-1 whitespace-nowrap select-none">
+                            {msg.is_edited && <span className="text-[9px]">edited</span>}
+                            <span className="font-semibold text-gray-400">
+                              {getFormattedTime(msg.created_at, msg.id)}
+                            </span>
+                            {isSelf && <span className="ml-1">{renderReadStatus(msg)}</span>}
                           </div>
                         ) : (
                           <div className="message-bubble-footer">

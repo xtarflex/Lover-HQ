@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AnimatedSticker } from './AnimatedSticker';
@@ -24,12 +24,6 @@ describe('AnimatedSticker', () => {
     }
 
     window.IntersectionObserver = MockIntersectionObserver;
-
-    // Mock HTMLCanvasElement.getContext
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
-      clearRect: vi.fn(),
-      drawImage: vi.fn(),
-    });
   });
 
   it('renders sticker image with given alt and src', () => {
