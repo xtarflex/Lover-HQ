@@ -543,7 +543,7 @@ export default function Chat() {
           onForward={handleForwardSelectedMessages}
         />
       ) : (
-        <div className="p-4 bg-slate-900 border-t border-slate-800/60 space-y-2 shrink-0 z-20">
+        <div className="p-3 bg-transparent space-y-2 shrink-0 z-20 max-w-[540px] mx-auto w-full">
           <ReplyPreview
             replyMessage={replyMessage}
             userId={userId}

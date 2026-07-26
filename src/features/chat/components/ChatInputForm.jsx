@@ -5,7 +5,7 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import { Paperclip, Smile, Mic, Send } from 'lucide-react';
+import { Plus, Smile, Mic, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmojiStickerDrawer } from './EmojiStickerDrawer';
 
@@ -101,12 +101,14 @@ export function ChatInputForm({
           }}
           className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
             showItemSelector
-              ? 'bg-primary text-white shadow-md'
+              ? 'bg-primary text-white shadow-md scale-105'
               : 'text-text-muted hover:text-white hover:bg-slate-800/80'
           }`}
           aria-label="Add attachment"
         >
-          <Paperclip className="w-4.5 h-4.5" />
+          <Plus
+            className={`w-5 h-5 transition-transform duration-300 ${showItemSelector ? 'rotate-45' : 'rotate-0'}`}
+          />
         </button>
 
         {/* Left Action 2: Emoji & Sticker Trigger */}
@@ -118,12 +120,14 @@ export function ChatInputForm({
           }}
           className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
             showEmojiPicker
-              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 scale-105'
               : 'text-text-muted hover:text-white hover:bg-slate-800/80'
           }`}
           aria-label="Emoji & Stickers"
         >
-          <Smile className="w-4.5 h-4.5" />
+          <Smile
+            className={`w-4.5 h-4.5 transition-transform duration-300 ${showEmojiPicker ? 'scale-110 -rotate-12' : 'rotate-0'}`}
+          />
         </button>
 
         {/* Center: Auto-expanding Textarea */}
