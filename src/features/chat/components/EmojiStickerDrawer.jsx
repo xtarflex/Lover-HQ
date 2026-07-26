@@ -1,44 +1,269 @@
 /**
  * @file EmojiStickerDrawer.jsx
  * @description Premium Emoji & Animated Sticker picker drawer component.
- * Allows users to insert standard emojis into text or select animated sticker magnets.
+ * Features categorized full emoji sets (Smileys, Love, Gestures, Sparks, Food)
+ * and animated sticker magnets.
  */
 
 import React, { useState } from 'react';
 import { Smile, Sparkles } from 'lucide-react';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
-const POPULAR_EMOJIS = [
-  '❤️',
-  '💖',
-  '💕',
-  '🥰',
-  '😘',
-  '😍',
-  '✨',
-  '🔥',
-  '🥳',
-  '😂',
-  '😭',
-  '🥺',
-  '🌹',
-  '💍',
-  '💌',
-  '👑',
-  '🤗',
-  '🙈',
-  '🌺',
-  '🍷',
-  '🎶',
-  '🎉',
-  '😴',
-  '🌙',
-  '⭐',
-  '🤤',
-  '😜',
-  '💯',
-  '🙏',
-  '👫',
+const EMOJI_CATEGORIES = [
+  {
+    id: 'smileys',
+    name: 'Smileys',
+    icon: '😀',
+    emojis: [
+      '😀',
+      '😃',
+      '😄',
+      '😁',
+      '😆',
+      '😅',
+      '😂',
+      '🤣',
+      '🥲',
+      '🥹',
+      '☺️',
+      '😊',
+      '😇',
+      '🙂',
+      '🙃',
+      '😉',
+      '😌',
+      '😍',
+      '🥰',
+      '😘',
+      '😗',
+      '😙',
+      '😚',
+      '😋',
+      '😛',
+      '😝',
+      '😜',
+      '🤪',
+      '🤨',
+      '🧐',
+      '🤓',
+      '😎',
+      '🥸',
+      '🤩',
+      '🥳',
+      '😏',
+      '😒',
+      '😞',
+      '😔',
+      '😟',
+      '😕',
+      '🙁',
+      '☹️',
+      '😣',
+      '😖',
+      '😫',
+      '😩',
+      '🥺',
+      '😢',
+      '😭',
+      '😤',
+      '😠',
+      '😡',
+      '🤬',
+      '🤯',
+      '😳',
+      '🥵',
+      '🥶',
+      '😱',
+      '😨',
+      '😰',
+      '😥',
+      '😓',
+      '🫣',
+      '🤗',
+      '🫡',
+      '🤫',
+      '🫠',
+      '🤥',
+      '😶',
+      '🫥',
+      '😐',
+      '😑',
+      '😬',
+      '🫨',
+      '🙄',
+      '😯',
+      '😦',
+      '😧',
+      '😮',
+      '😲',
+      '🥱',
+      '😴',
+      '🤤',
+      '😪',
+      '😵',
+      '😵‍💫',
+      '🤐',
+      '🥴',
+      '🤢',
+      '🤮',
+      '🤧',
+      '😷',
+      '🤒',
+      '🤕',
+      '🤑',
+      '🤠',
+      '😈',
+      '👿',
+      '👹',
+      '👺',
+      '🤡',
+      '💩',
+      '👻',
+      '💀',
+      '☠️',
+      '👽',
+      '👾',
+      '🤖',
+      '🎃',
+      '😺',
+      '😸',
+    ],
+  },
+  {
+    id: 'love',
+    name: 'Love',
+    icon: '❤️',
+    emojis: [
+      '❤️',
+      '🧡',
+      '💛',
+      '💚',
+      '💙',
+      '💜',
+      '🖤',
+      '🤍',
+      '🤎',
+      '💔',
+      '❣️',
+      '💕',
+      '💞',
+      '💓',
+      '💗',
+      '💖',
+      '💘',
+      '💝',
+      '💟',
+      '🫀',
+      '🫁',
+      '💌',
+      '💋',
+      '💍',
+      '💎',
+      '💐',
+      '🌹',
+      '🥀',
+      '🌺',
+      '🌸',
+      '🌷',
+      '🌻',
+      '🥀',
+      '🪴',
+      '🌲',
+      '🌳',
+      '🌴',
+      '🍀',
+      '🍁',
+      '🍂',
+      '🍃',
+      '🍄',
+    ],
+  },
+  {
+    id: 'gestures',
+    name: 'Hands',
+    icon: '👍',
+    emojis: [
+      '👋',
+      '🤚',
+      '🖐️',
+      '✋',
+      '🖖',
+      '👌',
+      '🤌',
+      '🤏',
+      '✌️',
+      '🤞',
+      '🫰',
+      '🤟',
+      '🤘',
+      '🤙',
+      '👈',
+      '👉',
+      '👆',
+      '🖕',
+      '👇',
+      '☝️',
+      '🫵',
+      '👍',
+      '👎',
+      '✊',
+      '👊',
+      '🤛',
+      '🤜',
+      '👏',
+      '🙌',
+      '🫶',
+      '👐',
+      '🤲',
+      '🤝',
+      '🙏',
+      '✍️',
+      '💅',
+      '🤳',
+      '💪',
+    ],
+  },
+  {
+    id: 'sparks',
+    name: 'Sparks',
+    icon: '🔥',
+    emojis: [
+      '✨',
+      '🌟',
+      '💫',
+      '⭐',
+      '💥',
+      '🔥',
+      '💣',
+      '💯',
+      '💢',
+      '💨',
+      '💦',
+      '💤',
+      '🕳️',
+      '🎉',
+      '🎊',
+      '🎈',
+      '🎂',
+      '🥂',
+      '🍷',
+      '☕',
+      '🍧',
+      '🍕',
+      '🍔',
+      '🌮',
+      '🍩',
+      '🍦',
+      '🎵',
+      '🎶',
+      '🍿',
+      '🏆',
+      '🥇',
+      '🎁',
+      '🚀',
+      '👑',
+    ],
+  },
 ];
 
 /**
@@ -59,8 +284,12 @@ export function EmojiStickerDrawer({
   onSelectSticker,
 }) {
   const [activeTab, setActiveTab] = useState('emojis');
+  const [activeCategory, setActiveCategory] = useState('smileys');
 
   if (!showEmojiPicker) return null;
+
+  const currentCategoryData =
+    EMOJI_CATEGORIES.find((c) => c.id === activeCategory) || EMOJI_CATEGORIES[0];
 
   return (
     <div className="absolute bottom-full mb-3 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-3 shadow-2xl animate-scale-up">
@@ -102,18 +331,39 @@ export function EmojiStickerDrawer({
         </button>
       </div>
 
+      {/* Category Pills (Only shown when Emojis tab is active) */}
+      {activeTab === 'emojis' && (
+        <div className="flex items-center space-x-1 mb-2 overflow-x-auto custom-scrollbar pb-1">
+          {EMOJI_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setActiveCategory(cat.id)}
+              className={`flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all shrink-0 ${
+                activeCategory === cat.id
+                  ? 'bg-slate-800 text-primary border border-primary/30'
+                  : 'text-text-muted hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <span>{cat.icon}</span>
+              <span>{cat.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Grid Content */}
-      <div className="max-h-[180px] overflow-y-auto custom-scrollbar p-1">
+      <div className="max-h-[190px] overflow-y-auto custom-scrollbar p-1">
         {activeTab === 'emojis' ? (
-          <div className="grid grid-cols-6 gap-2 text-center">
-            {POPULAR_EMOJIS.map((emoji, idx) => (
+          <div className="grid grid-cols-7 gap-1 text-center">
+            {currentCategoryData.emojis.map((emoji, idx) => (
               <button
                 key={`emoji-${idx}`}
                 type="button"
                 onClick={() => {
                   onSelectEmoji(emoji);
                 }}
-                className="w-10 h-10 rounded-xl hover:bg-slate-800/80 flex items-center justify-center text-xl hover:scale-125 transition-transform"
+                className="w-9 h-9 rounded-xl hover:bg-slate-800/80 flex items-center justify-center text-lg hover:scale-125 transition-transform"
               >
                 {emoji}
               </button>

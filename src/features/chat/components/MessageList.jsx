@@ -858,11 +858,27 @@ export function MessageList({
                           </div>
                         )}
 
-                        {hasText && (
-                          <p className="text-xs font-semibold leading-relaxed break-words whitespace-pre-wrap">
-                            {msg.content}
-                          </p>
-                        )}
+                        {hasText &&
+                          (() => {
+                            const trimmed = msg.content.trim();
+                            const singleEmojiDef = ANIMATED_EMOJIS.find((e) => e.char === trimmed);
+                            if (singleEmojiDef) {
+                              return (
+                                <div className="py-1 px-1 flex justify-center items-center">
+                                  <img
+                                    src={getEmojiCdnUrl(singleEmojiDef.code)}
+                                    alt={singleEmojiDef.label}
+                                    className="w-16 h-16 object-contain"
+                                  />
+                                </div>
+                              );
+                            }
+                            return (
+                              <p className="text-xs font-semibold leading-relaxed break-words whitespace-pre-wrap">
+                                {msg.content}
+                              </p>
+                            );
+                          })()}
 
                         {(msg.media_type === 'image' || msg.media_type === 'video') && !hasText ? (
                           <div className="message-media-footer">
