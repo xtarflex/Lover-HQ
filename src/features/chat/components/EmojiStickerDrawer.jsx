@@ -287,7 +287,7 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
     EMOJI_CATEGORIES.find((c) => c.id === activeCategory) || EMOJI_CATEGORIES[0];
 
   return (
-    <div className="absolute bottom-full mb-3 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-3 shadow-2xl animate-scale-up select-none">
+    <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-2.5 shadow-2xl animate-scale-up select-none">
       {/* Header Tabs & Close */}
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
         <div className="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-full border border-slate-800">
@@ -336,15 +336,15 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center px-2.5 py-1 rounded-full text-xs font-bold transition-all duration-300 shrink-0 ${
+                className={`flex items-center px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-300 shrink-0 ${
                   isActive
-                    ? 'bg-slate-800 text-primary border border-primary/40 shadow-md scale-105'
+                    ? 'bg-slate-800 text-primary border border-primary/40 shadow-sm'
                     : 'text-text-muted hover:text-white hover:bg-slate-800/40 opacity-75'
                 }`}
               >
-                <span className="text-sm">{cat.icon}</span>
+                <span className="text-xs">{cat.icon}</span>
                 {isActive && (
-                  <span className="text-[10px] font-extrabold tracking-wider uppercase ml-1 animate-fade-in whitespace-nowrap">
+                  <span className="text-[9px] font-extrabold tracking-wider uppercase ml-1 animate-fade-in whitespace-nowrap">
                     {cat.name}
                   </span>
                 )}
@@ -357,7 +357,7 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
       {/* Grid Content */}
       <div className="max-h-[190px] overflow-y-auto custom-scrollbar p-1">
         {activeTab === 'emojis' ? (
-          <div className="grid grid-cols-7 gap-1 text-center">
+          <div className="grid grid-cols-8 gap-0.5 text-center">
             {currentCategoryData.emojis.map((emoji, idx) => (
               <button
                 key={`emoji-${idx}`}
@@ -365,7 +365,7 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
                 onClick={() => {
                   onSelectEmoji(emoji);
                 }}
-                className="w-9 h-9 rounded-xl hover:bg-slate-800/80 flex items-center justify-center text-lg hover:scale-125 transition-transform"
+                className="w-8 h-8 rounded-lg hover:bg-slate-800/80 flex items-center justify-center text-base hover:scale-115 transition-transform"
               >
                 {emoji}
               </button>

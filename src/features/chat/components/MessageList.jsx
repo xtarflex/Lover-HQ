@@ -872,11 +872,11 @@ export function MessageList({
                             const singleEmojiDef = ANIMATED_EMOJIS.find((e) => e.char === trimmed);
                             if (singleEmojiDef) {
                               return (
-                                <div className="py-1 px-1 flex justify-center items-center">
+                                <div className="p-0 flex justify-center items-center">
                                   <AnimatedSticker
                                     src={getEmojiCdnUrl(singleEmojiDef.code)}
                                     alt={singleEmojiDef.label}
-                                    className="w-16 h-16 object-contain"
+                                    className="w-14 h-14 object-contain"
                                   />
                                 </div>
                               );
