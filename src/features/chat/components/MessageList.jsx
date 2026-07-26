@@ -29,6 +29,17 @@ import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiDa
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
+function isSingleEmojiChar(str) {
+  if (!str) return false;
+  const trimmed = str.trim();
+  if (!trimmed) return false;
+  const chars = Array.from(trimmed);
+  if (chars.length > 2) return false;
+  const emojiRegex =
+    /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])+$/u;
+  return emojiRegex.test(trimmed);
+}
+
 /**
  * MessageList Component.
  */
@@ -428,11 +439,19 @@ export function MessageList({
             !hasText &&
             !fridgeItem;
 
-          const isSingleEmoji =
+          const singleEmojiDef =
+            hasText && !fridgeItem && !quotedMsg
+              ? ANIMATED_EMOJIS.find((e) => e.char === msg.content.trim())
+              : null;
+
+          const isSingleEmoji = !!singleEmojiDef;
+
+          const isJumboEmoji =
             hasText &&
             !fridgeItem &&
             !quotedMsg &&
-            ANIMATED_EMOJIS.some((e) => e.char === msg.content.trim());
+            !isSingleEmoji &&
+            isSingleEmojiChar(msg.content);
 
           return (
             <div
@@ -605,7 +624,7 @@ export function MessageList({
                 <div className="flex flex-col relative max-w-[75%]">
                   <div
                     className={`relative ${
-                      isMediaOnly || isSingleEmoji
+                      isMediaOnly || isSingleEmoji || isJumboEmoji
                         ? `bg-transparent border-none shadow-none p-0 ${
                             isSelf
                               ? isHighlighted
@@ -869,15 +888,22 @@ export function MessageList({
                         {hasText &&
                           (() => {
                             const trimmed = msg.content.trim();
-                            const singleEmojiDef = ANIMATED_EMOJIS.find((e) => e.char === trimmed);
                             if (singleEmojiDef) {
                               return (
                                 <div className="p-0 flex justify-center items-center">
                                   <AnimatedSticker
                                     src={getEmojiCdnUrl(singleEmojiDef.code)}
                                     alt={singleEmojiDef.label}
+                                    char={singleEmojiDef.char}
                                     className="w-14 h-14 object-contain"
                                   />
+                                </div>
+                              );
+                            }
+                            if (isJumboEmoji) {
+                              return (
+                                <div className="p-0 flex justify-center items-center text-5xl my-1 select-none animate-scale-up">
+                                  <span>{trimmed}</span>
                                 </div>
                               );
                             }
@@ -894,7 +920,7 @@ export function MessageList({
                             <span>{getFormattedTime(msg.created_at, msg.id)}</span>
                             {isSelf && <span>{renderReadStatus(msg)}</span>}
                           </div>
-                        ) : isSingleEmoji ? (
+                        ) : isSingleEmoji || isJumboEmoji ? (
                           <div className="flex items-center justify-end space-x-1.5 text-[10px] text-text-muted mt-2 px-1 whitespace-nowrap select-none">
                             {msg.is_edited && <span className="text-[9px]">edited</span>}
                             <span className="font-semibold text-gray-400">

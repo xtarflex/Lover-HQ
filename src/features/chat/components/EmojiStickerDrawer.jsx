@@ -1,15 +1,16 @@
 /**
  * @file EmojiStickerDrawer.jsx
- * @description Premium Emoji & Sticker picker drawer component.
+ * @description Premium Emoji & Custom Sticker picker drawer component.
  * Features:
- * - Categorized Emoji collections (Smileys, Love, Gestures, Sparks).
- * - Animated category pills: Shows compact emoji icons normally, expands to reveal category title when active.
- * - Dedicated Stickers tab reserved for future custom animated sticker packs.
+ * - Full categorized Emoji collections with Framer Motion expanding category pills.
+ * - Multi-pack custom Sticker Magnets drawer with type filter pills (All, Animated, Static).
+ * - Direct sticker selection send callback.
  */
 
 import React, { useState } from 'react';
 import { Smile, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { STICKER_PACKS } from '../../fridge/components/stickerData';
 
 const EMOJI_CATEGORIES = [
   {
@@ -168,7 +169,6 @@ const EMOJI_CATEGORIES = [
       '🌸',
       '🌷',
       '🌻',
-      '🥀',
       '🪴',
       '🌲',
       '🌳',
@@ -221,7 +221,7 @@ const EMOJI_CATEGORIES = [
       '🙏',
       '✍️',
       '💅',
-      '<ctrl42>',
+      '🤳',
       '💪',
     ],
   },
@@ -266,6 +266,77 @@ const EMOJI_CATEGORIES = [
       '👑',
     ],
   },
+  {
+    id: 'food',
+    name: 'Food',
+    icon: '🍕',
+    emojis: [
+      '🍏',
+      '🍎',
+      '🍐',
+      '🍊',
+      '🍋',
+      '🍌',
+      '🍉',
+      '🍇',
+      '🍓',
+      '🫐',
+      '🍈',
+      '🍒',
+      '🍑',
+      '🥭',
+      '🍍',
+      '🥥',
+      '🥝',
+      '🍅',
+      '🥑',
+      '🥦',
+      '🌽',
+      '🌶️',
+      '🍞',
+      '🥐',
+      '🥨',
+      '🧀',
+      '🍳',
+      '🥞',
+      '🧇',
+      '🥓',
+      '🥩',
+      '🍗',
+      '🍖',
+      '🌭',
+      '🍔',
+      '🍟',
+      '🍕',
+      '🫓',
+      '🥪',
+      '🥙',
+      '🧆',
+      '🌮',
+      '🌯',
+      '🫔',
+      '🥗',
+      '🥘',
+      '🫕',
+      '🍝',
+      '🍜',
+      '🍲',
+      '🍛',
+      '🍣',
+      '🍱',
+      '🥟',
+      '🦪',
+      '🍤',
+      '🍙',
+      '🍚',
+      '🍘',
+      '🍥',
+      '🥠',
+      '🥮',
+      '🍢',
+      '🍡',
+    ],
+  },
 ];
 
 /**
@@ -274,18 +345,33 @@ const EMOJI_CATEGORIES = [
  * @param {{
  *   showEmojiPicker: boolean,
  *   setShowEmojiPicker: Function,
- *   onSelectEmoji: Function
+ *   onSelectEmoji: Function,
+ *   onSelectSticker?: Function
  * }} props
  * @returns {React.ReactElement|null}
  */
-export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSelectEmoji }) {
+export function EmojiStickerDrawer({
+  showEmojiPicker,
+  setShowEmojiPicker,
+  onSelectEmoji,
+  onSelectSticker,
+}) {
   const [activeTab, setActiveTab] = useState('emojis');
   const [activeCategory, setActiveCategory] = useState('smileys');
+  const [activeStickerFilter, setActiveStickerFilter] = useState('all');
+  const [activePackId, setActivePackId] = useState('love_magnets');
 
   if (!showEmojiPicker) return null;
 
   const currentCategoryData =
     EMOJI_CATEGORIES.find((c) => c.id === activeCategory) || EMOJI_CATEGORIES[0];
+  const currentPackData = STICKER_PACKS.find((p) => p.id === activePackId) || STICKER_PACKS[0];
+
+  const filteredStickers = currentPackData.stickers.filter((st) => {
+    if (activeStickerFilter === 'animated') return st.type === 'animated';
+    if (activeStickerFilter === 'static') return st.type === 'static';
+    return true;
+  });
 
   return (
     <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl p-2.5 shadow-2xl animate-scale-up select-none">
@@ -327,7 +413,7 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
         </button>
       </div>
 
-      {/* Category Pills (Only shown when Emojis tab is active) */}
+      {/* Category Pills (Emojis Tab) */}
       {activeTab === 'emojis' && (
         <div className="flex items-center space-x-1.5 mb-2 overflow-x-auto custom-scrollbar pb-1">
           {EMOJI_CATEGORIES.map((cat) => {
@@ -365,6 +451,46 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
         </div>
       )}
 
+      {/* Sticker Filter & Pack Selector (Stickers Tab) */}
+      {activeTab === 'stickers' && (
+        <div className="flex items-center justify-between space-x-2 mb-2 pb-1 border-b border-slate-800/60">
+          <div className="flex items-center space-x-1 overflow-x-auto custom-scrollbar">
+            {STICKER_PACKS.map((pack) => (
+              <button
+                key={pack.id}
+                type="button"
+                onClick={() => setActivePackId(pack.id)}
+                className={`flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all shrink-0 ${
+                  activePackId === pack.id
+                    ? 'bg-slate-800 text-primary border border-primary/30'
+                    : 'text-text-muted hover:text-white'
+                }`}
+              >
+                <span>{pack.icon}</span>
+                <span>{pack.name}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center space-x-1 shrink-0 bg-slate-950/80 p-0.5 rounded-full border border-slate-800">
+            {['all', 'animated', 'static'].map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setActiveStickerFilter(type)}
+                className={`px-2 py-0.5 rounded-full text-[9px] font-bold capitalize transition-all ${
+                  activeStickerFilter === type
+                    ? 'bg-primary text-white'
+                    : 'text-text-muted hover:text-white'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Grid Content */}
       <div className="max-h-[190px] overflow-y-auto custom-scrollbar p-1">
         {activeTab === 'emojis' ? (
@@ -383,14 +509,30 @@ export function EmojiStickerDrawer({ showEmojiPicker, setShowEmojiPicker, onSele
             ))}
           </div>
         ) : (
-          <div className="py-6 px-4 flex flex-col items-center justify-center text-center space-y-2">
-            <div className="w-11 h-11 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-center text-primary shadow-inner">
-              <Sparkles className="w-5 h-5 animate-pulse" />
-            </div>
-            <span className="text-xs font-extrabold text-white">Animated Sticker Magnet Packs</span>
-            <span className="text-[10px] font-medium text-text-muted max-w-[220px]">
-              Custom animated sticker packs are coming soon! 🎨
-            </span>
+          <div className="grid grid-cols-4 gap-2">
+            {filteredStickers.map((sticker) => (
+              <button
+                key={sticker.id}
+                type="button"
+                onClick={() => {
+                  if (onSelectSticker) onSelectSticker(sticker);
+                  setShowEmojiPicker(false);
+                }}
+                className="aspect-square bg-slate-950/60 rounded-2xl border border-slate-800 p-2 hover:bg-slate-800/80 hover:border-primary/50 flex flex-col items-center justify-center transition-all group shrink-0 relative"
+              >
+                <img
+                  src={sticker.url}
+                  alt={sticker.label}
+                  className="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
+                />
+                <span className="text-[8px] font-bold text-text-muted mt-1 truncate max-w-full">
+                  {sticker.label}
+                </span>
+                {sticker.type === 'animated' && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-pink-500 shadow-sm" />
+                )}
+              </button>
+            ))}
           </div>
         )}
       </div>
