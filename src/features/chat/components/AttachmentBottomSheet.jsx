@@ -4,7 +4,7 @@
  * smooth Framer Motion gesture drag-to-dismiss, actions grid, and fridge item list.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image, Camera, FileText, MapPin, User as UserIcon, BarChart3, Mic } from 'lucide-react';
 import { FridgeItemList } from './FridgeItemList';
@@ -35,6 +35,21 @@ export function AttachmentBottomSheet({
   simulateSendDocument,
   simulateSendLocation,
 }) {
+  const [showDragHint, setShowDragHint] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const count = parseInt(localStorage.getItem('drawer_interaction_count') || '0', 10);
+    return count < 3;
+  });
+
+  const handleDismiss = () => {
+    if (typeof window !== 'undefined') {
+      const count = parseInt(localStorage.getItem('drawer_interaction_count') || '0', 10);
+      localStorage.setItem('drawer_interaction_count', (count + 1).toString());
+      if (count + 1 >= 3) setShowDragHint(false);
+    }
+    setShowItemSelector(false);
+  };
+
   return (
     <AnimatePresence>
       {showItemSelector && (
@@ -44,7 +59,7 @@ export function AttachmentBottomSheet({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowItemSelector(false)}
+            onClick={handleDismiss}
             className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
           />
 
@@ -59,20 +74,22 @@ export function AttachmentBottomSheet({
             dragElastic={{ top: 0, bottom: 0.6 }}
             onDragEnd={(_, info) => {
               if (info.offset.y > 90 || info.velocity.y > 250) {
-                setShowItemSelector(false);
+                handleDismiss();
               }
             }}
             className="relative w-full max-w-[480px] mx-auto bg-slate-900 border-t border-slate-800 rounded-t-3xl shadow-2xl z-[130] max-h-[80vh] flex flex-col overflow-hidden"
           >
-            {/* PINNED STICKY DRAG HANDLE HEADER (Never scrolls away!) */}
+            {/* PINNED STICKY DRAG HANDLE HEADER */}
             <div
               className="sticky top-0 bg-slate-900/95 backdrop-blur-md pt-3 pb-2 z-20 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing border-b border-slate-800/40 shrink-0"
-              onClick={() => setShowItemSelector(false)}
+              onClick={handleDismiss}
             >
               <div className="w-12 h-1.5 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors" />
-              <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1.5 opacity-60">
-                Drag down to close
-              </span>
+              {showDragHint && (
+                <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1.5 opacity-60 transition-opacity">
+                  Drag down to close
+                </span>
+              )}
             </div>
 
             {/* SCROLLABLE DRAWER CONTENT */}

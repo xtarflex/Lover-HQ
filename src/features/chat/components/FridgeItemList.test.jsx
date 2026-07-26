@@ -42,7 +42,7 @@ describe('FridgeItemList', () => {
 
   it('renders a photo item with thumbnail image', () => {
     render(<FridgeItemList fridgeItems={[photoItem]} onSelect={vi.fn()} />);
-    expect(screen.getByAltText('Fridge thumbnail')).toBeInTheDocument();
+    expect(screen.getByAltText('Fridge photo')).toBeInTheDocument();
     expect(screen.getByText('Polaroid Photo')).toBeInTheDocument();
   });
 
