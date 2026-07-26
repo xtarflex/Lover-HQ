@@ -145,7 +145,7 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
         />
       ) : char ? (
         /* Jumbo Static Emoji Symbol Swap when paused */
-        <div className="w-14 h-14 flex items-center justify-center text-4xl select-none opacity-95 group-hover:opacity-100 transition-opacity animate-fade-in">
+        <div className="w-14 h-14 flex items-center justify-center text-5xl leading-none select-none opacity-95 group-hover:opacity-100 transition-opacity animate-fade-in">
           <span>{char}</span>
         </div>
       ) : (

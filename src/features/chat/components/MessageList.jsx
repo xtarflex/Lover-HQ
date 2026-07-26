@@ -902,7 +902,7 @@ export function MessageList({
                             }
                             if (isJumboEmoji) {
                               return (
-                                <div className="p-0 flex justify-center items-center text-5xl my-1 select-none animate-scale-up">
+                                <div className="p-0 flex justify-center items-center text-6xl leading-none my-1 select-none animate-scale-up">
                                   <span>{trimmed}</span>
                                 </div>
                               );
