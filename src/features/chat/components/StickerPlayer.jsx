@@ -4,7 +4,7 @@
  * .svg, and dotLottie (.lottie) animations with tap-to-replay triggers.
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 /**
  * StickerPlayer component.
@@ -20,33 +20,55 @@ import React, { useState, useRef } from 'react';
 export function StickerPlayer({
   src,
   alt = 'Sticker',
-  className = 'w-20 h-20 object-contain',
+  className = 'w-24 h-24 object-contain',
   onClick,
 }) {
   const [playKey, setPlayKey] = useState(0);
-  const containerRef = useRef(null);
+  const playerRef = useRef(null);
 
   const isLottie = src && src.toLowerCase().endsWith('.lottie');
 
+  useEffect(() => {
+    const el = playerRef.current;
+    if (el && isLottie) {
+      try {
+        el.setAttribute('autoplay', '');
+        el.setAttribute('loop', '');
+        if (typeof el.play === 'function') {
+          el.play();
+        }
+      } catch {
+        // Fallback
+      }
+    }
+  }, [src, playKey, isLottie]);
+
   const handleTap = () => {
     setPlayKey((prev) => prev + 1);
+    const el = playerRef.current;
+    if (el && typeof el.play === 'function') {
+      try {
+        el.play();
+      } catch {
+        // Fallback
+      }
+    }
     if (onClick) onClick();
   };
 
   return (
     <div
-      ref={containerRef}
       onClick={handleTap}
       title="Tap to replay"
       className="cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform"
     >
       {isLottie ? (
         <dotlottie-player
+          ref={playerRef}
           key={`lottie-${playKey}`}
           src={src}
-          autoplay="true"
-          loop="true"
-          style={{ width: '100%', height: '100%' }}
+          class={className}
+          style={{ width: '140px', height: '140px', maxWidth: '100%', maxHeight: '100%' }}
         />
       ) : (
         <img
