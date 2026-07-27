@@ -41,11 +41,12 @@ export function StickerPlayer({
       className="cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform"
     >
       {isLottie ? (
-        <iframe
+        <dotlottie-player
           key={`lottie-${playKey}`}
-          src={`https://embed.lottiefiles.com/animation/${encodeURIComponent(src)}`}
-          title={alt}
-          className={`${className} border-none overflow-hidden pointer-events-none`}
+          src={src}
+          autoplay
+          loop
+          style={{ width: '100%', height: '100%' }}
         />
       ) : (
         <img
