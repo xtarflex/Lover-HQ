@@ -896,7 +896,7 @@ export function MessageList({
                             <StickerPlayer
                               src={msg.media_url}
                               alt="Sticker"
-                              className="w-32 h-32 max-w-[140px] max-h-[140px] object-contain"
+                              className="w-32 h-32 object-contain"
                             />
                           </div>
                         )}

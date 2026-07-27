@@ -34,6 +34,7 @@ export function StickerPlayer({
       try {
         el.setAttribute('autoplay', '');
         el.setAttribute('loop', '');
+        el.setAttribute('background', 'transparent');
         if (typeof el.play === 'function') {
           el.play();
         }
@@ -60,15 +61,16 @@ export function StickerPlayer({
     <div
       onClick={handleTap}
       title="Tap to replay"
-      className="cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform"
+      className={`cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform ${className}`}
     >
       {isLottie ? (
         <dotlottie-player
           ref={playerRef}
           key={`lottie-${playKey}`}
           src={src}
-          class={className}
-          style={{ width: '140px', height: '140px', maxWidth: '100%', maxHeight: '100%' }}
+          background="transparent"
+          speed="1"
+          style={{ width: '100%', height: '100%' }}
         />
       ) : (
         <img
@@ -76,7 +78,7 @@ export function StickerPlayer({
           src={src}
           alt={alt}
           loading="lazy"
-          className={className}
+          className="w-full h-full object-contain"
         />
       )}
     </div>
