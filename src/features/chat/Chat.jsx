@@ -249,6 +249,49 @@ export default function Chat() {
     }
   };
 
+  // Send Sticker Handler
+  const handleSendSticker = async (sticker) => {
+    if (!sticker || !userId || !partnerId) return;
+
+    setShowEmojiPicker(false);
+
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = {
+      id: tempId,
+      couple_key: coupleKey,
+      user_id: userId,
+      content: '',
+      media_url: sticker.url,
+      media_type: 'sticker',
+      created_at: new Date().toISOString(),
+      pending: true,
+    };
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setTimeout(() => scrollToBottom('smooth'), 50);
+
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          user_id: userId,
+          content: '',
+          media_url: sticker.url,
+          media_type: 'sticker',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)));
+      }
+    } catch (err) {
+      console.error('Failed to send sticker:', err);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    }
+  };
+
   // Reactions Handler
   const handleToggleReaction = async (messageObj, emoji) => {
     if (!userId) return;
@@ -572,9 +615,7 @@ export default function Chat() {
               referencedItem={referencedItem}
               showEmojiPicker={showEmojiPicker}
               setShowEmojiPicker={setShowEmojiPicker}
-              onSelectSticker={(sticker) => {
-                setNewMessageText((prev) => (prev ? `${prev} ${sticker.char}` : sticker.char));
-              }}
+              onSelectSticker={handleSendSticker}
             />
           )}
         </div>

@@ -25,6 +25,7 @@ import { LoadingSpinner } from '../../../components/LoadingSpinner';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
 import { AnimatedSticker } from './AnimatedSticker';
+import { StickerPlayer } from './StickerPlayer';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
@@ -453,6 +454,11 @@ export function MessageList({
             !isSingleEmoji &&
             isSingleEmojiChar(msg.content);
 
+          const isSticker =
+            msg.media_type === 'sticker' ||
+            (msg.media_url &&
+              (msg.media_url.endsWith('.lottie') || msg.media_url.includes('/stickers/')));
+
           return (
             <div
               key={`msg-${msg.id}`}
@@ -624,7 +630,7 @@ export function MessageList({
                 <div className="flex flex-col relative max-w-[75%]">
                   <div
                     className={`relative ${
-                      isMediaOnly || isSingleEmoji || isJumboEmoji
+                      isMediaOnly || isSingleEmoji || isJumboEmoji || isSticker
                         ? `bg-transparent border-none shadow-none p-0 ${
                             isSelf
                               ? isHighlighted
@@ -885,6 +891,16 @@ export function MessageList({
                           </div>
                         )}
 
+                        {isSticker && (
+                          <div className="p-0 flex justify-center items-center">
+                            <StickerPlayer
+                              src={msg.media_url}
+                              alt="Sticker"
+                              className="w-24 h-24 object-contain"
+                            />
+                          </div>
+                        )}
+
                         {hasText &&
                           (() => {
                             const trimmed = msg.content.trim();
@@ -920,7 +936,7 @@ export function MessageList({
                             <span>{getFormattedTime(msg.created_at, msg.id)}</span>
                             {isSelf && <span>{renderReadStatus(msg)}</span>}
                           </div>
-                        ) : isSingleEmoji || isJumboEmoji ? (
+                        ) : isSingleEmoji || isJumboEmoji || isSticker ? (
                           <div className="flex items-center justify-end space-x-1.5 text-[10px] text-text-muted mt-2 px-1 whitespace-nowrap select-none">
                             {msg.is_edited && <span className="text-[9px]">edited</span>}
                             <span className="font-semibold text-gray-400">
