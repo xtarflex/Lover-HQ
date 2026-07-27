@@ -30,19 +30,44 @@ export function StickerPlayer({
 
   useEffect(() => {
     const el = playerRef.current;
-    if (el && isLottie) {
-      try {
-        el.setAttribute('autoplay', '');
-        el.setAttribute('loop', '');
-        el.setAttribute('background', 'transparent');
-        if (typeof el.play === 'function') {
-          el.play();
-        }
-      } catch {
-        // Fallback
-      }
+    if (!el || !isLottie) return;
+
+    try {
+      el.setAttribute('background', 'transparent');
+      el.setAttribute('speed', '1');
+    } catch {
+      // Fallback
     }
-  }, [src, playKey, isLottie]);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (typeof el.play === 'function') {
+            try {
+              el.play();
+            } catch {
+              // Fallback
+            }
+          }
+        } else {
+          if (typeof el.pause === 'function') {
+            try {
+              el.pause();
+            } catch {
+              // Fallback
+            }
+          }
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [src, isLottie]);
 
   const handleTap = () => {
     setPlayKey((prev) => prev + 1);
