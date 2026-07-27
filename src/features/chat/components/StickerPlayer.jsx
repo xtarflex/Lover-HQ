@@ -1,10 +1,10 @@
 /**
  * @file StickerPlayer.jsx
  * @description Universal multi-format Sticker Player supporting transparent .webp, .png,
- * .svg, and dotLottie (.lottie) animations with tap-to-replay triggers.
+ * .svg, and dotLottie (.lottie) animations with deterministic 2-cycle playback and tap-to-replay triggers.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * StickerPlayer component.
@@ -24,33 +24,49 @@ export function StickerPlayer({
   onClick,
 }) {
   const [playKey, setPlayKey] = useState(0);
+  const containerRef = useRef(null);
   const playerRef = useRef(null);
 
   const isLottie = src && src.toLowerCase().endsWith('.lottie');
 
-  useEffect(() => {
+  /**
+   * Resets animation to frame 0 and plays exactly 2 full animation cycles.
+   */
+  const triggerPlayback = useCallback(() => {
+    setPlayKey((prev) => prev + 1);
     const el = playerRef.current;
-    if (!el || !isLottie) return;
-
-    try {
-      el.setAttribute('background', 'transparent');
-      el.setAttribute('speed', '1');
-    } catch {
-      // Fallback
+    if (el && isLottie) {
+      try {
+        el.setAttribute('loop', '2');
+        el.setAttribute('background', 'transparent');
+        el.setAttribute('speed', '1');
+        if (typeof el.seek === 'function') {
+          el.seek(0);
+        }
+        if (typeof el.stop === 'function') {
+          el.stop();
+        }
+        if (typeof el.play === 'function') {
+          el.play();
+        }
+      } catch {
+        // Fallback
+      }
     }
+  }, [isLottie]);
+
+  // Viewport intersection observer: handles entering/exiting view
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element || !isLottie) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          if (typeof el.play === 'function') {
-            try {
-              el.play();
-            } catch {
-              // Fallback
-            }
-          }
+          triggerPlayback();
         } else {
-          if (typeof el.pause === 'function') {
+          const el = playerRef.current;
+          if (el && typeof el.pause === 'function') {
             try {
               el.pause();
             } catch {
@@ -59,31 +75,25 @@ export function StickerPlayer({
           }
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3 }
     );
 
-    observer.observe(el);
+    observer.observe(element);
 
     return () => {
       observer.disconnect();
     };
-  }, [src, isLottie]);
+  }, [triggerPlayback, isLottie]);
 
-  const handleTap = () => {
-    setPlayKey((prev) => prev + 1);
-    const el = playerRef.current;
-    if (el && typeof el.play === 'function') {
-      try {
-        el.play();
-      } catch {
-        // Fallback
-      }
-    }
+  const handleTap = (e) => {
+    e.stopPropagation();
+    triggerPlayback();
     if (onClick) onClick();
   };
 
   return (
     <div
+      ref={containerRef}
       onClick={handleTap}
       title="Tap to replay"
       className={`cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform ${className}`}
@@ -95,6 +105,8 @@ export function StickerPlayer({
           src={src}
           background="transparent"
           speed="1"
+          loop="2"
+          autoplay="true"
           style={{ width: '100%', height: '100%' }}
         />
       ) : (
