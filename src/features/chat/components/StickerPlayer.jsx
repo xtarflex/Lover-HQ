@@ -44,8 +44,8 @@ export function StickerPlayer({
         <dotlottie-player
           key={`lottie-${playKey}`}
           src={src}
-          autoplay
-          loop
+          autoplay="true"
+          loop="true"
           style={{ width: '100%', height: '100%' }}
         />
       ) : (

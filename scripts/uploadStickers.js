@@ -70,7 +70,14 @@ async function runUpload() {
     },
   };
 
-  allFiles.forEach(({ filename, relPath }, index) => {
+  // Create Supabase client for storage upload
+  const supabase = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.s6C4Q5wz_placeholder'
+  );
+
+  for (let i = 0; i < allFiles.length; i++) {
+    const { filename, fullPath, relPath } = allFiles[i];
     const lower = filename.toLowerCase();
     const cleanLabel = filename
       .replace(/\.(lottie|webp|png)$/i, '')
@@ -80,11 +87,28 @@ async function runUpload() {
 
     const isAnimated = filename.endsWith('.lottie') || lower.includes('animated') || lower.includes('anim');
 
+    // Attempt Supabase Storage Upload
+    let cdnUrl = `/${relPath.replace(/\\/g, '/')}`;
+    try {
+      if (SUPABASE_KEY) {
+        const fileData = fs.readFileSync(fullPath);
+        const { error } = await supabase.storage.from('stickers').upload(filename, fileData, {
+          upsert: true,
+          contentType: filename.endsWith('.lottie') ? 'application/json' : 'image/webp',
+        });
+        if (!error) {
+          cdnUrl = `${SUPABASE_URL}/storage/v1/object/public/stickers/${encodeURIComponent(filename)}`;
+        }
+      }
+    } catch {
+      // Fall back to local URL
+    }
+
     const item = {
-      id: `sticker_${index + 1}_${Date.now()}`,
-      label: cleanLabel || `Sticker ${index + 1}`,
+      id: `sticker_${i + 1}_${Date.now()}`,
+      label: cleanLabel || `Sticker ${i + 1}`,
       type: isAnimated ? 'animated' : 'static',
-      url: `/${relPath.replace(/\\/g, '/')}`,
+      url: cdnUrl,
     };
 
     if (lower.includes('cat')) {
@@ -94,7 +118,7 @@ async function runUpload() {
     } else {
       packMap.love_pack.stickers.push(item);
     }
-  });
+  }
 
   const activePacks = Object.values(packMap).filter((p) => p.stickers.length > 0);
 
