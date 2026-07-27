@@ -5,6 +5,25 @@
  */
 
 import React, { useMemo } from 'react';
+
+/**
+ * Sanitizes a URL by enforcing safe protocols (http/https).
+ * Prevents execution of malicious payloads like javascript: URIs.
+ * @param {string} url - The URL to sanitize
+ * @returns {string} The original URL if safe, otherwise '#'
+ */
+function getSafeUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.href;
+    }
+  } catch {
+    // Ignore invalid URLs
+  }
+  return '#';
+}
+
 import {
   Smile,
   Reply,
@@ -875,7 +894,7 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={getSafeUrl(msg.media_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"
