@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "upload:stickers": "node scripts/uploadStickers.js"
   },
   "dependencies": {
     "@sentry/react": "^10.62.0",

@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import { Smile, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STICKER_PACKS } from '../../fridge/components/stickerData';
+import { StickerPlayer } from './StickerPlayer';
 
 const EMOJI_CATEGORIES = [
   {
@@ -523,7 +524,7 @@ export function EmojiStickerDrawer({
                 }}
                 className="aspect-square bg-slate-950/60 rounded-2xl border border-slate-800 p-2 hover:bg-slate-800/80 hover:border-primary/50 flex flex-col items-center justify-center transition-all group shrink-0 relative"
               >
-                <img
+                <StickerPlayer
                   src={sticker.url}
                   alt={sticker.label}
                   className="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
