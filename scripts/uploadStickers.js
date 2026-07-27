@@ -23,21 +23,23 @@ async function runUpload() {
     fs.mkdirSync(STICKERS_DIR, { recursive: true });
   }
 
-  // Find all sticker files in public/ and public/stickers/
+  // Find sticker files strictly inside public/stickers/
   const allFiles = [];
-  
-  if (fs.existsSync(PUBLIC_DIR)) {
-    const rootFiles = fs.readdirSync(PUBLIC_DIR);
-    rootFiles.forEach((file) => {
-      if (file.endsWith('.lottie') || file.endsWith('.webp') || file.endsWith('.png')) {
-        allFiles.push({ filename: file, fullPath: path.join(PUBLIC_DIR, file), relPath: file });
-      }
-    });
-  }
 
   if (fs.existsSync(STICKERS_DIR)) {
     const subFiles = fs.readdirSync(STICKERS_DIR);
     subFiles.forEach((file) => {
+      const lower = file.toLowerCase();
+      // Ignore system branding icons
+      if (
+        lower.startsWith('pwa') ||
+        lower.startsWith('apple-touch') ||
+        lower.startsWith('maskable') ||
+        lower.startsWith('logo') ||
+        lower.startsWith('og-image')
+      ) {
+        return;
+      }
       if (file.endsWith('.lottie') || file.endsWith('.webp') || file.endsWith('.png')) {
         allFiles.push({ filename: file, fullPath: path.join(STICKERS_DIR, file), relPath: `stickers/${file}` });
       }
