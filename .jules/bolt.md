@@ -10,8 +10,8 @@
 **Action:** Always test array lookups to cover the not found and empty params edge cases to prevent silent undefined rendering issues down the line.
 
 ## 2024-05-18 - Avoid Date Instantiation in Render Loops
-**Learning:** Comparing Supabase timestamps in React mapping loops by converting them to Date objects (`new Date(created_at) > new Date(last_seen)`) creates massive performance overhead on every keystroke/render in long lists.
-**Action:** Since Supabase timestamps are standard ISO 8601 strings (YYYY-MM-DDTHH:mm:ss.sssZ), they can be safely compared using standard JavaScript string comparison operators (`created_at > last_seen`), completely eliminating the Date instantiation overhead in hot paths.
+**Learning:** Comparing Supabase timestamps in React mapping loops by converting them to Date objects (`new Date(created_at) > new Date(last_seen)`) creates massive performance overhead on every keystroke/render in long lists. However, direct string comparison is unsafe for Supabase ISO 8601 timestamps due to potential variations in sub-second precision and timezone indicators.
+**Action:** Use `Date.parse()` to safely calculate time differences and perform comparisons without the full overhead of instantiating `new Date()` objects.
 
 ## 2025-01-20 - [Hardware limits on AudioContexts]
 **Learning:** Browsers enforce a hardware limit (often around 6) on the number of concurrently active `AudioContext` instances. Instantiating a new `AudioContext` on every sound playback will eventually hit this limit and crash/stop sound from playing.
@@ -21,6 +21,6 @@
 **Learning:** Performing multiple array `.find()` or `.filter()` operations inside a list-rendering component (or its hooks) creates an O(N * M) bottleneck, especially when the lists (like `promptsData` and `archiveMemories`) grow large.
 **Action:** Convert static arrays to Maps outside the component scope for O(1) lookups. For dynamic arrays, use `useMemo` to construct a Map, then perform O(1) lookups inside the render/callback cycles.
 
-## 2024-05-24 - Compare ISO 8601 strings directly in render loop
-**Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
-**Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
+## 2024-05-24 - Compare ISO 8601 strings safely in render loop
+**Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations. Although ISO 8601 timestamps appear lexically comparable, direct string comparison is unsafe due to variations in precision.
+**Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use `Date.parse()` (e.g., `Date.parse(timestamp1) > Date.parse(timestamp2)`) rather than converting them to `Date` objects or using direct string comparison, especially inside render functions.
