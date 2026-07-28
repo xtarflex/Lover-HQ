@@ -30,6 +30,20 @@ import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiDa
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
+// Helper to sanitize URLs to prevent XSS via malicious protocols like javascript:
+function getSafeUrl(url) {
+  if (!url) return '#';
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.href;
+    }
+  } catch {
+    // Invalid URL format
+  }
+  return '#';
+}
+
 function isSingleEmojiChar(str) {
   if (!str) return false;
   const trimmed = str.trim();
@@ -881,7 +895,7 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={getSafeUrl(msg.media_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"
