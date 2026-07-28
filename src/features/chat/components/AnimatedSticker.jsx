@@ -31,6 +31,8 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
   const canvasRef = useRef(null);
   const playTimerRef = useRef(null);
 
+  const hasBeenVisibleRef = useRef(false);
+
   /**
    * Triggers physical double-pulse heartbeat haptic vibration on mobile devices.
    */
@@ -99,13 +101,14 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          hasBeenVisibleRef.current = true;
           triggerPlayback();
-        } else {
+        } else if (hasBeenVisibleRef.current) {
           freezeFrame();
           clearTimeout(playTimerRef.current);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.1 }
     );
 
     observer.observe(element);
@@ -124,6 +127,8 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
     };
   }, [triggerPlayback, freezeFrame]);
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
     <div
       ref={containerRef}
@@ -131,6 +136,11 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
       title="Tap to replay animation"
       className="cursor-pointer select-none flex items-center justify-center relative group active:scale-95 transition-transform"
     >
+      {/* Loading Skeleton Placeholder */}
+      {!isLoaded && isPlaying && (
+        <div className="absolute inset-0 rounded-2xl bg-slate-800/30 border border-slate-700/20 flex items-center justify-center z-10 pointer-events-none" />
+      )}
+
       {/* Active native WebP image during playback */}
       {isPlaying ? (
         <img
@@ -138,8 +148,9 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
           key={`sticker-play-${playCountKey}`}
           src={src}
           alt={alt}
-          className={className}
+          className={`${className} transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => {
+            setIsLoaded(true);
             const img = imgRef.current;
             const canvas = canvasRef.current;
             if (img && canvas && !char) {

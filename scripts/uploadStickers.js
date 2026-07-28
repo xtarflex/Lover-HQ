@@ -1,3 +1,4 @@
+/* global process */
 /**
  * @file scripts/uploadStickers.js
  * @description Automated Node.js script to scan, group, upload, and generate sticker packs
