@@ -30,60 +30,42 @@ export function StickerPlayer({
 
   const isLottie = src && src.toLowerCase().endsWith('.lottie');
 
+  const mode =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('sticker_playback_mode') || 'infinite'
+      : 'infinite';
+  const isInfinite = mode !== 'two_cycles';
+
   const startPlayback = useCallback(() => {
     const el = playerRef.current;
     if (!el || !isLottie) return;
 
-    const mode =
+    const currentMode =
       typeof window !== 'undefined'
         ? localStorage.getItem('sticker_playback_mode') || 'infinite'
         : 'infinite';
+    const shouldLoop = currentMode !== 'two_cycles';
 
-    const playNow = () => {
-      try {
-        const dotLottieInst =
-          el.dotLottie || (typeof el.getDotLottie === 'function' ? el.getDotLottie() : null);
-        console.log('[StickerPlayer Debug]', {
-          src,
-          mode,
-          isReady: el.isReady,
-          hasDotLottie: !!dotLottieInst,
-        });
-
-        if (mode === 'two_cycles') {
-          if (dotLottieInst && typeof dotLottieInst.setLoop === 'function') {
-            dotLottieInst.setLoop(false);
-          } else if (typeof el.setLoop === 'function') {
-            el.setLoop(false);
-          }
-          el.loop = false;
-          if (typeof el.play === 'function') el.play();
-
-          clearTimeout(playTimerRef.current);
-          playTimerRef.current = setTimeout(() => {
-            if (typeof el.pause === 'function') el.pause();
-          }, 3500);
-        } else {
-          // Infinite loop mode
-          if (dotLottieInst && typeof dotLottieInst.setLoop === 'function') {
-            dotLottieInst.setLoop(true);
-          } else if (typeof el.setLoop === 'function') {
-            el.setLoop(true);
-          }
-          el.loop = true;
-          if (typeof el.play === 'function') el.play();
-        }
-      } catch (err) {
-        console.error('[StickerPlayer Error]', err);
+    try {
+      el.loop = shouldLoop;
+      if (typeof el.setLoop === 'function') {
+        el.setLoop(shouldLoop);
       }
-    };
 
-    if (el.isReady) {
-      playNow();
-    } else {
-      el.addEventListener('ready', playNow, { once: true });
+      if (shouldLoop) {
+        clearTimeout(playTimerRef.current);
+        if (typeof el.play === 'function') el.play();
+      } else {
+        if (typeof el.play === 'function') el.play();
+        clearTimeout(playTimerRef.current);
+        playTimerRef.current = setTimeout(() => {
+          if (typeof el.pause === 'function') el.pause();
+        }, 3500);
+      }
+    } catch (err) {
+      console.error('[StickerPlayer Error]', err);
     }
-  }, [isLottie, src]);
+  }, [isLottie]);
 
   const pausePlayback = useCallback(() => {
     const el = playerRef.current;
@@ -100,7 +82,12 @@ export function StickerPlayer({
   // IntersectionObserver: Auto-play when entering viewport, pause when exiting
   useEffect(() => {
     const element = containerRef.current;
+    const playerEl = playerRef.current;
     if (!element || !isLottie) return;
+
+    if (playerEl) {
+      playerEl.loop = isInfinite;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -115,13 +102,16 @@ export function StickerPlayer({
 
     observer.observe(element);
 
+    const handleReady = () => {
+      startPlayback();
+    };
+
     const handleComplete = () => {
-      const mode =
+      const currentMode =
         typeof window !== 'undefined'
           ? localStorage.getItem('sticker_playback_mode') || 'infinite'
           : 'infinite';
-      console.log('[StickerPlayer] complete event fired', { src, mode });
-      if (mode === 'infinite') {
+      if (currentMode !== 'two_cycles') {
         startPlayback();
       }
     };
@@ -132,8 +122,8 @@ export function StickerPlayer({
       }
     };
 
-    const playerEl = playerRef.current;
     if (playerEl) {
+      playerEl.addEventListener('ready', handleReady);
       playerEl.addEventListener('complete', handleComplete);
     }
     window.addEventListener('preference_change', handlePrefChange);
@@ -141,24 +131,19 @@ export function StickerPlayer({
     return () => {
       observer.disconnect();
       if (playerEl) {
+        playerEl.removeEventListener('ready', handleReady);
         playerEl.removeEventListener('complete', handleComplete);
       }
       window.removeEventListener('preference_change', handlePrefChange);
       clearTimeout(playTimerRef.current);
     };
-  }, [isLottie, startPlayback, pausePlayback, playKey, src]);
+  }, [isLottie, startPlayback, pausePlayback, playKey, isInfinite]);
 
   const handleTap = () => {
     setPlayKey((prev) => prev + 1);
     startPlayback();
     if (onClick) onClick();
   };
-
-  const mode =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('sticker_playback_mode') || 'infinite'
-      : 'infinite';
-  const isInfinite = mode !== 'two_cycles';
 
   return (
     <div
@@ -172,7 +157,6 @@ export function StickerPlayer({
           ref={playerRef}
           key={`lottie-${playKey}`}
           src={src}
-          loop={isInfinite}
           background="transparent"
           speed="1"
           style={{ width: '100%', height: '100%' }}
