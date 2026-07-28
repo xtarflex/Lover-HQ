@@ -486,8 +486,19 @@ export default function Chat() {
 
   const bgStyles = {
     doodle: {
-      backgroundImage: `radial-gradient(rgba(244, 63, 94, 0.04) 1px, transparent 1px)`,
-      backgroundSize: '24px 24px',
+      backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)), url('/board-chat-bg.png')`,
+      backgroundSize: 'cover',
+    },
+    midnight: {
+      background: 'linear-gradient(to bottom, #0b0f19, #020617)',
+    },
+    sunset: {
+      background: 'linear-gradient(to bottom right, #1e1b4b, #3b0764, #500724)',
+    },
+    neon: {
+      background:
+        'linear-gradient(rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.92)), linear-gradient(to right, rgba(99, 102, 241, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.15) 1px, transparent 1px)',
+      backgroundSize: '100% 100%, 32px 32px, 32px 32px',
     },
   };
 
