@@ -439,19 +439,26 @@ export function EmojiStickerDrawer({
     }
 
     return baseList.filter((st) => {
-      // Filter by emotion chip
+      // Filter by emotion chip using label keywords and metadata tags
       if (activeEmotion !== 'all') {
         const chip = EMOTION_CHIPS.find((c) => c.id === activeEmotion);
         if (chip && chip.keywords) {
           const labelLower = (st.label || '').toLowerCase();
-          const matchesEmotion = chip.keywords.some((kw) => labelLower.includes(kw));
+          const tagsList = st.tags || [];
+          const matchesEmotion =
+            chip.keywords.some((kw) => labelLower.includes(kw)) ||
+            tagsList.some(
+              (t) => chip.keywords.includes(t.toLowerCase()) || t.toLowerCase() === chip.id
+            );
           if (!matchesEmotion) return false;
         }
       }
-      // Filter by text search query
+      // Filter by text search query across label and tags
       if (searchQuery.trim()) {
         const queryLower = searchQuery.toLowerCase().trim();
-        return (st.label || '').toLowerCase().includes(queryLower);
+        const labelMatch = (st.label || '').toLowerCase().includes(queryLower);
+        const tagMatch = (st.tags || []).some((t) => t.toLowerCase().includes(queryLower));
+        return labelMatch || tagMatch;
       }
       return true;
     });
@@ -573,7 +580,7 @@ export function EmojiStickerDrawer({
 
             {/* Emotion Quick Reaction Chips (Stickers Tab) */}
             {activeTab === 'stickers' && (
-              <div className="flex items-center space-x-1.5 overflow-x-auto custom-scrollbar pt-1 pb-0.5">
+              <div className="filter-scroll-container mask-fade-edges flex items-center space-x-1.5 pt-1 pb-0.5">
                 {EMOTION_CHIPS.map((chip) => {
                   const isSelected = activeEmotion === chip.id;
                   return (
@@ -597,7 +604,7 @@ export function EmojiStickerDrawer({
 
             {/* Category Pills (Emojis Tab) */}
             {activeTab === 'emojis' && (
-              <div className="flex items-center space-x-1.5 overflow-x-auto custom-scrollbar pt-1 pb-0.5">
+              <div className="filter-scroll-container mask-fade-edges flex items-center space-x-1.5 pt-1 pb-0.5">
                 {EMOJI_CATEGORIES.map((cat) => {
                   const isActive = activeCategory === cat.id;
                   return (
@@ -691,7 +698,7 @@ export function EmojiStickerDrawer({
           {/* Fixed Bottom Sticker Pack Dock Bar */}
           <div className="bg-slate-950/90 backdrop-blur-md px-3 py-1.5 border-t border-slate-800/80 flex items-center justify-between shrink-0">
             {/* Dock Pack Icons */}
-            <div className="flex items-center space-x-1 overflow-x-auto custom-scrollbar py-0.5">
+            <div className="filter-scroll-container mask-fade-edges flex items-center space-x-1 py-0.5">
               {/* Recent Pack Button */}
               <button
                 type="button"
@@ -726,11 +733,14 @@ export function EmojiStickerDrawer({
                 <Star className="w-4 h-4" />
               </button>
 
-              <div className="w-px h-4 bg-slate-800 mx-1" />
+              <div className="w-px h-4 bg-slate-800 mx-1 shrink-0" />
 
-              {/* Individual Installed Sticker Pack Buttons */}
+              {/* Individual Installed Sticker Pack Buttons (Dynamic Cover Images / Icons) */}
               {STICKER_PACKS.map((pack) => {
                 const isSelected = activePackId === pack.id && activeTab === 'stickers';
+                const packCover = pack.coverUrl || pack.packImage || pack.coverImage;
+                const fallbackStickerUrl = pack.stickers?.[0]?.url;
+
                 return (
                   <button
                     key={pack.id}
@@ -740,13 +750,29 @@ export function EmojiStickerDrawer({
                       setActivePackId(pack.id);
                     }}
                     title={pack.name}
-                    className={`p-1.5 rounded-xl text-xs transition-all shrink-0 ${
+                    className={`p-1.5 rounded-xl text-xs transition-all shrink-0 flex items-center justify-center ${
                       isSelected
-                        ? 'bg-slate-800 text-primary border border-primary/30 scale-105'
+                        ? 'bg-slate-800 text-primary border border-primary/30 scale-105 shadow-sm'
                         : 'text-text-muted hover:text-white opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <span>{pack.icon}</span>
+                    {packCover ? (
+                      <img
+                        src={packCover}
+                        alt={pack.name}
+                        className="w-4 h-4 object-contain rounded"
+                      />
+                    ) : fallbackStickerUrl ? (
+                      <StickerPlayer
+                        src={fallbackStickerUrl}
+                        alt={pack.name}
+                        className="w-4 h-4 object-contain pointer-events-none"
+                      />
+                    ) : pack.icon ? (
+                      <span>{pack.icon}</span>
+                    ) : (
+                      <span>🏷️</span>
+                    )}
                   </button>
                 );
               })}
