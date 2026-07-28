@@ -41,6 +41,7 @@ export function StickerPlayer({
 
     const playNow = () => {
       try {
+        console.log('[StickerPlayer] playNow triggered', { src, mode, isReady: el.isReady });
         if (mode === 'two_cycles') {
           if (typeof el.setLoop === 'function') el.setLoop(false);
           el.loop = false;
@@ -64,7 +65,7 @@ export function StickerPlayer({
     } else {
       el.addEventListener('ready', playNow, { once: true });
     }
-  }, [isLottie]);
+  }, [isLottie, src]);
 
   const pausePlayback = useCallback(() => {
     const el = playerRef.current;
@@ -134,8 +135,7 @@ export function StickerPlayer({
           ref={playerRef}
           key={`lottie-${playKey}`}
           src={src}
-          autoplay="true"
-          loop={isInfinite ? 'true' : undefined}
+          loop={isInfinite}
           background="transparent"
           speed="1"
           style={{ width: '100%', height: '100%' }}
