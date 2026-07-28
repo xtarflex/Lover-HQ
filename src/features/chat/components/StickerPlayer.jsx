@@ -96,8 +96,16 @@ export function StickerPlayer({
 
     observer.observe(element);
 
+    const handlePrefChange = (e) => {
+      if (e?.detail?.key === 'sticker_playback_mode') {
+        startPlayback();
+      }
+    };
+    window.addEventListener('preference_change', handlePrefChange);
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('preference_change', handlePrefChange);
       clearTimeout(playTimerRef.current);
     };
   }, [isLottie, startPlayback, pausePlayback, playKey]);

@@ -27,11 +27,25 @@ export default function ChatSettingsPanel() {
   const handleBgChange = (presetId) => {
     setChatBg(presetId);
     localStorage.setItem('chat_background_preset', presetId);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'chat_background_preset', value: presetId },
+        })
+      );
+    }
   };
 
   const handlePlaybackModeChange = (mode) => {
     setPlaybackMode(mode);
     localStorage.setItem('sticker_playback_mode', mode);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'sticker_playback_mode', value: mode },
+        })
+      );
+    }
   };
 
   const presets = [

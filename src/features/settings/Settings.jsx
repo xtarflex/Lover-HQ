@@ -181,8 +181,19 @@ export default function Settings() {
    * @param {string|null} successMessage - Optional toast message to show on success.
    */
   const handlePreferenceChange = (key, value, setter, successMessage) => {
-    localStorage.setItem(key, value.toString());
-    setter(value);
+    const stringValue = value.toString();
+    localStorage.setItem(key, stringValue);
+    if (typeof setter === 'function') {
+      setter(value);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key, value: stringValue },
+        })
+      );
+    }
 
     // Map localStorage keys to DB column names
     const dbKeyMap = {
@@ -202,6 +213,7 @@ export default function Settings() {
         dbValue = value === 'off' ? null : parseInt(value, 10);
       }
       updatePreference(dbKey, dbValue);
+      dispatch({ type: 'UPDATE_PREFERENCE', payload: { [dbKey]: dbValue } });
     }
 
     if (successMessage) setMessage({ type: 'success', text: successMessage });

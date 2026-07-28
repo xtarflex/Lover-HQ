@@ -110,8 +110,16 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
 
     observer.observe(element);
 
+    const handlePrefChange = (e) => {
+      if (e?.detail?.key === 'sticker_playback_mode') {
+        triggerPlayback();
+      }
+    };
+    window.addEventListener('preference_change', handlePrefChange);
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('preference_change', handlePrefChange);
       clearTimeout(playTimerRef.current);
     };
   }, [triggerPlayback, freezeFrame]);

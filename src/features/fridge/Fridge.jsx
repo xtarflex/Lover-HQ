@@ -106,9 +106,30 @@ export default function Fridge() {
   const [isSnappingEnabled, setIsSnappingEnabled] = useState(
     () => localStorage.getItem('fridge_grid_snapping') === 'true'
   );
-  const [boardBg] = useState(() => localStorage.getItem('fridge_background') || 'metallic');
-  const [noteFont] = useState(() => localStorage.getItem('fridge_note_font') || 'handwriting');
-  const [magnetSize] = useState(() => localStorage.getItem('fridge_magnet_size') || 'medium');
+  const [boardBg, setBoardBg] = useState(() => localStorage.getItem('fridge_background') || 'metallic');
+  const [noteFont, setNoteFont] = useState(() => localStorage.getItem('fridge_note_font') || 'handwriting');
+  const [magnetSize, setMagnetSize] = useState(() => localStorage.getItem('fridge_magnet_size') || 'medium');
+
+  // Synchronize board preferences in real time
+  useEffect(() => {
+    const handlePrefChange = (e) => {
+      const { key, value } = e?.detail || {};
+      if (key === 'fridge_grid_snapping') {
+        setIsSnappingEnabled(value === 'true');
+      } else if (key === 'fridge_background' && value) {
+        setBoardBg(value);
+      } else if (key === 'fridge_note_font' && value) {
+        setNoteFont(value);
+      } else if (key === 'fridge_magnet_size' && value) {
+        setMagnetSize(value);
+      }
+    };
+
+    window.addEventListener('preference_change', handlePrefChange);
+    return () => {
+      window.removeEventListener('preference_change', handlePrefChange);
+    };
+  }, []);
 
   // Toolbar scroll-gradient indicators
   const [showLeftScrollGrad, setShowLeftScrollGrad] = useState(false);

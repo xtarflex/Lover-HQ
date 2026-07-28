@@ -59,10 +59,21 @@ export default function Chat() {
   const [showItemSelector, setShowItemSelector] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const [chatBg] = useState(() => {
+  const [chatBg, setChatBg] = useState(() => {
     if (typeof window === 'undefined') return 'doodle';
     return localStorage.getItem('chat_background_preset') || 'doodle';
   });
+
+  useEffect(() => {
+    const handlePrefChange = (e) => {
+      const { key, value } = e?.detail || {};
+      if (key === 'chat_background_preset' && value) {
+        setChatBg(value);
+      }
+    };
+    window.addEventListener('preference_change', handlePrefChange);
+    return () => window.removeEventListener('preference_change', handlePrefChange);
+  }, []);
 
   const [longPressedMessage, setLongPressedMessage] = useState(null);
   const [messageToDelete, setMessageToDelete] = useState(null);

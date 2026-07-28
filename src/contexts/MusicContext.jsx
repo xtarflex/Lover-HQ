@@ -30,7 +30,24 @@ export function MusicProvider({ children }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(0.8);
-  const [crossfadeDuration, setCrossfadeDuration] = useState(3);
+  const [crossfadeDuration, setCrossfadeDurationState] = useState(() => {
+    if (typeof window === 'undefined') return 3;
+    const saved = localStorage.getItem('music_crossfade_duration');
+    return saved !== null ? parseInt(saved, 10) : 3;
+  });
+
+  const setCrossfadeDuration = useCallback((val) => {
+    const numVal = typeof val === 'function' ? val(crossfadeDurationRef.current) : val;
+    setCrossfadeDurationState(numVal);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_crossfade_duration', numVal.toString());
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'music_crossfade_duration', value: numVal.toString() },
+        })
+      );
+    }
+  }, []);
   const [activePlayer, setActivePlayer] = useState('none'); // 'html5' | 'youtube' | 'none'
   const [isListenAlongBlocked, setIsListenAlongBlocked] = useState(false);
 
