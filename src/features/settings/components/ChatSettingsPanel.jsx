@@ -60,7 +60,9 @@ export default function ChatSettingsPanel() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h3 className="text-lg font-bold text-text-main">Chat Settings</h3>
-        <p className="text-xs text-text-muted mt-1">Configure your chat layout, wallpaper, and sticker playback.</p>
+        <p className="text-xs text-text-muted mt-1">
+          Configure your chat layout, wallpaper, and sticker playback.
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -71,7 +73,8 @@ export default function ChatSettingsPanel() {
             <span className="text-sm font-bold text-text-main">Sticker Playback Mode</span>
           </div>
           <p className="text-xs text-text-muted leading-relaxed">
-            Control whether animated stickers loop infinitely or pause after 2 playback cycles to conserve battery and CPU.
+            Control whether animated stickers loop infinitely or pause after 2 playback cycles to
+            conserve battery and CPU.
           </p>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
@@ -86,7 +89,9 @@ export default function ChatSettingsPanel() {
             >
               <div>
                 <span className="text-xs font-bold text-text-main block">♾️ Loop Infinitely</span>
-                <span className="text-[10px] text-text-muted mt-0.5 block">Plays sticker loops continuously</span>
+                <span className="text-[10px] text-text-muted mt-0.5 block">
+                  Plays sticker loops continuously
+                </span>
               </div>
             </button>
 
@@ -100,8 +105,12 @@ export default function ChatSettingsPanel() {
               }`}
             >
               <div>
-                <span className="text-xs font-bold text-text-main block">⚡ Battery Saver (2 Cycles)</span>
-                <span className="text-[10px] text-text-muted mt-0.5 block">Pauses playback after ~3.5 seconds</span>
+                <span className="text-xs font-bold text-text-main block">
+                  ⚡ Battery Saver (2 Cycles)
+                </span>
+                <span className="text-[10px] text-text-muted mt-0.5 block">
+                  Pauses playback after ~3.5 seconds
+                </span>
               </div>
             </button>
           </div>

@@ -30,30 +30,43 @@ export function StickerPlayer({
 
   useEffect(() => {
     const el = playerRef.current;
-    if (el && isLottie) {
+    if (!el || !isLottie) return;
+
+    const mode =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('sticker_playback_mode') || 'infinite'
+        : 'infinite';
+
+    el.setAttribute('background', 'transparent');
+    let timer;
+
+    const startPlayback = () => {
       try {
-        const mode =
-          typeof window !== 'undefined'
-            ? localStorage.getItem('sticker_playback_mode') || 'infinite'
-            : 'infinite';
-        el.setAttribute('background', 'transparent');
         if (mode === 'two_cycles') {
-          el.setAttribute('autoplay', '');
           el.removeAttribute('loop');
           if (typeof el.play === 'function') el.play();
-          const timer = setTimeout(() => {
+          timer = setTimeout(() => {
             if (typeof el.pause === 'function') el.pause();
           }, 3500);
-          return () => clearTimeout(timer);
         } else {
-          el.setAttribute('autoplay', '');
           el.setAttribute('loop', '');
           if (typeof el.play === 'function') el.play();
         }
       } catch {
         // Fallback
       }
+    };
+
+    if (el.isReady) {
+      startPlayback();
+    } else {
+      el.addEventListener('ready', startPlayback, { once: true });
     }
+
+    return () => {
+      clearTimeout(timer);
+      el.removeEventListener('ready', startPlayback);
+    };
   }, [src, playKey, isLottie]);
 
   const handleTap = () => {

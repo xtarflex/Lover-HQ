@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/immutability, no-use-before-define */
+/* eslint-disable react-hooks/immutability */
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
@@ -251,7 +251,7 @@ export function MusicProvider({ children }) {
    * @returns {Promise<void>}
    */
   // pendingYtAction is a mutable ref; broadcastPlay is a lazy-captured forward reference.
-  // eslint-disable-next-line react-hooks/immutability
+
   const resumeLocalPlayback = useCallback(async () => {
     if (!currentTrackRef.current) return;
 
@@ -356,7 +356,7 @@ export function MusicProvider({ children }) {
    * @returns {void}
    */
   // queueRef is a stable mutable ref; playTrackById indirectly touches pendingYtAction.
-  // eslint-disable-next-line react-hooks/immutability
+
   const handleTrackEnded = useCallback(() => {
     const q = queueRef.current;
     const ct = currentTrackRef.current;
