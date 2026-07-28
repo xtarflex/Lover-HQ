@@ -78,10 +78,17 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
     setPlayCountKey((prev) => prev + 1);
     triggerHeartbeatHaptic();
 
-    clearTimeout(playTimerRef.current);
-    playTimerRef.current = setTimeout(() => {
-      freezeFrame();
-    }, 3500);
+    const mode =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('sticker_playback_mode') || 'infinite'
+        : 'infinite';
+
+    if (mode === 'two_cycles') {
+      clearTimeout(playTimerRef.current);
+      playTimerRef.current = setTimeout(() => {
+        freezeFrame();
+      }, 3500);
+    }
   }, [triggerHeartbeatHaptic, freezeFrame]);
 
   // IntersectionObserver: Handle viewport entry/exit

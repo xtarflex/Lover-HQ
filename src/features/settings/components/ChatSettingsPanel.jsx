@@ -1,11 +1,11 @@
 /**
  * @file ChatSettingsPanel.jsx
- * @description Settings panel for Chat Room features:
- * wallpaper selection.
+ * @description Settings panel for Chat Room preferences:
+ * wallpaper selection and sticker playback mode (Infinite Loop vs Battery Saver 2-Cycles).
  */
 
 import React, { useState } from 'react';
-import { Palette } from 'lucide-react';
+import { Palette, Sparkles } from 'lucide-react';
 
 /**
  * ChatSettingsPanel component.
@@ -19,9 +19,19 @@ export default function ChatSettingsPanel() {
     return localStorage.getItem('chat_background_preset') || 'doodle';
   });
 
+  const [playbackMode, setPlaybackMode] = useState(() => {
+    if (typeof window === 'undefined') return 'infinite';
+    return localStorage.getItem('sticker_playback_mode') || 'infinite';
+  });
+
   const handleBgChange = (presetId) => {
     setChatBg(presetId);
     localStorage.setItem('chat_background_preset', presetId);
+  };
+
+  const handlePlaybackModeChange = (mode) => {
+    setPlaybackMode(mode);
+    localStorage.setItem('sticker_playback_mode', mode);
   };
 
   const presets = [
@@ -50,10 +60,53 @@ export default function ChatSettingsPanel() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h3 className="text-lg font-bold text-text-main">Chat Settings</h3>
-        <p className="text-xs text-text-muted mt-1">Configure your chat layout and appearance.</p>
+        <p className="text-xs text-text-muted mt-1">Configure your chat layout, wallpaper, and sticker playback.</p>
       </div>
 
       <div className="space-y-4">
+        {/* Sticker Playback Mode Preference */}
+        <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-4">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-text-main">Sticker Playback Mode</span>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Control whether animated stickers loop infinitely or pause after 2 playback cycles to conserve battery and CPU.
+          </p>
+
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => handlePlaybackModeChange('infinite')}
+              className={`p-3 rounded-2xl border text-left flex flex-col justify-between gap-2 transition-all ${
+                playbackMode === 'infinite'
+                  ? 'border-primary bg-primary/10 ring-1 ring-primary/20 scale-[1.02]'
+                  : 'border-surface-border/40 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div>
+                <span className="text-xs font-bold text-text-main block">♾️ Loop Infinitely</span>
+                <span className="text-[10px] text-text-muted mt-0.5 block">Plays sticker loops continuously</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handlePlaybackModeChange('two_cycles')}
+              className={`p-3 rounded-2xl border text-left flex flex-col justify-between gap-2 transition-all ${
+                playbackMode === 'two_cycles'
+                  ? 'border-primary bg-primary/10 ring-1 ring-primary/20 scale-[1.02]'
+                  : 'border-surface-border/40 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div>
+                <span className="text-xs font-bold text-text-main block">⚡ Battery Saver (2 Cycles)</span>
+                <span className="text-[10px] text-text-muted mt-0.5 block">Pauses playback after ~3.5 seconds</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Chat Wallpaper Customizer */}
         <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-4">
           <div className="flex items-center space-x-2">
