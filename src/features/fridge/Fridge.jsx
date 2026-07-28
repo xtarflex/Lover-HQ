@@ -106,9 +106,15 @@ export default function Fridge() {
   const [isSnappingEnabled, setIsSnappingEnabled] = useState(
     () => localStorage.getItem('fridge_grid_snapping') === 'true'
   );
-  const [boardBg, setBoardBg] = useState(() => localStorage.getItem('fridge_background') || 'metallic');
-  const [noteFont, setNoteFont] = useState(() => localStorage.getItem('fridge_note_font') || 'handwriting');
-  const [magnetSize, setMagnetSize] = useState(() => localStorage.getItem('fridge_magnet_size') || 'medium');
+  const [boardBg, setBoardBg] = useState(
+    () => localStorage.getItem('fridge_background') || 'metallic'
+  );
+  const [noteFont, setNoteFont] = useState(
+    () => localStorage.getItem('fridge_note_font') || 'handwriting'
+  );
+  const [magnetSize, setMagnetSize] = useState(
+    () => localStorage.getItem('fridge_magnet_size') || 'medium'
+  );
 
   // Synchronize board preferences in real time
   useEffect(() => {

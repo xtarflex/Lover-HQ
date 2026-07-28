@@ -500,6 +500,12 @@ export default function Chat() {
         'linear-gradient(rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.92)), linear-gradient(to right, rgba(99, 102, 241, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.15) 1px, transparent 1px)',
       backgroundSize: '100% 100%, 32px 32px, 32px 32px',
     },
+    emerald: {
+      background: 'linear-gradient(to bottom right, #064e3b, #022c22, #0f172a)',
+    },
+    starlight: {
+      background: 'linear-gradient(to bottom right, #0f172a, #1e1b4b, #311042)',
+    },
   };
 
   return (

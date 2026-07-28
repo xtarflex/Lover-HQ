@@ -86,14 +86,18 @@ export default function Settings() {
     const tab = params.get('tab');
     if (
       tab &&
-      ['account', 'preferences', 'fridge', 'reveal', 'games', 'music', 'data'].includes(tab)
+      ['account', 'chat', 'preferences', 'fridge', 'reveal', 'games', 'music', 'data'].includes(tab)
     ) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveCategory(tab);
       setIsMobileDetailView(true);
     } else if (window.location.hash) {
       const hash = window.location.hash.replace('#', '');
-      if (['account', 'preferences', 'fridge', 'reveal', 'games', 'music', 'data'].includes(hash)) {
+      if (
+        ['account', 'chat', 'preferences', 'fridge', 'reveal', 'games', 'music', 'data'].includes(
+          hash
+        )
+      ) {
         setActiveCategory(hash);
         setIsMobileDetailView(true);
       }

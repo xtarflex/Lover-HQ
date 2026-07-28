@@ -7,6 +7,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 /**
+ * Encodes URI path spaces and special characters for sticker asset URLs.
+ * @param {string} url
+ * @returns {string}
+ */
+function getCleanStickerUrl(url) {
+  if (!url) return '';
+  if (url.includes('%20')) return url;
+  return encodeURI(url);
+}
+
+/**
  * StickerPlayer component.
  *
  * @param {{
@@ -24,11 +35,16 @@ export function StickerPlayer({
   onClick,
 }) {
   const [playKey, setPlayKey] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const playTimerRef = useRef(null);
+  const isIntersectingRef = useRef(true);
 
-  const isLottie = src && src.toLowerCase().endsWith('.lottie');
+  const cleanSrc = getCleanStickerUrl(src);
+  const isLottie =
+    cleanSrc &&
+    (cleanSrc.toLowerCase().endsWith('.lottie') || cleanSrc.toLowerCase().includes('.lottie'));
 
   const mode =
     typeof window !== 'undefined'
@@ -49,9 +65,78 @@ export function StickerPlayer({
     if (onClick) onClick();
   };
 
+  // IntersectionObserver: Pause animation when scrolled out of view to save battery and prevent lag
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isVisible = entry.isIntersecting;
+        isIntersectingRef.current = isVisible;
+        const el = playerRef.current;
+        if (!el || !isLottie) return;
+
+        if (isVisible) {
+          if (typeof el.play === 'function') {
+            try {
+              el.play();
+            } catch {
+              // Ignore restriction
+            }
+          }
+        } else {
+          if (typeof el.pause === 'function') {
+            try {
+              el.pause();
+            } catch {
+              // Ignore restriction
+            }
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isLottie]);
+
   useEffect(() => {
     const el = playerRef.current;
     if (!el || !isLottie) return;
+
+    try {
+      el.setAttribute('autoplay', '');
+      if (isInfinite) {
+        el.setAttribute('loop', '');
+      } else {
+        el.removeAttribute('loop');
+      }
+      if (cleanSrc) {
+        el.setAttribute('src', cleanSrc);
+      }
+    } catch {
+      // Guard against non-DOM environments
+    }
+
+    const handleReady = () => {
+      setIsLoaded(true);
+      if (typeof el.play === 'function' && isIntersectingRef.current) {
+        try {
+          el.play();
+        } catch {
+          // Fallback
+        }
+      }
+    };
+
+    handleReady();
+    el.addEventListener?.('ready', handleReady);
+    el.addEventListener?.('load', handleReady);
 
     if (!isInfinite) {
       clearTimeout(playTimerRef.current);
@@ -67,9 +152,11 @@ export function StickerPlayer({
     }
 
     return () => {
+      el.removeEventListener?.('ready', handleReady);
+      el.removeEventListener?.('load', handleReady);
       clearTimeout(playTimerRef.current);
     };
-  }, [isLottie, isInfinite, playKey]);
+  }, [isLottie, isInfinite, playKey, cleanSrc]);
 
   return (
     <div
@@ -78,11 +165,16 @@ export function StickerPlayer({
       title="Tap to replay"
       className={`cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform ${className}`}
     >
+      {/* Loading Skeleton Placeholder */}
+      {!isLoaded && (
+        <div className="absolute inset-0 rounded-2xl bg-slate-800/30 border border-slate-700/20 flex items-center justify-center z-10 pointer-events-none" />
+      )}
+
       {isLottie ? (
         <dotlottie-player
           ref={playerRef}
           key={`lottie-${playKey}`}
-          src={src}
+          src={cleanSrc}
           autoplay={true}
           loop={isInfinite ? true : undefined}
           background="transparent"
@@ -92,10 +184,11 @@ export function StickerPlayer({
       ) : (
         <img
           key={`img-sticker-${playKey}`}
-          src={src}
+          src={cleanSrc}
           alt={alt}
           loading="lazy"
-          className="w-full h-full object-contain"
+          onLoad={() => setIsLoaded(true)}
+          className={`w-full h-full object-contain transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         />
       )}
     </div>

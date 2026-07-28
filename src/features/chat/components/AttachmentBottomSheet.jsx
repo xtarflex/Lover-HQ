@@ -6,7 +6,16 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Camera, FileText, MapPin, User as UserIcon, BarChart3, Mic } from 'lucide-react';
+import {
+  Image,
+  Camera,
+  FileText,
+  MapPin,
+  User as UserIcon,
+  BarChart3,
+  Mic,
+  Settings,
+} from 'lucide-react';
 import { FridgeItemList } from './FridgeItemList';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
@@ -300,6 +309,22 @@ export function AttachmentBottomSheet({
                       <BarChart3 className="w-5 h-5" />
                     </div>
                     <span className="text-[10px] font-bold text-gray-300">Poll</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowItemSelector(false);
+                      if (typeof window !== 'undefined') {
+                        window.location.href = '/settings?tab=chat';
+                      }
+                    }}
+                    className="flex flex-col items-center gap-1.5 focus:outline-none group"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 hover:scale-105 transition-transform">
+                      <Settings className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-300">Chat Settings</span>
                   </button>
                 </div>
               </div>
