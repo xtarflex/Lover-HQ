@@ -1,3 +1,4 @@
+/* global process */
 /**
  * @file scripts/uploadStickers.js
  * @description Automated Node.js script to scan, group, upload, and generate sticker packs
@@ -10,11 +11,15 @@ import { createClient } from '@supabase/supabase-js';
 
 // Environment variables fallback or local config
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://oxqpmfdoytdfxmofmeno.supabase.co';
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_KEY =
+  process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 const PUBLIC_DIR = path.resolve(process.cwd(), 'public');
 const STICKERS_DIR = path.resolve(PUBLIC_DIR, 'stickers');
-const OUTPUT_DATA_FILE = path.resolve(process.cwd(), 'src/features/fridge/components/stickerData.js');
+const OUTPUT_DATA_FILE = path.resolve(
+  process.cwd(),
+  'src/features/fridge/components/stickerData.js'
+);
 
 async function runUpload() {
   console.log('🚀 Starting Automated Sticker Pack Processing...');
@@ -41,7 +46,11 @@ async function runUpload() {
         return;
       }
       if (file.endsWith('.lottie') || file.endsWith('.webp') || file.endsWith('.png')) {
-        allFiles.push({ filename: file, fullPath: path.join(STICKERS_DIR, file), relPath: `stickers/${file}` });
+        allFiles.push({
+          filename: file,
+          fullPath: path.join(STICKERS_DIR, file),
+          relPath: `stickers/${file}`,
+        });
       }
     });
   }
@@ -85,7 +94,8 @@ async function runUpload() {
       .replace(/animation|emojisticker|sticker/gi, '')
       .trim();
 
-    const isAnimated = filename.endsWith('.lottie') || lower.includes('animated') || lower.includes('anim');
+    const isAnimated =
+      filename.endsWith('.lottie') || lower.includes('animated') || lower.includes('anim');
 
     // Attempt Supabase Storage Upload
     let cdnUrl = `/${relPath.replace(/\\/g, '/')}`;
@@ -160,7 +170,9 @@ export function getStickerUrl(path, fallbackUrl) {
 `;
 
   fs.writeFileSync(OUTPUT_DATA_FILE, fileContent, 'utf8');
-  console.log(`✅ Successfully generated ${activePacks.length} sticker packs (${allFiles.length} stickers total) in stickerData.js!`);
+  console.log(
+    `✅ Successfully generated ${activePacks.length} sticker packs (${allFiles.length} stickers total) in stickerData.js!`
+  );
 }
 
 runUpload().catch((err) => {
