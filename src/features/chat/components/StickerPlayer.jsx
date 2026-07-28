@@ -4,7 +4,7 @@
  * .svg, and dotLottie (.lottie) animations with tap-to-replay triggers.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * StickerPlayer component.
@@ -25,10 +25,12 @@ export function StickerPlayer({
 }) {
   const [playKey, setPlayKey] = useState(0);
   const playerRef = useRef(null);
+  const containerRef = useRef(null);
+  const playTimerRef = useRef(null);
 
   const isLottie = src && src.toLowerCase().endsWith('.lottie');
 
-  useEffect(() => {
+  const startPlayback = useCallback(() => {
     const el = playerRef.current;
     if (!el || !isLottie) return;
 
@@ -38,14 +40,14 @@ export function StickerPlayer({
         : 'infinite';
 
     el.setAttribute('background', 'transparent');
-    let timer;
 
-    const startPlayback = () => {
+    const playNow = () => {
       try {
         if (mode === 'two_cycles') {
           el.removeAttribute('loop');
           if (typeof el.play === 'function') el.play();
-          timer = setTimeout(() => {
+          clearTimeout(playTimerRef.current);
+          playTimerRef.current = setTimeout(() => {
             if (typeof el.pause === 'function') el.pause();
           }, 3500);
         } else {
@@ -58,32 +60,57 @@ export function StickerPlayer({
     };
 
     if (el.isReady) {
-      startPlayback();
+      playNow();
     } else {
-      el.addEventListener('ready', startPlayback, { once: true });
+      el.addEventListener('ready', playNow, { once: true });
     }
+  }, [isLottie]);
 
-    return () => {
-      clearTimeout(timer);
-      el.removeEventListener('ready', startPlayback);
-    };
-  }, [src, playKey, isLottie]);
-
-  const handleTap = () => {
-    setPlayKey((prev) => prev + 1);
+  const pausePlayback = useCallback(() => {
     const el = playerRef.current;
-    if (el && typeof el.play === 'function') {
+    clearTimeout(playTimerRef.current);
+    if (el && typeof el.pause === 'function') {
       try {
-        el.play();
+        el.pause();
       } catch {
         // Fallback
       }
     }
+  }, []);
+
+  // IntersectionObserver: Auto-play when entering viewport, pause when exiting
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element || !isLottie) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          startPlayback();
+        } else {
+          pausePlayback();
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(playTimerRef.current);
+    };
+  }, [isLottie, startPlayback, pausePlayback, playKey]);
+
+  const handleTap = () => {
+    setPlayKey((prev) => prev + 1);
+    startPlayback();
     if (onClick) onClick();
   };
 
   return (
     <div
+      ref={containerRef}
       onClick={handleTap}
       title="Tap to replay"
       className={`cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform ${className}`}
