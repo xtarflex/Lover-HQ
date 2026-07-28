@@ -41,22 +41,40 @@ export function StickerPlayer({
 
     const playNow = () => {
       try {
-        console.log('[StickerPlayer] playNow triggered', { src, mode, isReady: el.isReady });
+        const dotLottieInst =
+          el.dotLottie || (typeof el.getDotLottie === 'function' ? el.getDotLottie() : null);
+        console.log('[StickerPlayer Debug]', {
+          src,
+          mode,
+          isReady: el.isReady,
+          hasDotLottie: !!dotLottieInst,
+        });
+
         if (mode === 'two_cycles') {
-          if (typeof el.setLoop === 'function') el.setLoop(false);
+          if (dotLottieInst && typeof dotLottieInst.setLoop === 'function') {
+            dotLottieInst.setLoop(false);
+          } else if (typeof el.setLoop === 'function') {
+            el.setLoop(false);
+          }
           el.loop = false;
           if (typeof el.play === 'function') el.play();
+
           clearTimeout(playTimerRef.current);
           playTimerRef.current = setTimeout(() => {
             if (typeof el.pause === 'function') el.pause();
           }, 3500);
         } else {
-          if (typeof el.setLoop === 'function') el.setLoop(true);
+          // Infinite loop mode
+          if (dotLottieInst && typeof dotLottieInst.setLoop === 'function') {
+            dotLottieInst.setLoop(true);
+          } else if (typeof el.setLoop === 'function') {
+            el.setLoop(true);
+          }
           el.loop = true;
           if (typeof el.play === 'function') el.play();
         }
-      } catch {
-        // Fallback
+      } catch (err) {
+        console.error('[StickerPlayer Error]', err);
       }
     };
 
@@ -97,19 +115,38 @@ export function StickerPlayer({
 
     observer.observe(element);
 
+    const handleComplete = () => {
+      const mode =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('sticker_playback_mode') || 'infinite'
+          : 'infinite';
+      console.log('[StickerPlayer] complete event fired', { src, mode });
+      if (mode === 'infinite') {
+        startPlayback();
+      }
+    };
+
     const handlePrefChange = (e) => {
       if (e?.detail?.key === 'sticker_playback_mode') {
         startPlayback();
       }
     };
+
+    const playerEl = playerRef.current;
+    if (playerEl) {
+      playerEl.addEventListener('complete', handleComplete);
+    }
     window.addEventListener('preference_change', handlePrefChange);
 
     return () => {
       observer.disconnect();
+      if (playerEl) {
+        playerEl.removeEventListener('complete', handleComplete);
+      }
       window.removeEventListener('preference_change', handlePrefChange);
       clearTimeout(playTimerRef.current);
     };
-  }, [isLottie, startPlayback, pausePlayback, playKey]);
+  }, [isLottie, startPlayback, pausePlayback, playKey, src]);
 
   const handleTap = () => {
     setPlayKey((prev) => prev + 1);
