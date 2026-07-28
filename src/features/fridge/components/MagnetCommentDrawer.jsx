@@ -172,9 +172,10 @@ export default function MagnetCommentDrawer({
       );
     }
 
+    // ⚡ Bolt: Using Date.parse() for timestamp comparisons to bypass expensive new Date() allocations in hot paths.
     const isRead =
       isPartnerInFridge ||
-      (partnerLastSeen && new Date(partnerLastSeen) >= new Date(comment.created_at));
+      (partnerLastSeen && Date.parse(partnerLastSeen) >= Date.parse(comment.created_at));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-primary" title="Read" />;
@@ -318,16 +319,17 @@ export default function MagnetCommentDrawer({
                   const nextComment = i < comments.length - 1 ? comments[i + 1] : null;
                   const TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
+                  // ⚡ Bolt: Using Date.parse() for time difference calculations to avoid new Date() allocations in render loop.
                   const isPrevSame =
                     prevComment &&
                     prevComment.user_id === comment.user_id &&
-                    new Date(comment.created_at) - new Date(prevComment.created_at) <
+                    Date.parse(comment.created_at) - Date.parse(prevComment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const isNextSame =
                     nextComment &&
                     nextComment.user_id === comment.user_id &&
-                    new Date(nextComment.created_at) - new Date(comment.created_at) <
+                    Date.parse(nextComment.created_at) - Date.parse(comment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const showSenderName = !isPrevSame;
