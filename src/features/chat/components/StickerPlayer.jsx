@@ -39,19 +39,19 @@ export function StickerPlayer({
         ? localStorage.getItem('sticker_playback_mode') || 'infinite'
         : 'infinite';
 
-    el.setAttribute('background', 'transparent');
-
     const playNow = () => {
       try {
         if (mode === 'two_cycles') {
-          el.removeAttribute('loop');
+          if (typeof el.setLoop === 'function') el.setLoop(false);
+          el.loop = false;
           if (typeof el.play === 'function') el.play();
           clearTimeout(playTimerRef.current);
           playTimerRef.current = setTimeout(() => {
             if (typeof el.pause === 'function') el.pause();
           }, 3500);
         } else {
-          el.setAttribute('loop', '');
+          if (typeof el.setLoop === 'function') el.setLoop(true);
+          el.loop = true;
           if (typeof el.play === 'function') el.play();
         }
       } catch {
@@ -116,6 +116,12 @@ export function StickerPlayer({
     if (onClick) onClick();
   };
 
+  const mode =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('sticker_playback_mode') || 'infinite'
+      : 'infinite';
+  const isInfinite = mode !== 'two_cycles';
+
   return (
     <div
       ref={containerRef}
@@ -128,6 +134,8 @@ export function StickerPlayer({
           ref={playerRef}
           key={`lottie-${playKey}`}
           src={src}
+          autoplay="true"
+          loop={isInfinite ? 'true' : undefined}
           background="transparent"
           speed="1"
           style={{ width: '100%', height: '100%' }}
