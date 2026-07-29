@@ -1,4 +1,4 @@
-/* global process, Buffer */
+/* global process */
 /**
  * @file scripts/generateLottiePosterFrames.js
  * @description Dynamically renders Frame 0 of any .lottie file to a static PNG poster frame cover
@@ -13,76 +13,69 @@ import { extractLottieJson } from './lottieExtractor.js';
 const STICKERS_DIR = path.resolve(process.cwd(), 'public/stickers');
 
 /**
- * Dynamically exports Frame 0 of a Lottie JSON object to a PNG file.
- *
- * @param {object} lottieJson
+ * Renders Frame 0 of a Lottie JSON object to PNG.
+ * @param {object} lottieData
  * @param {string} outputPath
  */
-export async function exportLottiePosterFrame(lottieJson, outputPath) {
-  if (!lottieJson) return false;
-
+async function exportLottiePosterFrame(lottieData, outputPath) {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const page = await browser.newPage({ viewport: { width: 512, height: 512 } });
 
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-  <style>
-    body, html { margin: 0; padding: 0; background: transparent; overflow: hidden; }
-    #container { width: 128px; height: 128px; }
-  </style>
-</head>
-<body>
-  <div id="container"></div>
-  <script>
-    const animationData = ${JSON.stringify(lottieJson)};
-    const anim = lottie.loadAnimation({
-      container: document.getElementById('container'),
-      renderer: 'canvas',
-      loop: false,
-      autoplay: false,
-      animationData: animationData
-    });
-    anim.goToAndStop(0, true);
-    window.isRendered = true;
-  </script>
-</body>
-</html>
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+        <style>
+          body { margin: 0; padding: 0; background: transparent; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+          #container { width: 512px; height: 512px; }
+        </style>
+      </head>
+      <body>
+        <div id="container"></div>
+        <script>
+          const animationData = ${JSON.stringify(lottieData)};
+          window.anim = lottie.loadAnimation({
+            container: document.getElementById('container'),
+            renderer: 'canvas',
+            loop: false,
+            autoplay: false,
+            animationData: animationData
+          });
+          window.anim.addEventListener('DOMLoaded', () => {
+            window.anim.goToAndStop(0, true);
+            window.isLottieReady = true;
+          });
+        </script>
+      </body>
+    </html>
   `;
 
-  await page.setContent(html);
-  await page.waitForFunction(() => window.isRendered === true);
-  await page.waitForTimeout(300);
-
-  const container = page.locator('#container');
-  const imageBuffer = await container.screenshot({ omitBackground: true, type: 'png' });
-
+  await page.setContent(htmlContent, { waitUntil: 'load' });
+  await page.waitForFunction(() => window.isLottieReady === true, { timeout: 10000 });
+  await page.screenshot({ path: outputPath, omitBackground: true });
   await browser.close();
-
-  fs.writeFileSync(outputPath, imageBuffer);
-  console.log(`🖼️ Successfully exported dynamic Lottie poster frame: ${path.basename(outputPath)}`);
-  return true;
 }
 
 async function main() {
+  console.log('🎬 Finding .lottie vector files to generate dynamic poster frame covers...');
+  if (!fs.existsSync(STICKERS_DIR)) return;
+
   const files = fs.readdirSync(STICKERS_DIR).filter((f) => f.endsWith('.lottie'));
   if (files.length === 0) return;
 
-  console.log(`🎬 Found ${files.length} .lottie vector files. Generating dynamic poster frame cover...`);
+  const sampleLottieFile = path.join(STICKERS_DIR, files[0]);
+  const coverOutputPath = path.join(STICKERS_DIR, 'love_pack_cover.png');
 
-  // Generate cover from first Lottie sticker in love_pack
-  const firstLottieFile = path.join(STICKERS_DIR, files[0]);
-  const lottieBuf = fs.readFileSync(firstLottieFile);
-  const lottieJson = extractLottieJson(lottieBuf);
-
-  if (lottieJson) {
-    const coverPath = path.join(STICKERS_DIR, 'love_pack_cover.png');
-    await exportLottiePosterFrame(lottieJson, coverPath);
+  try {
+    const lottieJson = extractLottieJson(sampleLottieFile);
+    if (lottieJson) {
+      await exportLottiePosterFrame(lottieJson, coverOutputPath);
+      console.log('🖼️ Successfully exported dynamic Lottie poster frame cover!');
+    }
+  } catch (err) {
+    console.error('Failed to generate Lottie poster frame:', err.message);
   }
 }
 
-if (process.argv[1] && process.argv[1].endsWith('generateLottiePosterFrames.js')) {
-  main();
-}
+main().catch(console.error);

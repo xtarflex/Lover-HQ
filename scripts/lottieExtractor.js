@@ -1,6 +1,4 @@
-/* global process, Buffer */
 import fs from 'fs';
-import path from 'path';
 import zlib from 'zlib';
 
 function parseZipEntries(buf) {
@@ -14,10 +12,8 @@ function parseZipEntries(buf) {
       const extraLen = buf.readUInt16LE(pos + 28);
       const name = buf.subarray(pos + 30, pos + 30 + nameLen).toString('utf8');
       const dataStart = pos + 30 + nameLen + extraLen;
-      const compData = buf.subarray(dataStart, dataStart + compSize);
-      let data = compData;
-      if (compMethod === 8) data = zlib.inflateRawSync(compData);
-      entries.push({ name, data });
+      const data = buf.subarray(dataStart, dataStart + compSize);
+      entries.push({ name, compMethod, data });
       pos = dataStart + compSize;
     } else {
       pos++;
@@ -26,17 +22,40 @@ function parseZipEntries(buf) {
   return entries;
 }
 
-export function extractLottieJson(lottieBuf) {
-  const entries = parseZipEntries(lottieBuf);
-  const animEntry = entries.find((e) => e.name.startsWith('animations/') && e.name.endsWith('.json'));
-  if (animEntry) {
-    try {
-      return JSON.parse(animEntry.data.toString('utf8'));
-    } catch {
-      return null;
+/**
+ * Extracts Lottie JSON from a .lottie ZIP archive or JSON buffer.
+ * @param {string|Buffer} input
+ * @returns {object|null}
+ */
+export function extractLottieJson(input) {
+  try {
+    let buf;
+    if (typeof input === 'string') {
+      buf = fs.readFileSync(input);
+    } else {
+      buf = input;
     }
+
+    // Direct JSON string
+    if (buf[0] === 0x7b) {
+      return JSON.parse(buf.toString('utf8'));
+    }
+
+    const entries = parseZipEntries(buf);
+    const animEntry = entries.find(
+      (e) => e.name.startsWith('animations/') && e.name.endsWith('.json')
+    );
+    if (!animEntry) return null;
+
+    if (animEntry.compMethod === 8) {
+      const decompressed = zlib.inflateRawSync(animEntry.data);
+      return JSON.parse(decompressed.toString('utf8'));
+    } else {
+      return JSON.parse(animEntry.data.toString('utf8'));
+    }
+  } catch {
+    return null;
   }
-  return null;
 }
 
-console.log('Lottie JSON extractor ready.');
+export default extractLottieJson;

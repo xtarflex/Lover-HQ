@@ -1,45 +1,37 @@
 /* global process */
 /**
  * @file scripts/deleteSupabaseStickersStorage.js
- * @description Purges any uploaded objects from Supabase Storage 'stickers' bucket.
+ * @description Purges objects and deletes the 'stickers' storage bucket in Supabase.
  */
 
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://oxqpmfdoytdfxmofmeno.supabase.co';
 const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94cXBtZmRveXRkZnhtb2ZtZW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDYwMTMsImV4cCI6MjA5NDA4MjAxM30.RmV-qEqQVjEQzzBoZZVVQrmKr_eRyH2t2jBTP29QwVo';
 
-async function purgeStorage() {
-  console.log('🧹 Purging Supabase Storage "stickers" bucket...');
-  if (!SUPABASE_KEY) {
-    console.log('No Supabase key configured. Skipping storage purge.');
-    return;
-  }
-
+async function deleteBucket() {
+  console.log('🗑️ Attempting to delete Supabase Storage "stickers" bucket...');
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   try {
-    const { data: files, error } = await supabase.storage.from('stickers').list('');
-    if (error) {
-      console.log('Note: Storage bucket list response:', error.message);
-      return;
-    }
-
+    const { data: files } = await supabase.storage.from('stickers').list('');
     if (files && files.length > 0) {
       const filePaths = files.map((f) => f.name);
-      const { error: delErr } = await supabase.storage.from('stickers').remove(filePaths);
-      if (delErr) {
-        console.log('Note: Storage removal response:', delErr.message);
-      } else {
-        console.log(`✅ Successfully deleted ${filePaths.length} objects from Supabase Storage "stickers" bucket!`);
-      }
+      await supabase.storage.from('stickers').remove(filePaths);
+    }
+
+    const { data, error } = await supabase.storage.deleteBucket('stickers');
+    if (error) {
+      console.log('Note (Storage Bucket API):', error.message);
     } else {
-      console.log('✅ Supabase Storage "stickers" bucket is already empty (0 objects).');
+      console.log('✅ Successfully deleted "stickers" storage bucket from Supabase!', data);
     }
   } catch (err) {
-    console.log('Storage cleanup notice:', err.message);
+    console.log('Bucket deletion note:', err.message);
   }
 }
 
-purgeStorage();
+deleteBucket();
