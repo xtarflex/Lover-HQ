@@ -1,7 +1,8 @@
 /* global process, Buffer */
 /**
  * @file scripts/downloadSignalPacks.js
- * @description Node.js script to download and cleanly decrypt Signal Sticker Packs into valid PNG/WebP images.
+ * @description Node.js script to download, decrypt, validate Signal Sticker Packs & covers,
+ * and purge any invalid or corrupted image files from public/stickers.
  */
 
 import fs from 'fs';
@@ -64,25 +65,21 @@ function isValidImageHeader(buf) {
 function decryptSignalBuffer(encryptedBuf, keyHex) {
   if (!encryptedBuf || encryptedBuf.length <= 48) return null;
 
-  // Signal payload structure: [16 bytes IV][Ciphertext][32 bytes HMAC MAC]
   const iv = encryptedBuf.subarray(0, 16);
   const ciphertext = encryptedBuf.subarray(16, encryptedBuf.length - 32);
 
   const methods = [
-    // 1. HKDF Derived AES-256-CTR with MAC stripped
     () => {
       const { aesKey } = deriveKeys(keyHex);
       const decipher = crypto.createDecipheriv('aes-256-ctr', aesKey, iv);
       return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     },
-    // 2. HKDF Derived AES-256-CBC with MAC stripped
     () => {
       const { aesKey } = deriveKeys(keyHex);
       const decipher = crypto.createDecipheriv('aes-256-cbc', aesKey, iv);
       decipher.setAutoPadding(false);
       return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     },
-    // 3. Raw Key AES-256-CTR with MAC stripped
     () => {
       const key = Buffer.from(keyHex, 'hex');
       const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
@@ -99,7 +96,6 @@ function decryptSignalBuffer(encryptedBuf, keyHex) {
     }
   }
 
-  // Fallback: try full buffer decipher without MAC slice
   try {
     const { aesKey } = deriveKeys(keyHex);
     const decipher = crypto.createDecipheriv('aes-256-ctr', aesKey, iv);
@@ -137,46 +133,71 @@ function httpGet(url) {
   });
 }
 
-async function fetchAndProcessPack(pack) {
-  console.log(`\n📦 Fetching Signal Pack: "${pack.name}" (${pack.id})...`);
-  const manifestUrl = `https://cdn.signal.org/stickers/${pack.id}/manifest.proto`;
+function purgeCorruptedFiles() {
+  console.log('🧹 Purging corrupted/invalid files in public/stickers...');
+  let purgedCount = 0;
+  if (!fs.existsSync(STICKERS_DIR)) return;
 
-  try {
-    const encryptedManifest = await httpGet(manifestUrl);
-    if (!encryptedManifest) {
-      console.error(`Failed to fetch manifest for ${pack.id}`);
-      return [];
-    }
+  const files = fs.readdirSync(STICKERS_DIR);
+  for (const file of files) {
+    const filePath = path.join(STICKERS_DIR, file);
+    if (file.endsWith('.lottie')) continue; // Skip lottie vector JSON archives
 
-    const downloadedFiles = [];
-    for (let stickerId = 0; stickerId < 60; stickerId++) {
-      const stickerUrl = `https://cdn.signal.org/stickers/${pack.id}/full/${stickerId}`;
-      const encryptedSticker = await httpGet(stickerUrl);
-      if (!encryptedSticker) {
-        break; // Reached end of pack
+    try {
+      const buf = fs.readFileSync(filePath);
+      if (!isValidImageHeader(buf)) {
+        fs.unlinkSync(filePath);
+        console.log(`  ❌ Purged corrupted file: ${file}`);
+        purgedCount++;
       }
-
-      const stickerBuf = decryptSignalBuffer(encryptedSticker, pack.key);
-
-      if (stickerBuf) {
-        const isWebp = stickerBuf.subarray(0, 12).toString('ascii').includes('WEBP');
-        const ext = isWebp ? 'webp' : 'png';
-        const filename = `signal_${pack.id.slice(0, 8)}_${stickerId + 1}.${ext}`;
-        const filePath = path.join(STICKERS_DIR, filename);
-
-        fs.writeFileSync(filePath, stickerBuf);
-        downloadedFiles.push(filename);
-      } else {
-        console.error(`⚠️ Sticker ${stickerId} in ${pack.name} failed binary image verification!`);
-      }
+    } catch (err) {
+      console.error(`Error reading ${file}:`, err.message);
     }
-
-    console.log(`  ✅ Successfully extracted ${downloadedFiles.length} valid stickers for "${pack.name}".`);
-    return downloadedFiles;
-  } catch (err) {
-    console.error(`Error processing pack ${pack.id}:`, err.message);
-    return [];
   }
+  console.log(`🧹 Cleaned up ${purgedCount} invalid/corrupted files.`);
+}
+
+async function fetchAndProcessPack(pack) {
+  console.log(`\n📦 Fetching Signal Pack & Official Cover: "${pack.name}" (${pack.id})...`);
+  
+  // 1. Fetch official pack cover image
+  const coverUrl = `https://cdn.signal.org/stickers/${pack.id}/full/cover`;
+  const encryptedCover = await httpGet(coverUrl);
+  if (encryptedCover) {
+    const coverBuf = decryptSignalBuffer(encryptedCover, pack.key);
+    if (coverBuf) {
+      const isWebp = coverBuf.subarray(0, 12).toString('ascii').includes('WEBP');
+      const ext = isWebp ? 'webp' : 'png';
+      const coverFileName = `signal_${pack.id.slice(0, 8)}_cover.${ext}`;
+      fs.writeFileSync(path.join(STICKERS_DIR, coverFileName), coverBuf);
+      console.log(`  🖼️ Successfully saved official cover image: ${coverFileName}`);
+    }
+  }
+
+  // 2. Fetch pack stickers
+  const downloadedFiles = [];
+  for (let stickerId = 0; stickerId < 60; stickerId++) {
+    const stickerUrl = `https://cdn.signal.org/stickers/${pack.id}/full/${stickerId}`;
+    const encryptedSticker = await httpGet(stickerUrl);
+    if (!encryptedSticker) {
+      break; // Reached end of pack
+    }
+
+    const stickerBuf = decryptSignalBuffer(encryptedSticker, pack.key);
+
+    if (stickerBuf) {
+      const isWebp = stickerBuf.subarray(0, 12).toString('ascii').includes('WEBP');
+      const ext = isWebp ? 'webp' : 'png';
+      const filename = `signal_${pack.id.slice(0, 8)}_${stickerId + 1}.${ext}`;
+      const filePath = path.join(STICKERS_DIR, filename);
+
+      fs.writeFileSync(filePath, stickerBuf);
+      downloadedFiles.push(filename);
+    }
+  }
+
+  console.log(`  ✅ Successfully extracted ${downloadedFiles.length} valid stickers for "${pack.name}".`);
+  return downloadedFiles;
 }
 
 async function main() {
@@ -184,11 +205,17 @@ async function main() {
     fs.mkdirSync(STICKERS_DIR, { recursive: true });
   }
 
+  // First purge old corrupted files
+  purgeCorruptedFiles();
+
   let totalDownloaded = 0;
   for (const pack of SIGNAL_PACKS) {
     const files = await fetchAndProcessPack(pack);
     totalDownloaded += files.length;
   }
+
+  // Second purge check to guarantee 100% clean directory
+  purgeCorruptedFiles();
 
   console.log(`\n🎉 Total Signal Stickers Downloaded & Validated: ${totalDownloaded}`);
 }

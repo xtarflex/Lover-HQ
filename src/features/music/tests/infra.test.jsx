@@ -203,7 +203,7 @@ describe('MusicPlayer & Queue Integration Tests', () => {
 
     await act(async () => {
       // Simulate real-time queue synchronization via the DB channel subscription
-      _simulatePostgresChange('music_queue_db_sync', 'music_queue', 'INSERT', mockTrack);
+      _simulatePostgresChange('music_active_queue_db_sync', 'music_queue', 'INSERT', mockTrack);
       await new Promise((r) => setTimeout(r, 250));
     });
 
@@ -256,7 +256,7 @@ describe('MusicPlayer & Queue Integration Tests', () => {
     renderPlayerWithProvider();
 
     await act(async () => {
-      _simulatePostgresChange('music_queue_db_sync', 'music_queue', 'INSERT', mockTrack);
+      _simulatePostgresChange('music_active_queue_db_sync', 'music_queue', 'INSERT', mockTrack);
       await new Promise((r) => setTimeout(r, 250));
     });
 

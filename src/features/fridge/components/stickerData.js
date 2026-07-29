@@ -1,7 +1,7 @@
 /**
  * @file stickerData.js
  * @description Auto-generated custom sticker magnet packs manifest for Lover-HQ.
- * Last updated: 2026-07-29T10:55:43.833Z
+ * Last updated: 2026-07-29T11:06:40.601Z
  */
 
 /**
@@ -179,7 +179,7 @@ export const STICKER_PACKS = [
     "id": "signal_sweet_couple",
     "name": "Sweet Couple 1",
     "icon": "👩‍❤️‍👨",
-    "coverUrl": "/stickers/signal_ee5dd49d_1.png",
+    "coverUrl": "/stickers/signal_ee5dd49d_1.webp",
     "stickers": [
       {
         "id": "signal_sweet_couple_1",
@@ -188,128 +188,60 @@ export const STICKER_PACKS = [
           "love"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_1.png"
-      },
-      {
-        "id": "signal_sweet_couple_2",
-        "label": "signal ee5dd49d 1",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
         "url": "/stickers/signal_ee5dd49d_1.webp"
       },
       {
-        "id": "signal_sweet_couple_3",
+        "id": "signal_sweet_couple_2",
         "label": "signal ee5dd49d 10",
         "tags": [
           "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_10.png"
-      },
-      {
-        "id": "signal_sweet_couple_4",
-        "label": "signal ee5dd49d 10",
-        "tags": [
-          "love",
-          "sad"
+          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_10.webp"
       },
       {
-        "id": "signal_sweet_couple_5",
+        "id": "signal_sweet_couple_3",
         "label": "signal ee5dd49d 11",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_11.png"
-      },
-      {
-        "id": "signal_sweet_couple_6",
-        "label": "signal ee5dd49d 11",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_11.webp"
-      },
-      {
-        "id": "signal_sweet_couple_7",
-        "label": "signal ee5dd49d 12",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_12.png"
-      },
-      {
-        "id": "signal_sweet_couple_8",
-        "label": "signal ee5dd49d 12",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_12.webp"
-      },
-      {
-        "id": "signal_sweet_couple_9",
-        "label": "signal ee5dd49d 13",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_13.png"
-      },
-      {
-        "id": "signal_sweet_couple_10",
-        "label": "signal ee5dd49d 13",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_13.webp"
+        "url": "/stickers/signal_ee5dd49d_11.webp"
       },
       {
-        "id": "signal_sweet_couple_11",
-        "label": "signal ee5dd49d 14",
+        "id": "signal_sweet_couple_4",
+        "label": "signal ee5dd49d 12",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_14.png"
+        "url": "/stickers/signal_ee5dd49d_12.webp"
       },
       {
-        "id": "signal_sweet_couple_12",
-        "label": "signal ee5dd49d 14",
+        "id": "signal_sweet_couple_5",
+        "label": "signal ee5dd49d 13",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_14.webp"
+        "url": "/stickers/signal_ee5dd49d_13.webp"
       },
       {
-        "id": "signal_sweet_couple_13",
-        "label": "signal ee5dd49d 15",
+        "id": "signal_sweet_couple_6",
+        "label": "signal ee5dd49d 14",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_15.png"
+        "url": "/stickers/signal_ee5dd49d_14.webp"
       },
       {
-        "id": "signal_sweet_couple_14",
+        "id": "signal_sweet_couple_7",
         "label": "signal ee5dd49d 15",
         "tags": [
           "love"
@@ -318,134 +250,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_ee5dd49d_15.webp"
       },
       {
-        "id": "signal_sweet_couple_15",
+        "id": "signal_sweet_couple_8",
         "label": "signal ee5dd49d 16",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_16.png"
-      },
-      {
-        "id": "signal_sweet_couple_16",
-        "label": "signal ee5dd49d 16",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_16.webp"
       },
       {
-        "id": "signal_sweet_couple_17",
+        "id": "signal_sweet_couple_9",
         "label": "signal ee5dd49d 17",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_17.png"
-      },
-      {
-        "id": "signal_sweet_couple_18",
-        "label": "signal ee5dd49d 17",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_17.webp"
-      },
-      {
-        "id": "signal_sweet_couple_19",
-        "label": "signal ee5dd49d 18",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_18.png"
-      },
-      {
-        "id": "signal_sweet_couple_20",
-        "label": "signal ee5dd49d 18",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_18.webp"
-      },
-      {
-        "id": "signal_sweet_couple_21",
-        "label": "signal ee5dd49d 19",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_19.png"
-      },
-      {
-        "id": "signal_sweet_couple_22",
-        "label": "signal ee5dd49d 19",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_19.webp"
-      },
-      {
-        "id": "signal_sweet_couple_23",
-        "label": "signal ee5dd49d 2",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_2.png"
+        "url": "/stickers/signal_ee5dd49d_17.webp"
       },
       {
-        "id": "signal_sweet_couple_24",
-        "label": "signal ee5dd49d 2",
+        "id": "signal_sweet_couple_10",
+        "label": "signal ee5dd49d 18",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_2.webp"
+        "url": "/stickers/signal_ee5dd49d_18.webp"
       },
       {
-        "id": "signal_sweet_couple_25",
-        "label": "signal ee5dd49d 20",
+        "id": "signal_sweet_couple_11",
+        "label": "signal ee5dd49d 19",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_20.png"
+        "url": "/stickers/signal_ee5dd49d_19.webp"
       },
       {
-        "id": "signal_sweet_couple_26",
-        "label": "signal ee5dd49d 20",
+        "id": "signal_sweet_couple_12",
+        "label": "signal ee5dd49d 2",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_20.webp"
+        "url": "/stickers/signal_ee5dd49d_2.webp"
       },
       {
-        "id": "signal_sweet_couple_27",
-        "label": "signal ee5dd49d 21",
+        "id": "signal_sweet_couple_13",
+        "label": "signal ee5dd49d 20",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_21.png"
+        "url": "/stickers/signal_ee5dd49d_20.webp"
       },
       {
-        "id": "signal_sweet_couple_28",
+        "id": "signal_sweet_couple_14",
         "label": "signal ee5dd49d 21",
         "tags": [
           "love"
@@ -454,134 +318,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_ee5dd49d_21.webp"
       },
       {
-        "id": "signal_sweet_couple_29",
+        "id": "signal_sweet_couple_15",
         "label": "signal ee5dd49d 22",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_22.png"
-      },
-      {
-        "id": "signal_sweet_couple_30",
-        "label": "signal ee5dd49d 22",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_22.webp"
       },
       {
-        "id": "signal_sweet_couple_31",
+        "id": "signal_sweet_couple_16",
         "label": "signal ee5dd49d 23",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_23.png"
-      },
-      {
-        "id": "signal_sweet_couple_32",
-        "label": "signal ee5dd49d 23",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_23.webp"
-      },
-      {
-        "id": "signal_sweet_couple_33",
-        "label": "signal ee5dd49d 24",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_24.png"
-      },
-      {
-        "id": "signal_sweet_couple_34",
-        "label": "signal ee5dd49d 24",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_24.webp"
-      },
-      {
-        "id": "signal_sweet_couple_35",
-        "label": "signal ee5dd49d 25",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_25.png"
-      },
-      {
-        "id": "signal_sweet_couple_36",
-        "label": "signal ee5dd49d 25",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_25.webp"
-      },
-      {
-        "id": "signal_sweet_couple_37",
-        "label": "signal ee5dd49d 26",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_26.png"
+        "url": "/stickers/signal_ee5dd49d_23.webp"
       },
       {
-        "id": "signal_sweet_couple_38",
-        "label": "signal ee5dd49d 26",
+        "id": "signal_sweet_couple_17",
+        "label": "signal ee5dd49d 24",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_26.webp"
+        "url": "/stickers/signal_ee5dd49d_24.webp"
       },
       {
-        "id": "signal_sweet_couple_39",
-        "label": "signal ee5dd49d 27",
+        "id": "signal_sweet_couple_18",
+        "label": "signal ee5dd49d 25",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_27.png"
+        "url": "/stickers/signal_ee5dd49d_25.webp"
       },
       {
-        "id": "signal_sweet_couple_40",
-        "label": "signal ee5dd49d 27",
+        "id": "signal_sweet_couple_19",
+        "label": "signal ee5dd49d 26",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_27.webp"
+        "url": "/stickers/signal_ee5dd49d_26.webp"
       },
       {
-        "id": "signal_sweet_couple_41",
-        "label": "signal ee5dd49d 28",
+        "id": "signal_sweet_couple_20",
+        "label": "signal ee5dd49d 27",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_28.png"
+        "url": "/stickers/signal_ee5dd49d_27.webp"
       },
       {
-        "id": "signal_sweet_couple_42",
+        "id": "signal_sweet_couple_21",
         "label": "signal ee5dd49d 28",
         "tags": [
           "love"
@@ -590,134 +386,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_ee5dd49d_28.webp"
       },
       {
-        "id": "signal_sweet_couple_43",
+        "id": "signal_sweet_couple_22",
         "label": "signal ee5dd49d 29",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_29.png"
-      },
-      {
-        "id": "signal_sweet_couple_44",
-        "label": "signal ee5dd49d 29",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_29.webp"
       },
       {
-        "id": "signal_sweet_couple_45",
+        "id": "signal_sweet_couple_23",
         "label": "signal ee5dd49d 3",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_3.png"
-      },
-      {
-        "id": "signal_sweet_couple_46",
-        "label": "signal ee5dd49d 3",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_3.webp"
-      },
-      {
-        "id": "signal_sweet_couple_47",
-        "label": "signal ee5dd49d 30",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_30.png"
-      },
-      {
-        "id": "signal_sweet_couple_48",
-        "label": "signal ee5dd49d 30",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_30.webp"
-      },
-      {
-        "id": "signal_sweet_couple_49",
-        "label": "signal ee5dd49d 31",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_31.png"
-      },
-      {
-        "id": "signal_sweet_couple_50",
-        "label": "signal ee5dd49d 31",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_31.webp"
-      },
-      {
-        "id": "signal_sweet_couple_51",
-        "label": "signal ee5dd49d 32",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_32.png"
+        "url": "/stickers/signal_ee5dd49d_3.webp"
       },
       {
-        "id": "signal_sweet_couple_52",
-        "label": "signal ee5dd49d 32",
+        "id": "signal_sweet_couple_24",
+        "label": "signal ee5dd49d 30",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_32.webp"
+        "url": "/stickers/signal_ee5dd49d_30.webp"
       },
       {
-        "id": "signal_sweet_couple_53",
-        "label": "signal ee5dd49d 33",
+        "id": "signal_sweet_couple_25",
+        "label": "signal ee5dd49d 31",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_33.png"
+        "url": "/stickers/signal_ee5dd49d_31.webp"
       },
       {
-        "id": "signal_sweet_couple_54",
-        "label": "signal ee5dd49d 33",
+        "id": "signal_sweet_couple_26",
+        "label": "signal ee5dd49d 32",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_33.webp"
+        "url": "/stickers/signal_ee5dd49d_32.webp"
       },
       {
-        "id": "signal_sweet_couple_55",
-        "label": "signal ee5dd49d 34",
+        "id": "signal_sweet_couple_27",
+        "label": "signal ee5dd49d 33",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_34.png"
+        "url": "/stickers/signal_ee5dd49d_33.webp"
       },
       {
-        "id": "signal_sweet_couple_56",
+        "id": "signal_sweet_couple_28",
         "label": "signal ee5dd49d 34",
         "tags": [
           "love"
@@ -726,134 +454,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_ee5dd49d_34.webp"
       },
       {
-        "id": "signal_sweet_couple_57",
+        "id": "signal_sweet_couple_29",
         "label": "signal ee5dd49d 35",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_35.png"
-      },
-      {
-        "id": "signal_sweet_couple_58",
-        "label": "signal ee5dd49d 35",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_35.webp"
       },
       {
-        "id": "signal_sweet_couple_59",
+        "id": "signal_sweet_couple_30",
         "label": "signal ee5dd49d 36",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_36.png"
-      },
-      {
-        "id": "signal_sweet_couple_60",
-        "label": "signal ee5dd49d 36",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_36.webp"
-      },
-      {
-        "id": "signal_sweet_couple_61",
-        "label": "signal ee5dd49d 37",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_37.png"
-      },
-      {
-        "id": "signal_sweet_couple_62",
-        "label": "signal ee5dd49d 37",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_37.webp"
-      },
-      {
-        "id": "signal_sweet_couple_63",
-        "label": "signal ee5dd49d 38",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_38.png"
-      },
-      {
-        "id": "signal_sweet_couple_64",
-        "label": "signal ee5dd49d 38",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_38.webp"
-      },
-      {
-        "id": "signal_sweet_couple_65",
-        "label": "signal ee5dd49d 39",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_39.png"
+        "url": "/stickers/signal_ee5dd49d_36.webp"
       },
       {
-        "id": "signal_sweet_couple_66",
-        "label": "signal ee5dd49d 39",
+        "id": "signal_sweet_couple_31",
+        "label": "signal ee5dd49d 37",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_39.webp"
+        "url": "/stickers/signal_ee5dd49d_37.webp"
       },
       {
-        "id": "signal_sweet_couple_67",
-        "label": "signal ee5dd49d 4",
+        "id": "signal_sweet_couple_32",
+        "label": "signal ee5dd49d 38",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_4.png"
+        "url": "/stickers/signal_ee5dd49d_38.webp"
       },
       {
-        "id": "signal_sweet_couple_68",
-        "label": "signal ee5dd49d 4",
+        "id": "signal_sweet_couple_33",
+        "label": "signal ee5dd49d 39",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_4.webp"
+        "url": "/stickers/signal_ee5dd49d_39.webp"
       },
       {
-        "id": "signal_sweet_couple_69",
-        "label": "signal ee5dd49d 40",
+        "id": "signal_sweet_couple_34",
+        "label": "signal ee5dd49d 4",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_40.png"
+        "url": "/stickers/signal_ee5dd49d_4.webp"
       },
       {
-        "id": "signal_sweet_couple_70",
+        "id": "signal_sweet_couple_35",
         "label": "signal ee5dd49d 40",
         "tags": [
           "love"
@@ -862,98 +522,50 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_ee5dd49d_40.webp"
       },
       {
-        "id": "signal_sweet_couple_71",
+        "id": "signal_sweet_couple_36",
         "label": "signal ee5dd49d 5",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_5.png"
-      },
-      {
-        "id": "signal_sweet_couple_72",
-        "label": "signal ee5dd49d 5",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_5.webp"
       },
       {
-        "id": "signal_sweet_couple_73",
+        "id": "signal_sweet_couple_37",
         "label": "signal ee5dd49d 6",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_6.png"
-      },
-      {
-        "id": "signal_sweet_couple_74",
-        "label": "signal ee5dd49d 6",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_6.webp"
-      },
-      {
-        "id": "signal_sweet_couple_75",
-        "label": "signal ee5dd49d 7",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_7.png"
-      },
-      {
-        "id": "signal_sweet_couple_76",
-        "label": "signal ee5dd49d 7",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_7.webp"
-      },
-      {
-        "id": "signal_sweet_couple_77",
-        "label": "signal ee5dd49d 8",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_8.png"
-      },
-      {
-        "id": "signal_sweet_couple_78",
-        "label": "signal ee5dd49d 8",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_ee5dd49d_8.webp"
-      },
-      {
-        "id": "signal_sweet_couple_79",
-        "label": "signal ee5dd49d 9",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_ee5dd49d_9.png"
+        "url": "/stickers/signal_ee5dd49d_6.webp"
       },
       {
-        "id": "signal_sweet_couple_80",
-        "label": "signal ee5dd49d 9",
+        "id": "signal_sweet_couple_38",
+        "label": "signal ee5dd49d 7",
         "tags": [
           "love",
           "haha"
+        ],
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_7.webp"
+      },
+      {
+        "id": "signal_sweet_couple_39",
+        "label": "signal ee5dd49d 8",
+        "tags": [
+          "love",
+          "sad"
+        ],
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_8.webp"
+      },
+      {
+        "id": "signal_sweet_couple_40",
+        "label": "signal ee5dd49d 9",
+        "tags": [
+          "love",
+          "wow"
         ],
         "type": "static",
         "url": "/stickers/signal_ee5dd49d_9.webp"
@@ -1205,7 +817,7 @@ export const STICKER_PACKS = [
     "id": "signal_love_hugs",
     "name": "Love & Hugs",
     "icon": "🤗",
-    "coverUrl": "/stickers/signal_eb02ac62_1.png",
+    "coverUrl": "/stickers/signal_eb02ac62_1.webp",
     "stickers": [
       {
         "id": "signal_love_hugs_1",
@@ -1214,112 +826,54 @@ export const STICKER_PACKS = [
           "love"
         ],
         "type": "static",
-        "url": "/stickers/signal_eb02ac62_1.png"
-      },
-      {
-        "id": "signal_love_hugs_2",
-        "label": "signal eb02ac62 1",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
         "url": "/stickers/signal_eb02ac62_1.webp"
       },
       {
-        "id": "signal_love_hugs_3",
+        "id": "signal_love_hugs_2",
         "label": "signal eb02ac62 2",
         "tags": [
           "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_eb02ac62_2.png"
-      },
-      {
-        "id": "signal_love_hugs_4",
-        "label": "signal eb02ac62 2",
-        "tags": [
-          "love",
-          "sad"
+          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_eb02ac62_2.webp"
       },
       {
-        "id": "signal_love_hugs_5",
+        "id": "signal_love_hugs_3",
         "label": "signal eb02ac62 3",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_eb02ac62_3.png"
-      },
-      {
-        "id": "signal_love_hugs_6",
-        "label": "signal eb02ac62 3",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_eb02ac62_3.webp"
-      },
-      {
-        "id": "signal_love_hugs_7",
-        "label": "signal eb02ac62 4",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_eb02ac62_4.png"
-      },
-      {
-        "id": "signal_love_hugs_8",
-        "label": "signal eb02ac62 4",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_eb02ac62_4.webp"
-      },
-      {
-        "id": "signal_love_hugs_9",
-        "label": "signal eb02ac62 5",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_eb02ac62_5.png"
-      },
-      {
-        "id": "signal_love_hugs_10",
-        "label": "signal eb02ac62 5",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_eb02ac62_5.webp"
+        "url": "/stickers/signal_eb02ac62_3.webp"
       },
       {
-        "id": "signal_love_hugs_11",
-        "label": "signal eb02ac62 6",
+        "id": "signal_love_hugs_4",
+        "label": "signal eb02ac62 4",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_eb02ac62_6.png"
+        "url": "/stickers/signal_eb02ac62_4.webp"
       },
       {
-        "id": "signal_love_hugs_12",
-        "label": "signal eb02ac62 6",
+        "id": "signal_love_hugs_5",
+        "label": "signal eb02ac62 5",
         "tags": [
           "love",
           "wow"
+        ],
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_5.webp"
+      },
+      {
+        "id": "signal_love_hugs_6",
+        "label": "signal eb02ac62 6",
+        "tags": [
+          "love",
+          "yay"
         ],
         "type": "static",
         "url": "/stickers/signal_eb02ac62_6.webp"
@@ -1330,7 +884,7 @@ export const STICKER_PACKS = [
     "id": "signal_cute_couple",
     "name": "Cute Couple Daily",
     "icon": "🥰",
-    "coverUrl": "/stickers/signal_a94c2600_1.png",
+    "coverUrl": "/stickers/signal_a94c2600_1.webp",
     "stickers": [
       {
         "id": "signal_cute_couple_1",
@@ -1339,128 +893,60 @@ export const STICKER_PACKS = [
           "love"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_1.png"
-      },
-      {
-        "id": "signal_cute_couple_2",
-        "label": "signal a94c2600 1",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
         "url": "/stickers/signal_a94c2600_1.webp"
       },
       {
-        "id": "signal_cute_couple_3",
+        "id": "signal_cute_couple_2",
         "label": "signal a94c2600 10",
         "tags": [
           "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_10.png"
-      },
-      {
-        "id": "signal_cute_couple_4",
-        "label": "signal a94c2600 10",
-        "tags": [
-          "love",
-          "sad"
+          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_10.webp"
       },
       {
-        "id": "signal_cute_couple_5",
+        "id": "signal_cute_couple_3",
         "label": "signal a94c2600 11",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_11.png"
-      },
-      {
-        "id": "signal_cute_couple_6",
-        "label": "signal a94c2600 11",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_11.webp"
-      },
-      {
-        "id": "signal_cute_couple_7",
-        "label": "signal a94c2600 12",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_12.png"
-      },
-      {
-        "id": "signal_cute_couple_8",
-        "label": "signal a94c2600 12",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_12.webp"
-      },
-      {
-        "id": "signal_cute_couple_9",
-        "label": "signal a94c2600 13",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_13.png"
-      },
-      {
-        "id": "signal_cute_couple_10",
-        "label": "signal a94c2600 13",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_13.webp"
+        "url": "/stickers/signal_a94c2600_11.webp"
       },
       {
-        "id": "signal_cute_couple_11",
-        "label": "signal a94c2600 14",
+        "id": "signal_cute_couple_4",
+        "label": "signal a94c2600 12",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_14.png"
+        "url": "/stickers/signal_a94c2600_12.webp"
       },
       {
-        "id": "signal_cute_couple_12",
-        "label": "signal a94c2600 14",
+        "id": "signal_cute_couple_5",
+        "label": "signal a94c2600 13",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_14.webp"
+        "url": "/stickers/signal_a94c2600_13.webp"
       },
       {
-        "id": "signal_cute_couple_13",
-        "label": "signal a94c2600 15",
+        "id": "signal_cute_couple_6",
+        "label": "signal a94c2600 14",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_15.png"
+        "url": "/stickers/signal_a94c2600_14.webp"
       },
       {
-        "id": "signal_cute_couple_14",
+        "id": "signal_cute_couple_7",
         "label": "signal a94c2600 15",
         "tags": [
           "love"
@@ -1469,134 +955,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_15.webp"
       },
       {
-        "id": "signal_cute_couple_15",
+        "id": "signal_cute_couple_8",
         "label": "signal a94c2600 16",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_16.png"
-      },
-      {
-        "id": "signal_cute_couple_16",
-        "label": "signal a94c2600 16",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_16.webp"
       },
       {
-        "id": "signal_cute_couple_17",
+        "id": "signal_cute_couple_9",
         "label": "signal a94c2600 17",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_17.png"
-      },
-      {
-        "id": "signal_cute_couple_18",
-        "label": "signal a94c2600 17",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_17.webp"
-      },
-      {
-        "id": "signal_cute_couple_19",
-        "label": "signal a94c2600 18",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_18.png"
-      },
-      {
-        "id": "signal_cute_couple_20",
-        "label": "signal a94c2600 18",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_18.webp"
-      },
-      {
-        "id": "signal_cute_couple_21",
-        "label": "signal a94c2600 19",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_19.png"
-      },
-      {
-        "id": "signal_cute_couple_22",
-        "label": "signal a94c2600 19",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_19.webp"
-      },
-      {
-        "id": "signal_cute_couple_23",
-        "label": "signal a94c2600 2",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_2.png"
+        "url": "/stickers/signal_a94c2600_17.webp"
       },
       {
-        "id": "signal_cute_couple_24",
-        "label": "signal a94c2600 2",
+        "id": "signal_cute_couple_10",
+        "label": "signal a94c2600 18",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_2.webp"
+        "url": "/stickers/signal_a94c2600_18.webp"
       },
       {
-        "id": "signal_cute_couple_25",
-        "label": "signal a94c2600 20",
+        "id": "signal_cute_couple_11",
+        "label": "signal a94c2600 19",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_20.png"
+        "url": "/stickers/signal_a94c2600_19.webp"
       },
       {
-        "id": "signal_cute_couple_26",
-        "label": "signal a94c2600 20",
+        "id": "signal_cute_couple_12",
+        "label": "signal a94c2600 2",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_20.webp"
+        "url": "/stickers/signal_a94c2600_2.webp"
       },
       {
-        "id": "signal_cute_couple_27",
-        "label": "signal a94c2600 21",
+        "id": "signal_cute_couple_13",
+        "label": "signal a94c2600 20",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_21.png"
+        "url": "/stickers/signal_a94c2600_20.webp"
       },
       {
-        "id": "signal_cute_couple_28",
+        "id": "signal_cute_couple_14",
         "label": "signal a94c2600 21",
         "tags": [
           "love"
@@ -1605,134 +1023,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_21.webp"
       },
       {
-        "id": "signal_cute_couple_29",
+        "id": "signal_cute_couple_15",
         "label": "signal a94c2600 22",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_22.png"
-      },
-      {
-        "id": "signal_cute_couple_30",
-        "label": "signal a94c2600 22",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_22.webp"
       },
       {
-        "id": "signal_cute_couple_31",
+        "id": "signal_cute_couple_16",
         "label": "signal a94c2600 23",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_23.png"
-      },
-      {
-        "id": "signal_cute_couple_32",
-        "label": "signal a94c2600 23",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_23.webp"
-      },
-      {
-        "id": "signal_cute_couple_33",
-        "label": "signal a94c2600 24",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_24.png"
-      },
-      {
-        "id": "signal_cute_couple_34",
-        "label": "signal a94c2600 24",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_24.webp"
-      },
-      {
-        "id": "signal_cute_couple_35",
-        "label": "signal a94c2600 25",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_25.png"
-      },
-      {
-        "id": "signal_cute_couple_36",
-        "label": "signal a94c2600 25",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_25.webp"
-      },
-      {
-        "id": "signal_cute_couple_37",
-        "label": "signal a94c2600 26",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_26.png"
+        "url": "/stickers/signal_a94c2600_23.webp"
       },
       {
-        "id": "signal_cute_couple_38",
-        "label": "signal a94c2600 26",
+        "id": "signal_cute_couple_17",
+        "label": "signal a94c2600 24",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_26.webp"
+        "url": "/stickers/signal_a94c2600_24.webp"
       },
       {
-        "id": "signal_cute_couple_39",
-        "label": "signal a94c2600 27",
+        "id": "signal_cute_couple_18",
+        "label": "signal a94c2600 25",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_27.png"
+        "url": "/stickers/signal_a94c2600_25.webp"
       },
       {
-        "id": "signal_cute_couple_40",
-        "label": "signal a94c2600 27",
+        "id": "signal_cute_couple_19",
+        "label": "signal a94c2600 26",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_27.webp"
+        "url": "/stickers/signal_a94c2600_26.webp"
       },
       {
-        "id": "signal_cute_couple_41",
-        "label": "signal a94c2600 28",
+        "id": "signal_cute_couple_20",
+        "label": "signal a94c2600 27",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_28.png"
+        "url": "/stickers/signal_a94c2600_27.webp"
       },
       {
-        "id": "signal_cute_couple_42",
+        "id": "signal_cute_couple_21",
         "label": "signal a94c2600 28",
         "tags": [
           "love"
@@ -1741,134 +1091,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_28.webp"
       },
       {
-        "id": "signal_cute_couple_43",
+        "id": "signal_cute_couple_22",
         "label": "signal a94c2600 29",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_29.png"
-      },
-      {
-        "id": "signal_cute_couple_44",
-        "label": "signal a94c2600 29",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_29.webp"
       },
       {
-        "id": "signal_cute_couple_45",
+        "id": "signal_cute_couple_23",
         "label": "signal a94c2600 3",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_3.png"
-      },
-      {
-        "id": "signal_cute_couple_46",
-        "label": "signal a94c2600 3",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_3.webp"
-      },
-      {
-        "id": "signal_cute_couple_47",
-        "label": "signal a94c2600 30",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_30.png"
-      },
-      {
-        "id": "signal_cute_couple_48",
-        "label": "signal a94c2600 30",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_30.webp"
-      },
-      {
-        "id": "signal_cute_couple_49",
-        "label": "signal a94c2600 31",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_31.png"
-      },
-      {
-        "id": "signal_cute_couple_50",
-        "label": "signal a94c2600 31",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_31.webp"
-      },
-      {
-        "id": "signal_cute_couple_51",
-        "label": "signal a94c2600 32",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_32.png"
+        "url": "/stickers/signal_a94c2600_3.webp"
       },
       {
-        "id": "signal_cute_couple_52",
-        "label": "signal a94c2600 32",
+        "id": "signal_cute_couple_24",
+        "label": "signal a94c2600 30",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_32.webp"
+        "url": "/stickers/signal_a94c2600_30.webp"
       },
       {
-        "id": "signal_cute_couple_53",
-        "label": "signal a94c2600 33",
+        "id": "signal_cute_couple_25",
+        "label": "signal a94c2600 31",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_33.png"
+        "url": "/stickers/signal_a94c2600_31.webp"
       },
       {
-        "id": "signal_cute_couple_54",
-        "label": "signal a94c2600 33",
+        "id": "signal_cute_couple_26",
+        "label": "signal a94c2600 32",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_33.webp"
+        "url": "/stickers/signal_a94c2600_32.webp"
       },
       {
-        "id": "signal_cute_couple_55",
-        "label": "signal a94c2600 34",
+        "id": "signal_cute_couple_27",
+        "label": "signal a94c2600 33",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_34.png"
+        "url": "/stickers/signal_a94c2600_33.webp"
       },
       {
-        "id": "signal_cute_couple_56",
+        "id": "signal_cute_couple_28",
         "label": "signal a94c2600 34",
         "tags": [
           "love"
@@ -1877,134 +1159,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_34.webp"
       },
       {
-        "id": "signal_cute_couple_57",
+        "id": "signal_cute_couple_29",
         "label": "signal a94c2600 35",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_35.png"
-      },
-      {
-        "id": "signal_cute_couple_58",
-        "label": "signal a94c2600 35",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_35.webp"
       },
       {
-        "id": "signal_cute_couple_59",
+        "id": "signal_cute_couple_30",
         "label": "signal a94c2600 36",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_36.png"
-      },
-      {
-        "id": "signal_cute_couple_60",
-        "label": "signal a94c2600 36",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_36.webp"
-      },
-      {
-        "id": "signal_cute_couple_61",
-        "label": "signal a94c2600 37",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_37.png"
-      },
-      {
-        "id": "signal_cute_couple_62",
-        "label": "signal a94c2600 37",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_37.webp"
-      },
-      {
-        "id": "signal_cute_couple_63",
-        "label": "signal a94c2600 38",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_38.png"
-      },
-      {
-        "id": "signal_cute_couple_64",
-        "label": "signal a94c2600 38",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_38.webp"
-      },
-      {
-        "id": "signal_cute_couple_65",
-        "label": "signal a94c2600 39",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_39.png"
+        "url": "/stickers/signal_a94c2600_36.webp"
       },
       {
-        "id": "signal_cute_couple_66",
-        "label": "signal a94c2600 39",
+        "id": "signal_cute_couple_31",
+        "label": "signal a94c2600 37",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_39.webp"
+        "url": "/stickers/signal_a94c2600_37.webp"
       },
       {
-        "id": "signal_cute_couple_67",
-        "label": "signal a94c2600 4",
+        "id": "signal_cute_couple_32",
+        "label": "signal a94c2600 38",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_4.png"
+        "url": "/stickers/signal_a94c2600_38.webp"
       },
       {
-        "id": "signal_cute_couple_68",
-        "label": "signal a94c2600 4",
+        "id": "signal_cute_couple_33",
+        "label": "signal a94c2600 39",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_4.webp"
+        "url": "/stickers/signal_a94c2600_39.webp"
       },
       {
-        "id": "signal_cute_couple_69",
-        "label": "signal a94c2600 40",
+        "id": "signal_cute_couple_34",
+        "label": "signal a94c2600 4",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_40.png"
+        "url": "/stickers/signal_a94c2600_4.webp"
       },
       {
-        "id": "signal_cute_couple_70",
+        "id": "signal_cute_couple_35",
         "label": "signal a94c2600 40",
         "tags": [
           "love"
@@ -2013,134 +1227,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_40.webp"
       },
       {
-        "id": "signal_cute_couple_71",
+        "id": "signal_cute_couple_36",
         "label": "signal a94c2600 41",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_41.png"
-      },
-      {
-        "id": "signal_cute_couple_72",
-        "label": "signal a94c2600 41",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_41.webp"
       },
       {
-        "id": "signal_cute_couple_73",
+        "id": "signal_cute_couple_37",
         "label": "signal a94c2600 42",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_42.png"
-      },
-      {
-        "id": "signal_cute_couple_74",
-        "label": "signal a94c2600 42",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_42.webp"
-      },
-      {
-        "id": "signal_cute_couple_75",
-        "label": "signal a94c2600 43",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_43.png"
-      },
-      {
-        "id": "signal_cute_couple_76",
-        "label": "signal a94c2600 43",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_43.webp"
-      },
-      {
-        "id": "signal_cute_couple_77",
-        "label": "signal a94c2600 44",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_44.png"
-      },
-      {
-        "id": "signal_cute_couple_78",
-        "label": "signal a94c2600 44",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_44.webp"
-      },
-      {
-        "id": "signal_cute_couple_79",
-        "label": "signal a94c2600 45",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_45.png"
+        "url": "/stickers/signal_a94c2600_42.webp"
       },
       {
-        "id": "signal_cute_couple_80",
-        "label": "signal a94c2600 45",
+        "id": "signal_cute_couple_38",
+        "label": "signal a94c2600 43",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_45.webp"
+        "url": "/stickers/signal_a94c2600_43.webp"
       },
       {
-        "id": "signal_cute_couple_81",
-        "label": "signal a94c2600 46",
+        "id": "signal_cute_couple_39",
+        "label": "signal a94c2600 44",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_46.png"
+        "url": "/stickers/signal_a94c2600_44.webp"
       },
       {
-        "id": "signal_cute_couple_82",
-        "label": "signal a94c2600 46",
+        "id": "signal_cute_couple_40",
+        "label": "signal a94c2600 45",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_46.webp"
+        "url": "/stickers/signal_a94c2600_45.webp"
       },
       {
-        "id": "signal_cute_couple_83",
-        "label": "signal a94c2600 47",
+        "id": "signal_cute_couple_41",
+        "label": "signal a94c2600 46",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_47.png"
+        "url": "/stickers/signal_a94c2600_46.webp"
       },
       {
-        "id": "signal_cute_couple_84",
+        "id": "signal_cute_couple_42",
         "label": "signal a94c2600 47",
         "tags": [
           "love"
@@ -2149,134 +1295,75 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_47.webp"
       },
       {
-        "id": "signal_cute_couple_85",
+        "id": "signal_cute_couple_43",
         "label": "signal a94c2600 48",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_48.png"
-      },
-      {
-        "id": "signal_cute_couple_86",
-        "label": "signal a94c2600 48",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_48.webp"
       },
       {
-        "id": "signal_cute_couple_87",
+        "id": "signal_cute_couple_44",
         "label": "signal a94c2600 49",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_49.png"
-      },
-      {
-        "id": "signal_cute_couple_88",
-        "label": "signal a94c2600 49",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_49.webp"
-      },
-      {
-        "id": "signal_cute_couple_89",
-        "label": "signal a94c2600 5",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_5.png"
-      },
-      {
-        "id": "signal_cute_couple_90",
-        "label": "signal a94c2600 5",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_5.webp"
-      },
-      {
-        "id": "signal_cute_couple_91",
-        "label": "signal a94c2600 50",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_50.png"
-      },
-      {
-        "id": "signal_cute_couple_92",
-        "label": "signal a94c2600 50",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_50.webp"
-      },
-      {
-        "id": "signal_cute_couple_93",
-        "label": "signal a94c2600 51",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_51.png"
+        "url": "/stickers/signal_a94c2600_49.webp"
       },
       {
-        "id": "signal_cute_couple_94",
-        "label": "signal a94c2600 52",
+        "id": "signal_cute_couple_45",
+        "label": "signal a94c2600 5",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_52.png"
+        "url": "/stickers/signal_a94c2600_5.webp"
       },
       {
-        "id": "signal_cute_couple_95",
-        "label": "signal a94c2600 6",
+        "id": "signal_cute_couple_46",
+        "label": "signal a94c2600 50",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_6.png"
+        "url": "/stickers/signal_a94c2600_50.webp"
       },
       {
-        "id": "signal_cute_couple_96",
-        "label": "signal a94c2600 6",
+        "id": "signal_cute_couple_47",
+        "label": "signal a94c2600 51",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_6.webp"
+        "url": "/stickers/signal_a94c2600_51.png"
       },
       {
-        "id": "signal_cute_couple_97",
-        "label": "signal a94c2600 7",
+        "id": "signal_cute_couple_48",
+        "label": "signal a94c2600 52",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_a94c2600_7.png"
+        "url": "/stickers/signal_a94c2600_52.png"
       },
       {
-        "id": "signal_cute_couple_98",
+        "id": "signal_cute_couple_49",
+        "label": "signal a94c2600 6",
+        "tags": [
+          "love"
+        ],
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_6.webp"
+      },
+      {
+        "id": "signal_cute_couple_50",
         "label": "signal a94c2600 7",
         "tags": [
           "love"
@@ -2285,16 +1372,7 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_7.webp"
       },
       {
-        "id": "signal_cute_couple_99",
-        "label": "signal a94c2600 8",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_8.png"
-      },
-      {
-        "id": "signal_cute_couple_100",
+        "id": "signal_cute_couple_51",
         "label": "signal a94c2600 8",
         "tags": [
           "love",
@@ -2304,21 +1382,11 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_a94c2600_8.webp"
       },
       {
-        "id": "signal_cute_couple_101",
+        "id": "signal_cute_couple_52",
         "label": "signal a94c2600 9",
         "tags": [
           "love",
           "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_a94c2600_9.png"
-      },
-      {
-        "id": "signal_cute_couple_102",
-        "label": "signal a94c2600 9",
-        "tags": [
-          "love",
-          "sad"
         ],
         "type": "static",
         "url": "/stickers/signal_a94c2600_9.webp"
@@ -2329,7 +1397,7 @@ export const STICKER_PACKS = [
     "id": "signal_forever_together",
     "name": "Forever Together",
     "icon": "💍",
-    "coverUrl": "/stickers/signal_535ecff7_1.png",
+    "coverUrl": "/stickers/signal_535ecff7_1.webp",
     "stickers": [
       {
         "id": "signal_forever_together_1",
@@ -2338,128 +1406,60 @@ export const STICKER_PACKS = [
           "love"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_1.png"
-      },
-      {
-        "id": "signal_forever_together_2",
-        "label": "signal 535ecff7 1",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
         "url": "/stickers/signal_535ecff7_1.webp"
       },
       {
-        "id": "signal_forever_together_3",
+        "id": "signal_forever_together_2",
         "label": "signal 535ecff7 10",
         "tags": [
           "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_10.png"
-      },
-      {
-        "id": "signal_forever_together_4",
-        "label": "signal 535ecff7 10",
-        "tags": [
-          "love",
-          "sad"
+          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_10.webp"
       },
       {
-        "id": "signal_forever_together_5",
+        "id": "signal_forever_together_3",
         "label": "signal 535ecff7 11",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_11.png"
-      },
-      {
-        "id": "signal_forever_together_6",
-        "label": "signal 535ecff7 11",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_11.webp"
-      },
-      {
-        "id": "signal_forever_together_7",
-        "label": "signal 535ecff7 12",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_12.png"
-      },
-      {
-        "id": "signal_forever_together_8",
-        "label": "signal 535ecff7 12",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_12.webp"
-      },
-      {
-        "id": "signal_forever_together_9",
-        "label": "signal 535ecff7 13",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_13.png"
-      },
-      {
-        "id": "signal_forever_together_10",
-        "label": "signal 535ecff7 13",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_13.webp"
+        "url": "/stickers/signal_535ecff7_11.webp"
       },
       {
-        "id": "signal_forever_together_11",
-        "label": "signal 535ecff7 14",
+        "id": "signal_forever_together_4",
+        "label": "signal 535ecff7 12",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_14.png"
+        "url": "/stickers/signal_535ecff7_12.webp"
       },
       {
-        "id": "signal_forever_together_12",
-        "label": "signal 535ecff7 14",
+        "id": "signal_forever_together_5",
+        "label": "signal 535ecff7 13",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_14.webp"
+        "url": "/stickers/signal_535ecff7_13.webp"
       },
       {
-        "id": "signal_forever_together_13",
-        "label": "signal 535ecff7 15",
+        "id": "signal_forever_together_6",
+        "label": "signal 535ecff7 14",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_15.png"
+        "url": "/stickers/signal_535ecff7_14.webp"
       },
       {
-        "id": "signal_forever_together_14",
+        "id": "signal_forever_together_7",
         "label": "signal 535ecff7 15",
         "tags": [
           "love"
@@ -2468,134 +1468,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_15.webp"
       },
       {
-        "id": "signal_forever_together_15",
+        "id": "signal_forever_together_8",
         "label": "signal 535ecff7 16",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_16.png"
-      },
-      {
-        "id": "signal_forever_together_16",
-        "label": "signal 535ecff7 16",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_16.webp"
       },
       {
-        "id": "signal_forever_together_17",
+        "id": "signal_forever_together_9",
         "label": "signal 535ecff7 17",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_17.png"
-      },
-      {
-        "id": "signal_forever_together_18",
-        "label": "signal 535ecff7 17",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_17.webp"
-      },
-      {
-        "id": "signal_forever_together_19",
-        "label": "signal 535ecff7 18",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_18.png"
-      },
-      {
-        "id": "signal_forever_together_20",
-        "label": "signal 535ecff7 18",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_18.webp"
-      },
-      {
-        "id": "signal_forever_together_21",
-        "label": "signal 535ecff7 19",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_19.png"
-      },
-      {
-        "id": "signal_forever_together_22",
-        "label": "signal 535ecff7 19",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_19.webp"
-      },
-      {
-        "id": "signal_forever_together_23",
-        "label": "signal 535ecff7 2",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_2.png"
+        "url": "/stickers/signal_535ecff7_17.webp"
       },
       {
-        "id": "signal_forever_together_24",
-        "label": "signal 535ecff7 2",
+        "id": "signal_forever_together_10",
+        "label": "signal 535ecff7 18",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_2.webp"
+        "url": "/stickers/signal_535ecff7_18.webp"
       },
       {
-        "id": "signal_forever_together_25",
-        "label": "signal 535ecff7 20",
+        "id": "signal_forever_together_11",
+        "label": "signal 535ecff7 19",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_20.png"
+        "url": "/stickers/signal_535ecff7_19.webp"
       },
       {
-        "id": "signal_forever_together_26",
-        "label": "signal 535ecff7 20",
+        "id": "signal_forever_together_12",
+        "label": "signal 535ecff7 2",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_20.webp"
+        "url": "/stickers/signal_535ecff7_2.webp"
       },
       {
-        "id": "signal_forever_together_27",
-        "label": "signal 535ecff7 21",
+        "id": "signal_forever_together_13",
+        "label": "signal 535ecff7 20",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_21.png"
+        "url": "/stickers/signal_535ecff7_20.webp"
       },
       {
-        "id": "signal_forever_together_28",
+        "id": "signal_forever_together_14",
         "label": "signal 535ecff7 21",
         "tags": [
           "love"
@@ -2604,134 +1536,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_21.webp"
       },
       {
-        "id": "signal_forever_together_29",
+        "id": "signal_forever_together_15",
         "label": "signal 535ecff7 22",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_22.png"
-      },
-      {
-        "id": "signal_forever_together_30",
-        "label": "signal 535ecff7 22",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_22.webp"
       },
       {
-        "id": "signal_forever_together_31",
+        "id": "signal_forever_together_16",
         "label": "signal 535ecff7 23",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_23.png"
-      },
-      {
-        "id": "signal_forever_together_32",
-        "label": "signal 535ecff7 23",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_23.webp"
-      },
-      {
-        "id": "signal_forever_together_33",
-        "label": "signal 535ecff7 24",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_24.png"
-      },
-      {
-        "id": "signal_forever_together_34",
-        "label": "signal 535ecff7 24",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_24.webp"
-      },
-      {
-        "id": "signal_forever_together_35",
-        "label": "signal 535ecff7 25",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_25.png"
-      },
-      {
-        "id": "signal_forever_together_36",
-        "label": "signal 535ecff7 25",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_25.webp"
-      },
-      {
-        "id": "signal_forever_together_37",
-        "label": "signal 535ecff7 26",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_26.png"
+        "url": "/stickers/signal_535ecff7_23.webp"
       },
       {
-        "id": "signal_forever_together_38",
-        "label": "signal 535ecff7 26",
+        "id": "signal_forever_together_17",
+        "label": "signal 535ecff7 24",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_26.webp"
+        "url": "/stickers/signal_535ecff7_24.webp"
       },
       {
-        "id": "signal_forever_together_39",
-        "label": "signal 535ecff7 27",
+        "id": "signal_forever_together_18",
+        "label": "signal 535ecff7 25",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_27.png"
+        "url": "/stickers/signal_535ecff7_25.webp"
       },
       {
-        "id": "signal_forever_together_40",
-        "label": "signal 535ecff7 27",
+        "id": "signal_forever_together_19",
+        "label": "signal 535ecff7 26",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_27.webp"
+        "url": "/stickers/signal_535ecff7_26.webp"
       },
       {
-        "id": "signal_forever_together_41",
-        "label": "signal 535ecff7 28",
+        "id": "signal_forever_together_20",
+        "label": "signal 535ecff7 27",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_28.png"
+        "url": "/stickers/signal_535ecff7_27.webp"
       },
       {
-        "id": "signal_forever_together_42",
+        "id": "signal_forever_together_21",
         "label": "signal 535ecff7 28",
         "tags": [
           "love"
@@ -2740,134 +1604,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_28.webp"
       },
       {
-        "id": "signal_forever_together_43",
+        "id": "signal_forever_together_22",
         "label": "signal 535ecff7 29",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_29.png"
-      },
-      {
-        "id": "signal_forever_together_44",
-        "label": "signal 535ecff7 29",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_29.webp"
       },
       {
-        "id": "signal_forever_together_45",
+        "id": "signal_forever_together_23",
         "label": "signal 535ecff7 3",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_3.png"
-      },
-      {
-        "id": "signal_forever_together_46",
-        "label": "signal 535ecff7 3",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_3.webp"
-      },
-      {
-        "id": "signal_forever_together_47",
-        "label": "signal 535ecff7 30",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_30.png"
-      },
-      {
-        "id": "signal_forever_together_48",
-        "label": "signal 535ecff7 30",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_30.webp"
-      },
-      {
-        "id": "signal_forever_together_49",
-        "label": "signal 535ecff7 31",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_31.png"
-      },
-      {
-        "id": "signal_forever_together_50",
-        "label": "signal 535ecff7 31",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_31.webp"
-      },
-      {
-        "id": "signal_forever_together_51",
-        "label": "signal 535ecff7 32",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_32.png"
+        "url": "/stickers/signal_535ecff7_3.webp"
       },
       {
-        "id": "signal_forever_together_52",
-        "label": "signal 535ecff7 32",
+        "id": "signal_forever_together_24",
+        "label": "signal 535ecff7 30",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_32.webp"
+        "url": "/stickers/signal_535ecff7_30.webp"
       },
       {
-        "id": "signal_forever_together_53",
-        "label": "signal 535ecff7 33",
+        "id": "signal_forever_together_25",
+        "label": "signal 535ecff7 31",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_33.png"
+        "url": "/stickers/signal_535ecff7_31.webp"
       },
       {
-        "id": "signal_forever_together_54",
-        "label": "signal 535ecff7 33",
+        "id": "signal_forever_together_26",
+        "label": "signal 535ecff7 32",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_33.webp"
+        "url": "/stickers/signal_535ecff7_32.webp"
       },
       {
-        "id": "signal_forever_together_55",
-        "label": "signal 535ecff7 34",
+        "id": "signal_forever_together_27",
+        "label": "signal 535ecff7 33",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_34.png"
+        "url": "/stickers/signal_535ecff7_33.webp"
       },
       {
-        "id": "signal_forever_together_56",
+        "id": "signal_forever_together_28",
         "label": "signal 535ecff7 34",
         "tags": [
           "love"
@@ -2876,134 +1672,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_34.webp"
       },
       {
-        "id": "signal_forever_together_57",
+        "id": "signal_forever_together_29",
         "label": "signal 535ecff7 35",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_35.png"
-      },
-      {
-        "id": "signal_forever_together_58",
-        "label": "signal 535ecff7 35",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_35.webp"
       },
       {
-        "id": "signal_forever_together_59",
+        "id": "signal_forever_together_30",
         "label": "signal 535ecff7 36",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_36.png"
-      },
-      {
-        "id": "signal_forever_together_60",
-        "label": "signal 535ecff7 36",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_36.webp"
-      },
-      {
-        "id": "signal_forever_together_61",
-        "label": "signal 535ecff7 37",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_37.png"
-      },
-      {
-        "id": "signal_forever_together_62",
-        "label": "signal 535ecff7 37",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_37.webp"
-      },
-      {
-        "id": "signal_forever_together_63",
-        "label": "signal 535ecff7 38",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_38.png"
-      },
-      {
-        "id": "signal_forever_together_64",
-        "label": "signal 535ecff7 38",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_38.webp"
-      },
-      {
-        "id": "signal_forever_together_65",
-        "label": "signal 535ecff7 39",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_39.png"
+        "url": "/stickers/signal_535ecff7_36.webp"
       },
       {
-        "id": "signal_forever_together_66",
-        "label": "signal 535ecff7 39",
+        "id": "signal_forever_together_31",
+        "label": "signal 535ecff7 37",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_39.webp"
+        "url": "/stickers/signal_535ecff7_37.webp"
       },
       {
-        "id": "signal_forever_together_67",
-        "label": "signal 535ecff7 4",
+        "id": "signal_forever_together_32",
+        "label": "signal 535ecff7 38",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_4.png"
+        "url": "/stickers/signal_535ecff7_38.webp"
       },
       {
-        "id": "signal_forever_together_68",
-        "label": "signal 535ecff7 4",
+        "id": "signal_forever_together_33",
+        "label": "signal 535ecff7 39",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_4.webp"
+        "url": "/stickers/signal_535ecff7_39.webp"
       },
       {
-        "id": "signal_forever_together_69",
-        "label": "signal 535ecff7 40",
+        "id": "signal_forever_together_34",
+        "label": "signal 535ecff7 4",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_40.png"
+        "url": "/stickers/signal_535ecff7_4.webp"
       },
       {
-        "id": "signal_forever_together_70",
+        "id": "signal_forever_together_35",
         "label": "signal 535ecff7 40",
         "tags": [
           "love"
@@ -3012,134 +1740,66 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_40.webp"
       },
       {
-        "id": "signal_forever_together_71",
+        "id": "signal_forever_together_36",
         "label": "signal 535ecff7 41",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_41.png"
-      },
-      {
-        "id": "signal_forever_together_72",
-        "label": "signal 535ecff7 41",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_41.webp"
       },
       {
-        "id": "signal_forever_together_73",
+        "id": "signal_forever_together_37",
         "label": "signal 535ecff7 42",
-        "tags": [
-          "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_42.png"
-      },
-      {
-        "id": "signal_forever_together_74",
-        "label": "signal 535ecff7 42",
-        "tags": [
-          "love",
-          "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_42.webp"
-      },
-      {
-        "id": "signal_forever_together_75",
-        "label": "signal 535ecff7 43",
-        "tags": [
-          "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_43.png"
-      },
-      {
-        "id": "signal_forever_together_76",
-        "label": "signal 535ecff7 43",
-        "tags": [
-          "love",
-          "yay"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_43.webp"
-      },
-      {
-        "id": "signal_forever_together_77",
-        "label": "signal 535ecff7 44",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_44.png"
-      },
-      {
-        "id": "signal_forever_together_78",
-        "label": "signal 535ecff7 44",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_44.webp"
-      },
-      {
-        "id": "signal_forever_together_79",
-        "label": "signal 535ecff7 45",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_45.png"
+        "url": "/stickers/signal_535ecff7_42.webp"
       },
       {
-        "id": "signal_forever_together_80",
-        "label": "signal 535ecff7 45",
+        "id": "signal_forever_together_38",
+        "label": "signal 535ecff7 43",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_45.webp"
+        "url": "/stickers/signal_535ecff7_43.webp"
       },
       {
-        "id": "signal_forever_together_81",
-        "label": "signal 535ecff7 46",
+        "id": "signal_forever_together_39",
+        "label": "signal 535ecff7 44",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_46.png"
+        "url": "/stickers/signal_535ecff7_44.webp"
       },
       {
-        "id": "signal_forever_together_82",
-        "label": "signal 535ecff7 46",
+        "id": "signal_forever_together_40",
+        "label": "signal 535ecff7 45",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_46.webp"
+        "url": "/stickers/signal_535ecff7_45.webp"
       },
       {
-        "id": "signal_forever_together_83",
-        "label": "signal 535ecff7 47",
+        "id": "signal_forever_together_41",
+        "label": "signal 535ecff7 46",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_47.png"
+        "url": "/stickers/signal_535ecff7_46.webp"
       },
       {
-        "id": "signal_forever_together_84",
+        "id": "signal_forever_together_42",
         "label": "signal 535ecff7 47",
         "tags": [
           "love"
@@ -3148,230 +1808,162 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_47.webp"
       },
       {
-        "id": "signal_forever_together_85",
+        "id": "signal_forever_together_43",
         "label": "signal 535ecff7 48",
         "tags": [
           "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_48.png"
-      },
-      {
-        "id": "signal_forever_together_86",
-        "label": "signal 535ecff7 48",
-        "tags": [
-          "love",
-          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_48.webp"
       },
       {
-        "id": "signal_forever_together_87",
+        "id": "signal_forever_together_44",
         "label": "signal 535ecff7 49",
         "tags": [
           "love",
-          "haha"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_49.png"
-      },
-      {
-        "id": "signal_forever_together_88",
-        "label": "signal 535ecff7 49",
-        "tags": [
-          "love",
-          "sad"
+          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_49.webp"
       },
       {
-        "id": "signal_forever_together_89",
+        "id": "signal_forever_together_45",
         "label": "signal 535ecff7 5",
         "tags": [
           "love",
-          "wow"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_5.png"
-      },
-      {
-        "id": "signal_forever_together_90",
-        "label": "signal 535ecff7 5",
-        "tags": [
-          "love",
-          "yay"
+          "haha"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_5.webp"
       },
       {
-        "id": "signal_forever_together_91",
+        "id": "signal_forever_together_46",
         "label": "signal 535ecff7 50",
         "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_50.png"
-      },
-      {
-        "id": "signal_forever_together_92",
-        "label": "signal 535ecff7 50",
-        "tags": [
-          "love"
+          "love",
+          "sad"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_50.webp"
       },
       {
-        "id": "signal_forever_together_93",
+        "id": "signal_forever_together_47",
         "label": "signal 535ecff7 51",
         "tags": [
           "love",
-          "hi"
+          "wow"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_51.webp"
       },
       {
-        "id": "signal_forever_together_94",
+        "id": "signal_forever_together_48",
         "label": "signal 535ecff7 52",
         "tags": [
           "love",
-          "haha"
+          "yay"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_52.webp"
       },
       {
-        "id": "signal_forever_together_95",
+        "id": "signal_forever_together_49",
         "label": "signal 535ecff7 53",
         "tags": [
-          "love",
-          "sad"
+          "love"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_53.webp"
       },
       {
-        "id": "signal_forever_together_96",
+        "id": "signal_forever_together_50",
         "label": "signal 535ecff7 54",
         "tags": [
-          "love",
-          "wow"
+          "love"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_54.webp"
       },
       {
-        "id": "signal_forever_together_97",
+        "id": "signal_forever_together_51",
         "label": "signal 535ecff7 55",
         "tags": [
           "love",
-          "yay"
+          "hi"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_55.webp"
       },
       {
-        "id": "signal_forever_together_98",
+        "id": "signal_forever_together_52",
         "label": "signal 535ecff7 56",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_56.webp"
-      },
-      {
-        "id": "signal_forever_together_99",
-        "label": "signal 535ecff7 57",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_57.webp"
-      },
-      {
-        "id": "signal_forever_together_100",
-        "label": "signal 535ecff7 58",
-        "tags": [
-          "love",
-          "hi"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_58.webp"
-      },
-      {
-        "id": "signal_forever_together_101",
-        "label": "signal 535ecff7 59",
         "tags": [
           "love",
           "haha"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_59.webp"
+        "url": "/stickers/signal_535ecff7_56.webp"
       },
       {
-        "id": "signal_forever_together_102",
-        "label": "signal 535ecff7 6",
+        "id": "signal_forever_together_53",
+        "label": "signal 535ecff7 57",
         "tags": [
           "love",
           "sad"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_6.png"
+        "url": "/stickers/signal_535ecff7_57.webp"
       },
       {
-        "id": "signal_forever_together_103",
-        "label": "signal 535ecff7 6",
+        "id": "signal_forever_together_54",
+        "label": "signal 535ecff7 58",
         "tags": [
           "love",
           "wow"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_6.webp"
+        "url": "/stickers/signal_535ecff7_58.webp"
       },
       {
-        "id": "signal_forever_together_104",
-        "label": "signal 535ecff7 60",
+        "id": "signal_forever_together_55",
+        "label": "signal 535ecff7 59",
         "tags": [
           "love",
           "yay"
         ],
         "type": "static",
+        "url": "/stickers/signal_535ecff7_59.webp"
+      },
+      {
+        "id": "signal_forever_together_56",
+        "label": "signal 535ecff7 6",
+        "tags": [
+          "love"
+        ],
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_6.webp"
+      },
+      {
+        "id": "signal_forever_together_57",
+        "label": "signal 535ecff7 60",
+        "tags": [
+          "love"
+        ],
+        "type": "static",
         "url": "/stickers/signal_535ecff7_60.webp"
       },
       {
-        "id": "signal_forever_together_105",
+        "id": "signal_forever_together_58",
         "label": "signal 535ecff7 7",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_7.png"
-      },
-      {
-        "id": "signal_forever_together_106",
-        "label": "signal 535ecff7 7",
-        "tags": [
-          "love"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_7.webp"
-      },
-      {
-        "id": "signal_forever_together_107",
-        "label": "signal 535ecff7 8",
         "tags": [
           "love",
           "hi"
         ],
         "type": "static",
-        "url": "/stickers/signal_535ecff7_8.png"
+        "url": "/stickers/signal_535ecff7_7.webp"
       },
       {
-        "id": "signal_forever_together_108",
+        "id": "signal_forever_together_59",
         "label": "signal 535ecff7 8",
         "tags": [
           "love",
@@ -3381,21 +1973,11 @@ export const STICKER_PACKS = [
         "url": "/stickers/signal_535ecff7_8.webp"
       },
       {
-        "id": "signal_forever_together_109",
+        "id": "signal_forever_together_60",
         "label": "signal 535ecff7 9",
         "tags": [
           "love",
           "sad"
-        ],
-        "type": "static",
-        "url": "/stickers/signal_535ecff7_9.png"
-      },
-      {
-        "id": "signal_forever_together_110",
-        "label": "signal 535ecff7 9",
-        "tags": [
-          "love",
-          "wow"
         ],
         "type": "static",
         "url": "/stickers/signal_535ecff7_9.webp"

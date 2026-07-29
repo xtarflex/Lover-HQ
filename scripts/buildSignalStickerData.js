@@ -20,31 +20,36 @@ const PACK_DEFINITIONS = [
     id: 'signal_sweet_couple',
     name: 'Sweet Couple 1',
     icon: '👩‍❤️‍👨',
-    filter: (file) => file.includes('signal_ee5dd49d_'),
+    coverFile: 'signal_ee5dd49d_cover.png',
+    filter: (file) => file.includes('signal_ee5dd49d_') && !file.includes('_cover.'),
   },
   {
     id: 'signal_romantic_moments',
     name: 'Romantic Moments',
     icon: '🌹',
-    filter: (file) => file.includes('signal_c627a32c_'),
+    coverFile: 'signal_c627a32c_cover.png',
+    filter: (file) => file.includes('signal_c627a32c_') && !file.includes('_cover.'),
   },
   {
     id: 'signal_love_hugs',
     name: 'Love & Hugs',
     icon: '🤗',
-    filter: (file) => file.includes('signal_eb02ac62_'),
+    coverFile: 'signal_eb02ac62_cover.png',
+    filter: (file) => file.includes('signal_eb02ac62_') && !file.includes('_cover.'),
   },
   {
     id: 'signal_cute_couple',
     name: 'Cute Couple Daily',
     icon: '🥰',
-    filter: (file) => file.includes('signal_a94c2600_'),
+    coverFile: 'signal_a94c2600_cover.png',
+    filter: (file) => file.includes('signal_a94c2600_') && !file.includes('_cover.'),
   },
   {
     id: 'signal_forever_together',
     name: 'Forever Together',
     icon: '💍',
-    filter: (file) => file.includes('signal_535ecff7_'),
+    coverFile: 'signal_535ecff7_cover.png',
+    filter: (file) => file.includes('signal_535ecff7_') && !file.includes('_cover.'),
   },
 ];
 
@@ -129,11 +134,12 @@ function main() {
     });
 
     if (stickers.length > 0) {
+      const hasOfficialCover = def.coverFile && fs.existsSync(path.join(STICKERS_DIR, def.coverFile));
       packs.push({
         id: def.id,
         name: def.name,
         icon: def.icon,
-        coverUrl: stickers[0]?.url || null,
+        coverUrl: hasOfficialCover ? `/stickers/${def.coverFile}` : stickers[0]?.url || null,
         stickers,
       });
     }
