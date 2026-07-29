@@ -1,10 +1,11 @@
 /**
  * @file StickerPlayer.jsx
  * @description Universal multi-format Sticker Player supporting transparent .webp, .png,
- * .svg, and dotLottie (.lottie) animations with native Web Component autoplay and loop attributes.
+ * .svg, and dotLottie (.lottie) animations with battery-optimized frame unmounting.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { AnimatedSticker } from './AnimatedSticker';
 
 /**
  * Encodes URI path spaces and special characters for sticker asset URLs.
@@ -68,14 +69,14 @@ export function StickerPlayer({
   // IntersectionObserver: Pause animation when scrolled out of view to save battery and prevent lag
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !isLottie) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const isVisible = entry.isIntersecting;
         isIntersectingRef.current = isVisible;
         const el = playerRef.current;
-        if (!el || !isLottie) return;
+        if (!el) return;
 
         if (isVisible) {
           if (typeof el.play === 'function') {
@@ -158,6 +159,10 @@ export function StickerPlayer({
     };
   }, [isLottie, isInfinite, playKey, cleanSrc]);
 
+  if (!isLottie) {
+    return <AnimatedSticker src={cleanSrc} alt={alt} className={className} />;
+  }
+
   return (
     <div
       ref={containerRef}
@@ -170,27 +175,16 @@ export function StickerPlayer({
         <div className="absolute inset-0 rounded-2xl bg-slate-800/30 border border-slate-700/20 flex items-center justify-center z-10 pointer-events-none" />
       )}
 
-      {isLottie ? (
-        <dotlottie-player
-          ref={playerRef}
-          key={`lottie-${playKey}`}
-          src={cleanSrc}
-          autoplay={true}
-          loop={isInfinite ? true : undefined}
-          background="transparent"
-          speed="1"
-          style={{ width: '100%', height: '100%' }}
-        />
-      ) : (
-        <img
-          key={`img-sticker-${playKey}`}
-          src={cleanSrc}
-          alt={alt}
-          loading="lazy"
-          onLoad={() => setIsLoaded(true)}
-          className={`w-full h-full object-contain transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-        />
-      )}
+      <dotlottie-player
+        ref={playerRef}
+        key={`lottie-${playKey}`}
+        src={cleanSrc}
+        autoplay={true}
+        loop={isInfinite ? true : undefined}
+        background="transparent"
+        speed="1"
+        style={{ width: '100%', height: '100%' }}
+      />
     </div>
   );
 }
