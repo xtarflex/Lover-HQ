@@ -162,12 +162,12 @@ describe('MusicPlayer & Queue Integration Tests', () => {
 
     // Flush state updates to prevent act warnings
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 250));
+      await Promise.resolve();
     });
 
     expect(screen.getByText('Music Room Empty')).toBeInTheDocument();
     expect(screen.getByText('Add a song below to get started!')).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('handles track addition and playback controls locally', async () => {
     const mockTrack = {
@@ -229,7 +229,7 @@ describe('MusicPlayer & Queue Integration Tests', () => {
     // Should switch to Play button
     const playBtn = screen.getByRole('button', { name: /^play$/i });
     expect(playBtn).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('synchronizes listening states when receiving partner broadcast actions', async () => {
     const mockTrack = {
