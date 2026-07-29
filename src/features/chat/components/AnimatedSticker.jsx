@@ -4,6 +4,7 @@
  * Features:
  * - Plays WebP/APNG animation natively for ~3.5s (2 cycles) upon entering viewport (or infinite based on setting).
  * - Pauses offscreen using IntersectionObserver.
+ * - Captures frame onto offscreen canvas & unmounts animated img to static PNG data URL (0% CPU/GPU overhead).
  * - Graceful onError fallback rendering.
  * - Heartbeat Haptic Vibration on tap.
  */
@@ -27,10 +28,10 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
   const [playCountKey, setPlayCountKey] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [frozenDataUrl, setFrozenDataUrl] = useState(null);
 
   const containerRef = useRef(null);
   const imgRef = useRef(null);
-  const canvasRef = useRef(null);
   const playTimerRef = useRef(null);
 
   const hasBeenVisibleRef = useRef(false);
@@ -50,25 +51,27 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
   }, [char, alt, src]);
 
   /**
-   * Captures current image frame onto canvas as fallback for non-unicode sticker assets.
+   * Captures current image frame onto offscreen canvas and swaps to static PNG data URL.
    */
   const freezeFrame = useCallback(() => {
     const img = imgRef.current;
-    const canvas = canvasRef.current;
-    if (img && canvas && !char) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        const dpr = window.devicePixelRatio || 1;
-        const width = (img.naturalWidth || 128) * dpr;
-        const height = (img.naturalHeight || 128) * dpr;
-        canvas.width = width;
-        canvas.height = height;
-        ctx.clearRect(0, 0, width, height);
-        try {
+    if (img && !char) {
+      try {
+        const offscreen = document.createElement('canvas');
+        const width = img.naturalWidth || 128;
+        const height = img.naturalHeight || 128;
+        offscreen.width = width;
+        offscreen.height = height;
+        const ctx = offscreen.getContext('2d');
+        if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-        } catch {
-          // Ignore cross-origin canvas security errors
+          const dataUrl = offscreen.toDataURL('image/png');
+          if (dataUrl && dataUrl.length > 50) {
+            setFrozenDataUrl(dataUrl);
+          }
         }
+      } catch {
+        // Ignore cross-origin canvas security restrictions
       }
     }
     setIsPlaying(false);
@@ -161,25 +164,7 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
           src={src}
           alt={alt}
           className={`${className} transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => {
-            setIsLoaded(true);
-            const img = imgRef.current;
-            const canvas = canvasRef.current;
-            if (img && canvas && !char) {
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                const width = img.naturalWidth || 128;
-                const height = img.naturalHeight || 128;
-                canvas.width = width;
-                canvas.height = height;
-                try {
-                  ctx.drawImage(img, 0, 0, width, height);
-                } catch {
-                  // Ignore cross-origin error
-                }
-              }
-            }
-          }}
+          onLoad={() => setIsLoaded(true)}
           onError={() => {
             setIsLoaded(true);
             setHasError(true);
@@ -190,10 +175,18 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
         <div className="w-14 h-14 flex items-center justify-center text-5xl leading-none select-none opacity-95 group-hover:opacity-100 transition-opacity animate-fade-in">
           <span>{char}</span>
         </div>
+      ) : frozenDataUrl ? (
+        /* Static frozen PNG snapshot frame when paused (0% CPU/GPU overhead) */
+        <img
+          src={frozenDataUrl}
+          alt={alt}
+          className={`${className} block opacity-95 group-hover:opacity-100 transition-opacity`}
+        />
       ) : (
-        /* Static high-DPI frozen canvas frame fallback when paused */
-        <canvas
-          ref={canvasRef}
+        /* Original static asset fallback if offscreen canvas capture fails */
+        <img
+          src={src}
+          alt={alt}
           className={`${className} block opacity-95 group-hover:opacity-100 transition-opacity`}
         />
       )}
