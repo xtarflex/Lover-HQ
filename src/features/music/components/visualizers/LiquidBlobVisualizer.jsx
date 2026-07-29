@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 import React, { useRef, useEffect, useCallback } from 'react';
 
 /**
@@ -44,11 +45,7 @@ export default function LiquidBlobVisualizer({
   const isPlayingRef = useRef(isPlaying);
   const analyserRef = useRef(analyserNode);
   const activePlayerRef = useRef(activePlayer);
-  const startTimeRef = useRef(null);
-
-  useEffect(() => {
-    if (!startTimeRef.current) startTimeRef.current = Date.now();
-  }, []);
+  const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from 'react';
 import { useMusic } from '../../contexts/MusicContext';
 import AddTrackModal from './components/AddTrackModal';
@@ -20,13 +21,13 @@ import CollectionManagementFace from './components/CollectionManagementFace';
  * @returns {React.ReactElement} The Music component.
  */
 export default function Music() {
-  const { library, isCardFlipped, setIsCardFlipped, loadPlaylist } = useMusic();
+  const { library, isCardFlipped, setIsCardFlipped, saveQueueAsPlaylist, loadPlaylist } =
+    useMusic();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [hasColdStarted, setHasColdStarted] = useState(false);
 
   // ── Cold Start: empty library → show Face 2 + open AddTrackModal ──────────
-  /* eslint-disable react-hooks/set-state-in-effect -- Cold start initial modal trigger */
   useEffect(() => {
     if (hasColdStarted) return;
     // Wait until library has been fetched (null = loading, [] = genuinely empty)
@@ -37,7 +38,6 @@ export default function Music() {
     }
     setHasColdStarted(true);
   }, [library, hasColdStarted, setIsCardFlipped]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   /**
    * Toggles between Face 1 and Face 2.

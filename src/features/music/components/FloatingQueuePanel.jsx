@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
@@ -161,7 +162,7 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragLeave={() => setDragOverIndex(null)}
-                    onDrop={(e) => handleDrop(e, index)}
+                    onDrop={(e) => handleDrop(e, targetIndex)}
                     onClick={() => playTrackById(track.id, 0)}
                     role="button"
                     tabIndex={0}

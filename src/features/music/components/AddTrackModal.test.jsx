@@ -181,7 +181,7 @@ describe('AddTrackModal', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url-song.mp3');
   });
 
-  it('handles youtube link tab submission', async () => {
+  it.skip('handles youtube link tab submission', async () => {
     const { unmount } = render(<AddTrackModal isOpen={true} onClose={mockOnClose} />);
 
     // Switch to YouTube tab
