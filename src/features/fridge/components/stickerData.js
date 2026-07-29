@@ -1,7 +1,7 @@
 /**
  * @file stickerData.js
  * @description Auto-generated custom sticker magnet packs manifest for Lover-HQ.
- * Last updated: 2026-07-28T14:23:45.184Z
+ * Last updated: 2026-07-28T15:56:51.287Z
  */
 
 /**
@@ -17,1144 +17,1134 @@
  * @property {string} id
  * @property {string} name
  * @property {string} icon
+ * @property {string|null} [coverUrl]
  * @property {Array<StickerItem>} stickers
  */
 
 /** @type {Array<StickerPack>} */
 export const STICKER_PACKS = [
   {
-    id: 'love_pack',
-    name: 'Love & Romance',
-    icon: '💖',
-    stickers: [
+    "id": "love_pack",
+    "name": "Love & Romance",
+    "icon": "💖",
+    "coverUrl": "/stickers/Bird pair love and flying sky.lottie",
+    "stickers": [
       {
-        id: 'sticker_1_1785248625183',
-        label: 'Bird pair love and flying sky',
-        type: 'animated',
-        url: '/stickers/Bird pair love and flying sky.lottie',
+        "id": "lottie_1",
+        "label": "Bird pair love and flying sky",
+        "type": "animated",
+        "url": "/stickers/Bird pair love and flying sky.lottie"
       },
       {
-        id: 'sticker_6_1785248625183',
-        label: 'Couple sharing and caring love',
-        type: 'animated',
-        url: '/stickers/Couple sharing and caring love.lottie',
+        "id": "lottie_2",
+        "label": "Couple sharing and caring love",
+        "type": "animated",
+        "url": "/stickers/Couple sharing and caring love.lottie"
       },
       {
-        id: 'sticker_8_1785248625183',
-        label: 'Happy Valentine Day',
-        type: 'animated',
-        url: '/stickers/Happy Valentine Day.lottie',
+        "id": "lottie_3",
+        "label": "Happy Valentine Day",
+        "type": "animated",
+        "url": "/stickers/Happy Valentine Day.lottie"
       },
       {
-        id: 'sticker_9_1785248625183',
-        label: 'Heart lottie',
-        type: 'animated',
-        url: '/stickers/Heart lottie animation.lottie',
+        "id": "lottie_4",
+        "label": "Heart lottie animation",
+        "type": "animated",
+        "url": "/stickers/Heart lottie animation.lottie"
       },
       {
-        id: 'sticker_11_1785248625183',
-        label: 'Love Heart',
-        type: 'animated',
-        url: '/stickers/Love Heart.lottie',
+        "id": "lottie_5",
+        "label": "Love Heart",
+        "type": "animated",
+        "url": "/stickers/Love Heart.lottie"
       },
       {
-        id: 'sticker_12_1785248625183',
-        label: 'Paper Plane Heart',
-        type: 'animated',
-        url: '/stickers/Paper Plane Heart.lottie',
+        "id": "lottie_6",
+        "label": "Paper Plane Heart",
+        "type": "animated",
+        "url": "/stickers/Paper Plane Heart.lottie"
       },
       {
-        id: 'sticker_13_1785248625184',
-        label: 'signal 535ecff7 1',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_1.png',
+        "id": "lottie_7",
+        "label": "Propose love day",
+        "type": "animated",
+        "url": "/stickers/Propose love day.lottie"
       },
       {
-        id: 'sticker_14_1785248625184',
-        label: 'signal 535ecff7 10',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_10.png',
+        "id": "lottie_8",
+        "label": "Teddy bear couple love",
+        "type": "animated",
+        "url": "/stickers/Teddy bear couple love.lottie"
       },
       {
-        id: 'sticker_15_1785248625184',
-        label: 'signal 535ecff7 11',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_11.png',
-      },
-      {
-        id: 'sticker_16_1785248625184',
-        label: 'signal 535ecff7 12',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_12.png',
-      },
-      {
-        id: 'sticker_17_1785248625184',
-        label: 'signal 535ecff7 13',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_13.png',
-      },
-      {
-        id: 'sticker_18_1785248625184',
-        label: 'signal 535ecff7 14',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_14.png',
-      },
-      {
-        id: 'sticker_19_1785248625184',
-        label: 'signal 535ecff7 15',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_15.png',
-      },
-      {
-        id: 'sticker_20_1785248625184',
-        label: 'signal 535ecff7 16',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_16.png',
-      },
-      {
-        id: 'sticker_21_1785248625184',
-        label: 'signal 535ecff7 17',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_17.png',
-      },
-      {
-        id: 'sticker_22_1785248625184',
-        label: 'signal 535ecff7 18',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_18.png',
-      },
-      {
-        id: 'sticker_23_1785248625184',
-        label: 'signal 535ecff7 19',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_19.png',
-      },
-      {
-        id: 'sticker_24_1785248625184',
-        label: 'signal 535ecff7 2',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_2.png',
-      },
-      {
-        id: 'sticker_25_1785248625184',
-        label: 'signal 535ecff7 20',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_20.png',
-      },
-      {
-        id: 'sticker_26_1785248625184',
-        label: 'signal 535ecff7 21',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_21.png',
-      },
-      {
-        id: 'sticker_27_1785248625184',
-        label: 'signal 535ecff7 22',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_22.png',
-      },
-      {
-        id: 'sticker_28_1785248625184',
-        label: 'signal 535ecff7 23',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_23.png',
-      },
-      {
-        id: 'sticker_29_1785248625184',
-        label: 'signal 535ecff7 24',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_24.png',
-      },
-      {
-        id: 'sticker_30_1785248625184',
-        label: 'signal 535ecff7 25',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_25.png',
-      },
-      {
-        id: 'sticker_31_1785248625184',
-        label: 'signal 535ecff7 26',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_26.png',
-      },
-      {
-        id: 'sticker_32_1785248625184',
-        label: 'signal 535ecff7 27',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_27.png',
-      },
-      {
-        id: 'sticker_33_1785248625184',
-        label: 'signal 535ecff7 28',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_28.png',
-      },
-      {
-        id: 'sticker_34_1785248625184',
-        label: 'signal 535ecff7 29',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_29.png',
-      },
-      {
-        id: 'sticker_35_1785248625184',
-        label: 'signal 535ecff7 3',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_3.png',
-      },
-      {
-        id: 'sticker_36_1785248625184',
-        label: 'signal 535ecff7 30',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_30.png',
-      },
-      {
-        id: 'sticker_37_1785248625184',
-        label: 'signal 535ecff7 31',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_31.png',
-      },
-      {
-        id: 'sticker_38_1785248625184',
-        label: 'signal 535ecff7 32',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_32.png',
-      },
-      {
-        id: 'sticker_39_1785248625184',
-        label: 'signal 535ecff7 33',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_33.png',
-      },
-      {
-        id: 'sticker_40_1785248625184',
-        label: 'signal 535ecff7 34',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_34.png',
-      },
-      {
-        id: 'sticker_41_1785248625184',
-        label: 'signal 535ecff7 35',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_35.png',
-      },
-      {
-        id: 'sticker_42_1785248625184',
-        label: 'signal 535ecff7 36',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_36.png',
-      },
-      {
-        id: 'sticker_43_1785248625184',
-        label: 'signal 535ecff7 37',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_37.png',
-      },
-      {
-        id: 'sticker_44_1785248625184',
-        label: 'signal 535ecff7 38',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_38.png',
-      },
-      {
-        id: 'sticker_45_1785248625184',
-        label: 'signal 535ecff7 39',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_39.png',
-      },
-      {
-        id: 'sticker_46_1785248625184',
-        label: 'signal 535ecff7 4',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_4.png',
-      },
-      {
-        id: 'sticker_47_1785248625184',
-        label: 'signal 535ecff7 40',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_40.png',
-      },
-      {
-        id: 'sticker_48_1785248625184',
-        label: 'signal 535ecff7 41',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_41.png',
-      },
-      {
-        id: 'sticker_49_1785248625184',
-        label: 'signal 535ecff7 42',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_42.png',
-      },
-      {
-        id: 'sticker_50_1785248625184',
-        label: 'signal 535ecff7 43',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_43.png',
-      },
-      {
-        id: 'sticker_51_1785248625184',
-        label: 'signal 535ecff7 44',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_44.png',
-      },
-      {
-        id: 'sticker_52_1785248625184',
-        label: 'signal 535ecff7 45',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_45.png',
-      },
-      {
-        id: 'sticker_53_1785248625184',
-        label: 'signal 535ecff7 46',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_46.png',
-      },
-      {
-        id: 'sticker_54_1785248625184',
-        label: 'signal 535ecff7 47',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_47.png',
-      },
-      {
-        id: 'sticker_55_1785248625184',
-        label: 'signal 535ecff7 48',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_48.png',
-      },
-      {
-        id: 'sticker_56_1785248625184',
-        label: 'signal 535ecff7 49',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_49.png',
-      },
-      {
-        id: 'sticker_57_1785248625184',
-        label: 'signal 535ecff7 5',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_5.png',
-      },
-      {
-        id: 'sticker_58_1785248625184',
-        label: 'signal 535ecff7 50',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_50.png',
-      },
-      {
-        id: 'sticker_59_1785248625184',
-        label: 'signal 535ecff7 6',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_6.png',
-      },
-      {
-        id: 'sticker_60_1785248625184',
-        label: 'signal 535ecff7 7',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_7.png',
-      },
-      {
-        id: 'sticker_61_1785248625184',
-        label: 'signal 535ecff7 8',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_8.png',
-      },
-      {
-        id: 'sticker_62_1785248625184',
-        label: 'signal 535ecff7 9',
-        type: 'static',
-        url: '/stickers/signal_535ecff7_9.png',
-      },
-      {
-        id: 'sticker_63_1785248625184',
-        label: 'signal a94c2600 1',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_1.png',
-      },
-      {
-        id: 'sticker_64_1785248625184',
-        label: 'signal a94c2600 10',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_10.png',
-      },
-      {
-        id: 'sticker_65_1785248625184',
-        label: 'signal a94c2600 11',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_11.png',
-      },
-      {
-        id: 'sticker_66_1785248625184',
-        label: 'signal a94c2600 12',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_12.png',
-      },
-      {
-        id: 'sticker_67_1785248625184',
-        label: 'signal a94c2600 13',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_13.png',
-      },
-      {
-        id: 'sticker_68_1785248625184',
-        label: 'signal a94c2600 14',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_14.png',
-      },
-      {
-        id: 'sticker_69_1785248625184',
-        label: 'signal a94c2600 15',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_15.png',
-      },
-      {
-        id: 'sticker_70_1785248625184',
-        label: 'signal a94c2600 16',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_16.png',
-      },
-      {
-        id: 'sticker_71_1785248625184',
-        label: 'signal a94c2600 17',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_17.png',
-      },
-      {
-        id: 'sticker_72_1785248625184',
-        label: 'signal a94c2600 18',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_18.png',
-      },
-      {
-        id: 'sticker_73_1785248625184',
-        label: 'signal a94c2600 19',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_19.png',
-      },
-      {
-        id: 'sticker_74_1785248625184',
-        label: 'signal a94c2600 2',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_2.png',
-      },
-      {
-        id: 'sticker_75_1785248625184',
-        label: 'signal a94c2600 20',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_20.png',
-      },
-      {
-        id: 'sticker_76_1785248625184',
-        label: 'signal a94c2600 21',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_21.png',
-      },
-      {
-        id: 'sticker_77_1785248625184',
-        label: 'signal a94c2600 22',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_22.png',
-      },
-      {
-        id: 'sticker_78_1785248625184',
-        label: 'signal a94c2600 23',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_23.png',
-      },
-      {
-        id: 'sticker_79_1785248625184',
-        label: 'signal a94c2600 24',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_24.png',
-      },
-      {
-        id: 'sticker_80_1785248625184',
-        label: 'signal a94c2600 25',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_25.png',
-      },
-      {
-        id: 'sticker_81_1785248625184',
-        label: 'signal a94c2600 26',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_26.png',
-      },
-      {
-        id: 'sticker_82_1785248625184',
-        label: 'signal a94c2600 27',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_27.png',
-      },
-      {
-        id: 'sticker_83_1785248625184',
-        label: 'signal a94c2600 28',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_28.png',
-      },
-      {
-        id: 'sticker_84_1785248625184',
-        label: 'signal a94c2600 29',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_29.png',
-      },
-      {
-        id: 'sticker_85_1785248625184',
-        label: 'signal a94c2600 3',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_3.png',
-      },
-      {
-        id: 'sticker_86_1785248625184',
-        label: 'signal a94c2600 30',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_30.png',
-      },
-      {
-        id: 'sticker_87_1785248625184',
-        label: 'signal a94c2600 31',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_31.png',
-      },
-      {
-        id: 'sticker_88_1785248625184',
-        label: 'signal a94c2600 32',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_32.png',
-      },
-      {
-        id: 'sticker_89_1785248625184',
-        label: 'signal a94c2600 33',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_33.png',
-      },
-      {
-        id: 'sticker_90_1785248625184',
-        label: 'signal a94c2600 34',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_34.png',
-      },
-      {
-        id: 'sticker_91_1785248625184',
-        label: 'signal a94c2600 35',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_35.png',
-      },
-      {
-        id: 'sticker_92_1785248625184',
-        label: 'signal a94c2600 36',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_36.png',
-      },
-      {
-        id: 'sticker_93_1785248625184',
-        label: 'signal a94c2600 37',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_37.png',
-      },
-      {
-        id: 'sticker_94_1785248625184',
-        label: 'signal a94c2600 38',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_38.png',
-      },
-      {
-        id: 'sticker_95_1785248625184',
-        label: 'signal a94c2600 39',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_39.png',
-      },
-      {
-        id: 'sticker_96_1785248625184',
-        label: 'signal a94c2600 4',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_4.png',
-      },
-      {
-        id: 'sticker_97_1785248625184',
-        label: 'signal a94c2600 40',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_40.png',
-      },
-      {
-        id: 'sticker_98_1785248625184',
-        label: 'signal a94c2600 41',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_41.png',
-      },
-      {
-        id: 'sticker_99_1785248625184',
-        label: 'signal a94c2600 42',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_42.png',
-      },
-      {
-        id: 'sticker_100_1785248625184',
-        label: 'signal a94c2600 43',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_43.png',
-      },
-      {
-        id: 'sticker_101_1785248625184',
-        label: 'signal a94c2600 44',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_44.png',
-      },
-      {
-        id: 'sticker_102_1785248625184',
-        label: 'signal a94c2600 45',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_45.png',
-      },
-      {
-        id: 'sticker_103_1785248625184',
-        label: 'signal a94c2600 46',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_46.png',
-      },
-      {
-        id: 'sticker_104_1785248625184',
-        label: 'signal a94c2600 47',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_47.png',
-      },
-      {
-        id: 'sticker_105_1785248625184',
-        label: 'signal a94c2600 48',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_48.png',
-      },
-      {
-        id: 'sticker_106_1785248625184',
-        label: 'signal a94c2600 49',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_49.png',
-      },
-      {
-        id: 'sticker_107_1785248625184',
-        label: 'signal a94c2600 5',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_5.png',
-      },
-      {
-        id: 'sticker_108_1785248625184',
-        label: 'signal a94c2600 50',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_50.png',
-      },
-      {
-        id: 'sticker_109_1785248625184',
-        label: 'signal a94c2600 6',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_6.png',
-      },
-      {
-        id: 'sticker_110_1785248625184',
-        label: 'signal a94c2600 7',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_7.png',
-      },
-      {
-        id: 'sticker_111_1785248625184',
-        label: 'signal a94c2600 8',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_8.png',
-      },
-      {
-        id: 'sticker_112_1785248625184',
-        label: 'signal a94c2600 9',
-        type: 'static',
-        url: '/stickers/signal_a94c2600_9.png',
-      },
-      {
-        id: 'sticker_113_1785248625184',
-        label: 'signal c627a32c 1',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_1.png',
-      },
-      {
-        id: 'sticker_114_1785248625184',
-        label: 'signal c627a32c 10',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_10.png',
-      },
-      {
-        id: 'sticker_115_1785248625184',
-        label: 'signal c627a32c 11',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_11.png',
-      },
-      {
-        id: 'sticker_116_1785248625184',
-        label: 'signal c627a32c 12',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_12.png',
-      },
-      {
-        id: 'sticker_117_1785248625184',
-        label: 'signal c627a32c 13',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_13.png',
-      },
-      {
-        id: 'sticker_118_1785248625184',
-        label: 'signal c627a32c 14',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_14.png',
-      },
-      {
-        id: 'sticker_119_1785248625184',
-        label: 'signal c627a32c 15',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_15.png',
-      },
-      {
-        id: 'sticker_120_1785248625184',
-        label: 'signal c627a32c 16',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_16.png',
-      },
-      {
-        id: 'sticker_121_1785248625184',
-        label: 'signal c627a32c 17',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_17.png',
-      },
-      {
-        id: 'sticker_122_1785248625184',
-        label: 'signal c627a32c 18',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_18.png',
-      },
-      {
-        id: 'sticker_123_1785248625184',
-        label: 'signal c627a32c 19',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_19.png',
-      },
-      {
-        id: 'sticker_124_1785248625184',
-        label: 'signal c627a32c 2',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_2.png',
-      },
-      {
-        id: 'sticker_125_1785248625184',
-        label: 'signal c627a32c 20',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_20.png',
-      },
-      {
-        id: 'sticker_126_1785248625184',
-        label: 'signal c627a32c 21',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_21.png',
-      },
-      {
-        id: 'sticker_127_1785248625184',
-        label: 'signal c627a32c 22',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_22.png',
-      },
-      {
-        id: 'sticker_128_1785248625184',
-        label: 'signal c627a32c 23',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_23.png',
-      },
-      {
-        id: 'sticker_129_1785248625184',
-        label: 'signal c627a32c 24',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_24.png',
-      },
-      {
-        id: 'sticker_130_1785248625184',
-        label: 'signal c627a32c 3',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_3.png',
-      },
-      {
-        id: 'sticker_131_1785248625184',
-        label: 'signal c627a32c 4',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_4.png',
-      },
-      {
-        id: 'sticker_132_1785248625184',
-        label: 'signal c627a32c 5',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_5.png',
-      },
-      {
-        id: 'sticker_133_1785248625184',
-        label: 'signal c627a32c 6',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_6.png',
-      },
-      {
-        id: 'sticker_134_1785248625184',
-        label: 'signal c627a32c 7',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_7.png',
-      },
-      {
-        id: 'sticker_135_1785248625184',
-        label: 'signal c627a32c 8',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_8.png',
-      },
-      {
-        id: 'sticker_136_1785248625184',
-        label: 'signal c627a32c 9',
-        type: 'static',
-        url: '/stickers/signal_c627a32c_9.png',
-      },
-      {
-        id: 'sticker_137_1785248625184',
-        label: 'signal eb02ac62 1',
-        type: 'static',
-        url: '/stickers/signal_eb02ac62_1.png',
-      },
-      {
-        id: 'sticker_138_1785248625184',
-        label: 'signal eb02ac62 2',
-        type: 'static',
-        url: '/stickers/signal_eb02ac62_2.png',
-      },
-      {
-        id: 'sticker_139_1785248625184',
-        label: 'signal eb02ac62 3',
-        type: 'static',
-        url: '/stickers/signal_eb02ac62_3.png',
-      },
-      {
-        id: 'sticker_140_1785248625184',
-        label: 'signal eb02ac62 4',
-        type: 'static',
-        url: '/stickers/signal_eb02ac62_4.png',
-      },
-      {
-        id: 'sticker_141_1785248625184',
-        label: 'signal eb02ac62 5',
-        type: 'static',
-        url: '/stickers/signal_eb02ac62_5.png',
-      },
-      {
-        id: 'sticker_142_1785248625184',
-        label: 'signal eb02ac62 6',
-        type: 'static',
-        url: '/stickers/signal_eb02ac62_6.png',
-      },
-      {
-        id: 'sticker_143_1785248625184',
-        label: 'signal ee5dd49d 1',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_1.png',
-      },
-      {
-        id: 'sticker_144_1785248625184',
-        label: 'signal ee5dd49d 10',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_10.png',
-      },
-      {
-        id: 'sticker_145_1785248625184',
-        label: 'signal ee5dd49d 11',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_11.png',
-      },
-      {
-        id: 'sticker_146_1785248625184',
-        label: 'signal ee5dd49d 12',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_12.png',
-      },
-      {
-        id: 'sticker_147_1785248625184',
-        label: 'signal ee5dd49d 13',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_13.png',
-      },
-      {
-        id: 'sticker_148_1785248625184',
-        label: 'signal ee5dd49d 14',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_14.png',
-      },
-      {
-        id: 'sticker_149_1785248625184',
-        label: 'signal ee5dd49d 15',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_15.png',
-      },
-      {
-        id: 'sticker_150_1785248625184',
-        label: 'signal ee5dd49d 16',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_16.png',
-      },
-      {
-        id: 'sticker_151_1785248625184',
-        label: 'signal ee5dd49d 17',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_17.png',
-      },
-      {
-        id: 'sticker_152_1785248625184',
-        label: 'signal ee5dd49d 18',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_18.png',
-      },
-      {
-        id: 'sticker_153_1785248625184',
-        label: 'signal ee5dd49d 19',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_19.png',
-      },
-      {
-        id: 'sticker_154_1785248625184',
-        label: 'signal ee5dd49d 2',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_2.png',
-      },
-      {
-        id: 'sticker_155_1785248625184',
-        label: 'signal ee5dd49d 20',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_20.png',
-      },
-      {
-        id: 'sticker_156_1785248625184',
-        label: 'signal ee5dd49d 21',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_21.png',
-      },
-      {
-        id: 'sticker_157_1785248625184',
-        label: 'signal ee5dd49d 22',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_22.png',
-      },
-      {
-        id: 'sticker_158_1785248625184',
-        label: 'signal ee5dd49d 23',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_23.png',
-      },
-      {
-        id: 'sticker_159_1785248625184',
-        label: 'signal ee5dd49d 24',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_24.png',
-      },
-      {
-        id: 'sticker_160_1785248625184',
-        label: 'signal ee5dd49d 25',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_25.png',
-      },
-      {
-        id: 'sticker_161_1785248625184',
-        label: 'signal ee5dd49d 26',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_26.png',
-      },
-      {
-        id: 'sticker_162_1785248625184',
-        label: 'signal ee5dd49d 27',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_27.png',
-      },
-      {
-        id: 'sticker_163_1785248625184',
-        label: 'signal ee5dd49d 28',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_28.png',
-      },
-      {
-        id: 'sticker_164_1785248625184',
-        label: 'signal ee5dd49d 29',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_29.png',
-      },
-      {
-        id: 'sticker_165_1785248625184',
-        label: 'signal ee5dd49d 3',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_3.png',
-      },
-      {
-        id: 'sticker_166_1785248625184',
-        label: 'signal ee5dd49d 30',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_30.png',
-      },
-      {
-        id: 'sticker_167_1785248625184',
-        label: 'signal ee5dd49d 31',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_31.png',
-      },
-      {
-        id: 'sticker_168_1785248625184',
-        label: 'signal ee5dd49d 32',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_32.png',
-      },
-      {
-        id: 'sticker_169_1785248625184',
-        label: 'signal ee5dd49d 33',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_33.png',
-      },
-      {
-        id: 'sticker_170_1785248625184',
-        label: 'signal ee5dd49d 34',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_34.png',
-      },
-      {
-        id: 'sticker_171_1785248625184',
-        label: 'signal ee5dd49d 35',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_35.png',
-      },
-      {
-        id: 'sticker_172_1785248625184',
-        label: 'signal ee5dd49d 36',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_36.png',
-      },
-      {
-        id: 'sticker_173_1785248625184',
-        label: 'signal ee5dd49d 37',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_37.png',
-      },
-      {
-        id: 'sticker_174_1785248625184',
-        label: 'signal ee5dd49d 38',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_38.png',
-      },
-      {
-        id: 'sticker_175_1785248625184',
-        label: 'signal ee5dd49d 39',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_39.png',
-      },
-      {
-        id: 'sticker_176_1785248625184',
-        label: 'signal ee5dd49d 4',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_4.png',
-      },
-      {
-        id: 'sticker_177_1785248625184',
-        label: 'signal ee5dd49d 40',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_40.png',
-      },
-      {
-        id: 'sticker_178_1785248625184',
-        label: 'signal ee5dd49d 5',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_5.png',
-      },
-      {
-        id: 'sticker_179_1785248625184',
-        label: 'signal ee5dd49d 6',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_6.png',
-      },
-      {
-        id: 'sticker_180_1785248625184',
-        label: 'signal ee5dd49d 7',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_7.png',
-      },
-      {
-        id: 'sticker_181_1785248625184',
-        label: 'signal ee5dd49d 8',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_8.png',
-      },
-      {
-        id: 'sticker_182_1785248625184',
-        label: 'signal ee5dd49d 9',
-        type: 'static',
-        url: '/stickers/signal_ee5dd49d_9.png',
-      },
-      {
-        id: 'sticker_183_1785248625184',
-        label: 'valentine special',
-        type: 'animated',
-        url: '/stickers/valentine special.lottie',
-      },
-      {
-        id: 'sticker_184_1785248625184',
-        label: "Valentine's Day Romantic Moments",
-        type: 'animated',
-        url: "/stickers/Valentine's Day Romantic Moments.lottie",
-      },
-    ],
+        "id": "lottie_9",
+        "label": "Two bird love animation",
+        "type": "animated",
+        "url": "/stickers/Two bird love animation.lottie"
+      }
+    ]
   },
   {
-    id: 'cute_cats',
-    name: 'Cute Cats',
-    icon: '🐱',
-    stickers: [
+    "id": "signal_sweet_couple",
+    "name": "Sweet Couple 1",
+    "icon": "👩‍❤️‍👨",
+    "coverUrl": "/stickers/signal_ee5dd49d_1.png",
+    "stickers": [
       {
-        id: 'sticker_2_1785248625183',
-        label: 'Cat Crying',
-        type: 'animated',
-        url: '/stickers/Cat Crying emojiSticker animation.lottie',
+        "id": "signal_sweet_couple_1",
+        "label": "Sweet Couple 1 #1",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_1.png"
       },
       {
-        id: 'sticker_3_1785248625183',
-        label: 'Cat feeling love emotionsexpression',
-        type: 'animated',
-        url: '/stickers/Cat feeling love emotionsexpression. Emojisticker animation.lottie',
+        "id": "signal_sweet_couple_2",
+        "label": "Sweet Couple 1 #2",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_2.png"
       },
       {
-        id: 'sticker_4_1785248625183',
-        label: 'Cat laughing loudly  HahahahLOL',
-        type: 'animated',
-        url: '/stickers/Cat laughing loudly. HahahahLOL emojisticker animation.lottie',
+        "id": "signal_sweet_couple_3",
+        "label": "Sweet Couple 1 #3",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_3.png"
       },
-    ],
+      {
+        "id": "signal_sweet_couple_4",
+        "label": "Sweet Couple 1 #4",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_4.png"
+      },
+      {
+        "id": "signal_sweet_couple_5",
+        "label": "Sweet Couple 1 #5",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_5.png"
+      },
+      {
+        "id": "signal_sweet_couple_6",
+        "label": "Sweet Couple 1 #6",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_6.png"
+      },
+      {
+        "id": "signal_sweet_couple_7",
+        "label": "Sweet Couple 1 #7",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_7.png"
+      },
+      {
+        "id": "signal_sweet_couple_8",
+        "label": "Sweet Couple 1 #8",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_8.png"
+      },
+      {
+        "id": "signal_sweet_couple_9",
+        "label": "Sweet Couple 1 #9",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_9.png"
+      },
+      {
+        "id": "signal_sweet_couple_10",
+        "label": "Sweet Couple 1 #10",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_10.png"
+      },
+      {
+        "id": "signal_sweet_couple_11",
+        "label": "Sweet Couple 1 #11",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_11.png"
+      },
+      {
+        "id": "signal_sweet_couple_12",
+        "label": "Sweet Couple 1 #12",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_12.png"
+      },
+      {
+        "id": "signal_sweet_couple_13",
+        "label": "Sweet Couple 1 #13",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_13.png"
+      },
+      {
+        "id": "signal_sweet_couple_14",
+        "label": "Sweet Couple 1 #14",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_14.png"
+      },
+      {
+        "id": "signal_sweet_couple_15",
+        "label": "Sweet Couple 1 #15",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_15.png"
+      },
+      {
+        "id": "signal_sweet_couple_16",
+        "label": "Sweet Couple 1 #16",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_16.png"
+      },
+      {
+        "id": "signal_sweet_couple_17",
+        "label": "Sweet Couple 1 #17",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_17.png"
+      },
+      {
+        "id": "signal_sweet_couple_18",
+        "label": "Sweet Couple 1 #18",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_18.png"
+      },
+      {
+        "id": "signal_sweet_couple_19",
+        "label": "Sweet Couple 1 #19",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_19.png"
+      },
+      {
+        "id": "signal_sweet_couple_20",
+        "label": "Sweet Couple 1 #20",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_20.png"
+      },
+      {
+        "id": "signal_sweet_couple_21",
+        "label": "Sweet Couple 1 #21",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_21.png"
+      },
+      {
+        "id": "signal_sweet_couple_22",
+        "label": "Sweet Couple 1 #22",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_22.png"
+      },
+      {
+        "id": "signal_sweet_couple_23",
+        "label": "Sweet Couple 1 #23",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_23.png"
+      },
+      {
+        "id": "signal_sweet_couple_24",
+        "label": "Sweet Couple 1 #24",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_24.png"
+      },
+      {
+        "id": "signal_sweet_couple_25",
+        "label": "Sweet Couple 1 #25",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_25.png"
+      },
+      {
+        "id": "signal_sweet_couple_26",
+        "label": "Sweet Couple 1 #26",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_26.png"
+      },
+      {
+        "id": "signal_sweet_couple_27",
+        "label": "Sweet Couple 1 #27",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_27.png"
+      },
+      {
+        "id": "signal_sweet_couple_28",
+        "label": "Sweet Couple 1 #28",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_28.png"
+      },
+      {
+        "id": "signal_sweet_couple_29",
+        "label": "Sweet Couple 1 #29",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_29.png"
+      },
+      {
+        "id": "signal_sweet_couple_30",
+        "label": "Sweet Couple 1 #30",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_30.png"
+      },
+      {
+        "id": "signal_sweet_couple_31",
+        "label": "Sweet Couple 1 #31",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_31.png"
+      },
+      {
+        "id": "signal_sweet_couple_32",
+        "label": "Sweet Couple 1 #32",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_32.png"
+      },
+      {
+        "id": "signal_sweet_couple_33",
+        "label": "Sweet Couple 1 #33",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_33.png"
+      },
+      {
+        "id": "signal_sweet_couple_34",
+        "label": "Sweet Couple 1 #34",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_34.png"
+      },
+      {
+        "id": "signal_sweet_couple_35",
+        "label": "Sweet Couple 1 #35",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_35.png"
+      },
+      {
+        "id": "signal_sweet_couple_36",
+        "label": "Sweet Couple 1 #36",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_36.png"
+      },
+      {
+        "id": "signal_sweet_couple_37",
+        "label": "Sweet Couple 1 #37",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_37.png"
+      },
+      {
+        "id": "signal_sweet_couple_38",
+        "label": "Sweet Couple 1 #38",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_38.png"
+      },
+      {
+        "id": "signal_sweet_couple_39",
+        "label": "Sweet Couple 1 #39",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_39.png"
+      },
+      {
+        "id": "signal_sweet_couple_40",
+        "label": "Sweet Couple 1 #40",
+        "type": "static",
+        "url": "/stickers/signal_ee5dd49d_40.png"
+      }
+    ]
   },
   {
-    id: 'celebrations',
-    name: 'Celebrations',
-    icon: '🎉',
-    stickers: [
+    "id": "signal_romantic_moments",
+    "name": "Romantic Moments",
+    "icon": "🌹",
+    "coverUrl": "/stickers/signal_c627a32c_1.png",
+    "stickers": [
       {
-        id: 'sticker_5_1785248625183',
-        label: 'Christmas wreath  Round frame made of branches and berries',
-        type: 'animated',
-        url: '/stickers/Christmas wreath. Round frame made of branches and berries.lottie',
+        "id": "signal_romantic_moments_1",
+        "label": "Romantic Moments #1",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_1.png"
       },
       {
-        id: 'sticker_7_1785248625183',
-        label: 'Gift Box with heart pop up',
-        type: 'animated',
-        url: '/stickers/Gift Box with heart pop up.lottie',
+        "id": "signal_romantic_moments_2",
+        "label": "Romantic Moments #2",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_2.png"
       },
       {
-        id: 'sticker_10_1785248625183',
-        label: 'like',
-        type: 'animated',
-        url: '/stickers/like.lottie',
+        "id": "signal_romantic_moments_3",
+        "label": "Romantic Moments #3",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_3.png"
       },
-    ],
+      {
+        "id": "signal_romantic_moments_4",
+        "label": "Romantic Moments #4",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_4.png"
+      },
+      {
+        "id": "signal_romantic_moments_5",
+        "label": "Romantic Moments #5",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_5.png"
+      },
+      {
+        "id": "signal_romantic_moments_6",
+        "label": "Romantic Moments #6",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_6.png"
+      },
+      {
+        "id": "signal_romantic_moments_7",
+        "label": "Romantic Moments #7",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_7.png"
+      },
+      {
+        "id": "signal_romantic_moments_8",
+        "label": "Romantic Moments #8",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_8.png"
+      },
+      {
+        "id": "signal_romantic_moments_9",
+        "label": "Romantic Moments #9",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_9.png"
+      },
+      {
+        "id": "signal_romantic_moments_10",
+        "label": "Romantic Moments #10",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_10.png"
+      },
+      {
+        "id": "signal_romantic_moments_11",
+        "label": "Romantic Moments #11",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_11.png"
+      },
+      {
+        "id": "signal_romantic_moments_12",
+        "label": "Romantic Moments #12",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_12.png"
+      },
+      {
+        "id": "signal_romantic_moments_13",
+        "label": "Romantic Moments #13",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_13.png"
+      },
+      {
+        "id": "signal_romantic_moments_14",
+        "label": "Romantic Moments #14",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_14.png"
+      },
+      {
+        "id": "signal_romantic_moments_15",
+        "label": "Romantic Moments #15",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_15.png"
+      },
+      {
+        "id": "signal_romantic_moments_16",
+        "label": "Romantic Moments #16",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_16.png"
+      },
+      {
+        "id": "signal_romantic_moments_17",
+        "label": "Romantic Moments #17",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_17.png"
+      },
+      {
+        "id": "signal_romantic_moments_18",
+        "label": "Romantic Moments #18",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_18.png"
+      },
+      {
+        "id": "signal_romantic_moments_19",
+        "label": "Romantic Moments #19",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_19.png"
+      },
+      {
+        "id": "signal_romantic_moments_20",
+        "label": "Romantic Moments #20",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_20.png"
+      },
+      {
+        "id": "signal_romantic_moments_21",
+        "label": "Romantic Moments #21",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_21.png"
+      },
+      {
+        "id": "signal_romantic_moments_22",
+        "label": "Romantic Moments #22",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_22.png"
+      },
+      {
+        "id": "signal_romantic_moments_23",
+        "label": "Romantic Moments #23",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_23.png"
+      },
+      {
+        "id": "signal_romantic_moments_24",
+        "label": "Romantic Moments #24",
+        "type": "static",
+        "url": "/stickers/signal_c627a32c_24.png"
+      }
+    ]
   },
+  {
+    "id": "signal_love_hugs",
+    "name": "Love & Hugs",
+    "icon": "🤗",
+    "coverUrl": "/stickers/signal_eb02ac62_1.png",
+    "stickers": [
+      {
+        "id": "signal_love_hugs_1",
+        "label": "Love & Hugs #1",
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_1.png"
+      },
+      {
+        "id": "signal_love_hugs_2",
+        "label": "Love & Hugs #2",
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_2.png"
+      },
+      {
+        "id": "signal_love_hugs_3",
+        "label": "Love & Hugs #3",
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_3.png"
+      },
+      {
+        "id": "signal_love_hugs_4",
+        "label": "Love & Hugs #4",
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_4.png"
+      },
+      {
+        "id": "signal_love_hugs_5",
+        "label": "Love & Hugs #5",
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_5.png"
+      },
+      {
+        "id": "signal_love_hugs_6",
+        "label": "Love & Hugs #6",
+        "type": "static",
+        "url": "/stickers/signal_eb02ac62_6.png"
+      }
+    ]
+  },
+  {
+    "id": "signal_cute_couple",
+    "name": "Cute Couple Daily",
+    "icon": "🥰",
+    "coverUrl": "/stickers/signal_a94c2600_1.png",
+    "stickers": [
+      {
+        "id": "signal_cute_couple_1",
+        "label": "Cute Couple Daily #1",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_1.png"
+      },
+      {
+        "id": "signal_cute_couple_2",
+        "label": "Cute Couple Daily #2",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_2.png"
+      },
+      {
+        "id": "signal_cute_couple_3",
+        "label": "Cute Couple Daily #3",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_3.png"
+      },
+      {
+        "id": "signal_cute_couple_4",
+        "label": "Cute Couple Daily #4",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_4.png"
+      },
+      {
+        "id": "signal_cute_couple_5",
+        "label": "Cute Couple Daily #5",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_5.png"
+      },
+      {
+        "id": "signal_cute_couple_6",
+        "label": "Cute Couple Daily #6",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_6.png"
+      },
+      {
+        "id": "signal_cute_couple_7",
+        "label": "Cute Couple Daily #7",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_7.png"
+      },
+      {
+        "id": "signal_cute_couple_8",
+        "label": "Cute Couple Daily #8",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_8.png"
+      },
+      {
+        "id": "signal_cute_couple_9",
+        "label": "Cute Couple Daily #9",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_9.png"
+      },
+      {
+        "id": "signal_cute_couple_10",
+        "label": "Cute Couple Daily #10",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_10.png"
+      },
+      {
+        "id": "signal_cute_couple_11",
+        "label": "Cute Couple Daily #11",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_11.png"
+      },
+      {
+        "id": "signal_cute_couple_12",
+        "label": "Cute Couple Daily #12",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_12.png"
+      },
+      {
+        "id": "signal_cute_couple_13",
+        "label": "Cute Couple Daily #13",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_13.png"
+      },
+      {
+        "id": "signal_cute_couple_14",
+        "label": "Cute Couple Daily #14",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_14.png"
+      },
+      {
+        "id": "signal_cute_couple_15",
+        "label": "Cute Couple Daily #15",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_15.png"
+      },
+      {
+        "id": "signal_cute_couple_16",
+        "label": "Cute Couple Daily #16",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_16.png"
+      },
+      {
+        "id": "signal_cute_couple_17",
+        "label": "Cute Couple Daily #17",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_17.png"
+      },
+      {
+        "id": "signal_cute_couple_18",
+        "label": "Cute Couple Daily #18",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_18.png"
+      },
+      {
+        "id": "signal_cute_couple_19",
+        "label": "Cute Couple Daily #19",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_19.png"
+      },
+      {
+        "id": "signal_cute_couple_20",
+        "label": "Cute Couple Daily #20",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_20.png"
+      },
+      {
+        "id": "signal_cute_couple_21",
+        "label": "Cute Couple Daily #21",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_21.png"
+      },
+      {
+        "id": "signal_cute_couple_22",
+        "label": "Cute Couple Daily #22",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_22.png"
+      },
+      {
+        "id": "signal_cute_couple_23",
+        "label": "Cute Couple Daily #23",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_23.png"
+      },
+      {
+        "id": "signal_cute_couple_24",
+        "label": "Cute Couple Daily #24",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_24.png"
+      },
+      {
+        "id": "signal_cute_couple_25",
+        "label": "Cute Couple Daily #25",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_25.png"
+      },
+      {
+        "id": "signal_cute_couple_26",
+        "label": "Cute Couple Daily #26",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_26.png"
+      },
+      {
+        "id": "signal_cute_couple_27",
+        "label": "Cute Couple Daily #27",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_27.png"
+      },
+      {
+        "id": "signal_cute_couple_28",
+        "label": "Cute Couple Daily #28",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_28.png"
+      },
+      {
+        "id": "signal_cute_couple_29",
+        "label": "Cute Couple Daily #29",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_29.png"
+      },
+      {
+        "id": "signal_cute_couple_30",
+        "label": "Cute Couple Daily #30",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_30.png"
+      },
+      {
+        "id": "signal_cute_couple_31",
+        "label": "Cute Couple Daily #31",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_31.png"
+      },
+      {
+        "id": "signal_cute_couple_32",
+        "label": "Cute Couple Daily #32",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_32.png"
+      },
+      {
+        "id": "signal_cute_couple_33",
+        "label": "Cute Couple Daily #33",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_33.png"
+      },
+      {
+        "id": "signal_cute_couple_34",
+        "label": "Cute Couple Daily #34",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_34.png"
+      },
+      {
+        "id": "signal_cute_couple_35",
+        "label": "Cute Couple Daily #35",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_35.png"
+      },
+      {
+        "id": "signal_cute_couple_36",
+        "label": "Cute Couple Daily #36",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_36.png"
+      },
+      {
+        "id": "signal_cute_couple_37",
+        "label": "Cute Couple Daily #37",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_37.png"
+      },
+      {
+        "id": "signal_cute_couple_38",
+        "label": "Cute Couple Daily #38",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_38.png"
+      },
+      {
+        "id": "signal_cute_couple_39",
+        "label": "Cute Couple Daily #39",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_39.png"
+      },
+      {
+        "id": "signal_cute_couple_40",
+        "label": "Cute Couple Daily #40",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_40.png"
+      },
+      {
+        "id": "signal_cute_couple_41",
+        "label": "Cute Couple Daily #41",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_41.png"
+      },
+      {
+        "id": "signal_cute_couple_42",
+        "label": "Cute Couple Daily #42",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_42.png"
+      },
+      {
+        "id": "signal_cute_couple_43",
+        "label": "Cute Couple Daily #43",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_43.png"
+      },
+      {
+        "id": "signal_cute_couple_44",
+        "label": "Cute Couple Daily #44",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_44.png"
+      },
+      {
+        "id": "signal_cute_couple_45",
+        "label": "Cute Couple Daily #45",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_45.png"
+      },
+      {
+        "id": "signal_cute_couple_46",
+        "label": "Cute Couple Daily #46",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_46.png"
+      },
+      {
+        "id": "signal_cute_couple_47",
+        "label": "Cute Couple Daily #47",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_47.png"
+      },
+      {
+        "id": "signal_cute_couple_48",
+        "label": "Cute Couple Daily #48",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_48.png"
+      },
+      {
+        "id": "signal_cute_couple_49",
+        "label": "Cute Couple Daily #49",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_49.png"
+      },
+      {
+        "id": "signal_cute_couple_50",
+        "label": "Cute Couple Daily #50",
+        "type": "static",
+        "url": "/stickers/signal_a94c2600_50.png"
+      }
+    ]
+  },
+  {
+    "id": "signal_forever_together",
+    "name": "Forever Together",
+    "icon": "💍",
+    "coverUrl": "/stickers/signal_535ecff7_1.png",
+    "stickers": [
+      {
+        "id": "signal_forever_together_1",
+        "label": "Forever Together #1",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_1.png"
+      },
+      {
+        "id": "signal_forever_together_2",
+        "label": "Forever Together #2",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_2.png"
+      },
+      {
+        "id": "signal_forever_together_3",
+        "label": "Forever Together #3",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_3.png"
+      },
+      {
+        "id": "signal_forever_together_4",
+        "label": "Forever Together #4",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_4.png"
+      },
+      {
+        "id": "signal_forever_together_5",
+        "label": "Forever Together #5",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_5.png"
+      },
+      {
+        "id": "signal_forever_together_6",
+        "label": "Forever Together #6",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_6.png"
+      },
+      {
+        "id": "signal_forever_together_7",
+        "label": "Forever Together #7",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_7.png"
+      },
+      {
+        "id": "signal_forever_together_8",
+        "label": "Forever Together #8",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_8.png"
+      },
+      {
+        "id": "signal_forever_together_9",
+        "label": "Forever Together #9",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_9.png"
+      },
+      {
+        "id": "signal_forever_together_10",
+        "label": "Forever Together #10",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_10.png"
+      },
+      {
+        "id": "signal_forever_together_11",
+        "label": "Forever Together #11",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_11.png"
+      },
+      {
+        "id": "signal_forever_together_12",
+        "label": "Forever Together #12",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_12.png"
+      },
+      {
+        "id": "signal_forever_together_13",
+        "label": "Forever Together #13",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_13.png"
+      },
+      {
+        "id": "signal_forever_together_14",
+        "label": "Forever Together #14",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_14.png"
+      },
+      {
+        "id": "signal_forever_together_15",
+        "label": "Forever Together #15",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_15.png"
+      },
+      {
+        "id": "signal_forever_together_16",
+        "label": "Forever Together #16",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_16.png"
+      },
+      {
+        "id": "signal_forever_together_17",
+        "label": "Forever Together #17",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_17.png"
+      },
+      {
+        "id": "signal_forever_together_18",
+        "label": "Forever Together #18",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_18.png"
+      },
+      {
+        "id": "signal_forever_together_19",
+        "label": "Forever Together #19",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_19.png"
+      },
+      {
+        "id": "signal_forever_together_20",
+        "label": "Forever Together #20",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_20.png"
+      },
+      {
+        "id": "signal_forever_together_21",
+        "label": "Forever Together #21",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_21.png"
+      },
+      {
+        "id": "signal_forever_together_22",
+        "label": "Forever Together #22",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_22.png"
+      },
+      {
+        "id": "signal_forever_together_23",
+        "label": "Forever Together #23",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_23.png"
+      },
+      {
+        "id": "signal_forever_together_24",
+        "label": "Forever Together #24",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_24.png"
+      },
+      {
+        "id": "signal_forever_together_25",
+        "label": "Forever Together #25",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_25.png"
+      },
+      {
+        "id": "signal_forever_together_26",
+        "label": "Forever Together #26",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_26.png"
+      },
+      {
+        "id": "signal_forever_together_27",
+        "label": "Forever Together #27",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_27.png"
+      },
+      {
+        "id": "signal_forever_together_28",
+        "label": "Forever Together #28",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_28.png"
+      },
+      {
+        "id": "signal_forever_together_29",
+        "label": "Forever Together #29",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_29.png"
+      },
+      {
+        "id": "signal_forever_together_30",
+        "label": "Forever Together #30",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_30.png"
+      },
+      {
+        "id": "signal_forever_together_31",
+        "label": "Forever Together #31",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_31.png"
+      },
+      {
+        "id": "signal_forever_together_32",
+        "label": "Forever Together #32",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_32.png"
+      },
+      {
+        "id": "signal_forever_together_33",
+        "label": "Forever Together #33",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_33.png"
+      },
+      {
+        "id": "signal_forever_together_34",
+        "label": "Forever Together #34",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_34.png"
+      },
+      {
+        "id": "signal_forever_together_35",
+        "label": "Forever Together #35",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_35.png"
+      },
+      {
+        "id": "signal_forever_together_36",
+        "label": "Forever Together #36",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_36.png"
+      },
+      {
+        "id": "signal_forever_together_37",
+        "label": "Forever Together #37",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_37.png"
+      },
+      {
+        "id": "signal_forever_together_38",
+        "label": "Forever Together #38",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_38.png"
+      },
+      {
+        "id": "signal_forever_together_39",
+        "label": "Forever Together #39",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_39.png"
+      },
+      {
+        "id": "signal_forever_together_40",
+        "label": "Forever Together #40",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_40.png"
+      },
+      {
+        "id": "signal_forever_together_41",
+        "label": "Forever Together #41",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_41.png"
+      },
+      {
+        "id": "signal_forever_together_42",
+        "label": "Forever Together #42",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_42.png"
+      },
+      {
+        "id": "signal_forever_together_43",
+        "label": "Forever Together #43",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_43.png"
+      },
+      {
+        "id": "signal_forever_together_44",
+        "label": "Forever Together #44",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_44.png"
+      },
+      {
+        "id": "signal_forever_together_45",
+        "label": "Forever Together #45",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_45.png"
+      },
+      {
+        "id": "signal_forever_together_46",
+        "label": "Forever Together #46",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_46.png"
+      },
+      {
+        "id": "signal_forever_together_47",
+        "label": "Forever Together #47",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_47.png"
+      },
+      {
+        "id": "signal_forever_together_48",
+        "label": "Forever Together #48",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_48.png"
+      },
+      {
+        "id": "signal_forever_together_49",
+        "label": "Forever Together #49",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_49.png"
+      },
+      {
+        "id": "signal_forever_together_50",
+        "label": "Forever Together #50",
+        "type": "static",
+        "url": "/stickers/signal_535ecff7_50.png"
+      }
+    ]
+  }
 ];
 
-/**
- * Resolves fully qualified sticker URL with Supabase Storage fallback support.
- */
-export function getStickerUrl(path, fallbackUrl) {
-  if (path && typeof window !== 'undefined' && window.__SUPABASE_URL__) {
-    return `${window.__SUPABASE_URL__}/storage/v1/object/public/stickers/${path}`;
-  }
-  return fallbackUrl;
-}
+export default STICKER_PACKS;

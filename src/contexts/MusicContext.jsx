@@ -3,11 +3,13 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
 import { useMusicSync } from '../features/music/hooks/useMusicSync';
-import { useQueueDb } from '../features/music/hooks/useQueueDb';
+import { useLibraryDb } from '../features/music/hooks/useLibraryDb';
+import { useActiveQueueDb } from '../features/music/hooks/useActiveQueueDb';
 import { useHtml5Player } from '../features/music/hooks/useHtml5Player';
 import { useYoutubePlayer } from '../features/music/hooks/useYoutubePlayer';
 import { useCrossfade } from '../features/music/hooks/useCrossfade';
-import { getProxiedUrl } from '../features/music/lib/musicUtils';
+import { useColorExtractor } from '../features/music/hooks/useColorExtractor';
+import { getTrackArtwork, getProxiedUrl } from '../features/music/lib/musicUtils';
 
 const MusicContext = createContext(null);
 
@@ -35,6 +37,27 @@ export function MusicProvider({ children }) {
     const saved = localStorage.getItem('music_crossfade_duration');
     return saved !== null ? parseInt(saved, 10) : 3;
   });
+
+  // ─── New UI State (Issue #61) ──────────────────────────────────────────────
+  /** @type {'liquid'|'wave'|'vinyl'} */
+  const [visualizerMode, setVisualizerModeState] = useState(() => {
+    if (typeof window === 'undefined') return 'liquid';
+    return localStorage.getItem('music_visualizer_mode') || 'liquid';
+  });
+
+  /**
+   * Updates and persists the visualizer mode preference.
+   *
+   * @param {'liquid'|'wave'|'vinyl'} mode - The visualizer type to activate.
+   */
+  const setVisualizerMode = useCallback((mode) => {
+    setVisualizerModeState(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_visualizer_mode', mode);
+    }
+  }, []);
+
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
 
   const setCrossfadeDuration = useCallback((val) => {
     const numVal = typeof val === 'function' ? val(crossfadeDurationRef.current) : val;
@@ -394,9 +417,21 @@ export function MusicProvider({ children }) {
     handleTrackEndedRef.current = handleTrackEnded;
   }, [handleTrackEnded]);
 
-  // ─── Hook 4: Database Queue CRUD & Subscriptions ───────────────────────────
-  const { queue, queueRef, addToQueue, removeFromQueue, reorderQueue } = useQueueDb({
-    user,
+  // ─── Hook 4a: Library Database CRUD ─────────────────────────────────────
+  const { library, addToLibrary, removeFromLibrary } = useLibraryDb();
+
+  // ─── Hook 4b: Active Queue Session CRUD & Subscriptions ─────────────────
+  const {
+    queue,
+    queueRef,
+    playlists,
+    injectTrackIntoQueue,
+    removeFromActiveQueue,
+    reorderQueue,
+    clearQueue,
+    saveQueueAsPlaylist,
+    loadPlaylist,
+  } = useActiveQueueDb({
     supabase,
     currentTrackRef,
     isCrossfadingRef: isCrossfading,
@@ -404,6 +439,9 @@ export function MusicProvider({ children }) {
     pauseLocalPlayback,
     handleTrackEnded: () => handleTrackEndedRef.current?.(),
   });
+
+  // Backwards-compat alias so playTrackById can still look up tracks in queue
+  const addToQueue = addToLibrary;
 
   // ─── Hook 5: Real-Time Sync Event Handler ───────────────────────────────────
 
@@ -462,6 +500,10 @@ export function MusicProvider({ children }) {
     getCurrentTime: getCurrentTimeHelper,
   });
 
+  // ─── Accent Color Extraction ───────────────────────────────────────────
+  const artworkUrl = currentTrack ? getTrackArtwork(currentTrack) : null;
+  const { accentColor } = useColorExtractor(artworkUrl);
+
   // ─── Heartbeat Coordination ────────────────────────────────────────────────
   useEffect(() => {
     if (!isPlaying || !currentTrack) return;
@@ -508,7 +550,23 @@ export function MusicProvider({ children }) {
   }, [resumeLocalPlayback]);
 
   const value = {
+    // Library
+    library,
+    addToLibrary,
+    removeFromLibrary,
+    // Active queue
     queue,
+    injectTrackIntoQueue,
+    removeFromActiveQueue,
+    reorderQueue,
+    clearQueue,
+    // Backwards compat alias for AddTrackModal which calls addToQueue
+    addToQueue,
+    // Playlists
+    playlists,
+    saveQueueAsPlaylist,
+    loadPlaylist,
+    // Playback
     currentTrack,
     isPlaying,
     currentTime,
@@ -518,6 +576,13 @@ export function MusicProvider({ children }) {
     activePlayer,
     isListenAlongBlocked,
     analyserNode,
+    // New Issue #61 state
+    visualizerMode,
+    setVisualizerMode,
+    accentColor,
+    isCardFlipped,
+    setIsCardFlipped,
+    // Controls
     setCrossfadeDuration,
     playTrackById,
     pauseLocalPlayback,
@@ -525,9 +590,6 @@ export function MusicProvider({ children }) {
     seekLocalPlayback,
     changeVolume,
     handleListenAlong,
-    addToQueue,
-    removeFromQueue,
-    reorderQueue,
     ytReady,
     ytPlayers,
     preparePlayer,

@@ -1,16 +1,42 @@
 /**
  * @file MusicSettingsPanel.jsx
  * @description Settings panel for Music Room features:
- * crossfade transition parameters.
+ * visualizer picker, tap-to-next mode, and crossfade transition parameters.
  */
 
 import React from 'react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { Sliders } from 'lucide-react';
+import { Sliders, Radio, Disc, Waves } from 'lucide-react';
+
+/**
+ * @typedef {'liquid'|'wave'|'vinyl'} VisualizerMode
+ */
+
+/** @type {Array<{id: VisualizerMode, label: string, description: string, icon: React.ComponentType}>} */
+const VISUALIZER_OPTIONS = [
+  {
+    id: 'liquid',
+    label: 'Liquid Blob',
+    description: 'Organic, Siri-style morphing orb driven by frequency data.',
+    icon: Radio,
+  },
+  {
+    id: 'wave',
+    label: 'Wave Bars',
+    description: 'Classic audio-reactive bar graph, tinted by album art accent.',
+    icon: Waves,
+  },
+  {
+    id: 'vinyl',
+    label: 'Vinyl Disc',
+    description: 'Spinning record platter with a physical needle arm and artwork spindle.',
+    icon: Disc,
+  },
+];
 
 /**
  * MusicSettingsPanel component.
- * Configures the shared Music Room preferences.
+ * Configures the shared Music Room preferences: visualizer, crossfade.
  *
  * @returns {React.ReactElement} The settings panel.
  */
@@ -25,17 +51,59 @@ export default function MusicSettingsPanel() {
     );
   }
 
-  const { crossfadeDuration, setCrossfadeDuration } = music;
+  const { crossfadeDuration, setCrossfadeDuration, visualizerMode, setVisualizerMode } = music;
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <h3 className="text-lg font-bold text-text-main">Music Room Settings</h3>
-        <p className="text-xs text-text-muted mt-1">Configure shared music player preferences.</p>
+        <p className="text-xs text-text-muted mt-1">Configure your shared listening experience.</p>
       </div>
 
       <div className="space-y-4">
-        {/* Crossfade parameter */}
+        {/* ── Visualizer Picker ──────────────────────────────────────────── */}
+        <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
+          <div className="flex items-center space-x-2">
+            <Waves className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-text-main">Visualizer Style</span>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Choose how the audio is visualized on the Now Playing screen.
+          </p>
+          <div className="grid grid-cols-1 gap-2 pt-1">
+            {VISUALIZER_OPTIONS.map(({ id, label, description, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setVisualizerMode(id)}
+                aria-pressed={visualizerMode === id}
+                className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+                  visualizerMode === id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                }`}
+              >
+                <div className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${
+                  visualizerMode === id ? 'bg-primary/20 text-primary' : 'bg-slate-800 text-text-muted'
+                }`}>
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <p className={`text-xs font-bold ${visualizerMode === id ? 'text-text-main' : 'text-text-muted'}`}>
+                    {label}
+                  </p>
+                  <p className="text-[10px] text-text-muted/70 mt-0.5 leading-relaxed">{description}</p>
+                </div>
+                {visualizerMode === id && (
+                  <div className="ml-auto flex-shrink-0 w-4 h-4 rounded-full bg-primary mt-0.5 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-slate-950" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Crossfade parameter ────────────────────────────────────────── */}
         <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
           <div className="flex items-center space-x-2">
             <Sliders className="w-4 h-4 text-primary" />

@@ -1,0 +1,222 @@
+/**
+ * @file src/styles/components/_music-player.css
+ * @description Structural CSS for the Music Room 3D dual-sided card layout.
+ * These rules cannot be expressed in Tailwind JIT without arbitrary hacks, so
+ * they live here as custom classes and are imported by the global stylesheet.
+ */
+
+/* ─── 3D Viewport Container ────────────────────────────────────────────── */
+.music-3d-viewport {
+  perspective: 1500px;
+  width: 100vw;
+  /* Full height between global header and bottom nav */
+  height: calc(100dvh - var(--header-height, 60px) - var(--bottom-nav-height, 64px));
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Card Rotator (the 3D "axle") ─────────────────────────────────────── */
+.music-card-rotator {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.music-card-rotator.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* ─── Individual Faces ──────────────────────────────────────────────────── */
+.face-now-playing,
+.face-collection-management {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+.face-collection-management {
+  transform: rotateY(180deg);
+}
+
+/* ─── Ambient Blurred Backdrop ──────────────────────────────────────────── */
+.ambient-blur-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(80px) brightness(0.55) saturate(1.4);
+  /* Scale eliminates edge bleed artifacts from blur */
+  transform: scale(1.15);
+  z-index: 0;
+  will-change: filter;
+  transition: background-image 0.8s ease;
+}
+
+/* ─── Top Dark Overlay (keeps visualizer contrast clean) ─────────────────── */
+.top-dark-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ─── Floating Queue Panel ───────────────────────────────────────────────── */
+.floating-queue-panel {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 65vw;
+  height: 50vh;
+  max-width: 420px;
+  border-radius: 24px;
+  background: rgba(10, 10, 18, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  z-index: 50;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Flip Pill Toggle ───────────────────────────────────────────────────── */
+.flip-pill-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.35) 0%, rgba(139, 92, 246, 0.35) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+}
+
+.flip-pill-toggle:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 28px rgba(236, 72, 153, 0.45);
+}
+
+.flip-pill-toggle:active {
+  transform: scale(0.96);
+}
+
+@keyframes pill-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(139, 92, 246, 0.3); }
+  50%       { box-shadow: 0 0 28px rgba(236, 72, 153, 0.55), 0 0 48px rgba(139, 92, 246, 0.25); }
+}
+
+.flip-pill-toggle.is-pulsing {
+  animation: pill-pulse 2.4s ease-in-out infinite;
+}
+
+/* ─── Liquid Blob Visualizer Canvas ─────────────────────────────────────── */
+.liquid-blob-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+/* ─── Vinyl Disc Visualizer ──────────────────────────────────────────────── */
+.vinyl-disc-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes vinyl-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.vinyl-disc-platter {
+  animation: vinyl-spin 8s linear infinite;
+  will-change: transform;
+}
+
+.vinyl-disc-platter.is-paused {
+  animation-play-state: paused;
+}
+
+/* ─── Needle Arm SVG ─────────────────────────────────────────────────────── */
+.vinyl-needle-arm {
+  position: absolute;
+  top: -8%;
+  right: -5%;
+  transform-origin: 85% 12%;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vinyl-needle-arm.is-playing {
+  transform: rotate(0deg);
+}
+
+.vinyl-needle-arm.is-paused {
+  transform: rotate(-22deg);
+}
+
+/* ─── Collection Management Tabs ─────────────────────────────────────────── */
+.collection-tab-viewport {
+  overflow: hidden;
+  position: relative;
+  flex: 1;
+}
+
+/* ─── Now Playing Controls Hub ───────────────────────────────────────────── */
+.playback-controls-hub {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 20px 20px;
+  z-index: 10;
+}
+
+/* ─── Accent Color Utilities (JS-assigned via inline style) ──────────────── */
+.accent-tinted {
+  color: var(--music-accent, #F59E0B);
+}
+
+.accent-tinted-bg {
+  background-color: var(--music-accent, #F59E0B);
+}
+
+/* ─── Reduced motion overrides ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .music-card-rotator {
+    transition: none;
+  }
+  .vinyl-disc-platter {
+    animation: none;
+  }
+  .flip-pill-toggle.is-pulsing {
+    animation: none;
+  }
+  .ambient-blur-backdrop {
+    transition: none;
+  }
+}

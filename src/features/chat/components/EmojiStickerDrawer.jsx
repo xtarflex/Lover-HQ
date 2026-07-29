@@ -756,15 +756,15 @@ export function EmojiStickerDrawer({
                         : 'text-text-muted hover:text-white opacity-70 hover:opacity-100'
                     }`}
                   >
-                    {packCover ? (
+                    {packCover && !packCover.toLowerCase().endsWith('.lottie') ? (
                       <img
                         src={packCover}
                         alt={pack.name}
                         className="w-4 h-4 object-contain rounded"
                       />
-                    ) : fallbackStickerUrl ? (
+                    ) : packCover || fallbackStickerUrl ? (
                       <StickerPlayer
-                        src={fallbackStickerUrl}
+                        src={packCover || fallbackStickerUrl}
                         alt={pack.name}
                         className="w-4 h-4 object-contain pointer-events-none"
                       />
