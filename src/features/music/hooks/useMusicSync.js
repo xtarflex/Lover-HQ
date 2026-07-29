@@ -35,6 +35,27 @@ export function useMusicSync({
   // Track the timestamp of the last local user interaction to prevent race conditions
   const lastLocalActionAt = useRef(0);
 
+  // Keep updated refs for callbacks and current state to prevent re-subscription loops
+  const stateRef = useRef({
+    currentTrackId,
+    isPlaying,
+    onRemotePlay,
+    onRemotePause,
+    onRemoteSeek,
+    getCurrentTime,
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      currentTrackId,
+      isPlaying,
+      onRemotePlay,
+      onRemotePause,
+      onRemoteSeek,
+      getCurrentTime,
+    };
+  });
+
   useEffect(() => {
     if (!user || !user.id || !user.partner_id) return;
 
@@ -51,21 +72,21 @@ export function useMusicSync({
       .on('broadcast', { event: 'play' }, ({ payload }) => {
         if (payload.senderId !== user.id) {
           if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
-            onRemotePlay(payload.trackId, payload.timestamp);
+            stateRef.current.onRemotePlay(payload.trackId, payload.timestamp);
           }
         }
       })
       .on('broadcast', { event: 'pause' }, ({ payload }) => {
         if (payload.senderId !== user.id) {
           if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
-            onRemotePause();
+            stateRef.current.onRemotePause();
           }
         }
       })
       .on('broadcast', { event: 'seek' }, ({ payload }) => {
         if (payload.senderId !== user.id) {
           if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
-            onRemoteSeek(payload.timestamp);
+            stateRef.current.onRemoteSeek(payload.timestamp);
           }
         }
       })
@@ -73,8 +94,9 @@ export function useMusicSync({
         if (payload.senderId === user.id) return;
 
         // Passive sync correction logic:
-        if (payload.trackId === currentTrackId && payload.isPlaying && isPlaying) {
-          const localTime = getCurrentTime();
+        const { currentTrackId: curTrack, isPlaying: curPlaying } = stateRef.current;
+        if (payload.trackId === curTrack && payload.isPlaying && curPlaying) {
+          const localTime = stateRef.current.getCurrentTime();
 
           if (
             payload.timestamp > localTime + 1.5 &&
@@ -83,7 +105,7 @@ export function useMusicSync({
             console.debug(
               `Sync drift detected: partner is ahead. Correcting time to match partner.`
             );
-            onRemoteSeek(payload.timestamp);
+            stateRef.current.onRemoteSeek(payload.timestamp);
           }
         }
       })
@@ -98,16 +120,7 @@ export function useMusicSync({
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [
-    user,
-    currentTrackId,
-    isPlaying,
-    onRemotePlay,
-    onRemotePause,
-    onRemoteSeek,
-    getCurrentTime,
-    supabase,
-  ]);
+  }, [user?.id, user?.partner_id, supabase]);
 
   /**
    * Broadcast a play action to the partner.

@@ -1,110 +1,85 @@
 /**
  * @file scripts/buildSignalStickerData.js
- * @description Generates stickerData.js with all 6 dedicated sticker packs, CDN URLs, and coverUrl properties.
+ * @description Dynamically reads public/stickers directory and generates stickerData.js
+ * matching exact file names on disk with coverUrl properties.
  */
 
 import fs from 'fs';
 import path from 'path';
 
-const SUPABASE_CDN_BASE =
-  'https://oxqpmfdoytdfxmofmeno.supabase.co/storage/v1/object/public/stickers';
+const STICKERS_DIR = path.resolve(process.cwd(), 'public/stickers');
 
-const SIGNAL_PACK_SPECS = [
+const PACK_DEFINITIONS = [
   {
     id: 'love_pack',
     name: 'Love & Romance',
     icon: '💖',
-    lottieFiles: [
-      'Bird pair love and flying sky.lottie',
-      'Couple sharing and caring love.lottie',
-      'Happy Valentine Day.lottie',
-      'Heart lottie animation.lottie',
-      'Love Heart.lottie',
-      'Paper Plane Heart.lottie',
-      'Propose love day.lottie',
-      'Teddy bear couple love.lottie',
-      'Two bird love animation.lottie',
-    ],
+    filter: (file) => file.endsWith('.lottie'),
   },
   {
     id: 'signal_sweet_couple',
     name: 'Sweet Couple 1',
     icon: '👩‍❤️‍👨',
-    prefix: 'signal_ee5dd49d_',
-    count: 40,
-    ext: 'png',
+    filter: (file) => file.includes('signal_ee5dd49d_'),
   },
   {
     id: 'signal_romantic_moments',
     name: 'Romantic Moments',
     icon: '🌹',
-    prefix: 'signal_c627a32c_',
-    count: 24,
-    ext: 'png',
+    filter: (file) => file.includes('signal_c627a32c_'),
   },
   {
     id: 'signal_love_hugs',
     name: 'Love & Hugs',
     icon: '🤗',
-    prefix: 'signal_eb02ac62_',
-    count: 6,
-    ext: 'png',
+    filter: (file) => file.includes('signal_eb02ac62_'),
   },
   {
     id: 'signal_cute_couple',
     name: 'Cute Couple Daily',
     icon: '🥰',
-    prefix: 'signal_a94c2600_',
-    count: 50,
-    ext: 'png',
+    filter: (file) => file.includes('signal_a94c2600_'),
   },
   {
     id: 'signal_forever_together',
     name: 'Forever Together',
     icon: '💍',
-    prefix: 'signal_535ecff7_',
-    count: 50,
-    ext: 'png',
+    filter: (file) => file.includes('signal_535ecff7_'),
   },
 ];
 
 function main() {
+  const allFiles = fs.readdirSync(STICKERS_DIR);
   const packs = [];
 
-  for (const spec of SIGNAL_PACK_SPECS) {
-    const stickers = [];
+  for (const def of PACK_DEFINITIONS) {
+    const matchingFiles = allFiles.filter(def.filter);
 
-    if (spec.lottieFiles) {
-      spec.lottieFiles.forEach((file, idx) => {
-        stickers.push({
-          id: `lottie_${idx + 1}`,
-          label: file.replace('.lottie', ''),
-          type: 'animated',
-          url: `/stickers/${file}`,
-        });
+    const stickers = matchingFiles.map((file, idx) => {
+      const isLottie = file.endsWith('.lottie');
+      const cleanLabel = file
+        .replace(/\.(lottie|webp|png)$/i, '')
+        .replace(/[-_.]/g, ' ')
+        .replace(/animation|emojisticker|sticker/gi, '')
+        .trim();
+
+      return {
+        id: `${def.id}_${idx + 1}`,
+        label: cleanLabel || `${def.name} #${idx + 1}`,
+        type: isLottie ? 'animated' : 'static',
+        url: `/stickers/${file}`,
+      };
+    });
+
+    if (stickers.length > 0) {
+      packs.push({
+        id: def.id,
+        name: def.name,
+        icon: def.icon,
+        coverUrl: stickers[0]?.url || null,
+        stickers,
       });
     }
-
-    if (spec.prefix && spec.count) {
-      for (let i = 1; i <= spec.count; i++) {
-        const filename = `${spec.prefix}${i}.${spec.ext}`;
-        const localUrl = `/stickers/${filename}`;
-        stickers.push({
-          id: `${spec.id}_${i}`,
-          label: `${spec.name} #${i}`,
-          type: 'static',
-          url: localUrl,
-        });
-      }
-    }
-
-    packs.push({
-      id: spec.id,
-      name: spec.name,
-      icon: spec.icon,
-      coverUrl: stickers[0]?.url || null,
-      stickers,
-    });
   }
 
   const fileContent = `/**
@@ -141,7 +116,7 @@ export default STICKER_PACKS;
     'src/features/fridge/components/stickerData.js'
   );
   fs.writeFileSync(outputPath, fileContent, 'utf8');
-  console.log(`✅ Generated stickerData.js with ${packs.length} packs!`);
+  console.log(`✅ Dynamically generated stickerData.js with ${packs.length} active packs (${allFiles.length} total stickers on disk)!`);
 }
 
 main();
