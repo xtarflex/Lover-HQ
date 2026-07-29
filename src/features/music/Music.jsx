@@ -20,8 +20,7 @@ import CollectionManagementFace from './components/CollectionManagementFace';
  * @returns {React.ReactElement} The Music component.
  */
 export default function Music() {
-  const { library, isCardFlipped, setIsCardFlipped, loadPlaylist } =
-    useMusic();
+  const { library, isCardFlipped, setIsCardFlipped, loadPlaylist } = useMusic();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [hasColdStarted, setHasColdStarted] = useState(false);

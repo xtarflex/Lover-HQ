@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Plus,
-  Library,
-  BookOpen,
-  Music,
-  Trash2,
-  BookmarkPlus,
-  Play,
-} from 'lucide-react';
+import { Plus, Library, BookOpen, Music, Trash2, BookmarkPlus, Play } from 'lucide-react';
 import { useMusic } from '../../../contexts/MusicContext';
 import { getTrackArtwork } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
@@ -189,8 +181,8 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                       Your library is empty
                     </p>
                     <p className="text-xs text-white/25 max-w-[200px]">
-                      Add tracks using the button above — they&apos;re saved here permanently for both of
-                      you.
+                      Add tracks using the button above — they&apos;re saved here permanently for
+                      both of you.
                     </p>
                   </div>
                 ) : (

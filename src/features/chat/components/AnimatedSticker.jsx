@@ -1,15 +1,15 @@
 /**
  * @file AnimatedSticker.jsx
- * @description Battery-optimized animated emoji sticker component for Lover-HQ.
+ * @description Battery-optimized animated emoji & APNG/WebP sticker component for Lover-HQ.
  * Features:
- * - Plays WebP animation natively for ~3.5s (2 cycles) upon entering viewport.
- * - Swaps to static Jumbo Emoji symbol (or high-DPI canvas snapshot) when paused,
- *   completely stopping WebP infinite looping and eliminating CPU/GPU overhead.
- * - Triggers Heartbeat Haptic Vibration ([140, 100, 140]) on single heart emoji mount or tap.
- * - Replays on tap or when scrolled back into view.
+ * - Plays WebP/APNG animation natively for ~3.5s (2 cycles) upon entering viewport (or infinite based on setting).
+ * - Pauses offscreen using IntersectionObserver.
+ * - Graceful onError fallback rendering.
+ * - Heartbeat Haptic Vibration on tap.
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 /**
  * AnimatedSticker component.
@@ -25,6 +25,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-contain' }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playCountKey, setPlayCountKey] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const containerRef = useRef(null);
   const imgRef = useRef(null);
@@ -73,9 +75,10 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
   }, [char]);
 
   /**
-   * Triggers native WebP playback for 2 animation loops (~3.5 seconds) then pauses.
+   * Triggers native WebP/APNG playback obeying sticker_playback_mode setting.
    */
   const triggerPlayback = useCallback(() => {
+    setHasError(false);
     setIsPlaying(true);
     setPlayCountKey((prev) => prev + 1);
     triggerHeartbeatHaptic();
@@ -93,7 +96,7 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
     }
   }, [triggerHeartbeatHaptic, freezeFrame]);
 
-  // IntersectionObserver: Handle viewport entry/exit
+  // IntersectionObserver: Handle viewport entry/exit for offscreen battery saving
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -127,7 +130,16 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
     };
   }, [triggerPlayback, freezeFrame]);
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  if (hasError) {
+    return (
+      <div
+        className={`${className} flex items-center justify-center bg-slate-900/50 rounded-xl border border-slate-800 p-1`}
+        title={`Failed to load: ${alt}`}
+      >
+        <AlertTriangle className="w-5 h-5 text-amber-400/80" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -141,7 +153,7 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
         <div className="absolute inset-0 rounded-2xl bg-slate-800/30 border border-slate-700/20 flex items-center justify-center z-10 pointer-events-none" />
       )}
 
-      {/* Active native WebP image during playback */}
+      {/* Active native WebP/APNG image during playback */}
       {isPlaying ? (
         <img
           ref={imgRef}
@@ -167,6 +179,10 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
                 }
               }
             }
+          }}
+          onError={() => {
+            setIsLoaded(true);
+            setHasError(true);
           }}
         />
       ) : char ? (

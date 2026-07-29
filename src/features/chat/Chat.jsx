@@ -64,22 +64,8 @@ export default function Chat() {
     return localStorage.getItem('chat_background_preset') || 'doodle';
   });
 
-  useEffect(() => {
-    const handlePrefChange = (e) => {
-      const { key, value } = e?.detail || {};
-      if (key === 'chat_background_preset' && value) {
-        setChatBg(value);
-      }
-    };
-    window.addEventListener('preference_change', handlePrefChange);
-    return () => window.removeEventListener('preference_change', handlePrefChange);
-  }, []);
-
-  const [longPressedMessage, setLongPressedMessage] = useState(null);
-  const [messageToDelete, setMessageToDelete] = useState(null);
-  const pressTimer = useRef(null);
-
-  const [showUnreadDivider, setShowUnreadDivider] = useState(true);
+  const [drawerHeight, setDrawerHeight] = useState(360);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Scroll to Bottom Helper
   const messagesEndRef = useRef(null);
@@ -88,6 +74,37 @@ export default function Chat() {
   const scrollToBottom = useCallback((behavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
+
+  useEffect(() => {
+    const handlePrefChange = (e) => {
+      const { key, value } = e?.detail || {};
+      if (key === 'chat_background_preset' && value) {
+        setChatBg(value);
+      }
+    };
+    const handleDrawerHeightChange = (e) => {
+      const { height, isOpen } = e?.detail || {};
+      if (typeof height === 'number') setDrawerHeight(height);
+      if (typeof isOpen === 'boolean') {
+        setIsDrawerOpen(isOpen);
+        if (isOpen) scrollToBottom('smooth');
+      }
+    };
+
+    window.addEventListener('preference_change', handlePrefChange);
+    window.addEventListener('drawer_height_change', handleDrawerHeightChange);
+
+    return () => {
+      window.removeEventListener('preference_change', handlePrefChange);
+      window.removeEventListener('drawer_height_change', handleDrawerHeightChange);
+    };
+  }, [scrollToBottom]);
+
+  const [longPressedMessage, setLongPressedMessage] = useState(null);
+  const [messageToDelete, setMessageToDelete] = useState(null);
+  const pressTimer = useRef(null);
+
+  const [showUnreadDivider, setShowUnreadDivider] = useState(true);
 
   const coupleKey = [userId, partnerId].filter(Boolean).sort().join('_');
 
@@ -514,8 +531,11 @@ export default function Chat() {
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="flex flex-col h-full w-full bg-slate-950 text-white relative overflow-hidden"
-      style={bgStyles[chatBg] || bgStyles.doodle}
+      className="flex flex-col h-full w-full bg-slate-950 text-white relative overflow-hidden transition-all duration-300"
+      style={{
+        ...(bgStyles[chatBg] || bgStyles.doodle),
+        paddingBottom: isDrawerOpen && showEmojiPicker ? `${drawerHeight}px` : '0px',
+      }}
     >
       {/* 1. Header */}
       <ChatHeader
