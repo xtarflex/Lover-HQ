@@ -82,7 +82,7 @@ export function useLibraryDb() {
     } catch (err) {
       console.error('[useLibraryDb] Failed to load library:', err);
     }
-  }, [user, supabase]);
+  }, [user?.id, user?.partner_id, supabase]);
 
   // ─── Add ───────────────────────────────────────────────────────────────────
 
@@ -149,7 +149,7 @@ export function useLibraryDb() {
         return null;
       }
     },
-    [user, supabase]
+    [user?.id, supabase]
   );
 
   // ─── Remove ────────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ export function useLibraryDb() {
       clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
-  }, [user, supabase, fetchLibrary]);
+  }, [user?.id, user?.partner_id, supabase, fetchLibrary]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   return {

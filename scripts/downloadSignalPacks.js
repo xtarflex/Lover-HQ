@@ -1,8 +1,7 @@
 /* global process, Buffer */
 /**
  * @file scripts/downloadSignalPacks.js
- * @description Node.js script to download, decrypt, process, upload, and register
- * Signal Sticker Packs directly into Supabase CDN and stickerData.js.
+ * @description Node.js script to download and cleanly decrypt Signal Sticker Packs into valid PNG/WebP images.
  */
 
 import fs from 'fs';
@@ -53,40 +52,40 @@ function deriveKeys(packKeyHex) {
   };
 }
 
+function isValidImageHeader(buf) {
+  if (!buf || buf.length < 12) return false;
+  // PNG magic number: 0x89 0x50 0x4E 0x47 (\x89PNG)
+  const isPng = buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
+  // WebP magic header: RIFF....WEBP
+  const isWebp = buf.subarray(0, 12).toString('ascii').includes('WEBP');
+  return isPng || isWebp;
+}
+
 function decryptSignalBuffer(encryptedBuf, keyHex) {
+  if (!encryptedBuf || encryptedBuf.length <= 48) return null;
+
+  // Signal payload structure: [16 bytes IV][Ciphertext][32 bytes HMAC MAC]
+  const iv = encryptedBuf.subarray(0, 16);
+  const ciphertext = encryptedBuf.subarray(16, encryptedBuf.length - 32);
+
   const methods = [
-    // 1. HKDF Derived AES-256-CTR
+    // 1. HKDF Derived AES-256-CTR with MAC stripped
     () => {
       const { aesKey } = deriveKeys(keyHex);
-      const iv = encryptedBuf.subarray(0, 16);
-      const ciphertext = encryptedBuf.subarray(16);
       const decipher = crypto.createDecipheriv('aes-256-ctr', aesKey, iv);
       return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     },
-    // 2. HKDF Derived AES-256-CBC
+    // 2. HKDF Derived AES-256-CBC with MAC stripped
     () => {
       const { aesKey } = deriveKeys(keyHex);
-      const iv = encryptedBuf.subarray(0, 16);
-      const ciphertext = encryptedBuf.subarray(16);
       const decipher = crypto.createDecipheriv('aes-256-cbc', aesKey, iv);
       decipher.setAutoPadding(false);
       return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     },
-    // 3. Raw Key AES-256-CTR
+    // 3. Raw Key AES-256-CTR with MAC stripped
     () => {
       const key = Buffer.from(keyHex, 'hex');
-      const iv = encryptedBuf.subarray(0, 16);
-      const ciphertext = encryptedBuf.subarray(16);
       const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
-      return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-    },
-    // 4. Raw Key AES-256-CBC with no auto padding
-    () => {
-      const key = Buffer.from(keyHex, 'hex');
-      const iv = encryptedBuf.subarray(0, 16);
-      const ciphertext = encryptedBuf.subarray(16);
-      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-      decipher.setAutoPadding(false);
       return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     },
   ];
@@ -94,11 +93,23 @@ function decryptSignalBuffer(encryptedBuf, keyHex) {
   for (const fn of methods) {
     try {
       const res = fn();
-      if (res && res.length > 0) return res;
+      if (isValidImageHeader(res)) return res;
     } catch {
       // try next
     }
   }
+
+  // Fallback: try full buffer decipher without MAC slice
+  try {
+    const { aesKey } = deriveKeys(keyHex);
+    const decipher = crypto.createDecipheriv('aes-256-ctr', aesKey, iv);
+    const fullCipher = encryptedBuf.subarray(16);
+    const res = Buffer.concat([decipher.update(fullCipher), decipher.final()]);
+    if (isValidImageHeader(res)) return res;
+  } catch {
+    // ignore
+  }
+
   return null;
 }
 
@@ -110,11 +121,9 @@ function httpGet(url) {
     };
     const req = https.get(url, options, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        console.log(`Redirecting ${url} -> ${res.headers.location}`);
         return resolve(httpGet(res.headers.location));
       }
       if (res.statusCode !== 200) {
-        console.log(`HTTP ${res.statusCode} for ${url}`);
         return resolve(null);
       }
       const chunks = [];
@@ -122,8 +131,7 @@ function httpGet(url) {
       res.on('end', () => resolve(Buffer.concat(chunks)));
       res.on('error', () => resolve(null));
     });
-    req.on('error', (err) => {
-      console.error(`Req error for ${url}:`, err.message);
+    req.on('error', () => {
       resolve(null);
     });
   });
@@ -139,18 +147,9 @@ async function fetchAndProcessPack(pack) {
       console.error(`Failed to fetch manifest for ${pack.id}`);
       return [];
     }
-    const manifestBuf = decryptSignalBuffer(encryptedManifest, pack.key);
 
-    if (!manifestBuf) {
-      console.error(`Failed to decrypt manifest for ${pack.id}`);
-      return [];
-    }
-
-    console.log(`  Decrypted manifest (${manifestBuf.length} bytes) for ${pack.name}.`);
-
-    // Signal stickers are indexed from 0 upwards
     const downloadedFiles = [];
-    for (let stickerId = 0; stickerId < 50; stickerId++) {
+    for (let stickerId = 0; stickerId < 60; stickerId++) {
       const stickerUrl = `https://cdn.signal.org/stickers/${pack.id}/full/${stickerId}`;
       const encryptedSticker = await httpGet(stickerUrl);
       if (!encryptedSticker) {
@@ -160,7 +159,6 @@ async function fetchAndProcessPack(pack) {
       const stickerBuf = decryptSignalBuffer(encryptedSticker, pack.key);
 
       if (stickerBuf) {
-        // Detect format: WebP starts with RIFF...WEBP
         const isWebp = stickerBuf.subarray(0, 12).toString('ascii').includes('WEBP');
         const ext = isWebp ? 'webp' : 'png';
         const filename = `signal_${pack.id.slice(0, 8)}_${stickerId + 1}.${ext}`;
@@ -168,12 +166,12 @@ async function fetchAndProcessPack(pack) {
 
         fs.writeFileSync(filePath, stickerBuf);
         downloadedFiles.push(filename);
+      } else {
+        console.error(`⚠️ Sticker ${stickerId} in ${pack.name} failed binary image verification!`);
       }
     }
 
-    console.log(
-      `  ✅ Successfully extracted ${downloadedFiles.length} stickers for "${pack.name}".`
-    );
+    console.log(`  ✅ Successfully extracted ${downloadedFiles.length} valid stickers for "${pack.name}".`);
     return downloadedFiles;
   } catch (err) {
     console.error(`Error processing pack ${pack.id}:`, err.message);
@@ -192,7 +190,7 @@ async function main() {
     totalDownloaded += files.length;
   }
 
-  console.log(`\n🎉 Total Signal Stickers Downloaded & Decrypted: ${totalDownloaded}`);
+  console.log(`\n🎉 Total Signal Stickers Downloaded & Validated: ${totalDownloaded}`);
 }
 
 main();

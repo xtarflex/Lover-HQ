@@ -1,7 +1,7 @@
 /**
  * @file scripts/buildSignalStickerData.js
  * @description Dynamically reads public/stickers directory and generates stickerData.js
- * matching exact file names on disk with coverUrl properties.
+ * matching exact file names on disk with tags and coverUrl properties.
  */
 
 import fs from 'fs';
@@ -48,6 +48,59 @@ const PACK_DEFINITIONS = [
   },
 ];
 
+function generateTags(label, packId, idx) {
+  const lower = (label + ' ' + packId).toLowerCase();
+  const tags = new Set();
+
+  if (
+    lower.includes('love') ||
+    lower.includes('heart') ||
+    lower.includes('couple') ||
+    lower.includes('hug') ||
+    lower.includes('kiss') ||
+    lower.includes('romantic') ||
+    lower.includes('forever') ||
+    lower.includes('sweet')
+  ) {
+    tags.add('love');
+  }
+  if (lower.includes('hi') || lower.includes('wave') || lower.includes('hello') || idx % 7 === 1) {
+    tags.add('hi');
+  }
+  if (
+    lower.includes('haha') ||
+    lower.includes('lol') ||
+    lower.includes('laugh') ||
+    lower.includes('cat') ||
+    lower.includes('funny') ||
+    idx % 7 === 2
+  ) {
+    tags.add('haha');
+  }
+  if (lower.includes('sad') || lower.includes('cry') || lower.includes('tear') || idx % 7 === 3) {
+    tags.add('sad');
+  }
+  if (lower.includes('wow') || lower.includes('surprise') || lower.includes('gift') || idx % 7 === 4) {
+    tags.add('wow');
+  }
+  if (
+    lower.includes('yay') ||
+    lower.includes('celebrate') ||
+    lower.includes('party') ||
+    lower.includes('happy') ||
+    lower.includes('valentine') ||
+    idx % 7 === 5
+  ) {
+    tags.add('yay');
+  }
+
+  if (tags.size === 0) {
+    tags.add('love');
+  }
+
+  return Array.from(tags);
+}
+
 function main() {
   const allFiles = fs.readdirSync(STICKERS_DIR);
   const packs = [];
@@ -63,9 +116,13 @@ function main() {
         .replace(/animation|emojisticker|sticker/gi, '')
         .trim();
 
+      const label = cleanLabel || `${def.name} #${idx + 1}`;
+      const tags = generateTags(label, def.id, idx);
+
       return {
         id: `${def.id}_${idx + 1}`,
-        label: cleanLabel || `${def.name} #${idx + 1}`,
+        label,
+        tags,
         type: isLottie ? 'animated' : 'static',
         url: `/stickers/${file}`,
       };
@@ -92,6 +149,7 @@ function main() {
  * @typedef {object} StickerItem
  * @property {string} id
  * @property {string} label
+ * @property {Array<string>} [tags]
  * @property {'animated'|'static'} type
  * @property {string} url
  */
@@ -116,7 +174,9 @@ export default STICKER_PACKS;
     'src/features/fridge/components/stickerData.js'
   );
   fs.writeFileSync(outputPath, fileContent, 'utf8');
-  console.log(`✅ Dynamically generated stickerData.js with ${packs.length} active packs (${allFiles.length} total stickers on disk)!`);
+  console.log(
+    `✅ Dynamically generated stickerData.js with ${packs.length} active packs & tags (${allFiles.length} total stickers on disk)!`
+  );
 }
 
 main();

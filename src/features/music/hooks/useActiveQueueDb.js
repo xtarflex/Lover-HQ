@@ -140,7 +140,7 @@ export function useActiveQueueDb({
     } catch (err) {
       console.error('[useActiveQueueDb] Failed to load queue:', err);
     }
-  }, [user, supabase, playTrackById, currentTrackRef, isCrossfadingRef]);
+  }, [user?.id, user?.partner_id, supabase, playTrackById, currentTrackRef, isCrossfadingRef]);
 
   // ─── Inject ────────────────────────────────────────────────────────────────
 
@@ -370,7 +370,7 @@ export function useActiveQueueDb({
       clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
-  }, [user, supabase, fetchQueue]);
+  }, [user?.id, user?.partner_id, supabase, fetchQueue]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   return {

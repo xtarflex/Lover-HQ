@@ -63,7 +63,9 @@ const mockSupabaseClientInstance = {
       update: vi.fn().mockReturnThis(),
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockReturnThis(),
+      or: vi.fn().mockImplementation(function () {
+        return this;
+      }),
       order: vi.fn().mockImplementation(function () {
         return this;
       }),
@@ -149,7 +151,8 @@ describe('MusicPlayer & Queue Integration Tests', () => {
   const renderPlayerWithProvider = () => {
     return render(
       <MusicProvider>
-        <div data-testid="dummy-music-room">Empty Room</div>
+        <MusicPlayer />
+        <Queue />
       </MusicProvider>
     );
   };
@@ -162,7 +165,8 @@ describe('MusicPlayer & Queue Integration Tests', () => {
       await new Promise((r) => setTimeout(r, 250));
     });
 
-    expect(screen.getByTestId('dummy-music-room')).toBeInTheDocument();
+    expect(screen.getByText('Music Room Empty')).toBeInTheDocument();
+    expect(screen.getByText('Add a song below to get started!')).toBeInTheDocument();
   });
 
   it('handles track addition and playback controls locally', async () => {
