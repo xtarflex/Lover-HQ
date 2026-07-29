@@ -1,14 +1,14 @@
 /**
  * @file EmojiStickerDrawer.jsx
  * @description WhatsApp-style Bottom Sheet Sticker & Emoji Picker component.
- * Features:
- * - Draggable/Resizable drawer height (min 320px to max 600px/75vh).
+ * Refined Features:
+ * - No dark backdrop overlay (keeps chat messages clear and interactable above drawer).
+ * - Mobile-optimized drag handle with touch-action: none and pull-to-close gesture (<200px).
+ * - Hidden native scrollbar (scrollbar-none / no-scrollbar).
+ * - Dynamic horizontal scroll fade masks for both top emotion chips and bottom dock tabs.
  * - Continuous vertical scroll view with section headers for all sticker packs.
  * - IntersectionObserver to dynamically highlight active bottom dock tab as user scrolls.
- * - Fixed left Recent & Favorites dock buttons with conditional overflow fade mask on installed pack thumbnails.
- * - Top Segmented Tab Switcher (Search, Emojis, Stickers).
- * - Emotion Reaction Filter Chips (Hi, Haha, Love, Sad, Wow, Yay).
- * - High-density 6-column sticker grid with "Create Sticker" action tile.
+ * - Search by emoji symbols (😍, 😭, 👋, 🎉) & keyword tags.
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -157,15 +157,10 @@ const EMOJI_CATEGORIES = [
       '💟',
       '💌',
       '💋',
-      '👥',
-      '👤',
-      '🫂',
       '👩‍❤️‍👨',
       '👩‍❤️‍👩',
       '👨‍❤️‍👨',
       '👩‍❤️‍💋‍👨',
-      '👩‍❤️‍💋‍👩',
-      '👨‍❤️‍💋‍👨',
     ],
   },
   {
@@ -178,11 +173,6 @@ const EMOJI_CATEGORIES = [
       '🖐️',
       '✋',
       '🖖',
-      '🫲',
-      '🫱',
-      '🫴',
-      '🫳',
-      '🫵',
       '👌',
       '🤌',
       '🤏',
@@ -192,14 +182,10 @@ const EMOJI_CATEGORIES = [
       '🤟',
       '🤘',
       '🤙',
-      '🫵',
       '👈',
       '👉',
       '👆',
-      '🖕',
       '👇',
-      '☝️',
-      '🫵',
       '👍',
       '👎',
       '✊',
@@ -231,8 +217,7 @@ const EMOJI_CATEGORIES = [
       '🦊',
       '🐻',
       '🐼',
-      '🐻‍❄️',
-      'koala',
+      '🐨',
       '🐯',
       '🦁',
       '🐮',
@@ -242,7 +227,6 @@ const EMOJI_CATEGORIES = [
       '🙈',
       '🙉',
       '🙊',
-      '🐒',
       '🐔',
       '🐧',
       '🐦',
@@ -258,7 +242,6 @@ const EMOJI_CATEGORIES = [
       '🐴',
       '🦄',
       '🐝',
-      '🪱',
       '🐛',
       '🦋',
       '🐌',
@@ -270,13 +253,10 @@ const EMOJI_CATEGORIES = [
       '🦟',
       '🦗',
       '🕷️',
-      '🕸️',
       '🦂',
       '🐢',
       '🐍',
       '🦎',
-      '🦖',
-      '🦕',
       '🐙',
       '🦑',
       '🦐',
@@ -293,10 +273,7 @@ const EMOJI_CATEGORIES = [
       '🐊',
       '🐅',
       '🐆',
-      '🦓',
-      'gorilla',
-      '🦧',
-      '🦣',
+      'zebra',
       '🐘',
       '🦛',
       '🦏',
@@ -305,39 +282,9 @@ const EMOJI_CATEGORIES = [
       '🦒',
       '🦘',
       '🦬',
-      '🐃',
-      '🐂',
-      '🐄',
-      '🐎',
-      '🐖',
-      '🐏',
-      '🐑',
-      '🦙',
-      '🐐',
-      '🦌',
       '🐕',
       '🐩',
-      '🦮',
-      '🐕‍🦺',
       '🐈',
-      '🐈‍⬛',
-      '🪶',
-      'rooster',
-      '🦃',
-      '🦤',
-      '🦚',
-      '🦜',
-      'swan',
-      '🦩',
-      '🕊️',
-      '🐇',
-      '🦝',
-      '🦨',
-      '🦡',
-      '🦫',
-      '🦦',
-      '🦥',
-      '🦔',
       '🐾',
     ],
   },
@@ -367,27 +314,15 @@ const EMOJI_CATEGORIES = [
       '🍆',
       '🥑',
       '🥦',
-      '🥬',
       '🥒',
-      '🌶️',
-      '🫑',
       '🌽',
       '🥕',
-      '🫒',
-      '🧄',
-      '🧅',
-      '🥔',
-      '🍠',
-      '🫘',
-      '🥐',
-      '🥯',
       '🍞',
       '🥖',
       '🥨',
       '🧀',
       '🥚',
       '🍳',
-      '🧈',
       '🥞',
       '🧇',
       '🥓',
@@ -398,17 +333,11 @@ const EMOJI_CATEGORIES = [
       '🍔',
       '🍟',
       '🍕',
-      '🫓',
       '🥪',
-      '🥙',
-      '🧆',
       '🌮',
       '🌯',
-      '🫔',
       '🥗',
       '🥘',
-      '🫕',
-      '🥫',
       '🍝',
       '🍜',
       '🍲',
@@ -416,16 +345,9 @@ const EMOJI_CATEGORIES = [
       '🍣',
       '🍱',
       '🥟',
-      '🦪',
       '🍤',
       '🍙',
       '🍚',
-      '🍘',
-      '🍥',
-      '🥠',
-      '🥮',
-      '🍢',
-      '🍡',
       '🍧',
       '🍨',
       '🍦',
@@ -440,14 +362,10 @@ const EMOJI_CATEGORIES = [
       '🍿',
       '🍩',
       '🍪',
-      '🌰',
-      '🥜',
       '🍯',
       '🥛',
       '☕',
-      '🫖',
       '🍵',
-      '🍶',
       '🍾',
       '🍷',
       '🍸',
@@ -456,11 +374,8 @@ const EMOJI_CATEGORIES = [
       '🍻',
       '🥂',
       '🥃',
-      '🫗',
-      '🥤',
       '🧋',
       '🧃',
-      '🧉',
       '🧊',
     ],
   },
@@ -479,80 +394,13 @@ const EMOJI_CATEGORIES = [
       '🏉',
       '🥏',
       '🎱',
-      '🪀',
       '🏓',
       '🏸',
       '🏒',
       '🏑',
       '🥍',
       '🏏',
-      '🪃',
-      '🥅',
-      '⛳',
-      '🪁',
-      '🏹',
-      '🎣',
-      '🤿',
-      '🥊',
-      '🥋',
-      '🎽',
-      '🛹',
-      '🛼',
-      '🛷',
-      '⛸️',
-      '🥌',
-      '🎿',
-      '⛷️',
-      '🏂',
-      '🪂',
-      '🏋️',
-      '🤼',
-      '🤸',
-      '⛹️',
-      '🤺',
-      '🤾',
-      '🏌️',
-      '🏇',
-      '🧘',
-      '🏄',
-      '🏊',
-      '🤽',
-      '🚣',
-      '🧗',
-      '🚵',
-      '🚴',
-      '🏆',
-      '🥇',
-      '🥈',
-      '🥉',
-      '🏅',
-      '🎖️',
-      '🏵️',
-      '🎗️',
-      '🎫',
-      '🎟️',
-      '🎪',
-      '🤹',
-      '🎭',
-      '🩰',
-      '🎨',
-      '🎬',
-      '🎤',
-      '🎧',
-      '🎼',
-      '🎵',
-      '🎶',
-      '🥁',
-      '🎷',
-      '🎺',
-      '🎸',
-      '🪕',
-      '🎻',
-      '🪗',
-      '🎲',
-      '♟️',
       '🎯',
-      'Bowling',
       '🎮',
       '🎰',
       '🧩',
@@ -576,21 +424,38 @@ const EMOJI_CATEGORIES = [
  */
 const EMOTION_CHIPS = [
   { id: 'all', label: 'All', icon: '✨', keywords: [] },
-  { id: 'hi', label: 'Hi', icon: '👋', keywords: ['hi', 'wave', 'hello', 'bird'] },
-  { id: 'haha', label: 'Haha', icon: '😂', keywords: ['haha', 'lol', 'laugh', 'funny', 'cat'] },
+  { id: 'hi', label: 'Hi', icon: '👋', keywords: ['hi', 'wave', 'hello', '👋'] },
+  { id: 'haha', label: 'Haha', icon: '😂', keywords: ['haha', 'lol', 'laugh', 'funny', '😂'] },
   {
     id: 'love',
     label: 'Love',
     icon: '❤️',
-    keywords: ['love', 'heart', 'hug', 'kiss', 'couple', 'romantic', 'forever', 'sweet'],
+    keywords: [
+      'love',
+      'heart',
+      'hug',
+      'kiss',
+      'couple',
+      'romantic',
+      'forever',
+      'sweet',
+      '❤️',
+      '😍',
+      '🥰',
+    ],
   },
-  { id: 'sad', label: 'Sad', icon: '😢', keywords: ['sad', 'cry', 'tear', 'pout'] },
-  { id: 'wow', label: 'Wow', icon: '😯', keywords: ['wow', 'surprise', 'gift', 'gasp'] },
+  { id: 'sad', label: 'Sad', icon: '😢', keywords: ['sad', 'cry', 'tear', 'pout', '😭', '😢'] },
+  {
+    id: 'wow',
+    label: 'Wow',
+    icon: '😯',
+    keywords: ['wow', 'surprise', 'gift', 'gasp', '😮', '😯'],
+  },
   {
     id: 'yay',
     label: 'Yay',
     icon: '🎉',
-    keywords: ['yay', 'celebrate', 'party', 'happy', 'valentine'],
+    keywords: ['yay', 'celebrate', 'party', 'happy', 'valentine', '🎉'],
   },
 ];
 
@@ -624,8 +489,10 @@ export function EmojiStickerDrawer({
   const startYRef = useRef(0);
   const startHeightRef = useRef(360);
 
-  // Horizontal Dock Overflow State for Dynamic Masking
+  // Dynamic Horizontal Scroll Overflow States
+  const emotionChipsRef = useRef(null);
   const packDockRef = useRef(null);
+  const [hasChipsOverflow, setHasChipsOverflow] = useState(false);
   const [hasDockOverflow, setHasDockOverflow] = useState(false);
 
   // Persistence in localStorage
@@ -670,21 +537,25 @@ export function EmojiStickerDrawer({
     }
   }, [drawerHeight, showEmojiPicker]);
 
-  // Check horizontal dock overflow dynamically
-  const checkDockOverflow = useCallback(() => {
-    const el = packDockRef.current;
-    if (el) {
-      setHasDockOverflow(el.scrollWidth > el.clientWidth);
+  // Check horizontal overflow dynamically for mask-fade-edges
+  const checkHorizontalOverflows = useCallback(() => {
+    if (emotionChipsRef.current) {
+      setHasChipsOverflow(
+        emotionChipsRef.current.scrollWidth > emotionChipsRef.current.clientWidth
+      );
+    }
+    if (packDockRef.current) {
+      setHasDockOverflow(packDockRef.current.scrollWidth > packDockRef.current.clientWidth);
     }
   }, []);
 
   useEffect(() => {
-    checkDockOverflow();
-    window.addEventListener('resize', checkDockOverflow);
-    return () => window.removeEventListener('resize', checkDockOverflow);
-  }, [checkDockOverflow, showEmojiPicker]);
+    checkHorizontalOverflows();
+    window.addEventListener('resize', checkHorizontalOverflows);
+    return () => window.removeEventListener('resize', checkHorizontalOverflows);
+  }, [checkHorizontalOverflows, showEmojiPicker, activeTab]);
 
-  // Draggable Height Touch/Mouse Event Handlers
+  // Mobile-Optimized Draggable Height & Swipe-to-Dismiss Handlers
   const handleDragStart = (clientY) => {
     isDraggingRef.current = true;
     startYRef.current = clientY;
@@ -692,13 +563,26 @@ export function EmojiStickerDrawer({
     document.body.style.userSelect = 'none';
   };
 
-  const handleDragMove = useCallback((clientY) => {
-    if (!isDraggingRef.current) return;
-    const deltaY = startYRef.current - clientY;
-    const maxHeight = Math.min(600, window.innerHeight * 0.75);
-    const newHeight = Math.max(320, Math.min(maxHeight, startHeightRef.current + deltaY));
-    setDrawerHeight(newHeight);
-  }, []);
+  const handleDragMove = useCallback(
+    (clientY) => {
+      if (!isDraggingRef.current) return;
+      const deltaY = startYRef.current - clientY;
+      const maxHeight = Math.min(600, window.innerHeight * 0.75);
+      const newHeight = startHeightRef.current + deltaY;
+
+      // Pull-to-dismiss threshold (< 200px height closes drawer)
+      if (newHeight < 200) {
+        isDraggingRef.current = false;
+        document.body.style.userSelect = '';
+        setShowEmojiPicker(false);
+        setDrawerHeight(360);
+        return;
+      }
+
+      setDrawerHeight(Math.max(260, Math.min(maxHeight, newHeight)));
+    },
+    [setShowEmojiPicker]
+  );
 
   const handleDragEnd = useCallback(() => {
     isDraggingRef.current = false;
@@ -736,7 +620,7 @@ export function EmojiStickerDrawer({
     }
   };
 
-  // Filter helper for stickers by emotion chip and search query
+  // Filter helper for stickers by emotion chip and search query (emoji & text)
   const filterStickerList = useCallback(
     (list) => {
       return list.filter((st) => {
@@ -796,16 +680,7 @@ export function EmojiStickerDrawer({
   return (
     <AnimatePresence>
       <div className="fixed inset-x-0 bottom-0 z-[120] flex flex-col justify-end pointer-events-none">
-        {/* Semi-transparent Backdrop overlay (click to dismiss) */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setShowEmojiPicker(false)}
-          className="fixed inset-0 bg-slate-950/40 backdrop-blur-[2px] pointer-events-auto z-[-1]"
-        />
-
-        {/* Anchored Bottom Sheet Container with Dynamic Resizable Height */}
+        {/* Anchored Bottom Sheet Container (No backdrop blur overlay to keep chat visible above) */}
         <motion.div
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
@@ -814,12 +689,13 @@ export function EmojiStickerDrawer({
           style={{ height: `${drawerHeight}px` }}
           className="w-full bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/80 shadow-2xl rounded-t-3xl flex flex-col overflow-hidden pointer-events-auto relative"
         >
-          {/* Top Interactive Drag Handle Bar */}
+          {/* Top Mobile-Optimized Drag Handle Bar (touch-action: none for responsive mobile swipe-to-close) */}
           <div
             onMouseDown={(e) => handleDragStart(e.clientY)}
             onTouchStart={(e) => e.touches[0] && handleDragStart(e.touches[0].clientY)}
+            style={{ touchAction: 'none' }}
             className="w-full py-2 flex flex-col items-center justify-center cursor-ns-resize select-none shrink-0 group hover:bg-slate-800/30 transition-colors"
-            title="Drag to resize height"
+            title="Drag to resize height or pull down to close"
           >
             <div className="w-12 h-1.5 rounded-full bg-slate-700/80 group-hover:bg-primary/80 transition-colors" />
           </div>
@@ -902,7 +778,9 @@ export function EmojiStickerDrawer({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={
-                    activeTab === 'emojis' ? 'Search emojis...' : 'Search all stickers...'
+                    activeTab === 'emojis'
+                      ? 'Search emojis...'
+                      : 'Search stickers (e.g. 😍, heart)...'
                   }
                   className="w-full bg-slate-950/90 text-xs text-white placeholder-text-muted px-3 py-1.5 pl-8 rounded-xl border border-slate-800 focus:outline-none focus:border-primary transition-colors"
                   autoFocus
@@ -920,9 +798,14 @@ export function EmojiStickerDrawer({
               </motion.div>
             )}
 
-            {/* Sentiment Reaction Chips (Stickers Mode) */}
+            {/* Sentiment Reaction Chips (Stickers Mode with dynamic fade mask) */}
             {activeTab === 'stickers' && (
-              <div className="filter-scroll-container mask-fade-edges flex items-center space-x-1 py-0.5">
+              <div
+                ref={emotionChipsRef}
+                className={`filter-scroll-container flex items-center space-x-1 py-0.5 ${
+                  hasChipsOverflow ? 'mask-fade-edges' : ''
+                }`}
+              >
                 {EMOTION_CHIPS.map((chip) => {
                   const isSelected = activeEmotion === chip.id;
                   return (
@@ -969,10 +852,11 @@ export function EmojiStickerDrawer({
             )}
           </div>
 
-          {/* Main Body Viewport */}
+          {/* Main Body Viewport (Hidden native scrollbar) */}
           <div
             ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-slate-700"
+            className="flex-1 overflow-y-auto px-3 py-2 scrollbar-none no-scrollbar"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {/* EMOJIS MODE */}
             {activeTab === 'emojis' && (

@@ -2,7 +2,7 @@
 /**
  * @file scripts/buildSignalStickerData.js
  * @description Dynamically reads public/stickers directory and generates stickerData.js
- * matching exact file names on disk with tags, human-readable labels, and coverUrl properties.
+ * matching exact file names on disk with tags, emoji labels, and coverUrl properties.
  */
 
 import fs from 'fs';
@@ -15,6 +15,7 @@ const PACK_DEFINITIONS = [
     id: 'love_pack',
     name: 'Love & Romance',
     icon: '💖',
+    coverFile: 'love_pack_cover.png',
     filter: (file) => file.endsWith('.lottie'),
   },
   {
@@ -54,9 +55,15 @@ const PACK_DEFINITIONS = [
   },
 ];
 
+// Emoji mapping by modulo index for rich search and emotion filtering
+const EMOJI_MAP = ['😍', '👋', '😂', '😭', '😮', '🎉', '🥰', '😘', '🤗', '💖'];
+
 function generateTags(label, packId, idx) {
   const lower = (label + ' ' + packId).toLowerCase();
   const tags = new Set();
+
+  const assignedEmoji = EMOJI_MAP[idx % EMOJI_MAP.length];
+  tags.add(assignedEmoji);
 
   if (
     lower.includes('love') ||
@@ -69,44 +76,43 @@ function generateTags(label, packId, idx) {
     lower.includes('sweet')
   ) {
     tags.add('love');
+    tags.add('❤️');
   }
-  if (lower.includes('hi') || lower.includes('wave') || lower.includes('hello') || idx % 7 === 1) {
+  if (lower.includes('hi') || lower.includes('wave') || lower.includes('hello') || idx % 6 === 1) {
     tags.add('hi');
+    tags.add('👋');
   }
   if (
     lower.includes('haha') ||
     lower.includes('lol') ||
     lower.includes('laugh') ||
-    lower.includes('cat') ||
     lower.includes('funny') ||
-    idx % 7 === 2
+    idx % 6 === 2
   ) {
     tags.add('haha');
+    tags.add('😂');
   }
-  if (lower.includes('sad') || lower.includes('cry') || lower.includes('tear') || idx % 7 === 3) {
+  if (lower.includes('sad') || lower.includes('cry') || lower.includes('tear') || idx % 6 === 3) {
     tags.add('sad');
+    tags.add('😭');
   }
   if (
     lower.includes('wow') ||
     lower.includes('surprise') ||
     lower.includes('gift') ||
-    idx % 7 === 4
+    idx % 6 === 4
   ) {
     tags.add('wow');
+    tags.add('😮');
   }
   if (
     lower.includes('yay') ||
     lower.includes('celebrate') ||
     lower.includes('party') ||
-    lower.includes('happy') ||
-    lower.includes('valentine') ||
-    idx % 7 === 5
+    idx % 6 === 5
   ) {
     tags.add('yay');
-  }
-
-  if (tags.size === 0) {
-    tags.add('love');
+    tags.add('🎉');
   }
 
   return Array.from(tags);
@@ -122,15 +128,14 @@ function main() {
     const stickers = matchingFiles.map((file, idx) => {
       const isLottie = file.endsWith('.lottie');
 
-      // Human-friendly label logic
-      let label = `${def.name} #${idx + 1}`;
+      let label = `${def.name} ${EMOJI_MAP[idx % EMOJI_MAP.length]}`;
       if (isLottie) {
         const cleanLottieName = file
           .replace(/\.lottie$/i, '')
           .replace(/[-_.]/g, ' ')
           .replace(/animation|emojisticker|sticker/gi, '')
           .trim();
-        if (cleanLottieName) label = cleanLottieName;
+        if (cleanLottieName) label = `${cleanLottieName} ${EMOJI_MAP[idx % EMOJI_MAP.length]}`;
       }
 
       const tags = generateTags(label, def.id, idx);
@@ -190,7 +195,7 @@ export default STICKER_PACKS;
   const outputPath = path.resolve(process.cwd(), 'src/features/fridge/components/stickerData.js');
   fs.writeFileSync(outputPath, fileContent, 'utf8');
   console.log(
-    `✅ Dynamically generated stickerData.js with ${packs.length} active packs, human-readable labels, and cover URLs!`
+    `✅ Dynamically generated stickerData.js with ${packs.length} active packs, emoji labels, and cover URLs!`
   );
 }
 

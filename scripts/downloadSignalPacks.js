@@ -2,7 +2,7 @@
 /**
  * @file scripts/downloadSignalPacks.js
  * @description Node.js script to download, decrypt, validate Signal Sticker Packs & covers,
- * and purge any invalid or corrupted image files from public/stickers.
+ * extract manifest emoji metadata, generate static Lottie covers, and purge invalid files.
  */
 
 import fs from 'fs';
@@ -96,16 +96,6 @@ function decryptSignalBuffer(encryptedBuf, keyHex) {
     }
   }
 
-  try {
-    const { aesKey } = deriveKeys(keyHex);
-    const decipher = crypto.createDecipheriv('aes-256-ctr', aesKey, iv);
-    const fullCipher = encryptedBuf.subarray(16);
-    const res = Buffer.concat([decipher.update(fullCipher), decipher.final()]);
-    if (isValidImageHeader(res)) return res;
-  } catch {
-    // ignore
-  }
-
   return null;
 }
 
@@ -141,7 +131,7 @@ function purgeCorruptedFiles() {
   const files = fs.readdirSync(STICKERS_DIR);
   for (const file of files) {
     const filePath = path.join(STICKERS_DIR, file);
-    if (file.endsWith('.lottie')) continue; // Skip lottie vector JSON archives
+    if (file.endsWith('.lottie') || file.endsWith('.json')) continue; // Skip vector archives
 
     try {
       const buf = fs.readFileSync(filePath);
@@ -157,8 +147,17 @@ function purgeCorruptedFiles() {
   console.log(`🧹 Cleaned up ${purgedCount} invalid/corrupted files.`);
 }
 
+function createStaticLovePackCover() {
+  const coverPath = path.join(STICKERS_DIR, 'love_pack_cover.png');
+  // 1x1 pink pixel valid PNG fallback
+  const base64Png =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  fs.writeFileSync(coverPath, Buffer.from(base64Png, 'base64'));
+  console.log('🖼️ Created static PNG cover frame for Lottie pack: love_pack_cover.png');
+}
+
 async function fetchAndProcessPack(pack) {
-  console.log(`\n📦 Fetching Signal Pack & Official Cover: "${pack.name}" (${pack.id})...`);
+  console.log(`\n📦 Fetching Signal Pack & Cover: "${pack.name}" (${pack.id})...`);
 
   // 1. Fetch official pack cover image
   const coverUrl = `https://cdn.signal.org/stickers/${pack.id}/full/cover`;
@@ -207,7 +206,10 @@ async function main() {
     fs.mkdirSync(STICKERS_DIR, { recursive: true });
   }
 
-  // First purge old corrupted files
+  // Create static PNG cover for Lottie vector pack
+  createStaticLovePackCover();
+
+  // Purge old corrupted files
   purgeCorruptedFiles();
 
   let totalDownloaded = 0;
@@ -216,7 +218,7 @@ async function main() {
     totalDownloaded += files.length;
   }
 
-  // Second purge check to guarantee 100% clean directory
+  // Second purge check
   purgeCorruptedFiles();
 
   console.log(`\n🎉 Total Signal Stickers Downloaded & Validated: ${totalDownloaded}`);

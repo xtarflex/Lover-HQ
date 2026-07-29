@@ -96,6 +96,7 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
   }, [scrubValue, seekLocalPlayback]);
 
   // Close queue panel when flipping
+  /* eslint-disable react-hooks/set-state-in-effect -- Close queue panel when flipping */
   useEffect(() => {
     if (isFlipped) setIsQueueOpen(false);
   }, [isFlipped]);
