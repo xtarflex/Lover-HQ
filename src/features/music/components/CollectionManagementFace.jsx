@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Library, BookOpen, Music, Trash2, BookmarkPlus, CheckCircle2, Play } from 'lucide-react';
+import {
+  Plus,
+  Library,
+  BookOpen,
+  Music,
+  Trash2,
+  BookmarkPlus,
+  Play,
+} from 'lucide-react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { useAppContext } from '../../../contexts/AppContext';
 import { getTrackArtwork } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
@@ -18,11 +25,11 @@ import FlipPillToggle from './FlipPillToggle';
 
 /** @type {Object} Slide-in/out animation variants for tab transitions. */
 const tabVariants = {
-  enterFromRight:  { x: '100%', opacity: 0 },
-  enterFromLeft:   { x: '-100%', opacity: 0 },
-  center:          { x: 0, opacity: 1 },
-  exitToLeft:      { x: '-100%', opacity: 0 },
-  exitToRight:     { x: '100%', opacity: 0 },
+  enterFromRight: { x: '100%', opacity: 0 },
+  enterFromLeft: { x: '-100%', opacity: 0 },
+  center: { x: 0, opacity: 1 },
+  exitToLeft: { x: '-100%', opacity: 0 },
+  exitToRight: { x: '100%', opacity: 0 },
 };
 
 /**
@@ -35,7 +42,6 @@ const tabVariants = {
  * @returns {React.ReactElement} The CollectionManagementFace component.
  */
 export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddModal }) {
-  const { user } = useAppContext();
   const {
     library,
     queue,
@@ -138,7 +144,7 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
       {/* ── Tab Bar ─────────────────────────────────────────────────────── */}
       <div className="flex border-b border-white/8 flex-shrink-0 px-5 gap-6">
         {[
-          { id: 'library',   label: 'Library',   icon: Library },
+          { id: 'library', label: 'Library', icon: Library },
           { id: 'playlists', label: 'Playlists', icon: BookOpen },
         ].map(({ id, label, icon: Icon }) => (
           <button
@@ -183,7 +189,8 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                       Your library is empty
                     </p>
                     <p className="text-xs text-white/25 max-w-[200px]">
-                      Add tracks using the button above — they're saved here permanently for both of you.
+                      Add tracks using the button above — they&apos;re saved here permanently for both of
+                      you.
                     </p>
                   </div>
                 ) : (
@@ -231,9 +238,11 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
 
                         {/* Track info */}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold truncate ${
-                            isCurrent ? 'text-white' : 'text-white/80'
-                          }`}>
+                          <p
+                            className={`text-sm font-semibold truncate ${
+                              isCurrent ? 'text-white' : 'text-white/80'
+                            }`}
+                          >
                             {track.title}
                           </p>
                           <p className="text-xs text-white/40 truncate">
@@ -243,7 +252,10 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
 
                         {/* Delete from library */}
                         <button
-                          onClick={(e) => { e.stopPropagation(); removeFromLibrary(track.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromLibrary(track.id);
+                          }}
                           aria-label={`Remove ${track.title} from library`}
                           className="p-1.5 text-white/20 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
                         >
@@ -266,7 +278,8 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                     <span className="text-xs font-bold text-white/80">Save Queue as Playlist</span>
                   </div>
                   <p className="text-[11px] text-white/40 leading-relaxed">
-                    Snapshot the current queue ({queue.length} track{queue.length !== 1 ? 's' : ''}) as a named playlist you can revisit any time.
+                    Snapshot the current queue ({queue.length} track{queue.length !== 1 ? 's' : ''})
+                    as a named playlist you can revisit any time.
                   </p>
                   {showNameInput ? (
                     <div className="flex gap-2">
@@ -281,7 +294,9 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                       />
                       <button
                         onClick={handleSavePlaylist}
-                        disabled={!savePlaylistName.trim() || isSavingPlaylist || queue.length === 0}
+                        disabled={
+                          !savePlaylistName.trim() || isSavingPlaylist || queue.length === 0
+                        }
                         className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs px-3 py-2 rounded-xl disabled:opacity-40 transition-colors"
                       >
                         {isSavingPlaylist ? '…' : 'Save'}
@@ -319,23 +334,33 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                       <div
                         key={playlist.id}
                         className="group flex items-center gap-3 rounded-xl px-3 py-3 bg-white/5 border border-white/8 hover:bg-white/10 transition-all cursor-pointer"
-                        onClick={() => { loadPlaylist(playlist.id); onFlip(); }}
+                        onClick={() => {
+                          loadPlaylist(playlist.id);
+                          onFlip();
+                        }}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && (loadPlaylist(playlist.id), onFlip())}
+                        onKeyDown={(e) =>
+                          e.key === 'Enter' && (loadPlaylist(playlist.id), onFlip())
+                        }
                         aria-label={`Load playlist ${playlist.name}`}
                       >
                         <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-pink-500/30 to-violet-500/30 flex items-center justify-center flex-shrink-0">
                           <BookOpen className="w-4 h-4 text-pink-300" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white/85 truncate">{playlist.name}</p>
+                          <p className="text-sm font-semibold text-white/85 truncate">
+                            {playlist.name}
+                          </p>
                           <p className="text-xs text-white/35">
                             {playlist.track_ids?.length ?? 0} tracks
                           </p>
                         </div>
                         <button
-                          onClick={(e) => { e.stopPropagation(); deletePlaylist(playlist.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deletePlaylist(playlist.id);
+                          }}
                           aria-label={`Delete playlist ${playlist.name}`}
                           className="p-1.5 text-white/20 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
                         >

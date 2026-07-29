@@ -109,9 +109,7 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
           <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5 border-b border-white/8 flex-shrink-0">
             <div className="flex items-center gap-2">
               <ListMusic className="w-4 h-4 text-white/60" />
-              <span className="text-xs font-bold text-white/90 font-rounded">
-                Up Next
-              </span>
+              <span className="text-xs font-bold text-white/90 font-rounded">Up Next</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/50">
                 {queue.length}
               </span>
@@ -163,7 +161,7 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragLeave={() => setDragOverIndex(null)}
-                    onDrop={(e) => handleDrop(e, targetIndex)}
+                    onDrop={(e) => handleDrop(e, index)}
                     onClick={() => playTrackById(track.id, 0)}
                     role="button"
                     tabIndex={0}
@@ -171,9 +169,10 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                     aria-pressed={isCurrent}
                     aria-label={`${track.title}${isCurrent ? ', now playing' : ''}`}
                     className={`group flex items-center gap-2 rounded-xl px-2.5 py-2 cursor-pointer transition-all duration-200
-                      ${isCurrent
-                        ? 'bg-white/12 border border-white/15'
-                        : 'hover:bg-white/8 border border-transparent'
+                      ${
+                        isCurrent
+                          ? 'bg-white/12 border border-white/15'
+                          : 'hover:bg-white/8 border border-transparent'
                       }
                       ${isDragTarget ? 'border-pink-400/40 scale-[1.01]' : ''}`}
                   >
@@ -206,7 +205,9 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
 
                     {/* Text */}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-[11px] font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/75'}`}>
+                      <p
+                        className={`text-[11px] font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/75'}`}
+                      >
                         {track.title}
                       </p>
                       <p className="text-[10px] text-white/40 truncate">
@@ -217,7 +218,11 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                     {/* Controls */}
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       {avatar && (
-                        <img src={avatar} alt="Added by" className="w-4 h-4 rounded-full object-cover border border-white/10" />
+                        <img
+                          src={avatar}
+                          alt="Added by"
+                          className="w-4 h-4 rounded-full object-cover border border-white/10"
+                        />
                       )}
                       <div className="flex flex-col">
                         <button
@@ -238,7 +243,10 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                         </button>
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); removeFromActiveQueue(track.queue_row_id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromActiveQueue(track.queue_row_id);
+                        }}
                         aria-label={`Remove ${track.title} from queue`}
                         className="p-1 text-white/30 hover:text-red-400 rounded-md hover:bg-red-500/10 transition-colors"
                       >

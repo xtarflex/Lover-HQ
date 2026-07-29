@@ -80,12 +80,14 @@ export default function VinylDiscVisualizer({ isPlaying, artworkUrl, trackTitle,
       >
         {/* Pivot ball */}
         <circle cx="66" cy="16" r="10" fill="#6B7280" stroke="#9CA3AF" strokeWidth="1.5" />
-        <circle cx="66" cy="16" r="5"  fill="#D1D5DB" />
+        <circle cx="66" cy="16" r="5" fill="#D1D5DB" />
 
         {/* Arm shaft */}
         <line
-          x1="66" y1="24"
-          x2="22" y2="148"
+          x1="66"
+          y1="24"
+          x2="22"
+          y2="148"
           stroke="#9CA3AF"
           strokeWidth="3.5"
           strokeLinecap="round"
@@ -93,7 +95,15 @@ export default function VinylDiscVisualizer({ isPlaying, artworkUrl, trackTitle,
         {/* Cartridge body */}
         <rect x="12" y="140" width="20" height="10" rx="3" fill="#6B7280" />
         {/* Stylus tip */}
-        <line x1="22" y1="150" x2="22" y2="158" stroke="#EC4899" strokeWidth="2.5" strokeLinecap="round" />
+        <line
+          x1="22"
+          y1="150"
+          x2="22"
+          y2="158"
+          stroke="#EC4899"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
       </svg>
     </div>
   );

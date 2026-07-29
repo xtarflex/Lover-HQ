@@ -1,7 +1,7 @@
 /**
  * @file stickerData.js
  * @description Auto-generated custom sticker magnet packs manifest for Lover-HQ.
- * Last updated: 2026-07-29T11:06:40.601Z
+ * Last updated: 2026-07-29T11:12:57.452Z
  */
 
 /**
@@ -183,7 +183,7 @@ export const STICKER_PACKS = [
     "stickers": [
       {
         "id": "signal_sweet_couple_1",
-        "label": "signal ee5dd49d 1",
+        "label": "Sweet Couple 1 #1",
         "tags": [
           "love"
         ],
@@ -192,7 +192,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_2",
-        "label": "signal ee5dd49d 10",
+        "label": "Sweet Couple 1 #2",
         "tags": [
           "love",
           "hi"
@@ -202,7 +202,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_3",
-        "label": "signal ee5dd49d 11",
+        "label": "Sweet Couple 1 #3",
         "tags": [
           "love",
           "haha"
@@ -212,7 +212,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_4",
-        "label": "signal ee5dd49d 12",
+        "label": "Sweet Couple 1 #4",
         "tags": [
           "love",
           "sad"
@@ -222,7 +222,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_5",
-        "label": "signal ee5dd49d 13",
+        "label": "Sweet Couple 1 #5",
         "tags": [
           "love",
           "wow"
@@ -232,7 +232,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_6",
-        "label": "signal ee5dd49d 14",
+        "label": "Sweet Couple 1 #6",
         "tags": [
           "love",
           "yay"
@@ -242,7 +242,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_7",
-        "label": "signal ee5dd49d 15",
+        "label": "Sweet Couple 1 #7",
         "tags": [
           "love"
         ],
@@ -251,7 +251,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_8",
-        "label": "signal ee5dd49d 16",
+        "label": "Sweet Couple 1 #8",
         "tags": [
           "love"
         ],
@@ -260,7 +260,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_9",
-        "label": "signal ee5dd49d 17",
+        "label": "Sweet Couple 1 #9",
         "tags": [
           "love",
           "hi"
@@ -270,7 +270,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_10",
-        "label": "signal ee5dd49d 18",
+        "label": "Sweet Couple 1 #10",
         "tags": [
           "love",
           "haha"
@@ -280,7 +280,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_11",
-        "label": "signal ee5dd49d 19",
+        "label": "Sweet Couple 1 #11",
         "tags": [
           "love",
           "sad"
@@ -290,7 +290,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_12",
-        "label": "signal ee5dd49d 2",
+        "label": "Sweet Couple 1 #12",
         "tags": [
           "love",
           "wow"
@@ -300,7 +300,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_13",
-        "label": "signal ee5dd49d 20",
+        "label": "Sweet Couple 1 #13",
         "tags": [
           "love",
           "yay"
@@ -310,7 +310,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_14",
-        "label": "signal ee5dd49d 21",
+        "label": "Sweet Couple 1 #14",
         "tags": [
           "love"
         ],
@@ -319,7 +319,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_15",
-        "label": "signal ee5dd49d 22",
+        "label": "Sweet Couple 1 #15",
         "tags": [
           "love"
         ],
@@ -328,7 +328,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_16",
-        "label": "signal ee5dd49d 23",
+        "label": "Sweet Couple 1 #16",
         "tags": [
           "love",
           "hi"
@@ -338,7 +338,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_17",
-        "label": "signal ee5dd49d 24",
+        "label": "Sweet Couple 1 #17",
         "tags": [
           "love",
           "haha"
@@ -348,7 +348,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_18",
-        "label": "signal ee5dd49d 25",
+        "label": "Sweet Couple 1 #18",
         "tags": [
           "love",
           "sad"
@@ -358,7 +358,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_19",
-        "label": "signal ee5dd49d 26",
+        "label": "Sweet Couple 1 #19",
         "tags": [
           "love",
           "wow"
@@ -368,7 +368,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_20",
-        "label": "signal ee5dd49d 27",
+        "label": "Sweet Couple 1 #20",
         "tags": [
           "love",
           "yay"
@@ -378,7 +378,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_21",
-        "label": "signal ee5dd49d 28",
+        "label": "Sweet Couple 1 #21",
         "tags": [
           "love"
         ],
@@ -387,7 +387,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_22",
-        "label": "signal ee5dd49d 29",
+        "label": "Sweet Couple 1 #22",
         "tags": [
           "love"
         ],
@@ -396,7 +396,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_23",
-        "label": "signal ee5dd49d 3",
+        "label": "Sweet Couple 1 #23",
         "tags": [
           "love",
           "hi"
@@ -406,7 +406,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_24",
-        "label": "signal ee5dd49d 30",
+        "label": "Sweet Couple 1 #24",
         "tags": [
           "love",
           "haha"
@@ -416,7 +416,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_25",
-        "label": "signal ee5dd49d 31",
+        "label": "Sweet Couple 1 #25",
         "tags": [
           "love",
           "sad"
@@ -426,7 +426,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_26",
-        "label": "signal ee5dd49d 32",
+        "label": "Sweet Couple 1 #26",
         "tags": [
           "love",
           "wow"
@@ -436,7 +436,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_27",
-        "label": "signal ee5dd49d 33",
+        "label": "Sweet Couple 1 #27",
         "tags": [
           "love",
           "yay"
@@ -446,7 +446,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_28",
-        "label": "signal ee5dd49d 34",
+        "label": "Sweet Couple 1 #28",
         "tags": [
           "love"
         ],
@@ -455,7 +455,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_29",
-        "label": "signal ee5dd49d 35",
+        "label": "Sweet Couple 1 #29",
         "tags": [
           "love"
         ],
@@ -464,7 +464,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_30",
-        "label": "signal ee5dd49d 36",
+        "label": "Sweet Couple 1 #30",
         "tags": [
           "love",
           "hi"
@@ -474,7 +474,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_31",
-        "label": "signal ee5dd49d 37",
+        "label": "Sweet Couple 1 #31",
         "tags": [
           "love",
           "haha"
@@ -484,7 +484,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_32",
-        "label": "signal ee5dd49d 38",
+        "label": "Sweet Couple 1 #32",
         "tags": [
           "love",
           "sad"
@@ -494,7 +494,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_33",
-        "label": "signal ee5dd49d 39",
+        "label": "Sweet Couple 1 #33",
         "tags": [
           "love",
           "wow"
@@ -504,7 +504,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_34",
-        "label": "signal ee5dd49d 4",
+        "label": "Sweet Couple 1 #34",
         "tags": [
           "love",
           "yay"
@@ -514,7 +514,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_35",
-        "label": "signal ee5dd49d 40",
+        "label": "Sweet Couple 1 #35",
         "tags": [
           "love"
         ],
@@ -523,7 +523,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_36",
-        "label": "signal ee5dd49d 5",
+        "label": "Sweet Couple 1 #36",
         "tags": [
           "love"
         ],
@@ -532,7 +532,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_37",
-        "label": "signal ee5dd49d 6",
+        "label": "Sweet Couple 1 #37",
         "tags": [
           "love",
           "hi"
@@ -542,7 +542,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_38",
-        "label": "signal ee5dd49d 7",
+        "label": "Sweet Couple 1 #38",
         "tags": [
           "love",
           "haha"
@@ -552,7 +552,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_39",
-        "label": "signal ee5dd49d 8",
+        "label": "Sweet Couple 1 #39",
         "tags": [
           "love",
           "sad"
@@ -562,7 +562,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_sweet_couple_40",
-        "label": "signal ee5dd49d 9",
+        "label": "Sweet Couple 1 #40",
         "tags": [
           "love",
           "wow"
@@ -580,7 +580,7 @@ export const STICKER_PACKS = [
     "stickers": [
       {
         "id": "signal_romantic_moments_1",
-        "label": "signal c627a32c 1",
+        "label": "Romantic Moments #1",
         "tags": [
           "love"
         ],
@@ -589,7 +589,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_2",
-        "label": "signal c627a32c 10",
+        "label": "Romantic Moments #2",
         "tags": [
           "love",
           "hi"
@@ -599,7 +599,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_3",
-        "label": "signal c627a32c 11",
+        "label": "Romantic Moments #3",
         "tags": [
           "love",
           "haha"
@@ -609,7 +609,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_4",
-        "label": "signal c627a32c 12",
+        "label": "Romantic Moments #4",
         "tags": [
           "love",
           "sad"
@@ -619,7 +619,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_5",
-        "label": "signal c627a32c 13",
+        "label": "Romantic Moments #5",
         "tags": [
           "love",
           "wow"
@@ -629,7 +629,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_6",
-        "label": "signal c627a32c 14",
+        "label": "Romantic Moments #6",
         "tags": [
           "love",
           "yay"
@@ -639,7 +639,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_7",
-        "label": "signal c627a32c 15",
+        "label": "Romantic Moments #7",
         "tags": [
           "love"
         ],
@@ -648,7 +648,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_8",
-        "label": "signal c627a32c 16",
+        "label": "Romantic Moments #8",
         "tags": [
           "love"
         ],
@@ -657,7 +657,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_9",
-        "label": "signal c627a32c 17",
+        "label": "Romantic Moments #9",
         "tags": [
           "love",
           "hi"
@@ -667,7 +667,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_10",
-        "label": "signal c627a32c 18",
+        "label": "Romantic Moments #10",
         "tags": [
           "love",
           "haha"
@@ -677,7 +677,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_11",
-        "label": "signal c627a32c 19",
+        "label": "Romantic Moments #11",
         "tags": [
           "love",
           "sad"
@@ -687,7 +687,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_12",
-        "label": "signal c627a32c 2",
+        "label": "Romantic Moments #12",
         "tags": [
           "love",
           "wow"
@@ -697,7 +697,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_13",
-        "label": "signal c627a32c 20",
+        "label": "Romantic Moments #13",
         "tags": [
           "love",
           "yay"
@@ -707,7 +707,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_14",
-        "label": "signal c627a32c 21",
+        "label": "Romantic Moments #14",
         "tags": [
           "love"
         ],
@@ -716,7 +716,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_15",
-        "label": "signal c627a32c 22",
+        "label": "Romantic Moments #15",
         "tags": [
           "love"
         ],
@@ -725,7 +725,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_16",
-        "label": "signal c627a32c 23",
+        "label": "Romantic Moments #16",
         "tags": [
           "love",
           "hi"
@@ -735,7 +735,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_17",
-        "label": "signal c627a32c 24",
+        "label": "Romantic Moments #17",
         "tags": [
           "love",
           "haha"
@@ -745,7 +745,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_18",
-        "label": "signal c627a32c 3",
+        "label": "Romantic Moments #18",
         "tags": [
           "love",
           "sad"
@@ -755,7 +755,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_19",
-        "label": "signal c627a32c 4",
+        "label": "Romantic Moments #19",
         "tags": [
           "love",
           "wow"
@@ -765,7 +765,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_20",
-        "label": "signal c627a32c 5",
+        "label": "Romantic Moments #20",
         "tags": [
           "love",
           "yay"
@@ -775,7 +775,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_21",
-        "label": "signal c627a32c 6",
+        "label": "Romantic Moments #21",
         "tags": [
           "love"
         ],
@@ -784,7 +784,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_22",
-        "label": "signal c627a32c 7",
+        "label": "Romantic Moments #22",
         "tags": [
           "love"
         ],
@@ -793,7 +793,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_23",
-        "label": "signal c627a32c 8",
+        "label": "Romantic Moments #23",
         "tags": [
           "love",
           "hi"
@@ -803,7 +803,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_romantic_moments_24",
-        "label": "signal c627a32c 9",
+        "label": "Romantic Moments #24",
         "tags": [
           "love",
           "haha"
@@ -821,7 +821,7 @@ export const STICKER_PACKS = [
     "stickers": [
       {
         "id": "signal_love_hugs_1",
-        "label": "signal eb02ac62 1",
+        "label": "Love & Hugs #1",
         "tags": [
           "love"
         ],
@@ -830,7 +830,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_love_hugs_2",
-        "label": "signal eb02ac62 2",
+        "label": "Love & Hugs #2",
         "tags": [
           "love",
           "hi"
@@ -840,7 +840,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_love_hugs_3",
-        "label": "signal eb02ac62 3",
+        "label": "Love & Hugs #3",
         "tags": [
           "love",
           "haha"
@@ -850,7 +850,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_love_hugs_4",
-        "label": "signal eb02ac62 4",
+        "label": "Love & Hugs #4",
         "tags": [
           "love",
           "sad"
@@ -860,7 +860,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_love_hugs_5",
-        "label": "signal eb02ac62 5",
+        "label": "Love & Hugs #5",
         "tags": [
           "love",
           "wow"
@@ -870,7 +870,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_love_hugs_6",
-        "label": "signal eb02ac62 6",
+        "label": "Love & Hugs #6",
         "tags": [
           "love",
           "yay"
@@ -888,7 +888,7 @@ export const STICKER_PACKS = [
     "stickers": [
       {
         "id": "signal_cute_couple_1",
-        "label": "signal a94c2600 1",
+        "label": "Cute Couple Daily #1",
         "tags": [
           "love"
         ],
@@ -897,7 +897,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_2",
-        "label": "signal a94c2600 10",
+        "label": "Cute Couple Daily #2",
         "tags": [
           "love",
           "hi"
@@ -907,7 +907,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_3",
-        "label": "signal a94c2600 11",
+        "label": "Cute Couple Daily #3",
         "tags": [
           "love",
           "haha"
@@ -917,7 +917,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_4",
-        "label": "signal a94c2600 12",
+        "label": "Cute Couple Daily #4",
         "tags": [
           "love",
           "sad"
@@ -927,7 +927,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_5",
-        "label": "signal a94c2600 13",
+        "label": "Cute Couple Daily #5",
         "tags": [
           "love",
           "wow"
@@ -937,7 +937,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_6",
-        "label": "signal a94c2600 14",
+        "label": "Cute Couple Daily #6",
         "tags": [
           "love",
           "yay"
@@ -947,7 +947,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_7",
-        "label": "signal a94c2600 15",
+        "label": "Cute Couple Daily #7",
         "tags": [
           "love"
         ],
@@ -956,7 +956,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_8",
-        "label": "signal a94c2600 16",
+        "label": "Cute Couple Daily #8",
         "tags": [
           "love"
         ],
@@ -965,7 +965,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_9",
-        "label": "signal a94c2600 17",
+        "label": "Cute Couple Daily #9",
         "tags": [
           "love",
           "hi"
@@ -975,7 +975,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_10",
-        "label": "signal a94c2600 18",
+        "label": "Cute Couple Daily #10",
         "tags": [
           "love",
           "haha"
@@ -985,7 +985,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_11",
-        "label": "signal a94c2600 19",
+        "label": "Cute Couple Daily #11",
         "tags": [
           "love",
           "sad"
@@ -995,7 +995,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_12",
-        "label": "signal a94c2600 2",
+        "label": "Cute Couple Daily #12",
         "tags": [
           "love",
           "wow"
@@ -1005,7 +1005,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_13",
-        "label": "signal a94c2600 20",
+        "label": "Cute Couple Daily #13",
         "tags": [
           "love",
           "yay"
@@ -1015,7 +1015,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_14",
-        "label": "signal a94c2600 21",
+        "label": "Cute Couple Daily #14",
         "tags": [
           "love"
         ],
@@ -1024,7 +1024,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_15",
-        "label": "signal a94c2600 22",
+        "label": "Cute Couple Daily #15",
         "tags": [
           "love"
         ],
@@ -1033,7 +1033,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_16",
-        "label": "signal a94c2600 23",
+        "label": "Cute Couple Daily #16",
         "tags": [
           "love",
           "hi"
@@ -1043,7 +1043,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_17",
-        "label": "signal a94c2600 24",
+        "label": "Cute Couple Daily #17",
         "tags": [
           "love",
           "haha"
@@ -1053,7 +1053,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_18",
-        "label": "signal a94c2600 25",
+        "label": "Cute Couple Daily #18",
         "tags": [
           "love",
           "sad"
@@ -1063,7 +1063,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_19",
-        "label": "signal a94c2600 26",
+        "label": "Cute Couple Daily #19",
         "tags": [
           "love",
           "wow"
@@ -1073,7 +1073,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_20",
-        "label": "signal a94c2600 27",
+        "label": "Cute Couple Daily #20",
         "tags": [
           "love",
           "yay"
@@ -1083,7 +1083,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_21",
-        "label": "signal a94c2600 28",
+        "label": "Cute Couple Daily #21",
         "tags": [
           "love"
         ],
@@ -1092,7 +1092,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_22",
-        "label": "signal a94c2600 29",
+        "label": "Cute Couple Daily #22",
         "tags": [
           "love"
         ],
@@ -1101,7 +1101,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_23",
-        "label": "signal a94c2600 3",
+        "label": "Cute Couple Daily #23",
         "tags": [
           "love",
           "hi"
@@ -1111,7 +1111,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_24",
-        "label": "signal a94c2600 30",
+        "label": "Cute Couple Daily #24",
         "tags": [
           "love",
           "haha"
@@ -1121,7 +1121,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_25",
-        "label": "signal a94c2600 31",
+        "label": "Cute Couple Daily #25",
         "tags": [
           "love",
           "sad"
@@ -1131,7 +1131,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_26",
-        "label": "signal a94c2600 32",
+        "label": "Cute Couple Daily #26",
         "tags": [
           "love",
           "wow"
@@ -1141,7 +1141,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_27",
-        "label": "signal a94c2600 33",
+        "label": "Cute Couple Daily #27",
         "tags": [
           "love",
           "yay"
@@ -1151,7 +1151,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_28",
-        "label": "signal a94c2600 34",
+        "label": "Cute Couple Daily #28",
         "tags": [
           "love"
         ],
@@ -1160,7 +1160,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_29",
-        "label": "signal a94c2600 35",
+        "label": "Cute Couple Daily #29",
         "tags": [
           "love"
         ],
@@ -1169,7 +1169,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_30",
-        "label": "signal a94c2600 36",
+        "label": "Cute Couple Daily #30",
         "tags": [
           "love",
           "hi"
@@ -1179,7 +1179,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_31",
-        "label": "signal a94c2600 37",
+        "label": "Cute Couple Daily #31",
         "tags": [
           "love",
           "haha"
@@ -1189,7 +1189,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_32",
-        "label": "signal a94c2600 38",
+        "label": "Cute Couple Daily #32",
         "tags": [
           "love",
           "sad"
@@ -1199,7 +1199,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_33",
-        "label": "signal a94c2600 39",
+        "label": "Cute Couple Daily #33",
         "tags": [
           "love",
           "wow"
@@ -1209,7 +1209,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_34",
-        "label": "signal a94c2600 4",
+        "label": "Cute Couple Daily #34",
         "tags": [
           "love",
           "yay"
@@ -1219,7 +1219,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_35",
-        "label": "signal a94c2600 40",
+        "label": "Cute Couple Daily #35",
         "tags": [
           "love"
         ],
@@ -1228,7 +1228,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_36",
-        "label": "signal a94c2600 41",
+        "label": "Cute Couple Daily #36",
         "tags": [
           "love"
         ],
@@ -1237,7 +1237,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_37",
-        "label": "signal a94c2600 42",
+        "label": "Cute Couple Daily #37",
         "tags": [
           "love",
           "hi"
@@ -1247,7 +1247,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_38",
-        "label": "signal a94c2600 43",
+        "label": "Cute Couple Daily #38",
         "tags": [
           "love",
           "haha"
@@ -1257,7 +1257,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_39",
-        "label": "signal a94c2600 44",
+        "label": "Cute Couple Daily #39",
         "tags": [
           "love",
           "sad"
@@ -1267,7 +1267,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_40",
-        "label": "signal a94c2600 45",
+        "label": "Cute Couple Daily #40",
         "tags": [
           "love",
           "wow"
@@ -1277,7 +1277,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_41",
-        "label": "signal a94c2600 46",
+        "label": "Cute Couple Daily #41",
         "tags": [
           "love",
           "yay"
@@ -1287,7 +1287,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_42",
-        "label": "signal a94c2600 47",
+        "label": "Cute Couple Daily #42",
         "tags": [
           "love"
         ],
@@ -1296,7 +1296,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_43",
-        "label": "signal a94c2600 48",
+        "label": "Cute Couple Daily #43",
         "tags": [
           "love"
         ],
@@ -1305,7 +1305,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_44",
-        "label": "signal a94c2600 49",
+        "label": "Cute Couple Daily #44",
         "tags": [
           "love",
           "hi"
@@ -1315,7 +1315,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_45",
-        "label": "signal a94c2600 5",
+        "label": "Cute Couple Daily #45",
         "tags": [
           "love",
           "haha"
@@ -1325,7 +1325,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_46",
-        "label": "signal a94c2600 50",
+        "label": "Cute Couple Daily #46",
         "tags": [
           "love",
           "sad"
@@ -1335,7 +1335,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_47",
-        "label": "signal a94c2600 51",
+        "label": "Cute Couple Daily #47",
         "tags": [
           "love",
           "wow"
@@ -1345,7 +1345,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_48",
-        "label": "signal a94c2600 52",
+        "label": "Cute Couple Daily #48",
         "tags": [
           "love",
           "yay"
@@ -1355,7 +1355,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_49",
-        "label": "signal a94c2600 6",
+        "label": "Cute Couple Daily #49",
         "tags": [
           "love"
         ],
@@ -1364,7 +1364,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_50",
-        "label": "signal a94c2600 7",
+        "label": "Cute Couple Daily #50",
         "tags": [
           "love"
         ],
@@ -1373,7 +1373,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_51",
-        "label": "signal a94c2600 8",
+        "label": "Cute Couple Daily #51",
         "tags": [
           "love",
           "hi"
@@ -1383,7 +1383,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_cute_couple_52",
-        "label": "signal a94c2600 9",
+        "label": "Cute Couple Daily #52",
         "tags": [
           "love",
           "haha"
@@ -1401,7 +1401,7 @@ export const STICKER_PACKS = [
     "stickers": [
       {
         "id": "signal_forever_together_1",
-        "label": "signal 535ecff7 1",
+        "label": "Forever Together #1",
         "tags": [
           "love"
         ],
@@ -1410,7 +1410,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_2",
-        "label": "signal 535ecff7 10",
+        "label": "Forever Together #2",
         "tags": [
           "love",
           "hi"
@@ -1420,7 +1420,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_3",
-        "label": "signal 535ecff7 11",
+        "label": "Forever Together #3",
         "tags": [
           "love",
           "haha"
@@ -1430,7 +1430,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_4",
-        "label": "signal 535ecff7 12",
+        "label": "Forever Together #4",
         "tags": [
           "love",
           "sad"
@@ -1440,7 +1440,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_5",
-        "label": "signal 535ecff7 13",
+        "label": "Forever Together #5",
         "tags": [
           "love",
           "wow"
@@ -1450,7 +1450,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_6",
-        "label": "signal 535ecff7 14",
+        "label": "Forever Together #6",
         "tags": [
           "love",
           "yay"
@@ -1460,7 +1460,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_7",
-        "label": "signal 535ecff7 15",
+        "label": "Forever Together #7",
         "tags": [
           "love"
         ],
@@ -1469,7 +1469,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_8",
-        "label": "signal 535ecff7 16",
+        "label": "Forever Together #8",
         "tags": [
           "love"
         ],
@@ -1478,7 +1478,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_9",
-        "label": "signal 535ecff7 17",
+        "label": "Forever Together #9",
         "tags": [
           "love",
           "hi"
@@ -1488,7 +1488,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_10",
-        "label": "signal 535ecff7 18",
+        "label": "Forever Together #10",
         "tags": [
           "love",
           "haha"
@@ -1498,7 +1498,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_11",
-        "label": "signal 535ecff7 19",
+        "label": "Forever Together #11",
         "tags": [
           "love",
           "sad"
@@ -1508,7 +1508,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_12",
-        "label": "signal 535ecff7 2",
+        "label": "Forever Together #12",
         "tags": [
           "love",
           "wow"
@@ -1518,7 +1518,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_13",
-        "label": "signal 535ecff7 20",
+        "label": "Forever Together #13",
         "tags": [
           "love",
           "yay"
@@ -1528,7 +1528,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_14",
-        "label": "signal 535ecff7 21",
+        "label": "Forever Together #14",
         "tags": [
           "love"
         ],
@@ -1537,7 +1537,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_15",
-        "label": "signal 535ecff7 22",
+        "label": "Forever Together #15",
         "tags": [
           "love"
         ],
@@ -1546,7 +1546,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_16",
-        "label": "signal 535ecff7 23",
+        "label": "Forever Together #16",
         "tags": [
           "love",
           "hi"
@@ -1556,7 +1556,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_17",
-        "label": "signal 535ecff7 24",
+        "label": "Forever Together #17",
         "tags": [
           "love",
           "haha"
@@ -1566,7 +1566,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_18",
-        "label": "signal 535ecff7 25",
+        "label": "Forever Together #18",
         "tags": [
           "love",
           "sad"
@@ -1576,7 +1576,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_19",
-        "label": "signal 535ecff7 26",
+        "label": "Forever Together #19",
         "tags": [
           "love",
           "wow"
@@ -1586,7 +1586,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_20",
-        "label": "signal 535ecff7 27",
+        "label": "Forever Together #20",
         "tags": [
           "love",
           "yay"
@@ -1596,7 +1596,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_21",
-        "label": "signal 535ecff7 28",
+        "label": "Forever Together #21",
         "tags": [
           "love"
         ],
@@ -1605,7 +1605,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_22",
-        "label": "signal 535ecff7 29",
+        "label": "Forever Together #22",
         "tags": [
           "love"
         ],
@@ -1614,7 +1614,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_23",
-        "label": "signal 535ecff7 3",
+        "label": "Forever Together #23",
         "tags": [
           "love",
           "hi"
@@ -1624,7 +1624,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_24",
-        "label": "signal 535ecff7 30",
+        "label": "Forever Together #24",
         "tags": [
           "love",
           "haha"
@@ -1634,7 +1634,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_25",
-        "label": "signal 535ecff7 31",
+        "label": "Forever Together #25",
         "tags": [
           "love",
           "sad"
@@ -1644,7 +1644,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_26",
-        "label": "signal 535ecff7 32",
+        "label": "Forever Together #26",
         "tags": [
           "love",
           "wow"
@@ -1654,7 +1654,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_27",
-        "label": "signal 535ecff7 33",
+        "label": "Forever Together #27",
         "tags": [
           "love",
           "yay"
@@ -1664,7 +1664,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_28",
-        "label": "signal 535ecff7 34",
+        "label": "Forever Together #28",
         "tags": [
           "love"
         ],
@@ -1673,7 +1673,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_29",
-        "label": "signal 535ecff7 35",
+        "label": "Forever Together #29",
         "tags": [
           "love"
         ],
@@ -1682,7 +1682,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_30",
-        "label": "signal 535ecff7 36",
+        "label": "Forever Together #30",
         "tags": [
           "love",
           "hi"
@@ -1692,7 +1692,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_31",
-        "label": "signal 535ecff7 37",
+        "label": "Forever Together #31",
         "tags": [
           "love",
           "haha"
@@ -1702,7 +1702,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_32",
-        "label": "signal 535ecff7 38",
+        "label": "Forever Together #32",
         "tags": [
           "love",
           "sad"
@@ -1712,7 +1712,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_33",
-        "label": "signal 535ecff7 39",
+        "label": "Forever Together #33",
         "tags": [
           "love",
           "wow"
@@ -1722,7 +1722,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_34",
-        "label": "signal 535ecff7 4",
+        "label": "Forever Together #34",
         "tags": [
           "love",
           "yay"
@@ -1732,7 +1732,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_35",
-        "label": "signal 535ecff7 40",
+        "label": "Forever Together #35",
         "tags": [
           "love"
         ],
@@ -1741,7 +1741,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_36",
-        "label": "signal 535ecff7 41",
+        "label": "Forever Together #36",
         "tags": [
           "love"
         ],
@@ -1750,7 +1750,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_37",
-        "label": "signal 535ecff7 42",
+        "label": "Forever Together #37",
         "tags": [
           "love",
           "hi"
@@ -1760,7 +1760,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_38",
-        "label": "signal 535ecff7 43",
+        "label": "Forever Together #38",
         "tags": [
           "love",
           "haha"
@@ -1770,7 +1770,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_39",
-        "label": "signal 535ecff7 44",
+        "label": "Forever Together #39",
         "tags": [
           "love",
           "sad"
@@ -1780,7 +1780,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_40",
-        "label": "signal 535ecff7 45",
+        "label": "Forever Together #40",
         "tags": [
           "love",
           "wow"
@@ -1790,7 +1790,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_41",
-        "label": "signal 535ecff7 46",
+        "label": "Forever Together #41",
         "tags": [
           "love",
           "yay"
@@ -1800,7 +1800,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_42",
-        "label": "signal 535ecff7 47",
+        "label": "Forever Together #42",
         "tags": [
           "love"
         ],
@@ -1809,7 +1809,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_43",
-        "label": "signal 535ecff7 48",
+        "label": "Forever Together #43",
         "tags": [
           "love"
         ],
@@ -1818,7 +1818,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_44",
-        "label": "signal 535ecff7 49",
+        "label": "Forever Together #44",
         "tags": [
           "love",
           "hi"
@@ -1828,7 +1828,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_45",
-        "label": "signal 535ecff7 5",
+        "label": "Forever Together #45",
         "tags": [
           "love",
           "haha"
@@ -1838,7 +1838,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_46",
-        "label": "signal 535ecff7 50",
+        "label": "Forever Together #46",
         "tags": [
           "love",
           "sad"
@@ -1848,7 +1848,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_47",
-        "label": "signal 535ecff7 51",
+        "label": "Forever Together #47",
         "tags": [
           "love",
           "wow"
@@ -1858,7 +1858,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_48",
-        "label": "signal 535ecff7 52",
+        "label": "Forever Together #48",
         "tags": [
           "love",
           "yay"
@@ -1868,7 +1868,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_49",
-        "label": "signal 535ecff7 53",
+        "label": "Forever Together #49",
         "tags": [
           "love"
         ],
@@ -1877,7 +1877,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_50",
-        "label": "signal 535ecff7 54",
+        "label": "Forever Together #50",
         "tags": [
           "love"
         ],
@@ -1886,7 +1886,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_51",
-        "label": "signal 535ecff7 55",
+        "label": "Forever Together #51",
         "tags": [
           "love",
           "hi"
@@ -1896,7 +1896,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_52",
-        "label": "signal 535ecff7 56",
+        "label": "Forever Together #52",
         "tags": [
           "love",
           "haha"
@@ -1906,7 +1906,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_53",
-        "label": "signal 535ecff7 57",
+        "label": "Forever Together #53",
         "tags": [
           "love",
           "sad"
@@ -1916,7 +1916,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_54",
-        "label": "signal 535ecff7 58",
+        "label": "Forever Together #54",
         "tags": [
           "love",
           "wow"
@@ -1926,7 +1926,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_55",
-        "label": "signal 535ecff7 59",
+        "label": "Forever Together #55",
         "tags": [
           "love",
           "yay"
@@ -1936,7 +1936,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_56",
-        "label": "signal 535ecff7 6",
+        "label": "Forever Together #56",
         "tags": [
           "love"
         ],
@@ -1945,7 +1945,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_57",
-        "label": "signal 535ecff7 60",
+        "label": "Forever Together #57",
         "tags": [
           "love"
         ],
@@ -1954,7 +1954,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_58",
-        "label": "signal 535ecff7 7",
+        "label": "Forever Together #58",
         "tags": [
           "love",
           "hi"
@@ -1964,7 +1964,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_59",
-        "label": "signal 535ecff7 8",
+        "label": "Forever Together #59",
         "tags": [
           "love",
           "haha"
@@ -1974,7 +1974,7 @@ export const STICKER_PACKS = [
       },
       {
         "id": "signal_forever_together_60",
-        "label": "signal 535ecff7 9",
+        "label": "Forever Together #60",
         "tags": [
           "love",
           "sad"

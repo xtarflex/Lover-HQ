@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, ListOrdered } from 'lucide-react';
 import { SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
@@ -61,9 +61,7 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
   const backdropSrc = artworkUrl || PLACEHOLDER_TEXTURE;
 
   // Dynamic CSS accent variable
-  const accentStyle = accentColor
-    ? { '--music-accent': accentColor }
-    : {};
+  const accentStyle = accentColor ? { '--music-accent': accentColor } : {};
 
   /** @param {number} index */
   const hasPrev = currentTrack && queue.findIndex((t) => t.id === currentTrack.id) > 0;
@@ -73,7 +71,10 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
   /** Navigates one track back or restarts if less than 3 s in. */
   const handleSkipBack = useCallback(() => {
     if (!currentTrack) return;
-    if (currentTime > 3) { seekLocalPlayback(0); return; }
+    if (currentTime > 3) {
+      seekLocalPlayback(0);
+      return;
+    }
     const idx = queue.findIndex((t) => t.id === currentTrack.id);
     if (idx > 0) playTrackById(queue[idx - 1].id, 0);
     else seekLocalPlayback(0);
@@ -273,10 +274,11 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
                   : 'linear-gradient(135deg, #F59E0B, #EC4899)',
               }}
             >
-              {isPlaying
-                ? <Pause size={24} className="fill-slate-950" />
-                : <Play size={24} className="fill-slate-950 ml-0.5" />
-              }
+              {isPlaying ? (
+                <Pause size={24} className="fill-slate-950" />
+              ) : (
+                <Play size={24} className="fill-slate-950 ml-0.5" />
+              )}
             </button>
 
             <button

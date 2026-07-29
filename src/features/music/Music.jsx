@@ -20,12 +20,14 @@ import CollectionManagementFace from './components/CollectionManagementFace';
  * @returns {React.ReactElement} The Music component.
  */
 export default function Music() {
-  const { library, isCardFlipped, setIsCardFlipped, saveQueueAsPlaylist, loadPlaylist } = useMusic();
+  const { library, isCardFlipped, setIsCardFlipped, loadPlaylist } =
+    useMusic();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [hasColdStarted, setHasColdStarted] = useState(false);
 
   // ── Cold Start: empty library → show Face 2 + open AddTrackModal ──────────
+  /* eslint-disable react-hooks/set-state-in-effect -- Cold start initial modal trigger */
   useEffect(() => {
     if (hasColdStarted) return;
     // Wait until library has been fetched (null = loading, [] = genuinely empty)
@@ -36,6 +38,7 @@ export default function Music() {
     }
     setHasColdStarted(true);
   }, [library, hasColdStarted, setIsCardFlipped]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /**
    * Toggles between Face 1 and Face 2.
@@ -82,10 +85,7 @@ export default function Music() {
       </div>
 
       {/* Add Track Modal — available on both faces */}
-      <AddTrackModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-      />
+      <AddTrackModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
     </div>
   );
 }

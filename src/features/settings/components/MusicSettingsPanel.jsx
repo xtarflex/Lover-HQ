@@ -82,16 +82,24 @@ export default function MusicSettingsPanel() {
                     : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
                 }`}
               >
-                <div className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${
-                  visualizerMode === id ? 'bg-primary/20 text-primary' : 'bg-slate-800 text-text-muted'
-                }`}>
+                <div
+                  className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${
+                    visualizerMode === id
+                      ? 'bg-primary/20 text-primary'
+                      : 'bg-slate-800 text-text-muted'
+                  }`}
+                >
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <p className={`text-xs font-bold ${visualizerMode === id ? 'text-text-main' : 'text-text-muted'}`}>
+                  <p
+                    className={`text-xs font-bold ${visualizerMode === id ? 'text-text-main' : 'text-text-muted'}`}
+                  >
                     {label}
                   </p>
-                  <p className="text-[10px] text-text-muted/70 mt-0.5 leading-relaxed">{description}</p>
+                  <p className="text-[10px] text-text-muted/70 mt-0.5 leading-relaxed">
+                    {description}
+                  </p>
                 </div>
                 {visualizerMode === id && (
                   <div className="ml-auto flex-shrink-0 w-4 h-4 rounded-full bg-primary mt-0.5 flex items-center justify-center">

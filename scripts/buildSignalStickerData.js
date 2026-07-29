@@ -1,7 +1,8 @@
+/* global process */
 /**
  * @file scripts/buildSignalStickerData.js
  * @description Dynamically reads public/stickers directory and generates stickerData.js
- * matching exact file names on disk with tags and coverUrl properties.
+ * matching exact file names on disk with tags, human-readable labels, and coverUrl properties.
  */
 
 import fs from 'fs';
@@ -85,7 +86,12 @@ function generateTags(label, packId, idx) {
   if (lower.includes('sad') || lower.includes('cry') || lower.includes('tear') || idx % 7 === 3) {
     tags.add('sad');
   }
-  if (lower.includes('wow') || lower.includes('surprise') || lower.includes('gift') || idx % 7 === 4) {
+  if (
+    lower.includes('wow') ||
+    lower.includes('surprise') ||
+    lower.includes('gift') ||
+    idx % 7 === 4
+  ) {
     tags.add('wow');
   }
   if (
@@ -115,13 +121,18 @@ function main() {
 
     const stickers = matchingFiles.map((file, idx) => {
       const isLottie = file.endsWith('.lottie');
-      const cleanLabel = file
-        .replace(/\.(lottie|webp|png)$/i, '')
-        .replace(/[-_.]/g, ' ')
-        .replace(/animation|emojisticker|sticker/gi, '')
-        .trim();
 
-      const label = cleanLabel || `${def.name} #${idx + 1}`;
+      // Human-friendly label logic
+      let label = `${def.name} #${idx + 1}`;
+      if (isLottie) {
+        const cleanLottieName = file
+          .replace(/\.lottie$/i, '')
+          .replace(/[-_.]/g, ' ')
+          .replace(/animation|emojisticker|sticker/gi, '')
+          .trim();
+        if (cleanLottieName) label = cleanLottieName;
+      }
+
       const tags = generateTags(label, def.id, idx);
 
       return {
@@ -134,7 +145,8 @@ function main() {
     });
 
     if (stickers.length > 0) {
-      const hasOfficialCover = def.coverFile && fs.existsSync(path.join(STICKERS_DIR, def.coverFile));
+      const hasOfficialCover =
+        def.coverFile && fs.existsSync(path.join(STICKERS_DIR, def.coverFile));
       packs.push({
         id: def.id,
         name: def.name,
@@ -175,13 +187,10 @@ export const STICKER_PACKS = ${JSON.stringify(packs, null, 2)};
 export default STICKER_PACKS;
 `;
 
-  const outputPath = path.resolve(
-    process.cwd(),
-    'src/features/fridge/components/stickerData.js'
-  );
+  const outputPath = path.resolve(process.cwd(), 'src/features/fridge/components/stickerData.js');
   fs.writeFileSync(outputPath, fileContent, 'utf8');
   console.log(
-    `✅ Dynamically generated stickerData.js with ${packs.length} active packs & tags (${allFiles.length} total stickers on disk)!`
+    `✅ Dynamically generated stickerData.js with ${packs.length} active packs, human-readable labels, and cover URLs!`
   );
 }
 

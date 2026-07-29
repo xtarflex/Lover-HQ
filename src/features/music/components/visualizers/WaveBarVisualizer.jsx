@@ -25,9 +25,15 @@ export default function WaveBarVisualizer({ analyserNode, isPlaying, activePlaye
   const analyserRef = useRef(analyserNode);
   const activePlayerRef = useRef(activePlayer);
 
-  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
-  useEffect(() => { analyserRef.current = analyserNode; }, [analyserNode]);
-  useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+  useEffect(() => {
+    analyserRef.current = analyserNode;
+  }, [analyserNode]);
+  useEffect(() => {
+    activePlayerRef.current = activePlayer;
+  }, [activePlayer]);
 
   /**
    * Draws a single animation frame of the bar visualizer.
@@ -126,11 +132,6 @@ export default function WaveBarVisualizer({ analyserNode, isPlaying, activePlaye
   }, [drawFrame]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-full opacity-85"
-      aria-hidden="true"
-      role="presentation"
-    />
+    <canvas ref={canvasRef} className="w-full opacity-85" aria-hidden="true" role="presentation" />
   );
 }

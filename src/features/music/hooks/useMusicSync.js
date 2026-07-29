@@ -120,7 +120,7 @@ export function useMusicSync({
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [user?.id, user?.partner_id, supabase]);
+  }, [user, supabase]);
 
   /**
    * Broadcast a play action to the partner.

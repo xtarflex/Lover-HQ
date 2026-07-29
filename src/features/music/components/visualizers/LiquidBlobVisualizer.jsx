@@ -33,17 +33,32 @@ function pseudoNoise(x, t) {
  * @param {string|null} [props.accentColor] - Dominant color extracted from album art.
  * @returns {React.ReactElement} The LiquidBlobVisualizer component.
  */
-export default function LiquidBlobVisualizer({ analyserNode, isPlaying, activePlayer, accentColor }) {
+export default function LiquidBlobVisualizer({
+  analyserNode,
+  isPlaying,
+  activePlayer,
+  accentColor,
+}) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const isPlayingRef = useRef(isPlaying);
   const analyserRef = useRef(analyserNode);
   const activePlayerRef = useRef(activePlayer);
-  const startTimeRef = useRef(Date.now());
+  const startTimeRef = useRef(null);
 
-  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
-  useEffect(() => { analyserRef.current = analyserNode; }, [analyserNode]);
-  useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
+  useEffect(() => {
+    if (!startTimeRef.current) startTimeRef.current = Date.now();
+  }, []);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+  useEffect(() => {
+    analyserRef.current = analyserNode;
+  }, [analyserNode]);
+  useEffect(() => {
+    activePlayerRef.current = activePlayer;
+  }, [activePlayer]);
 
   /**
    * Resolves the primary and secondary glow colors from the accent.
@@ -95,8 +110,10 @@ export default function LiquidBlobVisualizer({ analyserNode, isPlaying, activePl
       analyser.getByteFrequencyData(dataArray);
       const len = dataArray.length;
       for (let i = 0; i < Math.floor(len * 0.15); i++) bassEnergy += dataArray[i];
-      for (let i = Math.floor(len * 0.15); i < Math.floor(len * 0.5); i++) midEnergy += dataArray[i];
-      for (let i = Math.floor(len * 0.5); i < Math.floor(len * 0.8); i++) highEnergy += dataArray[i];
+      for (let i = Math.floor(len * 0.15); i < Math.floor(len * 0.5); i++)
+        midEnergy += dataArray[i];
+      for (let i = Math.floor(len * 0.5); i < Math.floor(len * 0.8); i++)
+        highEnergy += dataArray[i];
       bassEnergy = bassEnergy / (Math.floor(len * 0.15) * 255);
       midEnergy = midEnergy / (Math.floor(len * 0.35) * 255);
       highEnergy = highEnergy / (Math.floor(len * 0.3) * 255);
@@ -113,9 +130,9 @@ export default function LiquidBlobVisualizer({ analyserNode, isPlaying, activePl
 
     // Draw 3 layered blobs for depth
     const layers = [
-      { scale: 1.0,  alpha: 0.75, color: colors.primary,   noiseFreq: 1.0, timeScale: 1.0 },
-      { scale: 0.82, alpha: 0.55, color: colors.secondary,  noiseFreq: 1.4, timeScale: 1.3 },
-      { scale: 0.65, alpha: 0.45, color: colors.tertiary,   noiseFreq: 1.9, timeScale: 0.7 },
+      { scale: 1.0, alpha: 0.75, color: colors.primary, noiseFreq: 1.0, timeScale: 1.0 },
+      { scale: 0.82, alpha: 0.55, color: colors.secondary, noiseFreq: 1.4, timeScale: 1.3 },
+      { scale: 0.65, alpha: 0.45, color: colors.tertiary, noiseFreq: 1.9, timeScale: 0.7 },
     ];
 
     for (const layer of layers) {
@@ -127,9 +144,7 @@ export default function LiquidBlobVisualizer({ analyserNode, isPlaying, activePl
       for (let i = 0; i <= numPoints; i++) {
         const angle = (i / numPoints) * Math.PI * 2;
         const noiseVal = pseudoNoise(angle * layer.noiseFreq, t * layer.timeScale);
-        const deform = prefersReduced
-          ? 0
-          : energyFactor * 0.65 * noiseVal * baseRadius;
+        const deform = prefersReduced ? 0 : energyFactor * 0.65 * noiseVal * baseRadius;
         const r = baseRadius * layer.scale + deform;
         const x = cx + r * Math.cos(angle);
         const y = cy + r * Math.sin(angle);
@@ -198,11 +213,6 @@ export default function LiquidBlobVisualizer({ analyserNode, isPlaying, activePl
   }, [drawFrame]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="liquid-blob-canvas"
-      aria-hidden="true"
-      role="presentation"
-    />
+    <canvas ref={canvasRef} className="liquid-blob-canvas" aria-hidden="true" role="presentation" />
   );
 }

@@ -159,7 +159,7 @@ function purgeCorruptedFiles() {
 
 async function fetchAndProcessPack(pack) {
   console.log(`\n📦 Fetching Signal Pack & Official Cover: "${pack.name}" (${pack.id})...`);
-  
+
   // 1. Fetch official pack cover image
   const coverUrl = `https://cdn.signal.org/stickers/${pack.id}/full/cover`;
   const encryptedCover = await httpGet(coverUrl);
@@ -196,7 +196,9 @@ async function fetchAndProcessPack(pack) {
     }
   }
 
-  console.log(`  ✅ Successfully extracted ${downloadedFiles.length} valid stickers for "${pack.name}".`);
+  console.log(
+    `  ✅ Successfully extracted ${downloadedFiles.length} valid stickers for "${pack.name}".`
+  );
   return downloadedFiles;
 }
 
