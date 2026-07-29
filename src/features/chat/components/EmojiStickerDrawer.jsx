@@ -956,11 +956,17 @@ export function EmojiStickerDrawer({
                     >
                       {/* Pack Section Header */}
                       <div className="flex items-center space-x-2 text-xs font-bold text-slate-300 sticky top-0 bg-slate-900/90 py-1 backdrop-blur-md z-10 border-b border-slate-800/50">
-                        {pack.coverUrl ? (
+                        {pack.coverUrl && !pack.coverUrl.toLowerCase().endsWith('.lottie') ? (
                           <img
                             src={pack.coverUrl}
                             alt={pack.name}
                             className="w-4 h-4 object-contain rounded"
+                          />
+                        ) : pack.coverUrl ? (
+                          <StickerPlayer
+                            src={pack.coverUrl}
+                            alt={pack.name}
+                            className="w-4 h-4 object-contain pointer-events-none"
                           />
                         ) : (
                           <span>{pack.icon}</span>
