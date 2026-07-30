@@ -152,9 +152,21 @@ export default function LiquidBlobVisualizer({
 
       // Radial gradient fill
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseRadius * layer.scale);
-      grad.addColorStop(0, layer.color + 'cc');
-      grad.addColorStop(0.6, layer.color + '66');
-      grad.addColorStop(1, layer.color + '00');
+      const colorStr = layer.color;
+      const formatRgba = (c, alpha) => {
+        if (c.startsWith('rgb(')) return c.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
+        if (c.startsWith('#')) {
+          const hex = c.replace('#', '');
+          const r = parseInt(hex.substring(0, 2), 16) || 236;
+          const g = parseInt(hex.substring(2, 4), 16) || 72;
+          const b = parseInt(hex.substring(4, 6), 16) || 153;
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        return c;
+      };
+      grad.addColorStop(0, formatRgba(colorStr, 0.8));
+      grad.addColorStop(0.6, formatRgba(colorStr, 0.4));
+      grad.addColorStop(1, formatRgba(colorStr, 0));
       ctx.fillStyle = grad;
       ctx.fill();
       ctx.restore();

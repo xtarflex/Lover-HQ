@@ -13,6 +13,8 @@ import CollectionManagementFace from './components/CollectionManagementFace';
  * shows Face 2 and opens the AddTrackModal when the library is empty.
  */
 
+import FlipPillToggle from './components/FlipPillToggle';
+
 /**
  * Music component — the root of the Music Room feature.
  * Mounts the 3D card rotator with perspective, delegates face rendering to
@@ -21,8 +23,14 @@ import CollectionManagementFace from './components/CollectionManagementFace';
  * @returns {React.ReactElement} The Music component.
  */
 export default function Music() {
-  const { library, isCardFlipped, setIsCardFlipped, saveQueueAsPlaylist, loadPlaylist } =
-    useMusic();
+  const {
+    library,
+    isCardFlipped,
+    setIsCardFlipped,
+    saveQueueAsPlaylist,
+    loadPlaylist,
+    accentColor,
+  } = useMusic();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [hasColdStarted, setHasColdStarted] = useState(false);
@@ -65,19 +73,21 @@ export default function Music() {
 
   return (
     <div className="music-3d-viewport" aria-label="Music Room">
+      {/* ── Persistent Viewport-Level Flip Pill Toggle ───────────────────────── */}
+      <div className="absolute top-4 right-5 z-30 pointer-events-auto">
+        <FlipPillToggle isFlipped={isCardFlipped} onFlip={handleFlip} accentColor={accentColor} />
+      </div>
+
       <div className={`music-card-rotator ${isCardFlipped ? 'is-flipped' : ''}`}>
         {/* ── Face 1: Now Playing ─────────────────────────────────────────── */}
         <NowPlayingFace
           isFlipped={isCardFlipped}
-          onFlip={handleFlip}
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onSaveAsPlaylist={handleSaveAsPlaylist}
         />
 
         {/* ── Face 2: Collection Management ──────────────────────────────── */}
         <CollectionManagementFace
-          isFlipped={isCardFlipped}
-          onFlip={handleFlip}
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onLoadPlaylist={handleLoadPlaylist}
         />
