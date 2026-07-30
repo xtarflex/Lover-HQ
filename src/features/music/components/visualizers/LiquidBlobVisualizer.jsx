@@ -45,7 +45,7 @@ export default function LiquidBlobVisualizer({
   const isPlayingRef = useRef(isPlaying);
   const analyserRef = useRef(analyserNode);
   const activePlayerRef = useRef(activePlayer);
-  const startTimeRef = useRef(Date.now());
+  const startTimeRef = useRef(null);
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
@@ -87,7 +87,7 @@ export default function LiquidBlobVisualizer({
     const { width, height } = canvas;
     const cx = width / 2;
     const cy = height / 2;
-    const t = (Date.now() - startTimeRef.current) / 1000;
+    const t = (Date.now() - (startTimeRef.current ?? Date.now())) / 1000;
 
     ctx.clearRect(0, 0, width, height);
 
@@ -178,6 +178,9 @@ export default function LiquidBlobVisualizer({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Initialize start time on mount
+    startTimeRef.current = Date.now();
 
     const observer = new ResizeObserver(([entry]) => {
       canvas.width = entry.contentRect.width;
