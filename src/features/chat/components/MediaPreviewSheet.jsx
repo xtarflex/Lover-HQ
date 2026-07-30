@@ -94,6 +94,7 @@ export function MediaPreviewSheet({
                     onClick={handleToggleMuteActive}
                     className="w-10 h-10 rounded-full bg-slate-900/60 hover:bg-slate-800 text-white flex items-center justify-center transition-colors"
                     title={activeItem.isMuted ? 'Unmute video' : 'Mute video'}
+                    aria-label={activeItem.isMuted ? 'Unmute video' : 'Mute video'}
                   >
                     {activeItem.isMuted ? (
                       <VolumeX className="w-5 h-5 text-rose-500" />
@@ -110,6 +111,7 @@ export function MediaPreviewSheet({
                     onClick={handleStartCropping}
                     className="w-10 h-10 rounded-full bg-slate-900/60 hover:bg-slate-800 text-white flex items-center justify-center transition-colors"
                     title="Crop image"
+                    aria-label="Crop image"
                   >
                     <Crop className="w-5 h-5" />
                   </button>
@@ -117,6 +119,7 @@ export function MediaPreviewSheet({
                     onClick={handleRotateActive}
                     className="w-10 h-10 rounded-full bg-slate-900/60 hover:bg-slate-800 text-white flex items-center justify-center transition-colors"
                     title="Rotate image"
+                    aria-label="Rotate image"
                   >
                     <RotateCw className="w-5 h-5" />
                   </button>
@@ -124,6 +127,7 @@ export function MediaPreviewSheet({
                     onClick={handleFlipActive}
                     className="w-10 h-10 rounded-full bg-slate-900/60 hover:bg-slate-800 text-white flex items-center justify-center transition-colors"
                     title="Flip image"
+                    aria-label="Flip image"
                   >
                     <Sparkles className="w-5 h-5" />
                   </button>
@@ -288,6 +292,7 @@ export function MediaPreviewSheet({
                     onClick={handleRotateActive}
                     className="w-11 h-11 rounded-full bg-slate-900 hover:bg-slate-850 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 border border-slate-800"
                     title="Rotate 90°"
+                    aria-label="Rotate 90°"
                   >
                     <RotateCw className="w-5 h-5" />
                   </button>
