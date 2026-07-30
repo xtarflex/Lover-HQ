@@ -6,10 +6,10 @@
 
 import React from 'react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { Sliders, Radio, Disc, Waves } from 'lucide-react';
+import { Sliders, Radio, Disc, Waves, CircleDot } from 'lucide-react';
 
 /**
- * @typedef {'liquid'|'wave'|'vinyl'} VisualizerMode
+ * @typedef {'liquid'|'wave'|'vinyl'|'ring'} VisualizerMode
  */
 
 /** @type {Array<{id: VisualizerMode, label: string, description: string, icon: React.ComponentType}>} */
@@ -19,6 +19,12 @@ const VISUALIZER_OPTIONS = [
     label: 'Liquid Blob',
     description: 'Organic, Siri-style morphing orb driven by frequency data.',
     icon: Radio,
+  },
+  {
+    id: 'ring',
+    label: 'Circular Ring',
+    description: 'Radiating frequency bars surrounding album artwork.',
+    icon: CircleDot,
   },
   {
     id: 'wave',

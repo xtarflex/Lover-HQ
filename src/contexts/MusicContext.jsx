@@ -39,7 +39,7 @@ export function MusicProvider({ children }) {
   });
 
   // ─── New UI State (Issue #61) ──────────────────────────────────────────────
-  /** @type {'liquid'|'wave'|'vinyl'} */
+  /** @type {'liquid'|'wave'|'vinyl'|'ring'} */
   const [visualizerMode, setVisualizerModeState] = useState(() => {
     if (typeof window === 'undefined') return 'liquid';
     return localStorage.getItem('music_visualizer_mode') || 'liquid';
