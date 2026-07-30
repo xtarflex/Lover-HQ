@@ -4,7 +4,7 @@
  * Extracted verbatim from Chat.jsx.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   Smile,
   Reply,
@@ -83,25 +83,28 @@ export function MessageList({
 }) {
   const partnerLastSeen = partnerLastSeenProp || partner?.last_seen;
 
-  const renderReadStatus = (msg) => {
-    if (!msg) return null;
-    const isRead =
-      presence?.partnerRoom === 'Chat Room' ||
-      (partnerLastSeen &&
-        msg.created_at &&
-        new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+  const renderReadStatus = useCallback(
+    (msg) => {
+      if (!msg) return null;
+      const isRead =
+        presence?.partnerRoom === 'Chat Room' ||
+        (partnerLastSeen &&
+          msg.created_at &&
+          Date.parse(msg.created_at) <= Date.parse(partnerLastSeen));
 
-    if (isRead) {
-      return <CheckCheck className="w-3 h-3 text-emerald-500" />;
-    }
+      if (isRead) {
+        return <CheckCheck className="w-3 h-3 text-emerald-500" />;
+      }
 
-    const isDelivered = presence?.partner === 'online' || !msg.pending;
-    if (isDelivered) {
-      return <CheckCheck className="w-3 h-3 text-gray-400" />;
-    }
+      const isDelivered = presence?.partner === 'online' || !msg.pending;
+      if (isDelivered) {
+        return <CheckCheck className="w-3 h-3 text-gray-400" />;
+      }
 
-    return <Check className="w-3 h-3 text-gray-400" />;
-  };
+      return <Check className="w-3 h-3 text-gray-400" />;
+    },
+    [presence?.partnerRoom, presence?.partner, partnerLastSeen]
+  );
 
   const content = useMemo(
     () =>
@@ -988,8 +991,6 @@ export function MessageList({
       groupedMessages,
       userId,
       partner,
-      presence?.partner,
-      presence?.partnerRoom,
       editingMessage?.id,
       editText,
       handleReferenceClick,
@@ -1016,6 +1017,7 @@ export function MessageList({
       setReplyMessage,
       setSelectedMessageIds,
       setIsSelectionMode,
+      renderReadStatus,
     ]
   );
 
