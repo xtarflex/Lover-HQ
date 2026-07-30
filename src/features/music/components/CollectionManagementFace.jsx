@@ -181,8 +181,8 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                       Your library is empty
                     </p>
                     <p className="text-xs text-white/25 max-w-[200px]">
-                      Add tracks using the button above &mdash; they&apos;re saved here permanently for
-                      both of you.
+                      Add tracks using the button above &mdash; they&apos;re saved here permanently
+                      for both of you.
                     </p>
                   </div>
                 ) : (
