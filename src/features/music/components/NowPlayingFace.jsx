@@ -113,6 +113,9 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
       {/* ── Top Dark Contrast Overlay ──────────────────────────────────────── */}
       <div className="top-dark-overlay" aria-hidden="true" />
 
+      {/* ── Glassmorphic Masked Blur Gradient Overlay ───────────────────────── */}
+      <div className="blur-gradient-overlay" id="blur-gradient-overlay" aria-hidden="true" />
+
       {/* ── Top Controls Bar ──────────────────────────────────────────────── */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-20">
         <button
@@ -227,28 +230,37 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
             <span>{formatTime(scrubValue !== null ? scrubValue : currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={duration || 100}
-            value={scrubValue !== null ? scrubValue : currentTime || 0}
-            disabled={!currentTrack}
-            onChange={(e) => setScrubValue(parseFloat(e.target.value))}
-            onMouseUp={handleScrubRelease}
-            onTouchEnd={handleScrubRelease}
-            onKeyUp={(e) => {
-              if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-                handleScrubRelease();
-              }
-            }}
-            aria-label="Playback progress"
-            aria-valuemin={0}
-            aria-valuemax={duration}
-            aria-valuenow={Math.floor(scrubValue ?? currentTime)}
-            aria-valuetext={`${formatTime(scrubValue ?? currentTime)} of ${formatTime(duration)}`}
-            className="w-full h-1 rounded-full appearance-none cursor-pointer accent-tinted focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-            style={{ accentColor: accentColor || '#F59E0B' }}
-          />
+          {(() => {
+            const currentScrub = scrubValue !== null ? scrubValue : currentTime || 0;
+            const progressPercent =
+              duration > 0 ? Math.min(100, Math.max(0, (currentScrub / duration) * 100)) : 0;
+            return (
+              <input
+                type="range"
+                min={0}
+                max={duration || 100}
+                value={currentScrub}
+                disabled={!currentTrack}
+                onChange={(e) => setScrubValue(parseFloat(e.target.value))}
+                onMouseUp={handleScrubRelease}
+                onTouchEnd={handleScrubRelease}
+                onKeyUp={(e) => {
+                  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+                    handleScrubRelease();
+                  }
+                }}
+                aria-label="Playback progress"
+                aria-valuemin={0}
+                aria-valuemax={duration}
+                aria-valuenow={Math.floor(currentScrub)}
+                aria-valuetext={`${formatTime(currentScrub)} of ${formatTime(duration)}`}
+                className="music-scrubber-range focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                style={{
+                  background: `linear-gradient(to right, var(--music-accent, ${accentColor || '#ec4899'}) ${progressPercent}%, rgba(255, 255, 255, 0.2) ${progressPercent}%)`,
+                }}
+              />
+            );
+          })()}
         </div>
 
         {/* Playback controls row */}

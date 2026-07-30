@@ -109,7 +109,8 @@ function MainLayout() {
   const isFridgeRoute = location.pathname === '/fridge';
   const isGamesRoute = location.pathname === '/games';
   const isChatRoute = location.pathname === '/chat';
-  const isFullHeight = isFridgeRoute || isGamesRoute || isChatRoute;
+  const isMusicRoute = location.pathname === '/music';
+  const isFullHeight = isFridgeRoute || isGamesRoute || isChatRoute || isMusicRoute;
 
   // Hide global navigation and mini player inside active games or on the chat screen
   const showGlobalNav = !activeGameId && !isChatRoute;
