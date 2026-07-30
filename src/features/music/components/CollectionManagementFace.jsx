@@ -1,18 +1,7 @@
-/* eslint-disable no-unused-vars, react/no-unescaped-entities */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Plus,
-  Library,
-  BookOpen,
-  Music,
-  Trash2,
-  BookmarkPlus,
-  CheckCircle2,
-  Play,
-} from 'lucide-react';
+import { Plus, Library, BookOpen, Music, Trash2, BookmarkPlus, Play } from 'lucide-react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { useAppContext } from '../../../contexts/AppContext';
 import { getTrackArtwork } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
@@ -45,7 +34,6 @@ const tabVariants = {
  * @returns {React.ReactElement} The CollectionManagementFace component.
  */
 export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddModal }) {
-  const { user } = useAppContext();
   const {
     library,
     queue,
@@ -193,8 +181,8 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                       Your library is empty
                     </p>
                     <p className="text-xs text-white/25 max-w-[200px]">
-                      Add tracks using the button above — they're saved here permanently for both of
-                      you.
+                      Add tracks using the button above &mdash; they&apos;re saved here permanently
+                      for both of you.
                     </p>
                   </div>
                 ) : (

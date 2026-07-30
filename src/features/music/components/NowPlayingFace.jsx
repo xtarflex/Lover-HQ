@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, ListOrdered } from 'lucide-react';
@@ -96,9 +95,9 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
     }
   }, [scrubValue, seekLocalPlayback]);
 
-  // Close queue panel when flipping
+  // Close queue panel when flipping — driven by isFlipped prop, valid side effect.
   useEffect(() => {
-    if (isFlipped) setIsQueueOpen(false);
+    if (isFlipped) setIsQueueOpen(false); // eslint-disable-line react-hooks/set-state-in-effect
   }, [isFlipped]);
 
   return (

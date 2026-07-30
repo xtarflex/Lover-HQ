@@ -162,7 +162,7 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragLeave={() => setDragOverIndex(null)}
-                    onDrop={(e) => handleDrop(e, targetIndex)}
+                    onDrop={(e) => handleDrop(e, index)}
                     onClick={() => playTrackById(track.id, 0)}
                     role="button"
                     tabIndex={0}
