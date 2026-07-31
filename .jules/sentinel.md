@@ -16,3 +16,8 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+
+## 2025-02-27 - Cross-Site Scripting (XSS) via `href` attribute
+**Vulnerability:** A user-supplied URL (`msg.media_url`) was directly rendered in the `href` attribute of an anchor tag without protocol validation.
+**Learning:** React escapes HTML attributes to prevent basic XSS, but it does NOT sanitize the URI protocol. An attacker could provide a malicious URL starting with `javascript:` which would execute arbitrary JavaScript code when a user clicks the link.
+**Prevention:** Always parse and validate user-supplied URLs against an allowlist of safe protocols (e.g., `http:`, `https:`) before rendering them in `href` or `src` attributes. Use `new URL(url, window.location.origin)` to safely handle relative paths during validation.
