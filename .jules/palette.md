@@ -1,0 +1,3 @@
+## 2024-05-18 - ARIA Listbox Semantics for Custom Dropdowns
+**Learning:** Custom UI select/dropdown components implemented with `div` and `button` elements instead of native `<select>` elements require explicit ARIA semantics (`role="listbox"`, `role="option"`, `aria-selected`, `aria-haspopup`, and `aria-expanded`) to be comprehensible to screen readers, especially when integrated into complex toolbars or settings panels.
+**Action:** Always map standard ARIA attributes (`role`, `aria-selected`, `aria-expanded`, `aria-haspopup`) explicitly when building or enhancing custom interactive components (like GlassDropdown) instead of relying on default `div`/`button` behaviour.

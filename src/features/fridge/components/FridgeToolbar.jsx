@@ -112,6 +112,7 @@ export default function FridgeToolbar({
                   onChange={setCleanThreshold}
                   size="sm"
                   align="right"
+                  ariaLabel="Select clean threshold"
                 />
               </div>
             )}

@@ -22,6 +22,7 @@ import { ChevronDown, Check } from 'lucide-react';
  * @param {string} [props.optionClassName] - Additional custom styles for each option button.
  * @param {string} [props.size="md"] - Preset sizes: "sm" (fridge toolbar) or "md" (settings).
  * @param {string} [props.align="left"] - Panel alignment: "left" or "right".
+ * @param {string} [props.ariaLabel] - Explicit aria-label for the dropdown button.
  * @returns {React.ReactElement} The GlassDropdown react component.
  */
 export default function GlassDropdown({
@@ -33,6 +34,7 @@ export default function GlassDropdown({
   optionClassName = '',
   size = 'md',
   align = 'left',
+  ariaLabel,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef(null);
@@ -177,6 +179,7 @@ export default function GlassDropdown({
   const dropdownMenu = (
     <div
       ref={panelRef}
+      role="listbox"
       onClick={(e) => e.stopPropagation()}
       className={`bg-slate-900/95 dark:bg-slate-950/95 border border-white/10 dark:border-slate-800 backdrop-blur-xl overflow-hidden space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xl ${sizeStyles.panel} ${panelClassName}`}
       style={getPanelStyle()}
@@ -187,6 +190,8 @@ export default function GlassDropdown({
           <button
             key={opt.value}
             type="button"
+            role="option"
+            aria-selected={isSelected}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -213,6 +218,9 @@ export default function GlassDropdown({
         ref={buttonRef}
         type="button"
         style={{ anchorName }}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={ariaLabel}
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(!isOpen);
