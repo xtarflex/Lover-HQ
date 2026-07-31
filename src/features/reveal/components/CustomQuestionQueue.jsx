@@ -100,6 +100,7 @@ export default function CustomQuestionQueue({
             </label>
             <GlassDropdown
               value={newQuestionCategory}
+              ariaLabel="Select new question category"
               options={[
                 { value: 'general', label: 'General' },
                 { value: 'romance', label: 'Romance' },
@@ -180,6 +181,7 @@ export default function CustomQuestionQueue({
                       <div className="flex items-center justify-between gap-2">
                         <GlassDropdown
                           value={editCategory}
+                          ariaLabel="Select question category to edit"
                           options={[
                             { value: 'general', label: 'General' },
                             { value: 'romance', label: 'Romance' },

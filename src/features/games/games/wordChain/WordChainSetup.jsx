@@ -175,6 +175,7 @@ export default function WordChainSetup({
               {iGoFirst ? (
                 <GlassDropdown
                   value={settings.minLength}
+                  ariaLabel="Select minimum word length"
                   onChange={(val) => handleSettingChange({ ...settings, minLength: val })}
                   options={MIN_LENGTH_OPTIONS}
                   size="sm"
@@ -193,6 +194,7 @@ export default function WordChainSetup({
               {iGoFirst ? (
                 <GlassDropdown
                   value={settings.maxLength}
+                  ariaLabel="Select maximum word length"
                   onChange={(val) => handleSettingChange({ ...settings, maxLength: val })}
                   options={MAX_LENGTH_OPTIONS}
                   size="sm"

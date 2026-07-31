@@ -114,6 +114,7 @@ export default function RevealSettingsPanel({
           <div className="max-w-xs">
             <GlassDropdown
               value={customQuestionFreq}
+              ariaLabel="Custom Question Frequency"
               options={[
                 { value: '0', label: 'Never (0%)' },
                 { value: '10', label: 'Rarely (10%)' },
