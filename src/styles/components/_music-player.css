@@ -159,10 +159,15 @@
   width: 64px;
   height: 32px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--music-accent, #ec4899) 15%, rgba(255, 255, 255, 0.12));
+  background: color-mix(
+    in srgb,
+    var(--music-accent, rgb(var(--primary))) 15%,
+    rgba(255, 255, 255, 0.12)
+  );
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid color-mix(in srgb, var(--music-accent, #ec4899) 25%, rgba(255, 255, 255, 0.18));
+  border: 1px solid
+    color-mix(in srgb, var(--music-accent, rgb(var(--primary))) 25%, rgba(255, 255, 255, 0.18));
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   padding: 2px;
@@ -178,9 +183,17 @@
 }
 
 .flip-pill-track:hover {
-  background: color-mix(in srgb, var(--music-accent, #ec4899) 25%, rgba(255, 255, 255, 0.18));
-  border-color: color-mix(in srgb, var(--music-accent, #ec4899) 35%, rgba(255, 255, 255, 0.3));
-  box-shadow: 0 0 20px var(--music-accent, rgba(236, 72, 153, 0.4));
+  background: color-mix(
+    in srgb,
+    var(--music-accent, rgb(var(--primary))) 25%,
+    rgba(255, 255, 255, 0.18)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--music-accent, rgb(var(--primary))) 35%,
+    rgba(255, 255, 255, 0.3)
+  );
+  box-shadow: 0 0 20px var(--music-accent, rgba(var(--primary), 0.4));
 }
 
 .flip-pill-track:active {
@@ -191,7 +204,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--music-accent, #ec4899);
+  background: var(--music-accent, rgb(var(--primary)));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,14 +218,36 @@
   transform: translateX(32px);
 }
 
-/* ─── Liquid Blob Visualizer Canvas ─────────────────────────────────────── */
+/* ─── Liquid Blob Visualizer Container & Feathered Squircle Mask ─────────── */
+.liquid-blob-container {
+  position: relative;
+  width: min(85vw, 360px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  margin: clamp(2rem, 8vh, 5rem) auto 0px auto;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+
+  /* Precise squircle SVG path mask */
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M 0 50 C 0 5.8 5.8 0 50 0 S 100 5.8 100 50 S 94.2 100 50 100 S 0 94.2 0 50' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M 0 50 C 0 5.8 5.8 0 50 0 S 100 5.8 100 50 S 94.2 100 50 100 S 0 94.2 0 50' fill='black'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center center;
+  -webkit-mask-position: center center;
+  border-radius: 0px;
+}
+
 .liquid-blob-canvas {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   mix-blend-mode: screen;
-  opacity: 0.9;
+  opacity: 0.95;
   pointer-events: none;
 }
 
@@ -237,7 +272,7 @@
   background: #ffffff;
   box-shadow:
     0 0 10px rgba(0, 0, 0, 0.5),
-    0 0 12px var(--music-accent, #ec4899);
+    0 0 12px var(--music-accent, rgb(var(--primary)));
   cursor: pointer;
   transition: transform 0.15s ease;
 }

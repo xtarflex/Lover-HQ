@@ -91,6 +91,7 @@ export default function CircularRingVisualizer({ accentColor }) {
    * Main animation loop — draws frequency ring bars around the artwork circle.
    */
   const drawFrame = useCallback(() => {
+    if (document.hidden) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 

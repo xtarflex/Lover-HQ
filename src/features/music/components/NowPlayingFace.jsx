@@ -8,7 +8,7 @@ import { useMusic } from '../../../contexts/MusicContext';
 import { formatTime } from '../lib/musicEngine';
 import { getTrackArtwork } from '../lib/musicUtils';
 import FloatingQueuePanel from './FloatingQueuePanel';
-import LiquidBlobVisualizer from './visualizers/LiquidBlobVisualizer';
+import FluidVisualizer from './visualizers/FluidVisualizer';
 import WaveBarVisualizer from './visualizers/WaveBarVisualizer';
 import VinylDiscVisualizer from './visualizers/VinylDiscVisualizer';
 import CircularRingVisualizer from './visualizers/CircularRingVisualizer';
@@ -46,6 +46,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
     activePlayer,
     accentColor,
     visualizerMode,
+    fallbackBackdrop,
     pauseLocalPlayback,
     resumeLocalPlayback,
     seekLocalPlayback,
@@ -58,7 +59,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
   const [scrubValue, setScrubValue] = useState(null);
 
   const artworkUrl = currentTrack ? getTrackArtwork(currentTrack) : null;
-  const backdropSrc = artworkUrl || PLACEHOLDER_TEXTURE;
+  const backdropSrc = artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png';
 
   // Dynamic CSS accent variable
   const accentStyle = accentColor ? { '--music-accent': accentColor } : {};
@@ -129,9 +130,9 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
           aria-label="Music settings"
           className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(0,0,0,0.35)] hover:border-white/30 active:scale-95 transition-all pointer-events-auto cursor-pointer"
           style={{
-            backgroundColor: `color-mix(in srgb, ${accentColor || '#ec4899'} 15%, rgba(255, 255, 255, 0.12))`,
-            borderColor: `color-mix(in srgb, ${accentColor || '#ec4899'} 25%, rgba(255, 255, 255, 0.18))`,
-            color: `color-mix(in srgb, ${accentColor || '#ec4899'} 30%, #ffffff)`,
+            backgroundColor: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 15%, rgba(255, 255, 255, 0.12))`,
+            borderColor: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 25%, rgba(255, 255, 255, 0.18))`,
+            color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
           }}
         >
           <Settings className="w-4 h-4 drop-shadow-sm" />
@@ -139,7 +140,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
       </div>
 
       {/* ── Visualizer Centerpiece ─────────────────────────────────────────── */}
-      <div className="absolute inset-0 flex items-center justify-center z-10 pt-16 pb-40">
+      <div className="absolute inset-0 flex items-center justify-center z-10 pt-12 pb-48">
         <AnimatePresence mode="wait">
           {visualizerMode === 'vinyl' ? (
             <motion.div
@@ -203,7 +204,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <LiquidBlobVisualizer
+              <FluidVisualizer
                 analyserNode={analyserNode}
                 isPlaying={isPlaying}
                 activePlayer={activePlayer}
@@ -267,7 +268,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
                 aria-valuetext={`${formatTime(currentScrub)} of ${formatTime(duration)}`}
                 className="music-scrubber-range focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 style={{
-                  background: `linear-gradient(to right, var(--music-accent, ${accentColor || '#ec4899'}) ${progressPercent}%, rgba(255, 255, 255, 0.25) ${progressPercent}%)`,
+                  background: `linear-gradient(to right, var(--music-accent, ${accentColor || 'rgb(var(--primary))'}) ${progressPercent}%, rgba(255, 255, 255, 0.25) ${progressPercent}%)`,
                 }}
               />
             );
@@ -287,7 +288,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
               className="hover:scale-110 active:scale-95 transition-all flex-shrink-0 drop-shadow-md"
               style={{
-                color: `color-mix(in srgb, ${accentColor || '#ec4899'} 30%, #ffffff)`,
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
               }}
             >
               {volume === 0 ? (
@@ -306,7 +307,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
               aria-label="Previous or restart"
               className="w-10 h-10 flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-40 transition-all drop-shadow-md"
               style={{
-                color: `color-mix(in srgb, ${accentColor || '#ec4899'} 30%, #ffffff)`,
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
               }}
             >
               <SkipBack className="w-6 h-6 drop-shadow-md" />
@@ -319,12 +320,12 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
               className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
               style={{
                 background: accentColor
-                  ? `linear-gradient(135deg, ${accentColor}, color-mix(in oklch, ${accentColor} 60%, #ec4899))`
-                  : 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+                  ? `linear-gradient(135deg, ${accentColor}, color-mix(in oklch, ${accentColor} 60%, rgb(var(--primary))))`
+                  : 'linear-gradient(135deg, rgb(var(--primary)), #8b5cf6)',
                 boxShadow: `0 8px 28px ${
                   accentColor
                     ? accentColor.replace('rgb', 'rgba').replace(')', ', 0.45)')
-                    : 'rgba(236, 72, 153, 0.45)'
+                    : 'rgba(var(--primary), 0.45)'
                 }`,
               }}
             >
@@ -341,7 +342,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
               aria-label="Next track"
               className="w-10 h-10 flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-40 transition-all drop-shadow-md"
               style={{
-                color: `color-mix(in srgb, ${accentColor || '#ec4899'} 30%, #ffffff)`,
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
               }}
             >
               <SkipForward className="w-6 h-6 drop-shadow-md" />
@@ -360,7 +361,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
                   : 'bg-white/12 border-white/20 hover:bg-white/25'
               }`}
               style={{
-                color: `color-mix(in srgb, ${accentColor || '#ec4899'} 30%, #ffffff)`,
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
               }}
             >
               <ListOrdered className="w-5 h-5 drop-shadow-md" />
