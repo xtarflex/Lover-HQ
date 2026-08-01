@@ -7,9 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { formatTime } from '../lib/musicEngine';
 import { getTrackArtwork } from '../lib/musicUtils';
-import FlipPillToggle from './FlipPillToggle';
 import FloatingQueuePanel from './FloatingQueuePanel';
-import LiquidBlobVisualizer from './visualizers/LiquidBlobVisualizer';
+import FluidVisualizer from './visualizers/FluidVisualizer';
 import WaveBarVisualizer from './visualizers/WaveBarVisualizer';
 import VinylDiscVisualizer from './visualizers/VinylDiscVisualizer';
 import CircularRingVisualizer from './visualizers/CircularRingVisualizer';
@@ -35,7 +34,7 @@ const PLACEHOLDER_TEXTURE =
  * @param {Function} props.onSaveAsPlaylist - Triggers save queue as playlist.
  * @returns {React.ReactElement} The NowPlayingFace component.
  */
-export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSaveAsPlaylist }) {
+export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlaylist }) {
   const navigate = useNavigate();
   const {
     currentTrack,
@@ -47,6 +46,7 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
     activePlayer,
     accentColor,
     visualizerMode,
+    fallbackBackdrop,
     pauseLocalPlayback,
     resumeLocalPlayback,
     seekLocalPlayback,
@@ -59,7 +59,7 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
   const [scrubValue, setScrubValue] = useState(null);
 
   const artworkUrl = currentTrack ? getTrackArtwork(currentTrack) : null;
-  const backdropSrc = artworkUrl || PLACEHOLDER_TEXTURE;
+  const backdropSrc = artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png';
 
   // Dynamic CSS accent variable
   const accentStyle = accentColor ? { '--music-accent': accentColor } : {};
@@ -101,36 +101,46 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
     if (isFlipped) setIsQueueOpen(false); // eslint-disable-line react-hooks/set-state-in-effect
   }, [isFlipped]);
 
+  const isYoutube = currentTrack?.source === 'youtube';
+
   return (
     <div className="face-now-playing" style={accentStyle}>
-      {/* ── Ambient Blurred Backdrop ───────────────────────────────────────── */}
+      {/* ── Layer A: Sharp Ambient Backdrop (Scale 1.33x) ───────────────────── */}
       <div
-        className="ambient-blur-backdrop"
+        className={`ambient-blur-backdrop ${isYoutube ? 'is-youtube' : ''}`}
         style={{ backgroundImage: `url("${backdropSrc}")` }}
         aria-hidden="true"
       />
 
-      {/* ── Top Dark Contrast Overlay ──────────────────────────────────────── */}
+      {/* ── Step 1: Dark Gradient Overlay (75% height coverage) ─────────────── */}
       <div className="top-dark-overlay" aria-hidden="true" />
 
-      {/* ── Glassmorphic Masked Blur Gradient Overlay ───────────────────────── */}
-      <div className="blur-gradient-overlay" id="blur-gradient-overlay" aria-hidden="true" />
+      {/* ── Layer B: Dual-Layer Blur Overlay (Scale 1.4x + filter: blur(62px)) ── */}
+      <div
+        className="blur-gradient-overlay"
+        id="blur-gradient-overlay"
+        style={{ backgroundImage: `url("${backdropSrc}")` }}
+        aria-hidden="true"
+      />
 
       {/* ── Top Controls Bar ──────────────────────────────────────────────── */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-20">
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-20 pointer-events-none">
         <button
           onClick={() => navigate('/settings')}
           aria-label="Music settings"
-          className="p-2 rounded-full bg-white/8 hover:bg-white/15 backdrop-blur-md border border-white/10 text-white/70 hover:text-white transition-all"
+          className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(0,0,0,0.35)] hover:border-white/30 active:scale-95 transition-all pointer-events-auto cursor-pointer"
+          style={{
+            backgroundColor: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 15%, rgba(255, 255, 255, 0.12))`,
+            borderColor: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 25%, rgba(255, 255, 255, 0.18))`,
+            color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
+          }}
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-4 h-4 drop-shadow-sm" />
         </button>
-
-        <FlipPillToggle isFlipped={isFlipped} onFlip={onFlip} accentColor={accentColor} />
       </div>
 
       {/* ── Visualizer Centerpiece ─────────────────────────────────────────── */}
-      <div className="absolute inset-0 flex items-center justify-center z-10 pt-16 pb-40">
+      <div className="absolute inset-0 flex items-center justify-center z-10 pt-12 pb-48">
         <AnimatePresence mode="wait">
           {visualizerMode === 'vinyl' ? (
             <motion.div
@@ -172,7 +182,9 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
                 <img
                   src={artworkUrl}
                   alt={currentTrack?.title}
-                  className="w-28 h-28 rounded-2xl object-cover mx-auto mb-4 shadow-2xl border-2 border-white/10"
+                  className={`w-28 h-28 rounded-2xl object-cover mx-auto mb-4 shadow-2xl border-2 border-white/10 ${
+                    isYoutube ? 'scale-[1.33]' : ''
+                  }`}
                 />
               )}
               <WaveBarVisualizer
@@ -192,7 +204,7 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <LiquidBlobVisualizer
+              <FluidVisualizer
                 analyserNode={analyserNode}
                 isPlaying={isPlaying}
                 activePlayer={activePlayer}
@@ -204,32 +216,32 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
       </div>
 
       {/* ── Floating Control Hub ──────────────────────────────────────────── */}
-      <div className="playback-controls-hub z-20">
+      <div className="playback-controls-hub absolute bottom-0 left-0 right-0 px-6 pb-12 pt-4 z-20 flex flex-col justify-end">
         {/* Track info */}
-        <div className="mb-4">
+        <div className="mb-5">
           {currentTrack ? (
             <>
               <h2 className="text-xl font-bold text-white truncate font-rounded drop-shadow-lg">
                 {currentTrack.title}
               </h2>
-              <p className="text-sm text-white/60 truncate mt-0.5 drop-shadow">
+              <p className="text-sm text-white/70 truncate mt-0.5 drop-shadow">
                 {currentTrack.artist || 'Unknown Artist'}
               </p>
             </>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-white/60 font-rounded">Nothing playing</h2>
-              <p className="text-sm text-white/40 mt-0.5">Add a track from the Library</p>
+              <h2 className="text-xl font-bold text-white/70 font-rounded drop-shadow">
+                Nothing playing
+              </h2>
+              <p className="text-sm text-white/50 mt-0.5 drop-shadow">
+                Add a track from the Library
+              </p>
             </>
           )}
         </div>
 
-        {/* Scrubber */}
-        <div className="mb-4">
-          <div className="flex justify-between text-[10px] text-white/40 font-mono mb-1.5">
-            <span>{formatTime(scrubValue !== null ? scrubValue : currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
+        {/* Scrubber & Duration (Duration positioned below scrubber) */}
+        <div className="mb-6 flex flex-col gap-1.5">
           {(() => {
             const currentScrub = scrubValue !== null ? scrubValue : currentTime || 0;
             const progressPercent =
@@ -256,11 +268,15 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
                 aria-valuetext={`${formatTime(currentScrub)} of ${formatTime(duration)}`}
                 className="music-scrubber-range focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 style={{
-                  background: `linear-gradient(to right, var(--music-accent, ${accentColor || '#ec4899'}) ${progressPercent}%, rgba(255, 255, 255, 0.2) ${progressPercent}%)`,
+                  background: `linear-gradient(to right, var(--music-accent, ${accentColor || 'rgb(var(--primary))'}) ${progressPercent}%, rgba(255, 255, 255, 0.25) ${progressPercent}%)`,
                 }}
               />
             );
           })()}
+          <div className="flex justify-between text-[11px] text-white/80 font-mono font-medium drop-shadow-md px-0.5">
+            <span>{formatTime(scrubValue !== null ? scrubValue : currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
         </div>
 
         {/* Playback controls row */}
@@ -270,38 +286,53 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
             <button
               onClick={() => changeVolume(volume > 0 ? 0 : 0.8)}
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
-              className="text-white/50 hover:text-white/90 transition-colors flex-shrink-0"
+              className="hover:scale-110 active:scale-95 transition-all flex-shrink-0 drop-shadow-md"
+              style={{
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
+              }}
             >
-              {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              {volume === 0 ? (
+                <VolumeX className="w-5 h-5 drop-shadow-md" />
+              ) : (
+                <Volume2 className="w-5 h-5 drop-shadow-md" />
+              )}
             </button>
           </div>
 
           {/* Skip / Play / Pause */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-6">
             <button
               disabled={!hasPrev && !currentTrack}
               onClick={handleSkipBack}
               aria-label="Previous or restart"
-              className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white disabled:opacity-40 transition-colors"
+              className="w-10 h-10 flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-40 transition-all drop-shadow-md"
+              style={{
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
+              }}
             >
-              <SkipBack className="w-5 h-5" />
+              <SkipBack className="w-6 h-6 drop-shadow-md" />
             </button>
 
             <button
               disabled={!currentTrack}
               onClick={() => (isPlaying ? pauseLocalPlayback() : resumeLocalPlayback())}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="w-14 h-14 rounded-full flex items-center justify-center text-slate-950 font-bold shadow-xl transition-transform hover:scale-105 active:scale-95 disabled:opacity-40"
+              className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
               style={{
                 background: accentColor
-                  ? `linear-gradient(135deg, ${accentColor}, #EC4899)`
-                  : 'linear-gradient(135deg, #F59E0B, #EC4899)',
+                  ? `linear-gradient(135deg, ${accentColor}, color-mix(in oklch, ${accentColor} 60%, rgb(var(--primary))))`
+                  : 'linear-gradient(135deg, rgb(var(--primary)), #8b5cf6)',
+                boxShadow: `0 8px 28px ${
+                  accentColor
+                    ? `color-mix(in srgb, ${accentColor} 45%, transparent)`
+                    : 'rgba(var(--primary), 0.45)'
+                }`,
               }}
             >
               {isPlaying ? (
-                <Pause size={24} className="fill-slate-950" />
+                <Pause size={24} className="fill-white text-white drop-shadow" />
               ) : (
-                <Play size={24} className="fill-slate-950 ml-0.5" />
+                <Play size={24} className="fill-white text-white ml-0.5 drop-shadow" />
               )}
             </button>
 
@@ -309,25 +340,31 @@ export default function NowPlayingFace({ isFlipped, onFlip, onOpenAddModal, onSa
               disabled={!hasNext}
               onClick={handleSkipNext}
               aria-label="Next track"
-              className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white disabled:opacity-40 transition-colors"
+              className="w-10 h-10 flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-40 transition-all drop-shadow-md"
+              style={{
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
+              }}
             >
-              <SkipForward className="w-5 h-5" />
+              <SkipForward className="w-6 h-6 drop-shadow-md" />
             </button>
           </div>
 
           {/* Queue toggle */}
           <div className="flex justify-end w-20">
             <button
-              onClick={() => setIsQueueOpen((o) => !o)}
+              onClick={() => setIsQueueOpen((prev) => !prev)}
               aria-label={isQueueOpen ? 'Close queue' : 'Open queue'}
               aria-expanded={isQueueOpen}
-              className={`w-9 h-9 flex items-center justify-center rounded-xl border transition-all ${
+              className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all drop-shadow-md ${
                 isQueueOpen
-                  ? 'bg-white/20 border-white/25 text-white'
-                  : 'bg-white/8 border-white/10 text-white/60 hover:text-white/90 hover:bg-white/15'
+                  ? 'bg-white/30 border-white/50'
+                  : 'bg-white/12 border-white/20 hover:bg-white/25'
               }`}
+              style={{
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
+              }}
             >
-              <ListOrdered className="w-4 h-4" />
+              <ListOrdered className="w-5 h-5 drop-shadow-md" />
             </button>
           </div>
         </div>

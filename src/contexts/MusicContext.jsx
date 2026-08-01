@@ -9,7 +9,11 @@ import { useHtml5Player } from '../features/music/hooks/useHtml5Player';
 import { useYoutubePlayer } from '../features/music/hooks/useYoutubePlayer';
 import { useCrossfade } from '../features/music/hooks/useCrossfade';
 import { useColorExtractor } from '../features/music/hooks/useColorExtractor';
-import { getTrackArtwork, getProxiedUrl } from '../features/music/lib/musicUtils';
+import {
+  getTrackArtwork,
+  getProxiedUrl,
+  gradientFromString,
+} from '../features/music/lib/musicUtils';
 
 const MusicContext = createContext(null);
 
@@ -44,6 +48,28 @@ export function MusicProvider({ children }) {
     if (typeof window === 'undefined') return 'liquid';
     return localStorage.getItem('music_visualizer_mode') || 'liquid';
   });
+
+  const [fallbackBackdrop, setFallbackBackdropState] = useState(() => {
+    if (typeof window === 'undefined') return '/backdrops/backdrop-1.png';
+    return localStorage.getItem('music_fallback_backdrop') || '/backdrops/backdrop-1.png';
+  });
+
+  /**
+   * Updates and persists the fallback backdrop wallpaper preference.
+   *
+   * @param {string} path - The path to the backdrop image.
+   */
+  const setFallbackBackdrop = useCallback((path) => {
+    setFallbackBackdropState(path);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_fallback_backdrop', path);
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'music_fallback_backdrop', value: path },
+        })
+      );
+    }
+  }, []);
 
   /**
    * Updates and persists the visualizer mode preference.
@@ -502,7 +528,11 @@ export function MusicProvider({ children }) {
 
   // ─── Accent Color Extraction ───────────────────────────────────────────
   const artworkUrl = currentTrack ? getTrackArtwork(currentTrack) : null;
-  const { accentColor } = useColorExtractor(artworkUrl);
+  const { accentColor: extractedAccent } = useColorExtractor(artworkUrl);
+
+  // If artwork extraction returns null (e.g. track has no cover art), fall back to track title single accent color!
+  const accentColor =
+    extractedAccent || (currentTrack ? gradientFromString(currentTrack.title).primaryColor : null);
 
   // ─── Heartbeat Coordination ────────────────────────────────────────────────
   useEffect(() => {
@@ -579,6 +609,8 @@ export function MusicProvider({ children }) {
     // New Issue #61 state
     visualizerMode,
     setVisualizerMode,
+    fallbackBackdrop,
+    setFallbackBackdrop,
     accentColor,
     isCardFlipped,
     setIsCardFlipped,
