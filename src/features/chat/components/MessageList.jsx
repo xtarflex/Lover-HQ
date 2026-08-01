@@ -41,6 +41,20 @@ function isSingleEmojiChar(str) {
   return emojiRegex.test(trimmed);
 }
 
+// 🛡️ Sentinel: XSS protection helper for user-provided URLs
+function getSafeUrl(url) {
+  if (!url) return '#';
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (['http:', 'https:'].includes(parsed.protocol)) {
+      return parsed.href;
+    }
+  } catch {
+    // Invalid URL format
+  }
+  return '#';
+}
+
 /**
  * MessageList Component.
  */
@@ -881,7 +895,7 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={getSafeUrl(msg.media_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"
