@@ -530,9 +530,9 @@ export function MusicProvider({ children }) {
   const artworkUrl = currentTrack ? getTrackArtwork(currentTrack) : null;
   const { accentColor: extractedAccent } = useColorExtractor(artworkUrl);
 
-  // If artwork extraction returns null (e.g. track has no cover art), fall back to track title gradient color!
+  // If artwork extraction returns null (e.g. track has no cover art), fall back to track title single accent color!
   const accentColor =
-    extractedAccent || (currentTrack ? gradientFromString(currentTrack.title).background : null);
+    extractedAccent || (currentTrack ? gradientFromString(currentTrack.title).primaryColor : null);
 
   // ─── Heartbeat Coordination ────────────────────────────────────────────────
   useEffect(() => {

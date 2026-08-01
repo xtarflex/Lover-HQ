@@ -324,7 +324,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
                   : 'linear-gradient(135deg, rgb(var(--primary)), #8b5cf6)',
                 boxShadow: `0 8px 28px ${
                   accentColor
-                    ? accentColor.replace('rgb', 'rgba').replace(')', ', 0.45)')
+                    ? `color-mix(in srgb, ${accentColor} 45%, transparent)`
                     : 'rgba(var(--primary), 0.45)'
                 }`,
               }}
