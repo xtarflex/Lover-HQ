@@ -105,32 +105,23 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
 
   return (
     <div className="face-now-playing" style={accentStyle}>
-      {/* ── Ambient Blurred & Dual-Layer Blur Backdrop ─────────────────────── */}
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={backdropSrc}
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
-          className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
-        >
-          <div
-            className={`ambient-blur-backdrop ${isYoutube ? 'is-youtube' : ''}`}
-            style={{ backgroundImage: `url("${backdropSrc}")` }}
-            aria-hidden="true"
-          />
-          <div
-            className="blur-gradient-overlay"
-            id="blur-gradient-overlay"
-            style={{ backgroundImage: `url("${backdropSrc}")` }}
-            aria-hidden="true"
-          />
-        </motion.div>
-      </AnimatePresence>
+      {/* ── Layer A: Sharp Ambient Backdrop (Scale 1.33x) ───────────────────── */}
+      <div
+        className={`ambient-blur-backdrop ${isYoutube ? 'is-youtube' : ''}`}
+        style={{ backgroundImage: `url("${backdropSrc}")` }}
+        aria-hidden="true"
+      />
 
       {/* ── Step 1: Dark Gradient Overlay (75% height coverage) ─────────────── */}
       <div className="top-dark-overlay" aria-hidden="true" />
+
+      {/* ── Layer B: Dual-Layer Blur Overlay (Scale 1.4x + filter: blur(62px)) ── */}
+      <div
+        className="blur-gradient-overlay"
+        id="blur-gradient-overlay"
+        style={{ backgroundImage: `url("${backdropSrc}")` }}
+        aria-hidden="true"
+      />
 
       {/* ── Top Controls Bar ──────────────────────────────────────────────── */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-20 pointer-events-none">

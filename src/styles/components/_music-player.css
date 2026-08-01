@@ -75,8 +75,9 @@
   z-index: 0;
   pointer-events: none;
   transition:
-    background-image 0.8s ease,
-    transform 0.4s ease;
+    background-image 0.8s ease-in-out,
+    transform 0.8s ease-in-out,
+    filter 0.8s ease-in-out;
 }
 
 .ambient-blur-backdrop.is-youtube {
@@ -130,7 +131,10 @@
   left: 0px;
   transform-origin: center center;
   pointer-events: none;
-  transition: background-image 0.8s ease;
+  transition:
+    background-image 0.8s ease-in-out,
+    transform 0.8s ease-in-out,
+    filter 0.8s ease-in-out;
 }
 
 /* ─── Floating Queue Panel ───────────────────────────────────────────────── */
