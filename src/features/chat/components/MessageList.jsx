@@ -41,6 +41,19 @@ function isSingleEmojiChar(str) {
   return emojiRegex.test(trimmed);
 }
 
+function sanitizeUrl(url) {
+  if (!url) return '#';
+  try {
+    const parsedUrl = new URL(url, window.location.origin);
+    if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return url;
+    }
+  } catch {
+    // URL parsing failed
+  }
+  return '#';
+}
+
 /**
  * MessageList Component.
  */
@@ -881,7 +894,7 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={sanitizeUrl(msg.media_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"
