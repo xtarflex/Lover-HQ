@@ -243,6 +243,7 @@ export default function CustomQuestionQueue({
                         }}
                         className="p-1 hover:bg-white/10 rounded-lg text-text-muted hover:text-text-main transition-all"
                         title="Edit question"
+                        aria-label="Edit question"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
@@ -254,6 +255,7 @@ export default function CustomQuestionQueue({
                           onClick={() => onUnscheduleCustomQuestion(q.id)}
                           className="p-1 hover:bg-white/10 rounded-lg text-red-500/80 hover:text-red-500 transition-all animate-fade-in"
                           title="Remove from schedule"
+                          aria-label="Remove from schedule"
                         >
                           <CalendarOff className="w-3.5 h-3.5" />
                         </button>
@@ -265,6 +267,7 @@ export default function CustomQuestionQueue({
                             onClick={() => onScheduleNext(q.id)}
                             className="px-1.5 py-0.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-[9px] font-extrabold uppercase transition-all"
                             title="Schedule for next available date"
+                            aria-label="Schedule for next available date"
                           >
                             Auto
                           </button>
@@ -275,6 +278,7 @@ export default function CustomQuestionQueue({
                               type="button"
                               className="p-1 hover:bg-white/10 rounded-lg text-text-muted hover:text-primary transition-all"
                               title="Choose custom date"
+                              aria-label="Choose custom date"
                             >
                               <Calendar className="w-3.5 h-3.5" />
                             </button>
@@ -301,6 +305,7 @@ export default function CustomQuestionQueue({
                         onClick={() => onDeleteCustomQuestion(q.id)}
                         className="p-1 hover:bg-red-500/10 rounded-lg text-text-muted hover:text-red-500 transition-all"
                         title="Delete question"
+                        aria-label="Delete question"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

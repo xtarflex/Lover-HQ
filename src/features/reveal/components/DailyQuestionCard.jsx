@@ -119,6 +119,7 @@ export default function DailyQuestionCard({
                         ? 'bg-primary/10 border-primary'
                         : 'bg-transparent border-surface-border hover:bg-surface/50'
                     }`}
+                    aria-label={`React with ${emoji}`}
                   >
                     <span>{emoji}</span>
                     {list.length > 0 && (
@@ -198,6 +199,7 @@ export default function DailyQuestionCard({
                         ? 'bg-primary/10 border-primary'
                         : 'bg-transparent border-surface-border hover:bg-surface/50'
                     }`}
+                    aria-label={`React with ${emoji}`}
                   >
                     <span>{emoji}</span>
                     {list.length > 0 && (
