@@ -77,6 +77,15 @@ export default function Fridge() {
   const { items, setItems, isLoading, error, setError, commentsCount, partnerLastSeen } =
     useFridgeSync({ userId, partnerId, pairingStatus, isPartnerInFridge });
 
+  // ---------------------------------------------------------------------------
+  // Latest Refs Pattern (Performance optimization)
+  // ---------------------------------------------------------------------------
+  const itemsRef = useRef(items);
+  // Using useLayoutEffect to ensure it updates before paints for synchronous availability
+  React.useLayoutEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
   const { offscreenUnreadItems, scrollToItem } = useOffscreenIndicators(
     scrollContainerRef,
     items,
@@ -415,7 +424,7 @@ export default function Fridge() {
   const handlePositionChange = useCallback(
     async (itemId, newX, newY) => {
       playWhiteboardSound('pin');
-      const backupItems = [...items];
+      const backupItems = [...itemsRef.current];
       const timestamp = new Date().toISOString();
 
       setItems((prev) =>
@@ -481,7 +490,7 @@ export default function Fridge() {
         }
       }
     },
-    [items, setItems, playWhiteboardSound, addOfflineUpdate]
+    [setItems, playWhiteboardSound, addOfflineUpdate]
   );
 
   /**
@@ -494,7 +503,7 @@ export default function Fridge() {
   const handleTogglePin = useCallback(
     async (itemId, isPinned) => {
       playWhiteboardSound('pin');
-      const backupItems = [...items];
+      const backupItems = [...itemsRef.current];
       const timestamp = new Date().toISOString();
 
       setItems((prev) =>
@@ -548,7 +557,7 @@ export default function Fridge() {
         }
       }
     },
-    [items, setItems, playWhiteboardSound, addOfflineUpdate]
+    [setItems, playWhiteboardSound, addOfflineUpdate]
   );
 
   /**
@@ -561,10 +570,10 @@ export default function Fridge() {
   const handleDeleteItem = useCallback(
     async (itemId) => {
       playWhiteboardSound('delete');
-      const itemToDelete = items.find((i) => i.id === itemId);
+      const itemToDelete = itemsRef.current.find((i) => i.id === itemId);
       if (!itemToDelete) return;
 
-      const backupItems = [...items];
+      const backupItems = [...itemsRef.current];
       setItems((prev) => prev.filter((item) => item.id !== itemId));
 
       try {
@@ -617,7 +626,7 @@ export default function Fridge() {
         }
       }
     },
-    [items, setItems, playWhiteboardSound, addOfflineDeletion, removeOfflineItem]
+    [setItems, playWhiteboardSound, addOfflineDeletion, removeOfflineItem]
   );
 
   /**
