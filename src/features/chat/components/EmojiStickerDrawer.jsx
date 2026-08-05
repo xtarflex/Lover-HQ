@@ -791,6 +791,7 @@ export function EmojiStickerDrawer({
                     type="button"
                     onClick={() => setSearchQuery('')}
                     className="absolute right-2.5 top-2 text-text-muted hover:text-white"
+                    aria-label="Clear search"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>

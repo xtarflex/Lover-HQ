@@ -15,3 +15,6 @@
 ## 2024-07-22 - aria-labels for Fridge icon buttons
 **Learning:** Several icon-only buttons in the Fridge feature components (like FridgeItem, NoteModal, PhotoModal, and VoiceModal) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
 **Action:** When creating or modifying icon-only functional buttons, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+## 2024-05-19 - Missing Aria-labels on Icon-only buttons
+**Learning:** Found an icon-only "Clear search" button (`<X />`) in the chat Emoji/Sticker drawer that lacked an accessible name, a common a11y issue that prevents screen reader users from understanding the button's purpose.
+**Action:** Added `aria-label="Clear search"` to the button to improve accessibility without changing the UI.
