@@ -180,6 +180,7 @@ export function MessageList({
                           setLongPressedMessage(null);
                         }}
                         className="reaction-btn"
+                        aria-label={`React with ${emoji}`}
                       >
                         {emoji}
                       </button>
@@ -501,6 +502,7 @@ export function MessageList({
                         setLongPressedMessage(null);
                       }}
                       className="reaction-btn"
+                      aria-label={`React with ${emoji}`}
                     >
                       {emoji}
                     </button>
