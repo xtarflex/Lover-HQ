@@ -172,9 +172,15 @@ export default function MagnetCommentDrawer({
       );
     }
 
+    // ⚡ Bolt: Performance Optimization
+    // Replaced `new Date()` with `Date.parse()` for string timestamp comparisons
+    // 💡 What: Calculates time difference without the overhead of instantiating full Date objects.
+    // 🎯 Why: Instantiating `new Date()` in the render phase of a mapped list is expensive and
+    //         triggers unnecessary garbage collection. Using `Date.parse` achieves the same logic
+    //         faster, reducing latency during rapid keystrokes or list scrolling.
     const isRead =
       isPartnerInFridge ||
-      (partnerLastSeen && new Date(partnerLastSeen) >= new Date(comment.created_at));
+      (partnerLastSeen && Date.parse(partnerLastSeen) >= Date.parse(comment.created_at));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-primary" title="Read" />;
@@ -318,16 +324,21 @@ export default function MagnetCommentDrawer({
                   const nextComment = i < comments.length - 1 ? comments[i + 1] : null;
                   const TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
+                  // ⚡ Bolt: Performance Optimization
+                  // Replaced `new Date()` with `Date.parse()` for timestamp arithmetic
+                  // 💡 What: Calculates time differences inside a map loop directly using parsed integers.
+                  // 🎯 Why: Avoids creating hundreds of temporary `Date` objects during the render phase
+                  //         of long comment threads, which can cause significant input lag while typing.
                   const isPrevSame =
                     prevComment &&
                     prevComment.user_id === comment.user_id &&
-                    new Date(comment.created_at) - new Date(prevComment.created_at) <
+                    Date.parse(comment.created_at) - Date.parse(prevComment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const isNextSame =
                     nextComment &&
                     nextComment.user_id === comment.user_id &&
-                    new Date(nextComment.created_at) - new Date(comment.created_at) <
+                    Date.parse(nextComment.created_at) - Date.parse(comment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const showSenderName = !isPrevSame;
