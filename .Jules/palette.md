@@ -15,3 +15,6 @@
 ## 2024-07-22 - aria-labels for Fridge icon buttons
 **Learning:** Several icon-only buttons in the Fridge feature components (like FridgeItem, NoteModal, PhotoModal, and VoiceModal) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
 **Action:** When creating or modifying icon-only functional buttons, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+## 2026-08-08 - Added Screen Reader Announceability to Emojis
+**Learning:** Icon-only reaction buttons (emojis) must be wrapped in descriptive text using the aria-label attribute to ensure proper screen reader announceability.
+**Action:** Always add `aria-label` to icon-only buttons like `aria-label={"React with "}`.
