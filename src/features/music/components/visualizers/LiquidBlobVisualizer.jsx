@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/purity */
 import React, { useRef, useEffect, useCallback } from 'react';
 
 /**
