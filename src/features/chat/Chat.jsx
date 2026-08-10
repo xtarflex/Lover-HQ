@@ -26,6 +26,7 @@ import { groupChatMessages } from './utils/messageGrouping';
 // Extracted UI Sub-components
 import { ChatHeader } from './components/ChatHeader';
 import { PinnedMessageBanner } from './components/PinnedMessageBanner';
+import { sanitizeUrl } from '../../utils/url';
 import { MessageList } from './components/MessageList';
 import { BatchActionBar } from './components/BatchActionBar';
 import { ReplyPreview } from './components/ReplyPreview';
@@ -480,13 +481,13 @@ export default function Chat() {
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
           } else {
-            window.open(url, '_blank');
+            window.open(sanitizeUrl(url), '_blank');
           }
         }, 'image/png');
       };
       img.onerror = () => {
         const a = document.createElement('a');
-        a.href = url;
+        a.href = sanitizeUrl(url);
         a.download = `lover_hq_${Date.now()}`;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
@@ -497,7 +498,7 @@ export default function Chat() {
       img.src = url;
     } catch (err) {
       console.error('Failed to download image:', err);
-      window.open(url, '_blank');
+      window.open(sanitizeUrl(url), '_blank');
     }
   };
 
