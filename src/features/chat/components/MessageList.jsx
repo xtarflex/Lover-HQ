@@ -26,7 +26,11 @@ import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
 import { AnimatedSticker } from './AnimatedSticker';
 import { StickerPlayer } from './StickerPlayer';
-import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
+import {
+  ANIMATED_EMOJIS_BY_ID,
+  ANIMATED_EMOJIS_BY_CHAR,
+  getEmojiCdnUrl,
+} from '../../fridge/components/emojiData';
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
@@ -442,7 +446,7 @@ export function MessageList({
 
           const singleEmojiDef =
             hasText && !fridgeItem && !quotedMsg
-              ? ANIMATED_EMOJIS.find((e) => e.char === msg.content.trim())
+              ? ANIMATED_EMOJIS_BY_CHAR.get(msg.content.trim())
               : null;
 
           const isSingleEmoji = !!singleEmojiDef;
@@ -761,7 +765,7 @@ export function MessageList({
                         {fridgeItem.type === 'emoji' &&
                           (() => {
                             const emojiId = fridgeItem.content;
-                            const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
+                            const emojiDef = ANIMATED_EMOJIS_BY_ID.get(emojiId);
                             const imageUrl = emojiDef ? getEmojiCdnUrl(emojiDef.code) : '';
                             return (
                               <div className="mb-2.5 p-1.5 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center space-x-2.5 text-[10px] hover:bg-slate-950 transition-all">

@@ -74,3 +74,6 @@ export const ANIMATED_EMOJIS = [
 export function getEmojiCdnUrl(code) {
   return `https://fonts.gstatic.com/s/e/notoemoji/latest/${code}/512.webp`;
 }
+
+export const ANIMATED_EMOJIS_BY_ID = new Map(ANIMATED_EMOJIS.map((e) => [e.id, e]));
+export const ANIMATED_EMOJIS_BY_CHAR = new Map(ANIMATED_EMOJIS.map((e) => [e.char, e]));
