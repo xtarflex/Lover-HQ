@@ -3,7 +3,7 @@ export function getSafeUrl(url) {
   try {
     const parsedUrl = new URL(
       url,
-      typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
+      typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
     );
     const safeProtocols = ['http:', 'https:', 'blob:', 'mailto:', 'tel:'];
     if (safeProtocols.includes(parsedUrl.protocol)) {
