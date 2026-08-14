@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getEmojiCdnUrl, ANIMATED_EMOJIS } from './emojiData';
+import {
+  getEmojiCdnUrl,
+  ANIMATED_EMOJIS,
+  ANIMATED_EMOJIS_BY_ID,
+  ANIMATED_EMOJIS_BY_CHAR,
+} from './emojiData';
 
 describe('emojiData', () => {
   describe('getEmojiCdnUrl', () => {
@@ -50,6 +55,18 @@ describe('emojiData', () => {
       const codes = ANIMATED_EMOJIS.map((e) => e.code);
       const uniqueCodes = new Set(codes);
       expect(codes.length).toBe(uniqueCodes.size);
+    });
+  });
+
+  describe('Maps', () => {
+    it('should have a Map for looking up emojis by ID', () => {
+      expect(ANIMATED_EMOJIS_BY_ID instanceof Map).toBe(true);
+      expect(ANIMATED_EMOJIS_BY_ID.get('heart').id).toBe('heart');
+    });
+
+    it('should have a Map for looking up emojis by char', () => {
+      expect(ANIMATED_EMOJIS_BY_CHAR instanceof Map).toBe(true);
+      expect(ANIMATED_EMOJIS_BY_CHAR.get('❤️').id).toBe('heart');
     });
   });
 });

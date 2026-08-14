@@ -7,7 +7,7 @@
 import React from 'react';
 import { Link2, Mic, FileText, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { formatChatDate } from '../../../utils/time';
-import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
+import { ANIMATED_EMOJIS_BY_ID, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
 /**
  * Scrollable fridge item picker list within the attachment bottom sheet.
@@ -84,7 +84,7 @@ export function FridgeItemList({ fridgeItems, onSelect }) {
               badgeBg = 'bg-indigo-500/15 border-indigo-500/30';
             } else if (item.type === 'emoji') {
               textPreview = 'Emoji Sticker';
-              const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === item.content);
+              const emojiDef = ANIMATED_EMOJIS_BY_ID.get(item.content);
               stickerUrl = emojiDef ? getEmojiCdnUrl(emojiDef.code) : null;
               subtext = `Animated Sticker • ${formatChatDate(item.created_at)}`;
               badgeIcon = <Sparkles className="w-4 h-4 text-amber-400" />;
