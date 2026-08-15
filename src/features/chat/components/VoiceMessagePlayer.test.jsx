@@ -13,7 +13,7 @@ describe('VoiceMessagePlayer', () => {
     const { container } = render(<VoiceMessagePlayer src={mockSrc} />);
 
     // Play button exists
-    const playButton = screen.getByRole('button', { name: /play/i });
+    const playButton = screen.getByRole('button', { name: 'Play' });
     expect(playButton).toBeInTheDocument();
 
     // 25 waveform bars exist
@@ -25,7 +25,7 @@ describe('VoiceMessagePlayer', () => {
     const mockSrc = 'https://example.com/audio.webm';
     render(<VoiceMessagePlayer src={mockSrc} />);
 
-    const playButton = screen.getByRole('button', { name: /play/i });
+    const playButton = screen.getByRole('button', { name: 'Play' });
     expect(playButton).toBeInTheDocument();
 
     // Click play
