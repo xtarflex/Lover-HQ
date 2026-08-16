@@ -74,3 +74,15 @@ export const ANIMATED_EMOJIS = [
 export function getEmojiCdnUrl(code) {
   return `https://fonts.gstatic.com/s/e/notoemoji/latest/${code}/512.webp`;
 }
+
+/**
+ * Pre-computed O(1) lookup Map for emojis by ID
+ * @type {Map<string, AnimatedEmoji>}
+ */
+export const ANIMATED_EMOJIS_BY_ID = new Map(ANIMATED_EMOJIS.map((emoji) => [emoji.id, emoji]));
+
+/**
+ * Pre-computed O(1) lookup Map for emojis by character
+ * @type {Map<string, AnimatedEmoji>}
+ */
+export const ANIMATED_EMOJIS_BY_CHAR = new Map(ANIMATED_EMOJIS.map((emoji) => [emoji.char, emoji]));

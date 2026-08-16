@@ -19,7 +19,7 @@ import {
   Pin,
 } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
-import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
+import { getEmojiCdnUrl, ANIMATED_EMOJIS_BY_ID } from './emojiData';
 
 // Map color IDs to CSS styles (8 options)
 const NOTE_COLOR_MAP = {
@@ -420,7 +420,7 @@ const FridgeItem = React.memo(function FridgeItem({
           {Object.entries(item.reactions)
             .filter(([_, userIds]) => Array.isArray(userIds) && userIds.length > 0)
             .map(([emojiId, userIds]) => {
-              const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
+              const emojiDef = ANIMATED_EMOJIS_BY_ID.get(emojiId);
               if (!emojiDef) return null;
               return (
                 <div
@@ -590,7 +590,7 @@ const FridgeItem = React.memo(function FridgeItem({
           )}
           <div className="w-full h-full flex items-center justify-center overflow-visible">
             {(() => {
-              const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === item.content);
+              const emojiDef = ANIMATED_EMOJIS_BY_ID.get(item.content);
               const imageUrl = emojiDef ? getEmojiCdnUrl(emojiDef.code) : '';
               return imageUrl ? (
                 <img

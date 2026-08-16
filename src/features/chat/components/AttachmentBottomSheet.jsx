@@ -17,7 +17,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { FridgeItemList } from './FridgeItemList';
-import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
+import { getEmojiCdnUrl, ANIMATED_EMOJIS_BY_ID } from '../../fridge/components/emojiData';
 
 /**
  * AttachmentBottomSheet Component.
@@ -182,7 +182,7 @@ export function AttachmentBottomSheet({
                           />
                         ) : item.type === 'emoji' ? (
                           (() => {
-                            const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === item.content);
+                            const emojiDef = ANIMATED_EMOJIS_BY_ID.get(item.content);
                             const imageUrl = emojiDef ? getEmojiCdnUrl(emojiDef.code) : '';
                             return (
                               <div className="absolute inset-0 flex items-center justify-center p-2">

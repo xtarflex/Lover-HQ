@@ -11,7 +11,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { X, Send, MessageSquare, Clock, Smile, Check, CheckCheck } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
-import { ANIMATED_EMOJIS, getEmojiCdnUrl } from './emojiData';
+import { getEmojiCdnUrl, ANIMATED_EMOJIS_BY_ID, ANIMATED_EMOJIS } from './emojiData';
 import { useMagnetComments } from '../hooks/useMagnetComments';
 import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight';
 
@@ -112,7 +112,7 @@ export default function MagnetCommentDrawer({
       setActiveReactionPop(emojiId);
       setTimeout(() => setActiveReactionPop(null), 300);
 
-      const emojiDef = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
+      const emojiDef = ANIMATED_EMOJIS_BY_ID.get(emojiId);
       const emojiChar = emojiDef ? emojiDef.char : '❤️';
       const newParticles = Array.from({ length: 7 }).map((_, idx) => ({
         id: `${emojiId}-${Date.now()}-${idx}`,
