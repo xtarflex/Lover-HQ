@@ -16,3 +16,7 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+## 2026-08-17 - Prevent XSS with URL Sanitization Utility
+**Vulnerability:** User-provided URLs used in `window.open` and `<a> href` attributes lacked protocol sanitization.
+**Learning:** React escapes HTML attributes but does not prevent malicious protocols like `javascript:`, which can lead to Cross-Site Scripting (XSS) if untrusted URLs are rendered as links or opened directly. The `URL` constructor provides a reliable way to extract and validate protocols natively.
+**Prevention:** Centralize URL sanitization logic using a utility function (e.g., `getSafeUrl`) that leverages the browser's `URL` API to enforce an explicit allowlist of safe protocols (e.g., `http:`, `https:`, `mailto:`, `tel:`, `blob:`, `data:`) before using any external URL in sinks like `window.open` or `href`.

@@ -27,6 +27,7 @@ import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
 import { AnimatedSticker } from './AnimatedSticker';
 import { StickerPlayer } from './StickerPlayer';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
+import { getSafeUrl } from '../../../utils/url';
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
@@ -881,7 +882,7 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={getSafeUrl(msg.media_url, '#')}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"
