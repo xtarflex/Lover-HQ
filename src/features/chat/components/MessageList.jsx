@@ -175,6 +175,7 @@ export function MessageList({
                     {EMOJIS.map((emoji) => (
                       <button
                         key={emoji}
+                        aria-label={`React with ${emoji}`}
                         onClick={() => {
                           handleToggleReaction(displayMsg, emoji);
                           setLongPressedMessage(null);
@@ -496,6 +497,7 @@ export function MessageList({
                   {EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
+                      aria-label={`React with ${emoji}`}
                       onClick={() => {
                         handleToggleReaction(msg, emoji);
                         setLongPressedMessage(null);
@@ -964,6 +966,9 @@ export function MessageList({
                             return (
                               <button
                                 key={emoji}
+                                aria-label={
+                                  didIReact ? `Remove ${emoji} reaction` : `React with ${emoji}`
+                                }
                                 onClick={() => handleToggleReaction(msg, emoji)}
                                 className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
                                   didIReact ? 'text-primary' : 'text-gray-400'
