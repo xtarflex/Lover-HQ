@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabase';
 import { getFridgeItems } from '../../services/fridge';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { getFormattedTime } from '../../utils/time';
+import { getSafeUrl } from '../../utils/url';
 
 // Custom Hooks
 import { useChatMessages } from './hooks/useChatMessages';
@@ -480,13 +481,16 @@ export default function Chat() {
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
           } else {
-            window.open(url, '_blank');
+            const safeUrl = getSafeUrl(url);
+            if (safeUrl) window.open(safeUrl, '_blank');
           }
         }, 'image/png');
       };
       img.onerror = () => {
+        const safeUrl = getSafeUrl(url);
+        if (!safeUrl) return;
         const a = document.createElement('a');
-        a.href = url;
+        a.href = safeUrl;
         a.download = `lover_hq_${Date.now()}`;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
@@ -497,7 +501,8 @@ export default function Chat() {
       img.src = url;
     } catch (err) {
       console.error('Failed to download image:', err);
-      window.open(url, '_blank');
+      const safeUrl = getSafeUrl(url);
+      if (safeUrl) window.open(safeUrl, '_blank');
     }
   };
 

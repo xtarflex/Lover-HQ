@@ -16,3 +16,7 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+## 2026-08-23 - Sanitize User URLs in Chat
+**Vulnerability:** User-provided URLs used in `window.open` and `<a href>` could execute javascript URI schemes causing XSS.
+**Learning:** The application wasn't sanitizing urls when rendering links or explicitly opening windows for image downloads.
+**Prevention:** Use a url sanitization function like `getSafeUrl` to strictly validate protocols before using them in DOM elements or browser APIs.
