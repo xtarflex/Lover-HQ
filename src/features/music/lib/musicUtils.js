@@ -47,6 +47,7 @@ export async function resolveYouTubeThumbnail(videoId) {
 /**
  * Generates a deterministic CSS gradient style based on a string hash.
  * The same string (e.g. track title) always produces the same colors.
+ * Used primarily for small list thumbnails (GradientAvatar) and as a fallback.
  *
  * @param {string} str - Input string (track title).
  * @returns {Object} React style object containing background and color.
@@ -66,6 +67,79 @@ export function gradientFromString(str) {
     background: `linear-gradient(135deg, oklch(65% 0.18 ${h1}), oklch(50% 0.14 ${h2}))`,
     color: '#ffffff',
   };
+}
+
+/**
+ * Extracts the dominant color from a backdrop image URL.
+ * Uses Canvas ImageData to sample the center region and average RGB values.
+ * Falls back gracefully if the image cannot be loaded or analyzed.
+ *
+ * @param {string} imageUrl - The path or URL to the backdrop image.
+ * @returns {Promise<string|null>} RGB color string (e.g. 'rgb(200, 150, 100)') or null on failure.
+ */
+export async function extractColorFromImage(imageUrl) {
+  if (!imageUrl) return null;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+
+        // Draw image scaled to canvas
+        ctx.drawImage(img, 0, 0, 100, 100);
+        const imageData = ctx.getImageData(0, 0, 100, 100);
+        const data = imageData.data;
+
+        let r = 0,
+          g = 0,
+          b = 0;
+        let count = 0;
+
+        // Sample center 60% of the image (ignoring edges which often have artifacts)
+        for (let i = 0; i < data.length; i += 4) {
+          const pixelIndex = i / 4;
+          const row = Math.floor(pixelIndex / 100);
+          const col = pixelIndex % 100;
+
+          // Only sample center region
+          if (row >= 20 && row < 80 && col >= 20 && col < 80) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+          }
+        }
+
+        if (count > 0) {
+          r = Math.round(r / count);
+          g = Math.round(g / count);
+          b = Math.round(b / count);
+          resolve(`rgb(${r}, ${g}, ${b})`);
+        } else {
+          resolve(null);
+        }
+      } catch (err) {
+        console.warn('Color extraction failed:', err);
+        resolve(null);
+      }
+    };
+
+    img.onerror = () => {
+      resolve(null);
+    };
+
+    img.src = imageUrl;
+  });
 }
 
 /**
