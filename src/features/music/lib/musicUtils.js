@@ -70,8 +70,56 @@ export function gradientFromString(str) {
 }
 
 /**
+ * Calculates relative luminance of an RGB color using WCAG formula.
+ * Used to determine if a color is too dark/light for vibrant accent use.
+ *
+ * @param {number} r - Red channel (0-255).
+ * @param {number} g - Green channel (0-255).
+ * @param {number} b - Blue channel (0-255).
+ * @returns {number} Luminance value (0-1).
+ */
+function getLuminance(r, g, b) {
+  const [rs, gs, bs] = [r, g, b].map((val) => {
+    const norm = val / 255;
+    return norm <= 0.03928 ? norm / 12.92 : Math.pow((norm + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+/**
+ * Adjusts an RGB color to have better vibrance if it's too dark or too light.
+ * Uses luminance weighting to boost saturation and lightness as needed.
+ *
+ * @param {number} r - Red channel (0-255).
+ * @param {number} g - Green channel (0-255).
+ * @param {number} b - Blue channel (0-255).
+ * @returns {string} Adjusted RGB color string.
+ */
+function adjustColorVibrance(r, g, b) {
+  const luminance = getLuminance(r, g, b);
+
+  // If too dark (luminance < 0.3), lighten it
+  if (luminance < 0.3) {
+    const boost = (0.3 - luminance) * 0.6; // Boost factor
+    r = Math.min(255, Math.round(r + (255 - r) * boost));
+    g = Math.min(255, Math.round(g + (255 - g) * boost));
+    b = Math.min(255, Math.round(b + (255 - b) * boost));
+  }
+  // If too light (luminance > 0.85), darken it
+  else if (luminance > 0.85) {
+    const reduce = (luminance - 0.85) * 0.6; // Reduce factor
+    r = Math.max(0, Math.round(r * (1 - reduce)));
+    g = Math.max(0, Math.round(g * (1 - reduce)));
+    b = Math.max(0, Math.round(b * (1 - reduce)));
+  }
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
  * Extracts the dominant color from a backdrop image URL.
  * Uses Canvas ImageData to sample the center region and average RGB values.
+ * Applies luminance weighting to ensure the color is vibrant enough for accent use.
  * Falls back gracefully if the image cannot be loaded or analyzed.
  *
  * @param {string} imageUrl - The path or URL to the backdrop image.
@@ -124,7 +172,10 @@ export async function extractColorFromImage(imageUrl) {
           r = Math.round(r / count);
           g = Math.round(g / count);
           b = Math.round(b / count);
-          resolve(`rgb(${r}, ${g}, ${b})`);
+
+          // Apply luminance weighting to ensure vibrant accent color
+          const adjustedColor = adjustColorVibrance(r, g, b);
+          resolve(adjustedColor);
         } else {
           resolve(null);
         }
