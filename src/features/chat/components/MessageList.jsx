@@ -172,18 +172,24 @@ export function MessageList({
                   <div
                     className={`reactions-tray-floating -top-12 ${isSelf ? 'right-0' : 'left-0'}`}
                   >
-                    {EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => {
-                          handleToggleReaction(displayMsg, emoji);
-                          setLongPressedMessage(null);
-                        }}
-                        className="reaction-btn"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                    {EMOJIS.map((emoji) => {
+                      const didIReact = displayMsg.reactions?.[emoji]?.includes(userId);
+                      return (
+                        <button
+                          key={emoji}
+                          onClick={() => {
+                            handleToggleReaction(displayMsg, emoji);
+                            setLongPressedMessage(null);
+                          }}
+                          className="reaction-btn"
+                          aria-label={
+                            didIReact ? `Remove reaction ${emoji}` : `React with ${emoji}`
+                          }
+                        >
+                          {emoji}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -493,18 +499,22 @@ export function MessageList({
             >
               {isHighlighted && (
                 <div className={`reactions-tray-floating -top-12 ${isSelf ? 'right-0' : 'left-0'}`}>
-                  {EMOJIS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      onClick={() => {
-                        handleToggleReaction(msg, emoji);
-                        setLongPressedMessage(null);
-                      }}
-                      className="reaction-btn"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
+                  {EMOJIS.map((emoji) => {
+                    const didIReact = msg.reactions?.[emoji]?.includes(userId);
+                    return (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          handleToggleReaction(msg, emoji);
+                          setLongPressedMessage(null);
+                        }}
+                        className="reaction-btn"
+                        aria-label={didIReact ? `Remove reaction ${emoji}` : `React with ${emoji}`}
+                      >
+                        {emoji}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
@@ -968,6 +978,9 @@ export function MessageList({
                                 className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
                                   didIReact ? 'text-primary' : 'text-gray-400'
                                 }`}
+                                aria-label={
+                                  didIReact ? `Remove reaction ${emoji}` : `React with ${emoji}`
+                                }
                               >
                                 <span>{emoji}</span>
                                 {count > 1 && <span>{count}</span>}
