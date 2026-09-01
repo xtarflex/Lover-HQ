@@ -118,10 +118,14 @@ export default function Auth() {
             <div className="space-y-4">
               {/* Email */}
               <div className="relative group">
+                <label htmlFor="auth-email" className="sr-only">
+                  Email address
+                </label>
                 <span className="absolute inset-y-0 left-4 flex items-center text-text-muted/60 group-focus-within:text-primary transition-colors">
                   <Mail className="w-5 h-5" />
                 </span>
                 <input
+                  id="auth-email"
                   type="email"
                   required
                   placeholder="Email address"
@@ -133,10 +137,14 @@ export default function Auth() {
 
               {/* Password */}
               <div className="relative group">
+                <label htmlFor="auth-password" className="sr-only">
+                  Password
+                </label>
                 <span className="absolute inset-y-0 left-4 flex items-center text-text-muted/60 group-focus-within:text-primary transition-colors">
                   <Lock className="w-5 h-5" />
                 </span>
                 <input
+                  id="auth-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder={isLogin ? 'Enter your password' : 'Create a password'}
