@@ -16,3 +16,8 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+
+## 2026-08-07 - XSS via External URL injection
+**Vulnerability:** User-provided URL in 'msg.media_url' for location messages was injected directly into the 'href' attribute of a link without protocol validation.
+**Learning:** React escapes HTML attributes but does not parse or sanitize the protocol part of URLs in 'href'. This allows an attacker to provide a URL like 'javascript:alert(1)' which executes scripts if clicked.
+**Prevention:** Always validate and sanitize user-provided URLs intended for 'href' attributes using an allowlist of safe protocols (e.g. 'http:', 'https:') via a helper function using 'new URL()'.
