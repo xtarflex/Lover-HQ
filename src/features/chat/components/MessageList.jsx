@@ -89,7 +89,8 @@ export function MessageList({
       presence?.partnerRoom === 'Chat Room' ||
       (partnerLastSeen &&
         msg.created_at &&
-        new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+        // Optimize: use Date.parse() instead of new Date().getTime() to prevent O(N) object allocations in render loops
+        Date.parse(msg.created_at) <= Date.parse(partnerLastSeen));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-emerald-500" />;
