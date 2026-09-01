@@ -24,7 +24,14 @@ import { useAudioProcessor } from '../../hooks/useAudioProcessor';
  * @param {boolean} props.isIntersecting - Whether the visualizer container is visible in the viewport.
  * @returns {React.ReactElement} The Three.js mesh element.
  */
-function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
+function FluidShaderMesh({
+  audioRef,
+  primaryColor,
+  isMobile,
+  isIntersecting,
+  isFlipped,
+  updateAudio,
+}) {
   const meshRef = useRef(null);
   const frameAccumulatorRef = useRef(0);
   const elapsedTimeRef = useRef(0);
@@ -63,7 +70,7 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
 
   useFrame((state, delta) => {
     if (!meshRef.current || !meshRef.current.material) return;
-    if (document.hidden || !isIntersecting) return;
+    if (document.hidden || !isIntersecting || isFlipped) return;
 
     // Target FPS: 30 FPS on mobile, 60 FPS on desktop to preserve battery
     const targetFPS = isMobile ? 30 : 60;
@@ -74,6 +81,11 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
       return;
     }
     frameAccumulatorRef.current %= frameInterval;
+
+    // Sync audio math and scaling exactly with GPU render tick
+    if (updateAudio) {
+      updateAudio(delta);
+    }
 
     // Accumulate elapsed time manually to prevent THREE.Clock deprecation warnings
     elapsedTimeRef.current += delta;
@@ -171,38 +183,62 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
     void main() {
       vec2 uv = vUv;
 
-      // ── Asymmetrical Spatial Sector Color Field Mapping ──────────────────
-      float verticalBlend = uv.y; // 0.0 bottom, 1.0 top
+      // We will accumulate normal displacement for raindrops
+      vec2 rippleDisplacement = vec2(0.0);
 
-      // 1. Interpolate from Bottom Red -> Center Belt -> Top Primary
-      vec3 colColumn = mix(uBottomRed, uCenterPurple, smoothstep(0.2, 0.55, verticalBlend));
-      colColumn = mix(colColumn, uPrimaryColor, smoothstep(0.5, 0.82, verticalBlend));
+      // ── MULTI-ORIGIN RIPPLE LOOP (Overlapping Raindrops on Moving Water) ──
+      for (int i = 0; i < 8; i++) {
+        vec4 r = uRipples[i];
+        if (r.w > 0.0) { // If intensity > 0
+          float dist = distance(uv, vec2(r.x, r.y));
+          // Derivative of the wave function to find the slope for normal displacement
+          // derivative of sin(dist * 36.0 - age * 16.0) is cos(...) * 36.0
+          float waveCos = cos(dist * 36.0 - r.z * 16.0);
+          float falloff = smoothstep(0.45, 0.0, dist) * r.w;
+
+          // Calculate directional vector from center of ripple
+          vec2 dir = normalize(uv - vec2(r.x, r.y));
+
+          // Add to normal displacement
+          rippleDisplacement += dir * waveCos * falloff * 0.3;
+        }
+      }
+
+      // Factor ripple displacement into the surface normal
+      vec3 displacedNormal = normalize(vNormal + vec3(rippleDisplacement, 0.0));
+
+      // ── Chromatic Dispersion (RGB Channel Separation on Wave Slopes) ───────
+      vec2 waveDistort = displacedNormal.xy * 0.08;
+
+      // Sample red shifted forward, blue shifted backward
+      float redChannel   = smoothstep(0.2, 0.55, (uv + waveDistort).y);
+      float blueChannel  = smoothstep(0.2, 0.55, (uv - waveDistort).y);
+      float greenChannel = smoothstep(0.2, 0.55, uv.y);
+
+      // 1. Interpolate from Bottom Red -> Center Belt -> Top Primary, split by channels
+      vec3 colColumn = vec3(
+        mix(uBottomRed.r, uCenterPurple.r, redChannel),
+        mix(uBottomRed.g, uCenterPurple.g, greenChannel),
+        mix(uBottomRed.b, uCenterPurple.b, blueChannel)
+      );
+
+      // Top Primary interpolation (using the green channel's vertical position for simplicity)
+      colColumn = mix(colColumn, uPrimaryColor, smoothstep(0.5, 0.82, uv.y));
 
       // 2. Inject Bottom-Right Corner Glow Sector
       float cornerGlow = smoothstep(0.55, 0.0, distance(uv, vec2(1.0, 0.0)));
       vec3 finalColor = mix(colColumn, uCornerAmber, cornerGlow * 0.75);
 
-      // ── MULTI-ORIGIN RIPPLE LOOP (Overlapping Raindrops on Moving Water) ──
-      float totalRipple = 0.0;
-      for (int i = 0; i < 8; i++) {
-        vec4 r = uRipples[i];
-        if (r.w > 0.0) { // If intensity > 0
-          float dist = distance(uv, vec2(r.x, r.y));
-          // Wave expands over time (r.z is age)
-          float wave = sin(dist * 36.0 - r.z * 16.0);
-          // Fade out based on distance from origin and age
-          float falloff = smoothstep(0.45, 0.0, dist) * r.w;
-          totalRipple += wave * falloff * 0.25;
-        }
-      }
-      finalColor += vec3(totalRipple);
-
       // ── Diffuse Normal Lighting (Highlights & Shadows for 3D Depth) ──────
-      vec3 lightDir = normalize(vec3(0.4, 0.6, 1.0));
-      float diff = dot(vNormal, lightDir);
-      float shading = smoothstep(-0.4, 1.0, diff) * 0.85 + 0.15;
+      vec3 lightDir = normalize(vec3(0.3, 0.5, 1.0));
+      // Use displacedNormal instead of vNormal for lighting
+      float diff = max(dot(displacedNormal, lightDir), 0.0);
 
-      finalColor *= shading;
+      // Specular Caustic Edge Rings: Crisp specular caustic crest (top of the wave)
+      float causticHighlight = pow(diff, 16.0) * (0.4 + uBass * 0.6);
+
+      // Add specular highlights instead of wide diffuse shading
+      finalColor += vec3(1.0, 1.0, 1.0) * causticHighlight;
 
       // Specular center core glow
       float centerDist = distance(uv, vec2(0.5));
@@ -238,7 +274,13 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
  * @param {string|null} [props.accentColor] - Dominant accent color extracted from album art.
  * @returns {React.ReactElement} The FluidVisualizer component.
  */
-export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer, accentColor }) {
+export default function FluidVisualizer({
+  analyserNode,
+  isPlaying,
+  activePlayer,
+  accentColor,
+  isFlipped,
+}) {
   const containerRef = useRef(null);
   const [isIntersecting, setIsIntersecting] = useState(true);
 
@@ -263,7 +305,7 @@ export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer,
   }, []);
 
   // Centralized Audio Spectrum Processing & Container Pulse Hook
-  const { audioDataRef } = useAudioProcessor({
+  const { audioDataRef, update: updateAudio } = useAudioProcessor({
     analyserNode,
     isPlaying,
     activePlayer,
@@ -293,6 +335,8 @@ export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer,
           primaryColor={primaryColor}
           isMobile={isMobile}
           isIntersecting={isIntersecting}
+          isFlipped={isFlipped}
+          updateAudio={updateAudio}
         />
         <EffectComposer>
           <Bloom intensity={0.35} luminanceThreshold={0.85} mipmapBlur />
