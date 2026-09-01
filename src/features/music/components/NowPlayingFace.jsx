@@ -20,10 +20,6 @@ import CircularRingVisualizer from './visualizers/CircularRingVisualizer';
  * centerpiece, and a floating control hub (gear, flip pill, playback controls, queue toggle).
  */
 
-/** High-fidelity placeholder texture used when no artwork is available. */
-const PLACEHOLDER_TEXTURE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23312e81'/%3E%3Cstop offset='40%25' stop-color='%234c1d95'/%3E%3Cstop offset='100%25' stop-color='%230f172a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23g)'/%3E%3Ccircle cx='200' cy='200' r='80' fill='%23ffffff08'/%3E%3Ccircle cx='200' cy='200' r='120' fill='%23ffffff04'/%3E%3C/svg%3E";
-
 /**
  * NowPlayingFace component — Face 1 of the music 3D card.
  *
