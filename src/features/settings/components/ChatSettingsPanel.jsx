@@ -448,6 +448,9 @@ export default function ChatSettingsPanel() {
             </div>
             <button
               type="button"
+              role="switch"
+              aria-checked={isSoundEnabled}
+              aria-label="Toggle Message Sound Effects"
               onClick={handleToggleSound}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                 isSoundEnabled ? 'bg-primary' : 'bg-slate-800'
@@ -476,6 +479,9 @@ export default function ChatSettingsPanel() {
             </div>
             <button
               type="button"
+              role="switch"
+              aria-checked={isHapticsEnabled}
+              aria-label="Toggle Heartbeat Haptic Vibration"
               onClick={handleToggleHaptics}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                 isHapticsEnabled ? 'bg-primary' : 'bg-slate-800'
