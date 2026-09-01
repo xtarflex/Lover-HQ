@@ -15,3 +15,6 @@
 ## 2024-07-22 - aria-labels for Fridge icon buttons
 **Learning:** Several icon-only buttons in the Fridge feature components (like FridgeItem, NoteModal, PhotoModal, and VoiceModal) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
 **Action:** When creating or modifying icon-only functional buttons, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+## 2024-08-14 - Custom Dropdown Accessibility
+**Learning:** Custom dropdown menus built with `div` and `button` elements instead of native `<select>` tags lack inherent accessibility. Screen readers do not know they function as a list of options.
+**Action:** When building custom select/dropdown components, always ensure proper screen reader support by adding `aria-haspopup="listbox"` and `aria-expanded={isOpen}` to the trigger button, `role="listbox"` to the panel container, and `role="option"` with `aria-selected={isSelected}` to each option element.
