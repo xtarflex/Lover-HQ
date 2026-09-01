@@ -65,6 +65,12 @@ export const ANIMATED_EMOJIS = [
   { id: 'balloon', label: 'Balloon', code: '1f388', char: '🎈' },
 ];
 
+/** @type {Map<string, AnimatedEmoji>} */
+export const ANIMATED_EMOJIS_BY_ID = new Map(ANIMATED_EMOJIS.map((emoji) => [emoji.id, emoji]));
+
+/** @type {Map<string, AnimatedEmoji>} */
+export const ANIMATED_EMOJIS_BY_CHAR = new Map(ANIMATED_EMOJIS.map((emoji) => [emoji.char, emoji]));
+
 /**
  * Returns the Google Noto Animated WebP CDN URL for a given emoji hex code.
  *
