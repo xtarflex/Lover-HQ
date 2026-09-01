@@ -177,6 +177,7 @@ export default function GlassDropdown({
   const dropdownMenu = (
     <div
       ref={panelRef}
+      role="listbox"
       onClick={(e) => e.stopPropagation()}
       className={`bg-slate-900/95 dark:bg-slate-950/95 border border-white/10 dark:border-slate-800 backdrop-blur-xl overflow-hidden space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xl ${sizeStyles.panel} ${panelClassName}`}
       style={getPanelStyle()}
@@ -187,6 +188,8 @@ export default function GlassDropdown({
           <button
             key={opt.value}
             type="button"
+            role="option"
+            aria-selected={isSelected}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -212,6 +215,8 @@ export default function GlassDropdown({
       <button
         ref={buttonRef}
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         style={{ anchorName }}
         onClick={(e) => {
           e.stopPropagation();
