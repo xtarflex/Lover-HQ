@@ -22,6 +22,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
+import { getSafeUrl } from '../../../utils/url';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
 import { AnimatedSticker } from './AnimatedSticker';
@@ -881,7 +882,7 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={getSafeUrl(msg.media_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"
