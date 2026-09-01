@@ -24,3 +24,7 @@
 ## 2024-05-24 - Compare ISO 8601 strings directly in render loop
 **Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
 **Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
+
+## 2024-03-24 - React.memo with items dependency inside useCallbacks
+**Learning:** `React.memo` for list items like `FridgeItem` is broken when parent components pass callbacks (like `handlePositionChange`) that have the full `items` list in their dependency array. This triggers unnecessary re-renders of all items whenever any single item moves.
+**Action:** Use the "latest ref" pattern (`itemsRef.current = items`) inside callbacks instead of adding the list to the dependency array, avoiding callback invalidation on state changes. Updated directly in render for synchronous consistency.
