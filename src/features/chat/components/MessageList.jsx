@@ -881,7 +881,12 @@ export function MessageList({
                               </div>
                             </div>
                             <a
-                              href={msg.media_url}
+                              href={
+                                msg.media_url?.startsWith('http://') ||
+                                msg.media_url?.startsWith('https://')
+                                  ? msg.media_url
+                                  : '#'
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[10px] font-bold text-blue-400 hover:underline block"

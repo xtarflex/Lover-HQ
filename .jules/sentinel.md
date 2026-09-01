@@ -16,3 +16,7 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+## 2024-11-20 - Unsanitized href Attribute in MessageList
+**Vulnerability:** Found an XSS vulnerability where `msg.media_url` was passed directly into an `href` attribute without sanitizing the protocol.
+**Learning:** While React escapes HTML characters in attributes preventing quote-breakouts, it does *not* validate protocols in `href` attributes. This allows a malicious user to craft a URL like `javascript:alert('XSS')` which executes when clicked.
+**Prevention:** Always enforce an explicit allowlist (like `http://` and `https://`) for URLs rendered in anchor tags using optional chaining and a fallback (e.g. `href={url?.startsWith('https://') ? url : '#'}`).
