@@ -71,6 +71,7 @@ export default function FridgeSettingsPanel({
             </label>
             <GlassDropdown
               value={compactDays}
+              ariaLabel="Select compact threshold days"
               options={compactionOptions}
               onChange={onCompactDaysChange}
               size="md"
@@ -193,6 +194,7 @@ export default function FridgeSettingsPanel({
           </label>
           <GlassDropdown
             value={noteFont}
+            ariaLabel="Select default note font"
             options={[
               { value: 'handwriting', label: 'Playful (Caveat)' },
               { value: 'kalam', label: 'Classic Marker (Kalam)' },
