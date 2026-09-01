@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { doctorAudioData } from '../lib/audioUtils';
 
 /**
@@ -48,17 +48,12 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
     activePlayerRef.current = activePlayer;
   }, [activePlayer]);
 
-  useEffect(() => {
-    let animId;
-    let t = 0;
+  const tRef = useRef(0);
 
-    const processAudioFrame = () => {
-      if (document.hidden) {
-        animId = requestAnimationFrame(processAudioFrame);
-        return;
-      }
-
-      t += 0.016;
+  const update = useCallback(
+    (delta = 0.016) => {
+      tRef.current += delta;
+      const t = tRef.current;
       const playing = isPlayingRef.current;
       const playerType = activePlayerRef.current;
       const analyser = analyserRef.current;
@@ -73,12 +68,12 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
         const raw = rawDataBufferRef.current;
         analyser.getByteFrequencyData(raw);
 
-        // Pure raw sub-bass bins 0..7 (uncut by Gaussian edge tapering)
+        // Pure raw sub-bass bins 1..5 (uncut by Gaussian edge tapering, avoiding DC offset at bin 0)
         let rawBSum = 0;
-        for (let i = 0; i < 8; i++) {
+        for (let i = 1; i < 6; i++) {
           rawBSum += raw[i] / 255.0;
         }
-        pureRawBass = rawBSum / 8;
+        pureRawBass = rawBSum / 5;
 
         const doctored = doctorAudioData(raw, doctoredBufferRef.current);
 
@@ -160,18 +155,15 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
       if (containerRef && containerRef.current) {
         containerRef.current.style.transform = `scale(${bassScale.toFixed(4)})`;
       }
-
-      animId = requestAnimationFrame(processAudioFrame);
-    };
-
-    processAudioFrame();
-    return () => cancelAnimationFrame(animId);
-  }, [containerRef]);
+    },
+    [containerRef]
+  );
 
   return {
     audioDataRef,
     pulseRef,
     maxBassObservedRef,
     bassBaselineRef,
+    update,
   };
 }

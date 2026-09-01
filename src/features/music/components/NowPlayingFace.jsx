@@ -205,6 +205,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
                 isPlaying={isPlaying}
                 activePlayer={activePlayer}
                 accentColor={accentColor}
+                isFlipped={isFlipped}
               />
             </motion.div>
           )}

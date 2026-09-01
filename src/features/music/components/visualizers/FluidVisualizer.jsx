@@ -24,7 +24,14 @@ import { useAudioProcessor } from '../../hooks/useAudioProcessor';
  * @param {boolean} props.isIntersecting - Whether the visualizer container is visible in the viewport.
  * @returns {React.ReactElement} The Three.js mesh element.
  */
-function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
+function FluidShaderMesh({
+  audioRef,
+  primaryColor,
+  isMobile,
+  isIntersecting,
+  isFlipped,
+  updateAudio,
+}) {
   const meshRef = useRef(null);
   const frameAccumulatorRef = useRef(0);
   const elapsedTimeRef = useRef(0);
@@ -63,7 +70,7 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
 
   useFrame((state, delta) => {
     if (!meshRef.current || !meshRef.current.material) return;
-    if (document.hidden || !isIntersecting) return;
+    if (document.hidden || !isIntersecting || isFlipped) return;
 
     // Target FPS: 30 FPS on mobile, 60 FPS on desktop to preserve battery
     const targetFPS = isMobile ? 30 : 60;
@@ -74,6 +81,11 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
       return;
     }
     frameAccumulatorRef.current %= frameInterval;
+
+    // Sync audio math and scaling exactly with GPU render tick
+    if (updateAudio) {
+      updateAudio(delta);
+    }
 
     // Accumulate elapsed time manually to prevent THREE.Clock deprecation warnings
     elapsedTimeRef.current += delta;
@@ -238,7 +250,13 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
  * @param {string|null} [props.accentColor] - Dominant accent color extracted from album art.
  * @returns {React.ReactElement} The FluidVisualizer component.
  */
-export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer, accentColor }) {
+export default function FluidVisualizer({
+  analyserNode,
+  isPlaying,
+  activePlayer,
+  accentColor,
+  isFlipped,
+}) {
   const containerRef = useRef(null);
   const [isIntersecting, setIsIntersecting] = useState(true);
 
@@ -263,7 +281,7 @@ export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer,
   }, []);
 
   // Centralized Audio Spectrum Processing & Container Pulse Hook
-  const { audioDataRef } = useAudioProcessor({
+  const { audioDataRef, update: updateAudio } = useAudioProcessor({
     analyserNode,
     isPlaying,
     activePlayer,
@@ -293,6 +311,8 @@ export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer,
           primaryColor={primaryColor}
           isMobile={isMobile}
           isIntersecting={isIntersecting}
+          isFlipped={isFlipped}
+          updateAudio={updateAudio}
         />
         <EffectComposer>
           <Bloom intensity={0.35} luminanceThreshold={0.85} mipmapBlur />
