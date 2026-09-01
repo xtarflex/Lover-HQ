@@ -15,3 +15,6 @@
 ## 2024-07-22 - aria-labels for Fridge icon buttons
 **Learning:** Several icon-only buttons in the Fridge feature components (like FridgeItem, NoteModal, PhotoModal, and VoiceModal) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
 **Action:** When creating or modifying icon-only functional buttons, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+## 2024-07-23 - Input HTMLFor Labels
+**Learning:** React form inputs must have an `id` attribute that strictly matches the `htmlFor` attribute of their corresponding `<label>`. This pairing enables screen readers to correctly identify the input's purpose and allows users to focus the input by clicking the label text.
+**Action:** When adding or modifying `<label>` and `<input>` elements, always verify that they are paired explicitly using matching `htmlFor` and `id` attributes. If a visual label disrupts the design, use the `sr-only` class on the label to preserve accessibility without affecting the layout.
