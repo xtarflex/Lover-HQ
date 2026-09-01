@@ -85,11 +85,13 @@ export function MessageList({
 
   const renderReadStatus = (msg) => {
     if (!msg) return null;
+    // Optimization: Using Date.parse() instead of new Date() prevents allocating
+    // a new object for every single message during the render loop.
     const isRead =
       presence?.partnerRoom === 'Chat Room' ||
       (partnerLastSeen &&
         msg.created_at &&
-        new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+        Date.parse(msg.created_at) <= Date.parse(partnerLastSeen));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-emerald-500" />;
