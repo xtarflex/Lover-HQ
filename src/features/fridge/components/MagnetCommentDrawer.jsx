@@ -174,7 +174,7 @@ export default function MagnetCommentDrawer({
 
     const isRead =
       isPartnerInFridge ||
-      (partnerLastSeen && new Date(partnerLastSeen) >= new Date(comment.created_at));
+      (partnerLastSeen && Date.parse(partnerLastSeen) >= Date.parse(comment.created_at));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-primary" title="Read" />;
@@ -321,13 +321,13 @@ export default function MagnetCommentDrawer({
                   const isPrevSame =
                     prevComment &&
                     prevComment.user_id === comment.user_id &&
-                    new Date(comment.created_at) - new Date(prevComment.created_at) <
+                    Date.parse(comment.created_at) - Date.parse(prevComment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const isNextSame =
                     nextComment &&
                     nextComment.user_id === comment.user_id &&
-                    new Date(nextComment.created_at) - new Date(comment.created_at) <
+                    Date.parse(nextComment.created_at) - Date.parse(comment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const showSenderName = !isPrevSame;
