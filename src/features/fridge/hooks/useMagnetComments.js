@@ -37,6 +37,7 @@ export function useMagnetComments(item, userId) {
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
 
   const typingTimeoutRef = useRef(null);
+  const isTypingLocal = useRef(false);
   const channelRef = useRef(null);
 
   /**
@@ -210,12 +211,19 @@ export function useMagnetComments(item, userId) {
   const handleInputChange = (e) => {
     setInputText(e.target.value);
 
-    if (channelRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { userId, isTyping: true },
-      });
+    // ⚡ Bolt: Performance Improvement
+    // 💡 What: Throttle real-time typing broadcast messages using a local ref.
+    // 🎯 Why: Previously, a Supabase Realtime broadcast was sent on EVERY keystroke, causing unnecessary network overhead.
+    // 📊 Impact: Reduces network requests from O(N) (N = keystrokes) to O(1) per typing burst.
+    if (!isTypingLocal.current) {
+      isTypingLocal.current = true;
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { userId, isTyping: true },
+        });
+      }
     }
 
     if (typingTimeoutRef.current) {
@@ -223,6 +231,7 @@ export function useMagnetComments(item, userId) {
     }
 
     typingTimeoutRef.current = setTimeout(() => {
+      isTypingLocal.current = false;
       if (channelRef.current) {
         channelRef.current.send({
           type: 'broadcast',
@@ -230,7 +239,7 @@ export function useMagnetComments(item, userId) {
           payload: { userId, isTyping: false },
         });
       }
-    }, 3000);
+    }, 2000);
   };
 
   /**
@@ -247,6 +256,7 @@ export function useMagnetComments(item, userId) {
 
     if (onPlaySound) onPlaySound('rustle');
 
+    isTypingLocal.current = false;
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     if (channelRef.current) {
       channelRef.current.send({
