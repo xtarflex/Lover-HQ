@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getEmojiCdnUrl, ANIMATED_EMOJIS } from './emojiData';
+import {
+  getEmojiCdnUrl,
+  ANIMATED_EMOJIS,
+  ANIMATED_EMOJIS_BY_ID,
+  ANIMATED_EMOJIS_BY_CHAR,
+} from './emojiData';
 
 describe('emojiData', () => {
   describe('getEmojiCdnUrl', () => {
@@ -50,6 +55,32 @@ describe('emojiData', () => {
       const codes = ANIMATED_EMOJIS.map((e) => e.code);
       const uniqueCodes = new Set(codes);
       expect(codes.length).toBe(uniqueCodes.size);
+    });
+  });
+
+  describe('ANIMATED_EMOJIS_BY_ID', () => {
+    it('should allow O(1) lookups by id', () => {
+      const heartEmoji = ANIMATED_EMOJIS_BY_ID.get('heart');
+      expect(heartEmoji).toBeDefined();
+      expect(heartEmoji.id).toBe('heart');
+      expect(heartEmoji.char).toBe('❤️');
+    });
+
+    it('should have the same number of entries as ANIMATED_EMOJIS', () => {
+      expect(ANIMATED_EMOJIS_BY_ID.size).toBe(ANIMATED_EMOJIS.length);
+    });
+  });
+
+  describe('ANIMATED_EMOJIS_BY_CHAR', () => {
+    it('should allow O(1) lookups by char', () => {
+      const heartEmoji = ANIMATED_EMOJIS_BY_CHAR.get('❤️');
+      expect(heartEmoji).toBeDefined();
+      expect(heartEmoji.id).toBe('heart');
+      expect(heartEmoji.char).toBe('❤️');
+    });
+
+    it('should have the same number of entries as ANIMATED_EMOJIS', () => {
+      expect(ANIMATED_EMOJIS_BY_CHAR.size).toBe(ANIMATED_EMOJIS.length);
     });
   });
 });
