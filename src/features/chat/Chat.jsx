@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabase';
 import { getFridgeItems } from '../../services/fridge';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { getFormattedTime } from '../../utils/time';
+import { getSafeUrl } from '../../utils/url';
 
 // Custom Hooks
 import { useChatMessages } from './hooks/useChatMessages';
@@ -480,13 +481,13 @@ export default function Chat() {
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
           } else {
-            window.open(url, '_blank');
+            window.open(getSafeUrl(url), '_blank');
           }
         }, 'image/png');
       };
       img.onerror = () => {
         const a = document.createElement('a');
-        a.href = url;
+        a.href = getSafeUrl(url);
         a.download = `lover_hq_${Date.now()}`;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
@@ -494,10 +495,10 @@ export default function Chat() {
         a.click();
         document.body.removeChild(a);
       };
-      img.src = url;
+      img.src = url; // Not strictly necessary to sanitize img.src for XSS context, but doing so provides defense-in-depth if desired. Keeping as is since browser handles image loading securely.
     } catch (err) {
       console.error('Failed to download image:', err);
-      window.open(url, '_blank');
+      window.open(getSafeUrl(url), '_blank');
     }
   };
 

@@ -16,3 +16,8 @@
 **Vulnerability:** Even when stripping some characters using `replace`, untrusted user input strings like `file.name` used directly in dynamic file paths risk path traversal (e.g. `foo.js_.._.._bar` from `foo.js/../../bar`) leading to logic errors or vulnerabilities if the sanitization misses edge cases.
 **Learning:** Relying on replacing specific characters is a blacklist approach, which is often flawed.
 **Prevention:** It is more secure to completely discard the user-provided filename except for its parsed extension. Generate a completely randomized filename utilizing `window.crypto.getRandomValues()`, and extract and rigorously sanitize only the alphanumeric extension from the original input before appending.
+
+## 2025-02-21 - XSS in URL Handlers
+**Vulnerability:** User-provided URLs used in `window.open` or anchor `href` without protocol sanitization (allowing `javascript:` etc.).
+**Learning:** `window.open(url)` and `<a href={url}>` are common XSS sinks if URLs are not validated.
+**Prevention:** Always enforce a URL protocol allowlist (e.g., `http:`, `https:`, `mailto:`, `tel:`, `blob:`, `data:`) using a utility function before rendering or executing URLs.
