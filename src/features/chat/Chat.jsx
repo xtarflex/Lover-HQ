@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabase';
 import { getFridgeItems } from '../../services/fridge';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { getFormattedTime } from '../../utils/time';
+import { sanitizeUrl } from '../../lib/sanitization';
 
 // Custom Hooks
 import { useChatMessages } from './hooks/useChatMessages';
@@ -459,6 +460,13 @@ export default function Chat() {
   const [activeLightboxImage, setActiveLightboxImage] = useState(null);
 
   const handleDownloadImage = async (url) => {
+    // 🛡️ Sentinel: Sanitize URL to prevent XSS via malicious protocols in window.open or href
+    const safeUrl = sanitizeUrl(url);
+    if (safeUrl === '#') {
+      console.error('Invalid or unsafe URL provided for download.');
+      return;
+    }
+
     try {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -480,13 +488,13 @@ export default function Chat() {
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
           } else {
-            window.open(url, '_blank');
+            window.open(safeUrl, '_blank');
           }
         }, 'image/png');
       };
       img.onerror = () => {
         const a = document.createElement('a');
-        a.href = url;
+        a.href = safeUrl;
         a.download = `lover_hq_${Date.now()}`;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
@@ -494,10 +502,10 @@ export default function Chat() {
         a.click();
         document.body.removeChild(a);
       };
-      img.src = url;
+      img.src = safeUrl;
     } catch (err) {
       console.error('Failed to download image:', err);
-      window.open(url, '_blank');
+      window.open(safeUrl, '_blank');
     }
   };
 
