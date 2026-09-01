@@ -172,9 +172,10 @@ export default function MagnetCommentDrawer({
       );
     }
 
+    // Bolt: Use Date.parse() instead of new Date() to avoid costly object allocations in the render loop
     const isRead =
       isPartnerInFridge ||
-      (partnerLastSeen && new Date(partnerLastSeen) >= new Date(comment.created_at));
+      (partnerLastSeen && Date.parse(partnerLastSeen) >= Date.parse(comment.created_at));
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-primary" title="Read" />;
@@ -318,16 +319,18 @@ export default function MagnetCommentDrawer({
                   const nextComment = i < comments.length - 1 ? comments[i + 1] : null;
                   const TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
+                  // Bolt: Use Date.parse() to avoid costly object allocations
                   const isPrevSame =
                     prevComment &&
                     prevComment.user_id === comment.user_id &&
-                    new Date(comment.created_at) - new Date(prevComment.created_at) <
+                    Date.parse(comment.created_at) - Date.parse(prevComment.created_at) <
                       TIME_THRESHOLD_MS;
 
+                  // Bolt: Use Date.parse() to avoid costly object allocations
                   const isNextSame =
                     nextComment &&
                     nextComment.user_id === comment.user_id &&
-                    new Date(nextComment.created_at) - new Date(comment.created_at) <
+                    Date.parse(nextComment.created_at) - Date.parse(comment.created_at) <
                       TIME_THRESHOLD_MS;
 
                   const showSenderName = !isPrevSame;

@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
