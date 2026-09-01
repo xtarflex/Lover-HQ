@@ -5,7 +5,6 @@ import { useMusic } from '../../../contexts/MusicContext';
 import { getTrackArtwork } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
-import FlipPillToggle from './FlipPillToggle';
 
 /**
  * @file src/features/music/components/CollectionManagementFace.jsx
@@ -33,7 +32,7 @@ const tabVariants = {
  * @param {Function} props.onOpenAddModal - Opens the Add Track modal.
  * @returns {React.ReactElement} The CollectionManagementFace component.
  */
-export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddModal }) {
+export default function CollectionManagementFace({ onOpenAddModal }) {
   const {
     library,
     queue,
@@ -46,6 +45,7 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
     saveQueueAsPlaylist,
     loadPlaylist,
     deletePlaylist,
+    setIsCardFlipped,
   } = useMusic();
 
   const [activeTab, setActiveTab] = useState('library'); // 'library' | 'playlists'
@@ -95,7 +95,7 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
    */
   const handleTrackSelect = (libraryTrackId) => {
     injectTrackIntoQueue(libraryTrackId, 'append');
-    onFlip();
+    setIsCardFlipped(false);
   };
 
   /**
@@ -118,7 +118,7 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
       style={accentStyle}
     >
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/8 flex-shrink-0">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/8 flex-shrink-0 pr-24">
         <h2 className="text-base font-bold text-white font-rounded">Collection</h2>
         <div className="flex items-center gap-3">
           <button
@@ -129,7 +129,6 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
             <Plus className="w-3.5 h-3.5" />
             Add Track
           </button>
-          <FlipPillToggle isFlipped={isFlipped} onFlip={onFlip} accentColor={accentColor} />
         </div>
       </div>
 
@@ -328,12 +327,12 @@ export default function CollectionManagementFace({ isFlipped, onFlip, onOpenAddM
                         className="group flex items-center gap-3 rounded-xl px-3 py-3 bg-white/5 border border-white/8 hover:bg-white/10 transition-all cursor-pointer"
                         onClick={() => {
                           loadPlaylist(playlist.id);
-                          onFlip();
+                          setIsCardFlipped(false);
                         }}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) =>
-                          e.key === 'Enter' && (loadPlaylist(playlist.id), onFlip())
+                          e.key === 'Enter' && (loadPlaylist(playlist.id), setIsCardFlipped(false))
                         }
                         aria-label={`Load playlist ${playlist.name}`}
                       >

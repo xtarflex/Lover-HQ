@@ -60,45 +60,81 @@
   pointer-events: auto;
 }
 
-/* ─── Ambient Blurred Backdrop ──────────────────────────────────────────── */
+/* ─── Layer A: Sharp Ambient Backdrop ────────────────────────────────────── */
 .ambient-blur-backdrop {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   background-size: cover;
-  background-position: center;
-  filter: blur(80px) brightness(0.55) saturate(1.4);
-  /* Scale eliminates edge bleed artifacts from blur */
-  transform: scale(1.15);
+  background-position: center center;
+  filter: none;
+  opacity: 1;
+  transform: scale(1.33);
+  transform-origin: center center;
   z-index: 0;
-  will-change: filter;
-  transition: background-image 0.8s ease;
   pointer-events: none;
+  transition:
+    background-image 0.8s ease-in-out,
+    transform 0.8s ease-in-out,
+    filter 0.8s ease-in-out;
 }
 
-/* ─── Top Dark Overlay (keeps visualizer contrast clean) ─────────────────── */
+.ambient-blur-backdrop.is-youtube {
+  display: block;
+  visibility: visible;
+  filter: brightness(1) saturate(1);
+  opacity: 1;
+  transform: scale(1.33);
+  transform-origin: center center;
+}
+
+/* ─── The Dark Gradient Overlay (.top-dark-overlay) ─────────────────────── */
 .top-dark-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0px;
+  left: 0px;
   width: 100%;
-  height: 65%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0) 100%);
+  height: 100%;
+  display: block;
+  visibility: visible;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.9) 55%,
+    rgba(0, 0, 0, 0.75) 70%,
+    rgba(0, 0, 0, 0.4) 85%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: 10;
   pointer-events: none;
-  z-index: 1;
 }
 
-/* ─── Glassmorphic Masked Blur Gradient Overlay ──────────────────────────── */
+/* ─── The Blur Gradient Overlay (#blur-gradient-overlay) ──────────────────── */
 .blur-gradient-overlay {
+  display: block;
+  visibility: visible;
+  backdrop-filter: none;
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, black 100%);
+  background-color: rgba(0, 0, 0, 0.01);
+  background-size: cover;
+  background-position: center center;
+  filter: blur(62px) brightness(1) saturate(1);
+  z-index: 6;
+  transform: scale(1.4);
+  opacity: 1;
+  width: 100%;
+  height: 100%;
   position: absolute;
-  inset: 0;
-  z-index: 5;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  mask-image: linear-gradient(to bottom, transparent 65%, black 85%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 65%, black 85%);
+  top: 0px;
+  left: 0px;
+  transform-origin: center center;
   pointer-events: none;
+  transition:
+    background-image 0.8s ease-in-out,
+    transform 0.8s ease-in-out,
+    filter 0.8s ease-in-out;
 }
 
 /* ─── Floating Queue Panel ───────────────────────────────────────────────── */
@@ -121,60 +157,101 @@
   flex-direction: column;
 }
 
-/* ─── Flip Pill Toggle ───────────────────────────────────────────────────── */
-.flip-pill-toggle {
+/* ─── Persistent Viewport 64px x 32px Flip Pill Toggle ──────────────────── */
+.flip-pill-track {
   position: relative;
+  width: 64px;
+  height: 32px;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--music-accent, rgb(var(--primary))) 15%,
+    rgba(255, 255, 255, 0.12)
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid
+    color-mix(in srgb, var(--music-accent, rgb(var(--primary))) 25%, rgba(255, 255, 255, 0.18));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  padding: 2px;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.35) 0%, rgba(139, 92, 246, 0.35) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  cursor: pointer;
   transition:
-    transform 0.18s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
     box-shadow 0.3s ease;
-  transform-style: preserve-3d;
-  box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.flip-pill-toggle:hover {
-  transform: scale(1.06);
-  box-shadow: 0 0 28px rgba(236, 72, 153, 0.45);
+.flip-pill-track:hover {
+  background: color-mix(
+    in srgb,
+    var(--music-accent, rgb(var(--primary))) 25%,
+    rgba(255, 255, 255, 0.18)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--music-accent, rgb(var(--primary))) 35%,
+    rgba(255, 255, 255, 0.3)
+  );
+  box-shadow: 0 0 20px var(--music-accent, rgba(var(--primary), 0.4));
 }
 
-.flip-pill-toggle:active {
+.flip-pill-track:active {
   transform: scale(0.96);
 }
 
-@keyframes pill-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 14px rgba(139, 92, 246, 0.3);
-  }
-  50% {
-    box-shadow:
-      0 0 28px rgba(236, 72, 153, 0.55),
-      0 0 48px rgba(139, 92, 246, 0.25);
-  }
+.flip-pill-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--music-accent, rgb(var(--primary)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: translateX(0px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
-.flip-pill-toggle.is-pulsing {
-  animation: pill-pulse 2.4s ease-in-out infinite;
+.flip-pill-track.is-active .flip-pill-thumb {
+  transform: translateX(32px);
 }
 
-/* ─── Liquid Blob Visualizer Canvas ─────────────────────────────────────── */
+/* ─── Liquid Blob Visualizer Container & Feathered Squircle Mask ─────────── */
+.liquid-blob-container {
+  position: relative;
+  width: min(85vw, 360px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  margin: clamp(2rem, 8vh, 5rem) auto 0px auto;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+
+  /* Precise squircle SVG path mask */
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M 0 50 C 0 5.8 5.8 0 50 0 S 100 5.8 100 50 S 94.2 100 50 100 S 0 94.2 0 50' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M 0 50 C 0 5.8 5.8 0 50 0 S 100 5.8 100 50 S 94.2 100 50 100 S 0 94.2 0 50' fill='black'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center center;
+  -webkit-mask-position: center center;
+  border-radius: 0px;
+}
+
 .liquid-blob-canvas {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   mix-blend-mode: screen;
-  opacity: 0.9;
+  opacity: 0.95;
   pointer-events: none;
 }
 
@@ -199,7 +276,7 @@
   background: #ffffff;
   box-shadow:
     0 0 10px rgba(0, 0, 0, 0.5),
-    0 0 12px var(--music-accent, #ec4899);
+    0 0 12px var(--music-accent, rgb(var(--primary)));
   cursor: pointer;
   transition: transform 0.15s ease;
 }
