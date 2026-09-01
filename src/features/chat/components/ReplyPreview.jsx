@@ -33,6 +33,7 @@ export function ReplyPreview({ replyMessage, userId, partner, onDismiss }) {
       <button
         onClick={onDismiss}
         className="text-text-muted hover:text-text-main p-1 shrink-0 ml-2"
+        aria-label="Cancel reply"
       >
         <X className="w-4 h-4" />
       </button>
