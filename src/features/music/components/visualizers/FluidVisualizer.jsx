@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -51,6 +52,15 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
     [palette]
   );
 
+  useEffect(() => {
+    if (!meshRef.current || !meshRef.current.material) return;
+    const uniforms = meshRef.current.material.uniforms;
+    uniforms.uPrimaryColor.value.copy(palette.primary);
+    uniforms.uCenterPurple.value.copy(palette.centerPurple);
+    uniforms.uBottomRed.value.copy(palette.bottomRed);
+    uniforms.uCornerAmber.value.copy(palette.cornerAmber);
+  }, [palette]);
+
   useFrame((state, delta) => {
     if (!meshRef.current || !meshRef.current.material) return;
     if (document.hidden || !isIntersecting) return;
@@ -73,7 +83,7 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
     const audio = audioRef.current;
 
     // ── Multi-Origin Raindrop Ripple Dispatcher ───────────────────────────
-    let spawnTrigger = audio.treble > 0.32 && Math.random() > 0.75;
+    let spawnTrigger = audio.treble / audio.maxTreble > 0.75 && Math.random() > 0.7;
     const rippleVectors = uniforms.uRipples.value;
 
     for (let i = 0; i < 8; i++) {
@@ -103,10 +113,6 @@ function FluidShaderMesh({ audioRef, primaryColor, isMobile, isIntersecting }) {
 
     // Update GPU Uniforms
     uniforms.uTime.value = t;
-    uniforms.uPrimaryColor.value.copy(palette.primary);
-    uniforms.uCenterPurple.value.copy(palette.centerPurple);
-    uniforms.uBottomRed.value.copy(palette.bottomRed);
-    uniforms.uCornerAmber.value.copy(palette.cornerAmber);
     uniforms.uBass.value = audio.bass;
     uniforms.uMid.value = audio.mid + midPinch;
     uniforms.uTreble.value = audio.treble;
@@ -295,4 +301,3 @@ export default function FluidVisualizer({ analyserNode, isPlaying, activePlayer,
     </div>
   );
 }
-

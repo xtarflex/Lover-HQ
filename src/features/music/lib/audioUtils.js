@@ -8,7 +8,7 @@ import * as THREE from 'three';
 
 /**
  * Attenuates and doctors raw Uint8Array audio spectrum data.
- * Applies Gaussian edge tapering, mid-tone dynamic range compression, and stereo cross-pollination.
+ * Applies mid-tone dynamic range compression.
  *
  * @param {Uint8Array} rawData - Raw spectrum data array (0 to 255).
  * @param {Float32Array} targetBuffer - Target float array buffer (0.0 to 1.0).
@@ -25,24 +25,8 @@ export function doctorAudioData(rawData, targetBuffer) {
       normalized = Math.sqrt(normalized) * 0.75;
     }
 
-    // 2. Bell-Curve (Gaussian) Edge Tapering (keeps motion contained in center)
-    const distFromCenter = Math.abs(i - len / 2) / (len / 2);
-    const edgeWeight = Math.cos(distFromCenter * Math.PI * 0.45);
-    normalized *= edgeWeight;
-
     targetBuffer[i] = normalized;
   }
-
-  // 3. Stereo Cross-Pollination (Blending Left and Right Channels)
-  const rightTrebleIndex = Math.floor(len * 0.85);
-  const leftMidTargetIndex = Math.floor(len * 0.25);
-  targetBuffer[leftMidTargetIndex] =
-    targetBuffer[leftMidTargetIndex] * 0.75 + targetBuffer[rightTrebleIndex] * 0.25;
-
-  const leftBassIndex = Math.floor(len * 0.15);
-  const rightMidTargetIndex = Math.floor(len * 0.75);
-  targetBuffer[rightMidTargetIndex] =
-    targetBuffer[rightMidTargetIndex] * 0.75 + targetBuffer[leftBassIndex] * 0.25;
 
   return targetBuffer;
 }

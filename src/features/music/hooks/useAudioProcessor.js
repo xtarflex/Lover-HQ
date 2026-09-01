@@ -28,10 +28,11 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
   const activePlayerRef = useRef(activePlayer);
 
   // Audio processing refs
-  const audioDataRef = useRef({ bass: 0.1, mid: 0.1, treble: 0.1, overall: 0.1 });
+  const audioDataRef = useRef({ bass: 0.1, mid: 0.1, treble: 0.1, overall: 0.1, maxTreble: 0.1 });
   const pulseRef = useRef(0);
   const bassBaselineRef = useRef(0.1);
   const maxBassObservedRef = useRef(0.1);
+  const maxTrebleRef = useRef(0.1);
   const rawDataBufferRef = useRef(new Uint8Array(64));
   const doctoredBufferRef = useRef(new Float32Array(64));
 
@@ -81,17 +82,18 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
 
         const doctored = doctorAudioData(raw, doctoredBufferRef.current);
 
-        let bSum = 0;
-        let mSum = 0;
-        let tSum = 0;
+        // Map 64 bins logarithmically across Sub-Bass (0..4), Bass/Low-Mid (5..15), Mid (16..35), Treble (36..63)
+        const getBandAverage = (data, startRatio, endRatio) => {
+          const start = Math.floor(data.length * startRatio);
+          const end = Math.max(start + 1, Math.floor(data.length * endRatio));
+          let sum = 0;
+          for (let i = start; i < end; i++) sum += data[i];
+          return sum / (end - start);
+        };
 
-        for (let i = 0; i < 10; i++) bSum += doctored[i];
-        for (let i = 10; i < 35; i++) mSum += doctored[i];
-        for (let i = 35; i < 60; i++) tSum += doctored[i];
-
-        targetBass = bSum / 10;
-        targetMid = mSum / 25;
-        targetTreble = tSum / 25;
+        targetBass = getBandAverage(doctored, 0.0, 0.08); // ~20Hz - 250Hz
+        targetMid = getBandAverage(doctored, 0.08, 0.4); // ~250Hz - 2.5kHz
+        targetTreble = getBandAverage(doctored, 0.4, 0.95); // ~2.5kHz - 16kHz
       } else if (playing) {
         // ── State 2: Active Simulated (YouTube / Non-CORS) ───────────────────
         // Subtle low kick pulse & boosted treble peaks (>0.32) for multi-origin ripples
@@ -119,6 +121,11 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
       audio.mid += (targetMid - audio.mid) * lerpSpeed;
       audio.treble += (targetTreble - audio.treble) * lerpSpeed;
       audio.overall = audio.bass * 0.5 + audio.mid * 0.35 + audio.treble * 0.15;
+
+      if (playing) {
+        maxTrebleRef.current = Math.max(maxTrebleRef.current * 0.999, targetTreble);
+      }
+      audio.maxTreble = Math.max(0.05, maxTrebleRef.current);
 
       // ── Speaker Pulse: Dynamic Range Normalization (High-Water Mark Peak Tracker)
       if (playing) {
