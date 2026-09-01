@@ -65,6 +65,11 @@ export const ANIMATED_EMOJIS = [
   { id: 'balloon', label: 'Balloon', code: '1f388', char: '🎈' },
 ];
 
+// O(1) lookup maps to prevent performance bottlenecks during render loops
+// (e.g. MessageList, FridgeItem) which previously used O(N) .find() operations.
+export const ANIMATED_EMOJIS_BY_ID = new Map(ANIMATED_EMOJIS.map((e) => [e.id, e]));
+export const ANIMATED_EMOJIS_BY_CHAR = new Map(ANIMATED_EMOJIS.map((e) => [e.char, e]));
+
 /**
  * Returns the Google Noto Animated WebP CDN URL for a given emoji hex code.
  *
