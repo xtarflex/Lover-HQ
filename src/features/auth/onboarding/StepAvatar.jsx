@@ -78,6 +78,7 @@ export default function StepAvatar({
         <button
           type="button"
           onClick={onBack}
+          aria-label="Go back"
           className="p-4 rounded-full border border-surface-border hover:border-text-muted text-text-main transition-colors relative z-10 bg-background"
         >
           <ArrowLeft className="w-5 h-5" />
