@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 import { getFridgeItems } from '../../services/fridge';
+import { getSafeUrl } from '../../utils/url';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { getFormattedTime } from '../../utils/time';
 
@@ -459,6 +460,9 @@ export default function Chat() {
   const [activeLightboxImage, setActiveLightboxImage] = useState(null);
 
   const handleDownloadImage = async (url) => {
+    const safeUrl = getSafeUrl(url);
+    if (!safeUrl) return;
+
     try {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -480,13 +484,13 @@ export default function Chat() {
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
           } else {
-            window.open(url, '_blank');
+            window.open(safeUrl, '_blank');
           }
         }, 'image/png');
       };
       img.onerror = () => {
         const a = document.createElement('a');
-        a.href = url;
+        a.href = safeUrl;
         a.download = `lover_hq_${Date.now()}`;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
@@ -494,10 +498,10 @@ export default function Chat() {
         a.click();
         document.body.removeChild(a);
       };
-      img.src = url;
+      img.src = safeUrl;
     } catch (err) {
       console.error('Failed to download image:', err);
-      window.open(url, '_blank');
+      window.open(safeUrl, '_blank');
     }
   };
 
