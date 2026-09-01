@@ -24,3 +24,7 @@
 ## 2024-05-24 - Compare ISO 8601 strings directly in render loop
 **Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
 **Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
+
+## 2024-05-18 - Avoid O(N) array operations on static collections inside render loops
+**Learning:** Using `Array.prototype.find()` on a static collection (like `ANIMATED_EMOJIS`) inside a React render loop (especially nested within a `.map()`) introduces an O(N) performance penalty on every render cycle. This is especially noticeable on long lists like chat logs or heavily populated fridge boards.
+**Action:** Pre-compute and export `Map` objects (e.g., `ANIMATED_EMOJIS_BY_ID`) from the data file. Use `Map.prototype.get()` instead of `Array.prototype.find()` inside render loops to reduce time complexity to O(1).
