@@ -28,13 +28,29 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
   const activePlayerRef = useRef(activePlayer);
 
   // Audio processing refs
-  const audioDataRef = useRef({ bass: 0.1, mid: 0.1, treble: 0.1, overall: 0.1, maxTreble: 0.1 });
+  const audioDataRef = useRef({
+    bass: 0.1,
+    mid: 0.1,
+    treble: 0.1,
+    overall: 0.1,
+    maxTreble: 0.1,
+    flux: 0,
+    fluxThreshold: 0,
+    bpm: 0,
+  });
   const pulseRef = useRef(0);
   const bassBaselineRef = useRef(0.1);
   const maxBassObservedRef = useRef(0.1);
   const maxTrebleRef = useRef(0.1);
   const rawDataBufferRef = useRef(new Uint8Array(64));
   const doctoredBufferRef = useRef(new Float32Array(64));
+
+  // Flux and Time Domain additions
+  const previousFreqDataRef = useRef(new Uint8Array(64));
+  const timeDomainDataRef = useRef(new Uint8Array(128));
+  const fluxHistoryRef = useRef(new Float32Array(240));
+  const fluxHistoryIndexRef = useRef(0);
+  const frameCountRef = useRef(0);
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
@@ -66,7 +82,73 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
       if (playing && playerType === 'html5' && analyser) {
         // ── State 3: Active Spectrum Audio ───────────────────────────────────
         const raw = rawDataBufferRef.current;
+        const prevRaw = previousFreqDataRef.current;
+        const timeDomain = timeDomainDataRef.current;
+
         analyser.getByteFrequencyData(raw);
+        analyser.getByteTimeDomainData(timeDomain); // 128 bins of raw waveform
+
+        // Calculate Spectral Flux
+        let currentFlux = 0;
+        for (let i = 0; i < raw.length; i++) {
+          const diff = raw[i] - prevRaw[i];
+          if (diff > 0) {
+            currentFlux += diff;
+          }
+          prevRaw[i] = raw[i]; // Update previous array for next frame
+        }
+        // Normalize flux
+        currentFlux = currentFlux / (raw.length * 255);
+
+        // Add to history ring buffer (240 frames ~ 4 seconds)
+        const fluxIndex = fluxHistoryIndexRef.current;
+        fluxHistoryRef.current[fluxIndex] = currentFlux;
+        fluxHistoryIndexRef.current = (fluxIndex + 1) % 240;
+
+        // Calculate Flux Threshold (Rolling average of last 15 frames)
+        let fluxSum = 0;
+        for (let i = 1; i <= 15; i++) {
+          let idx = fluxIndex - i;
+          if (idx < 0) idx += 240;
+          fluxSum += fluxHistoryRef.current[idx];
+        }
+        const fluxThreshold = fluxSum / 15;
+
+        // BPM Detection: Autocorrelation on Flux History (every 15 frames to save CPU)
+        frameCountRef.current++;
+        if (frameCountRef.current % 15 === 0) {
+          // Autocorrelation over the 240 frame buffer
+          // 60 BPM = 1 beat per second = 60 frames (at 60fps)
+          // 180 BPM = 3 beats per second = 20 frames (at 60fps)
+          let maxCorrelation = 0;
+          let bestLag = 0;
+
+          for (let lag = 20; lag <= 60; lag++) {
+            let correlation = 0;
+            // Correlate over available history (e.g., oldest 180 frames)
+            for (let i = 0; i < 180; i++) {
+              let idxA = fluxIndex - i - 1;
+              if (idxA < 0) idxA += 240;
+              let idxB = fluxIndex - i - 1 - lag;
+              if (idxB < 0) idxB += 240;
+
+              correlation += fluxHistoryRef.current[idxA] * fluxHistoryRef.current[idxB];
+            }
+            if (correlation > maxCorrelation) {
+              maxCorrelation = correlation;
+              bestLag = lag;
+            }
+          }
+
+          if (bestLag > 0) {
+            // Convert lag (frames) to BPM. (60 fps * 60 seconds) / lag
+            const calculatedBPM = 3600 / bestLag;
+            audioDataRef.current.bpm = calculatedBPM;
+          }
+        }
+
+        audioDataRef.current.flux = currentFlux;
+        audioDataRef.current.fluxThreshold = fluxThreshold;
 
         // Pure raw sub-bass bins 1..5 (uncut by Gaussian edge tapering, avoiding DC offset at bin 0)
         let rawBSum = 0;
@@ -161,6 +243,7 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
 
   return {
     audioDataRef,
+    timeDomainDataRef,
     pulseRef,
     maxBassObservedRef,
     bassBaselineRef,
