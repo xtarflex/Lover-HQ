@@ -26,6 +26,7 @@ import { useAudioProcessor } from '../../hooks/useAudioProcessor';
  */
 function FluidShaderMesh({
   audioRef,
+  timeDomainDataRef,
   primaryColor,
   isMobile,
   isIntersecting,
@@ -35,9 +36,19 @@ function FluidShaderMesh({
   const meshRef = useRef(null);
   const frameAccumulatorRef = useRef(0);
   const elapsedTimeRef = useRef(0);
+  const rippleCooldownRef = useRef(0);
 
   const palette = useMemo(() => deriveSectorPalette(primaryColor), [primaryColor]);
   const geometrySegments = useMemo(() => (isMobile ? [32, 32] : [64, 64]), [isMobile]);
+
+  // Memoize DataTexture for Time Domain (created once, updated in useFrame)
+  const timeDomainTexture = useMemo(() => {
+    // Pass a 128-byte array to initialize the texture
+    const emptyArray = new Uint8Array(128);
+    const tex = new THREE.DataTexture(emptyArray, 128, 1, THREE.RedFormat, THREE.UnsignedByteType);
+    tex.needsUpdate = true;
+    return tex;
+  }, []);
 
   const initialUniforms = useMemo(
     () => ({
@@ -55,8 +66,9 @@ function FluidShaderMesh({
       uRipples: {
         value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, 0, 0)),
       },
+      uTimeDomain: { value: timeDomainTexture },
     }),
-    [palette]
+    [palette, timeDomainTexture]
   );
 
   useEffect(() => {
@@ -94,8 +106,24 @@ function FluidShaderMesh({
     const uniforms = meshRef.current.material.uniforms;
     const audio = audioRef.current;
 
+    // ── Update Time Domain Texture ────────────────────────────────────────
+    if (uniforms.uTimeDomain && uniforms.uTimeDomain.value && timeDomainDataRef?.current) {
+      // Copy the latest waveform data into the texture's image data
+      uniforms.uTimeDomain.value.image.data.set(timeDomainDataRef.current);
+      uniforms.uTimeDomain.value.needsUpdate = true;
+    }
+
     // ── Multi-Origin Raindrop Ripple Dispatcher ───────────────────────────
-    let spawnTrigger = audio.treble / audio.maxTreble > 0.75 && Math.random() > 0.7;
+    if (rippleCooldownRef.current > 0) {
+      rippleCooldownRef.current -= 1;
+    }
+
+    let spawnTrigger = false;
+    if (audio.flux > audio.fluxThreshold * 1.5 && rippleCooldownRef.current === 0) {
+      spawnTrigger = true;
+      rippleCooldownRef.current = 5; // 5-frame cooldown
+    }
+
     const rippleVectors = uniforms.uRipples.value;
 
     for (let i = 0; i < 8; i++) {
@@ -155,6 +183,12 @@ function FluidShaderMesh({
       // Z-displacement height map for fluid surface waves
       float displacement = noise * (uBass * 0.38 + uMid * 0.28 + uTreble * 0.18);
       pos.z += displacement;
+
+      // Time Domain Hybridization: Acoustic Micro-Vibration (Dormant)
+      // float rawWaveform = texture2D(uTimeDomain, vec2(uv.x, 0.5)).r;
+      // float pressure = (rawWaveform - 0.5) * 2.0; // Normalize 0..1 to -1..1
+      // pos.z += pressure * 0.05 * uBass; // Sharp tactile buzz on bass kicks
+
 
       // Approximate perturbed surface normal for liquid diffuse lighting
       vec3 n = normal;
@@ -305,7 +339,11 @@ export default function FluidVisualizer({
   }, []);
 
   // Centralized Audio Spectrum Processing & Container Pulse Hook
-  const { audioDataRef, update: updateAudio } = useAudioProcessor({
+  const {
+    audioDataRef,
+    timeDomainDataRef,
+    update: updateAudio,
+  } = useAudioProcessor({
     analyserNode,
     isPlaying,
     activePlayer,
@@ -332,6 +370,7 @@ export default function FluidVisualizer({
         <directionalLight position={[2, 4, 3]} intensity={1.2} />
         <FluidShaderMesh
           audioRef={audioDataRef}
+          timeDomainDataRef={timeDomainDataRef}
           primaryColor={primaryColor}
           isMobile={isMobile}
           isIntersecting={isIntersecting}
