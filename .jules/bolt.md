@@ -24,3 +24,6 @@
 ## 2024-05-24 - Compare ISO 8601 strings directly in render loop
 **Learning:** Instantiating `new Date()` within render loops (e.g. `Array.map`) just to compare dates introduces unnecessary overhead and object allocations, particularly noticeable with lists of data (like fridge items). Supabase and ISO 8601 timestamps are lexically comparable as strings.
 **Action:** When comparing Supabase timestamps like `created_at` or `updated_at`, use direct string comparison (e.g., `timestamp1 > timestamp2`) rather than converting them to `Date` objects first, especially inside render functions.
+## 2024-05-18 - Avoid Garbage Collection in High-Frequency DSP using Typed Array Circular Buffers
+**Learning:** When performing per-frame audio Digital Signal Processing (DSP) like tracking historical Spectral Flux for BPM autocorrelation, dynamically growing arrays (e.g., `history.push(val)`, `history.shift()`) cause devastating garbage collection micro-stutters during 60fps render loops.
+**Action:** Use pre-allocated Typed Arrays (e.g., `new Float32Array(240)`) as circular buffers. Track the current index (`index = (index + 1) % size`) to overwrite old data safely, maintaining O(1) performance with zero memory allocation inside the render loop.
