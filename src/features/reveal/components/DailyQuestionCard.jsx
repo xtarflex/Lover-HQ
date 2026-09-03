@@ -113,6 +113,7 @@ export default function DailyQuestionCard({
                 return (
                   <button
                     key={emoji}
+                    aria-label={reacted ? `Remove reaction ${emoji}` : `React with ${emoji}`}
                     onClick={() => onToggleReaction(userAnswer, emoji)}
                     className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm relative transition-all ${
                       reacted
@@ -192,6 +193,7 @@ export default function DailyQuestionCard({
                 return (
                   <button
                     key={emoji}
+                    aria-label={reacted ? `Remove reaction ${emoji}` : `React with ${emoji}`}
                     onClick={() => onToggleReaction(partnerAnswer, emoji)}
                     className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm relative transition-all ${
                       reacted
