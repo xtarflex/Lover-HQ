@@ -55,6 +55,7 @@ export default function EmojiPickerModal({ isOpen, onClose, onSelect }) {
                   }}
                   className="aspect-square bg-surface/40 hover:bg-surface/80 border border-surface-border/40 hover:border-primary/50 rounded-2xl p-2.5 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow-md relative group"
                   title={emoji.label}
+                  aria-label={`Pin ${emoji.label} magnet`}
                 >
                   <img
                     src={imageUrl}
