@@ -15,3 +15,6 @@
 ## 2024-07-22 - aria-labels for Fridge icon buttons
 **Learning:** Several icon-only buttons in the Fridge feature components (like FridgeItem, NoteModal, PhotoModal, and VoiceModal) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
 **Action:** When creating or modifying icon-only functional buttons, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+## 2024-07-28 - Missing ARIA on custom toggle switches
+**Learning:** Custom UI toggle switches (implemented as `<button>` elements) were missing the `role="switch"` attribute, `aria-checked` state, and descriptive `aria-label`s. This is a recurring pattern for custom toggles.
+**Action:** When creating or modifying custom toggle switches, always ensure they have `role="switch"`, an accurate `aria-checked` boolean state, and a descriptive `aria-label`.
