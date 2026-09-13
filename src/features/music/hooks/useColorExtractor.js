@@ -24,15 +24,50 @@ const SAMPLE_CANVAS_SIZE = 16;
 const SAMPLE_GRID_DIVISIONS = 4;
 
 /**
- * Computes the approximate luminance of an RGB pixel.
+ * Computes the relative luminance of an RGB color using the WCAG formula.
  *
  * @param {number} r - Red channel value (0–255).
  * @param {number} g - Green channel value (0–255).
  * @param {number} b - Blue channel value (0–255).
- * @returns {number} Luminance value (0–255).
+ * @returns {number} Luminance value (0–1).
  */
-function computeLuminance(r, g, b) {
-  return 0.299 * r + 0.587 * g + 0.114 * b;
+export function getLuminance(r, g, b) {
+  const [rs, gs, bs] = [r, g, b].map((val) => {
+    const norm = val / 255;
+    return norm <= 0.03928 ? norm / 12.92 : Math.pow((norm + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+/**
+ * Adjusts an RGB color to guarantee adequate vibrance and contrast.
+ * Lightens colors with luminance < 0.3 and darkens colors with luminance > 0.85.
+ *
+ * @param {number} r - Red channel (0–255).
+ * @param {number} g - Green channel (0–255).
+ * @param {number} b - Blue channel (0–255).
+ * @returns {string} Adjusted RGB color string.
+ */
+export function adjustColorVibrance(r, g, b) {
+  const luminance = getLuminance(r, g, b);
+
+  let adjR = r;
+  let adjG = g;
+  let adjB = b;
+
+  if (luminance < 0.3) {
+    const boost = (0.3 - luminance) * 0.6;
+    adjR = Math.min(255, Math.round(adjR + (255 - adjR) * boost));
+    adjG = Math.min(255, Math.round(adjG + (255 - adjG) * boost));
+    adjB = Math.min(255, Math.round(adjB + (255 - adjB) * boost));
+  } else if (luminance > 0.85) {
+    const reduce = (luminance - 0.85) * 0.6;
+    adjR = Math.max(0, Math.round(adjR * (1 - reduce)));
+    adjG = Math.max(0, Math.round(adjG * (1 - reduce)));
+    adjB = Math.max(0, Math.round(adjB * (1 - reduce)));
+  }
+
+  return `rgb(${adjR}, ${adjG}, ${adjB})`;
 }
 
 /**
@@ -121,9 +156,8 @@ export function useColorExtractor(imageUrl) {
 
         const avgR = Math.round(totalR / sampleCount);
         const avgG = Math.round(totalG / sampleCount);
-        const avgB = Math.round(totalB / sampleCount);
-
-        setAccentColor(`rgb(${avgR}, ${avgG}, ${avgB})`);
+        const vibrantColor = adjustColorVibrance(avgR, avgG, avgB);
+        setAccentColor(vibrantColor);
       } catch {
         // Canvas taint or getImageData security error — CORS headers missing.
         setAccentColor(null);

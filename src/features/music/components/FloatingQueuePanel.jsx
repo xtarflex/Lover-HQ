@@ -149,7 +149,9 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
               </div>
             ) : (
               queue.map((track, index) => {
-                const isCurrent = currentTrack?.id === track.id;
+                const isCurrent = currentTrack?.queue_row_id
+                  ? currentTrack.queue_row_id === track.queue_row_id
+                  : currentTrack?.id === track.id;
                 const artworkUrl = getTrackArtwork(track);
                 const avatar = resolveUploaderAvatar(track.added_by);
                 const isDragTarget = dragOverIndex === index;
@@ -163,10 +165,12 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragLeave={() => setDragOverIndex(null)}
                     onDrop={(e) => handleDrop(e, index)}
-                    onClick={() => playTrackById(track.id, 0)}
+                    onClick={() => playTrackById(track.queue_row_id || track.id, 0)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && playTrackById(track.id, 0)}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && playTrackById(track.queue_row_id || track.id, 0)
+                    }
                     aria-pressed={isCurrent}
                     aria-label={`${track.title}${isCurrent ? ', now playing' : ''}`}
                     className={`group flex items-center gap-2 rounded-xl px-2.5 py-2 cursor-pointer transition-all duration-200

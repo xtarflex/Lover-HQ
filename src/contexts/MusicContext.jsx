@@ -219,7 +219,9 @@ export function MusicProvider({ children }) {
 
   const playTrackById = useCallback(
     async (trackId, startTime = 0, startPaused = false) => {
-      const track = queueRef.current.find((t) => t.id === trackId);
+      const track = queueRef.current.find(
+        (t) => (t.queue_row_id && t.queue_row_id === trackId) || t.id === trackId
+      );
       if (!track) return;
 
       let isAutoplayBlocked = false;
@@ -427,9 +429,12 @@ export function MusicProvider({ children }) {
     const q = queueRef.current;
     const ct = currentTrackRef.current;
     if (!q.length || !ct) return;
-    const idx = q.findIndex((t) => t.id === ct.id);
+    const idx = q.findIndex(
+      (t) => (ct.queue_row_id && t.queue_row_id === ct.queue_row_id) || t.id === ct.id
+    );
     if (idx !== -1 && idx < q.length - 1) {
-      playTrackById(q[idx + 1].id, 0);
+      const nextTrack = q[idx + 1];
+      playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
     } else {
       setIsPlaying(false);
       setCurrentTrack(null);
@@ -527,12 +532,14 @@ export function MusicProvider({ children }) {
   });
 
   // ─── Accent Color Extraction ───────────────────────────────────────────
+  // Tier 2: Now Playing face accent color is derived from the active visual backdrop
+  // (the track's artwork, or the user's chosen fallback wallpaper when artwork is absent).
   const artworkUrl = currentTrack ? getTrackArtwork(currentTrack) : null;
-  const { accentColor: extractedAccent } = useColorExtractor(artworkUrl);
+  const activeVisualImage = artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png';
+  const { accentColor: extractedAccent } = useColorExtractor(activeVisualImage);
 
-  // If artwork extraction returns null (e.g. track has no cover art), fall back to track title single accent color!
-  const accentColor =
-    extractedAccent || (currentTrack ? gradientFromString(currentTrack.title).primaryColor : null);
+  // If extraction fails entirely, fall back to global theme primary token
+  const accentColor = extractedAccent || 'rgb(var(--primary))';
 
   // ─── Heartbeat Coordination ────────────────────────────────────────────────
   useEffect(() => {
@@ -553,8 +560,14 @@ export function MusicProvider({ children }) {
     navigator.mediaSession.setActionHandler('pause', () => pauseLocalPlayback());
     navigator.mediaSession.setActionHandler('nexttrack', () => {
       const q = queueRef.current;
-      const idx = q.findIndex((t) => t.id === currentTrackRef.current?.id);
-      if (idx !== -1 && idx < q.length - 1) playTrackById(q[idx + 1].id, 0);
+      const ct = currentTrackRef.current;
+      const idx = q.findIndex(
+        (t) => (ct?.queue_row_id && t.queue_row_id === ct.queue_row_id) || t.id === ct?.id
+      );
+      if (idx !== -1 && idx < q.length - 1) {
+        const nextTrack = q[idx + 1];
+        playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+      }
     });
     navigator.mediaSession.setActionHandler('previoustrack', () => seekLocalPlayback(0));
   }, [currentTrack, resumeLocalPlayback, pauseLocalPlayback, playTrackById, seekLocalPlayback]);
@@ -567,7 +580,11 @@ export function MusicProvider({ children }) {
     const remainingTime = duration - currentTime;
     const thresh = crossfadeDurationRef.current;
     if (remainingTime <= thresh && thresh > 0 && queueRef.current.length > 0) {
-      const currentIndex = queueRef.current.findIndex((t) => t.id === currentTrack.id);
+      const currentIndex = queueRef.current.findIndex(
+        (t) =>
+          (currentTrack.queue_row_id && t.queue_row_id === currentTrack.queue_row_id) ||
+          t.id === currentTrack.id
+      );
       if (currentIndex !== -1 && currentIndex < queueRef.current.length - 1) {
         startCrossfade(queueRef.current[currentIndex + 1]);
       }
