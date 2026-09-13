@@ -9,11 +9,7 @@ import { useHtml5Player } from '../features/music/hooks/useHtml5Player';
 import { useYoutubePlayer } from '../features/music/hooks/useYoutubePlayer';
 import { useCrossfade } from '../features/music/hooks/useCrossfade';
 import { useColorExtractor } from '../features/music/hooks/useColorExtractor';
-import {
-  getTrackArtwork,
-  getProxiedUrl,
-  gradientFromString,
-} from '../features/music/lib/musicUtils';
+import { getTrackArtwork, getProxiedUrl } from '../features/music/lib/musicUtils';
 
 const MusicContext = createContext(null);
 

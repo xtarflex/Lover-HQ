@@ -12,10 +12,10 @@ import { useState, useEffect } from 'react';
  */
 
 /** Luminance threshold below which a pixel is considered "too dark" to sample. */
-const LUMINANCE_MIN = 30;
+const LUMINANCE_MIN = 0.12;
 
 /** Luminance threshold above which a pixel is considered "too bright" to sample. */
-const LUMINANCE_MAX = 220;
+const LUMINANCE_MAX = 0.88;
 
 /** Size of the hidden canvas used for pixel sampling. */
 const SAMPLE_CANVAS_SIZE = 16;
@@ -136,7 +136,7 @@ export function useColorExtractor(imageUrl) {
             const pixelData = ctx.getImageData(x, y, 1, 1).data;
 
             const [r, g, b] = pixelData;
-            const luminance = computeLuminance(r, g, b);
+            const luminance = getLuminance(r, g, b);
 
             // Discard near-black and near-white pixels — they don't yield useful accent colors.
             if (luminance >= LUMINANCE_MIN && luminance <= LUMINANCE_MAX) {
@@ -156,6 +156,7 @@ export function useColorExtractor(imageUrl) {
 
         const avgR = Math.round(totalR / sampleCount);
         const avgG = Math.round(totalG / sampleCount);
+        const avgB = Math.round(totalB / sampleCount);
         const vibrantColor = adjustColorVibrance(avgR, avgG, avgB);
         setAccentColor(vibrantColor);
       } catch {
