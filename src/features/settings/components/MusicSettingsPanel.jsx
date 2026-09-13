@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { Sliders, Radio, Disc, Waves, CircleDot } from 'lucide-react';
+import { Sliders, Radio, Disc, Waves, CircleDot, Image as ImageIcon } from 'lucide-react';
 
 /**
  * @typedef {'liquid'|'wave'|'vinyl'|'ring'} VisualizerMode
@@ -40,9 +40,32 @@ const VISUALIZER_OPTIONS = [
   },
 ];
 
+const BACKDROP_OPTIONS = [
+  {
+    id: '/backdrops/backdrop-1.png',
+    label: 'Soft Pastel',
+    src: '/backdrops/backdrop-1.png',
+  },
+  {
+    id: '/backdrops/backdrop-2.png',
+    label: 'Butterfly Nature',
+    src: '/backdrops/backdrop-2.png',
+  },
+  {
+    id: '/backdrops/backdrop-3.png',
+    label: 'Winding River Castle',
+    src: '/backdrops/backdrop-3.png',
+  },
+  {
+    id: '/backdrops/backdrop-4.png',
+    label: 'Romantic Heart',
+    src: '/backdrops/backdrop-4.png',
+  },
+];
+
 /**
  * MusicSettingsPanel component.
- * Configures the shared Music Room preferences: visualizer, crossfade.
+ * Configures the shared Music Room preferences: visualizer, crossfade, fallback backdrop.
  *
  * @returns {React.ReactElement} The settings panel.
  */
@@ -57,7 +80,14 @@ export default function MusicSettingsPanel() {
     );
   }
 
-  const { crossfadeDuration, setCrossfadeDuration, visualizerMode, setVisualizerMode } = music;
+  const {
+    crossfadeDuration,
+    setCrossfadeDuration,
+    visualizerMode,
+    setVisualizerMode,
+    fallbackBackdrop,
+    setFallbackBackdrop,
+  } = music;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -67,6 +97,50 @@ export default function MusicSettingsPanel() {
       </div>
 
       <div className="space-y-4">
+        {/* ── Fallback Wallpaper Picker ────────────────────────────────────── */}
+        <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
+          <div className="flex items-center space-x-2">
+            <ImageIcon className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-text-main">Default Backdrop Wallpaper</span>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Choose the background wallpaper used during the empty state or when playing tracks
+            without cover art.
+          </p>
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            {BACKDROP_OPTIONS.map(({ id, label, src }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setFallbackBackdrop(id)}
+                aria-pressed={(fallbackBackdrop || '/backdrops/backdrop-1.png') === id}
+                className={`group relative overflow-hidden rounded-xl border-2 transition-all aspect-video flex flex-col justify-end p-2 text-left ${
+                  (fallbackBackdrop || '/backdrops/backdrop-1.png') === id
+                    ? 'border-primary ring-2 ring-primary/40'
+                    : 'border-slate-800 hover:border-slate-600'
+                }`}
+              >
+                <img
+                  src={src}
+                  alt={label}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
+                <div className="relative z-10 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-white drop-shadow truncate">
+                    {label}
+                  </span>
+                  {(fallbackBackdrop || '/backdrops/backdrop-1.png') === id && (
+                    <div className="w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 ml-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* ── Visualizer Picker ──────────────────────────────────────────── */}
         <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
           <div className="flex items-center space-x-2">

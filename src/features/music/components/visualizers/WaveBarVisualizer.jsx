@@ -39,6 +39,7 @@ export default function WaveBarVisualizer({ analyserNode, isPlaying, activePlaye
    * Draws a single animation frame of the bar visualizer.
    */
   const drawFrame = useCallback(() => {
+    if (document.hidden) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');

@@ -63,8 +63,13 @@ export function gradientFromString(str) {
   const h1 = Math.abs(hash) % 360;
   const h2 = (h1 + 137) % 360; // Golden angle offset for complement
 
+  const primaryColor = `oklch(65% 0.18 ${h1})`;
+  const secondaryColor = `oklch(50% 0.14 ${h2})`;
+
   return {
-    background: `linear-gradient(135deg, oklch(65% 0.18 ${h1}), oklch(50% 0.14 ${h2}))`,
+    primaryColor,
+    secondaryColor,
+    background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
     color: '#ffffff',
   };
 }
