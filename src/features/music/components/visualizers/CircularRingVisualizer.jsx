@@ -44,7 +44,7 @@ function drawCircularImage(ctx, img, cx, cy, radius) {
  * @returns {React.ReactElement}
  */
 export default function CircularRingVisualizer({ accentColor }) {
-  const { currentTrack, isPlaying, analyserNode, activePlayer } = useMusic();
+  const { currentTrack, isPlaying, analyserNode, activePlayer, fallbackBackdrop } = useMusic();
 
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
@@ -70,7 +70,8 @@ export default function CircularRingVisualizer({ accentColor }) {
 
   // Preload artwork image whenever track changes
   useEffect(() => {
-    const artworkUrl = getTrackArtwork(currentTrack);
+    const artworkUrl =
+      getTrackArtwork(currentTrack) || fallbackBackdrop || '/backdrops/backdrop-1.png';
     if (!artworkUrl || artworkUrl === artworkUrlRef.current) return;
 
     artworkUrlRef.current = artworkUrl;
@@ -85,7 +86,7 @@ export default function CircularRingVisualizer({ accentColor }) {
       artworkImageRef.current = null;
     };
     img.src = artworkUrl;
-  }, [currentTrack]);
+  }, [currentTrack, fallbackBackdrop]);
 
   /**
    * Main animation loop — draws frequency ring bars around the artwork circle.

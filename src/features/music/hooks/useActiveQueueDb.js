@@ -206,7 +206,9 @@ export function useActiveQueueDb({
     async (queueRowId) => {
       try {
         const targetTrack = queueRef.current.find((t) => t.queue_row_id === queueRowId);
-        const isCurrentlyPlaying = currentTrackRef.current?.id === targetTrack?.id;
+        const isCurrentlyPlaying = currentTrackRef.current?.queue_row_id
+          ? currentTrackRef.current.queue_row_id === queueRowId
+          : currentTrackRef.current?.id === targetTrack?.id;
 
         // Optimistic update.
         const nextQueue = queueRef.current.filter((t) => t.queue_row_id !== queueRowId);

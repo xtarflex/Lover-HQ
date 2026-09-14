@@ -111,3 +111,42 @@ describe('gradientFromString', () => {
     expect(undefinedResult).toEqual(unknownResult);
   });
 });
+
+describe('adjustColorVibrance & getLuminance', () => {
+  it('should compute 0 luminance for pure black and 1 for pure white', async () => {
+    const { getLuminance } = await import('../hooks/useColorExtractor');
+    expect(getLuminance(0, 0, 0)).toBeCloseTo(0, 3);
+    expect(getLuminance(255, 255, 255)).toBeCloseTo(1, 3);
+  });
+
+  it('should lighten dark colors with luminance < 0.3', async () => {
+    const { adjustColorVibrance, getLuminance } = await import('../hooks/useColorExtractor');
+    const darkR = 20;
+    const darkG = 15;
+    const darkB = 25;
+    const initialLum = getLuminance(darkR, darkG, darkB);
+    expect(initialLum).toBeLessThan(0.3);
+
+    const adjusted = adjustColorVibrance(darkR, darkG, darkB);
+    expect(adjusted).toMatch(/^rgb\(\d+,\s*\d+,\s*\d+\)$/);
+    const [r, g, b] = adjusted.match(/\d+/g).map(Number);
+    expect(r).toBeGreaterThan(darkR);
+    expect(g).toBeGreaterThan(darkG);
+    expect(b).toBeGreaterThan(darkB);
+  });
+
+  it('should darken overly bright colors with luminance > 0.85', async () => {
+    const { adjustColorVibrance, getLuminance } = await import('../hooks/useColorExtractor');
+    const brightR = 250;
+    const brightG = 250;
+    const brightB = 245;
+    const initialLum = getLuminance(brightR, brightG, brightB);
+    expect(initialLum).toBeGreaterThan(0.85);
+
+    const adjusted = adjustColorVibrance(brightR, brightG, brightB);
+    const [r, g, b] = adjusted.match(/\d+/g).map(Number);
+    expect(r).toBeLessThan(brightR);
+    expect(g).toBeLessThan(brightG);
+    expect(b).toBeLessThan(brightB);
+  });
+});
