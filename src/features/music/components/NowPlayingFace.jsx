@@ -72,16 +72,31 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
       seekLocalPlayback(0);
       return;
     }
-    const idx = queue.findIndex((t) => t.id === currentTrack.id);
-    if (idx > 0) playTrackById(queue[idx - 1].id, 0);
-    else seekLocalPlayback(0);
+    const idx = queue.findIndex(
+      (t) =>
+        (currentTrack.queue_row_id && t.queue_row_id === currentTrack.queue_row_id) ||
+        t.id === currentTrack.id
+    );
+    if (idx > 0) {
+      const prevTrack = queue[idx - 1];
+      playTrackById(prevTrack.queue_row_id || prevTrack.id, 0);
+    } else {
+      seekLocalPlayback(0);
+    }
   }, [currentTrack, currentTime, queue, seekLocalPlayback, playTrackById]);
 
   /** Navigates to the next track in the active queue. */
   const handleSkipNext = useCallback(() => {
     if (!currentTrack || queue.length === 0) return;
-    const idx = queue.findIndex((t) => t.id === currentTrack.id);
-    if (idx !== -1 && idx < queue.length - 1) playTrackById(queue[idx + 1].id, 0);
+    const idx = queue.findIndex(
+      (t) =>
+        (currentTrack.queue_row_id && t.queue_row_id === currentTrack.queue_row_id) ||
+        t.id === currentTrack.id
+    );
+    if (idx !== -1 && idx < queue.length - 1) {
+      const nextTrack = queue[idx + 1];
+      playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+    }
   }, [currentTrack, queue, playTrackById]);
 
   /** Commits scrubbed value to the player. */
@@ -149,7 +164,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
             >
               <VinylDiscVisualizer
                 isPlaying={isPlaying}
-                artworkUrl={artworkUrl}
+                artworkUrl={artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png'}
                 trackTitle={currentTrack?.title || ''}
                 accentColor={accentColor}
               />
@@ -174,15 +189,13 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
             >
-              {artworkUrl && (
-                <img
-                  src={artworkUrl}
-                  alt={currentTrack?.title}
-                  className={`w-28 h-28 rounded-2xl object-cover mx-auto mb-4 shadow-2xl border-2 border-white/10 ${
-                    isYoutube ? 'scale-[1.33]' : ''
-                  }`}
-                />
-              )}
+              <img
+                src={artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png'}
+                alt={currentTrack?.title || 'Now playing'}
+                className={`w-28 h-28 rounded-2xl object-cover mx-auto mb-4 shadow-2xl border-2 border-white/10 ${
+                  isYoutube ? 'scale-[1.33]' : ''
+                }`}
+              />
               <WaveBarVisualizer
                 analyserNode={analyserNode}
                 isPlaying={isPlaying}
