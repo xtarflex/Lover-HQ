@@ -39,6 +39,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
     duration,
     volume,
     analyserNode,
+    workletNode,
     activePlayer,
     accentColor,
     visualizerMode,
@@ -215,6 +216,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
             >
               <FluidVisualizer
                 analyserNode={analyserNode}
+                workletNode={workletNode}
                 isPlaying={isPlaying}
                 activePlayer={activePlayer}
                 accentColor={accentColor}

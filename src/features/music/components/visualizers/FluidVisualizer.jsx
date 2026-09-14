@@ -310,6 +310,7 @@ function FluidShaderMesh({
  */
 export default function FluidVisualizer({
   analyserNode,
+  workletNode,
   isPlaying,
   activePlayer,
   accentColor,
@@ -345,6 +346,7 @@ export default function FluidVisualizer({
     update: updateAudio,
   } = useAudioProcessor({
     analyserNode,
+    workletNode,
     isPlaying,
     activePlayer,
     containerRef,

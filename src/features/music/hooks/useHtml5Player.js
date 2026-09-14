@@ -32,7 +32,9 @@ export function useHtml5Player({
   // Web Audio API refs & state
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
+  const workletNodeRef = useRef(null);
   const [analyserNode, setAnalyserNode] = useState(null);
+  const [workletNode, setWorkletNode] = useState(null);
 
   // Store callbacks and settings in stable refs to prevent re-running effects
   const volumeRef = useRef(volume);
@@ -63,12 +65,20 @@ export function useHtml5Player({
    * Helper to connect an audio element to the AudioContext dynamically.
    */
   const connectElementToContext = useCallback((el) => {
-    if (!audioCtxRef.current || !analyserRef.current || el.__connectedToCtx) return;
+    if (!audioCtxRef.current || el.__connectedToCtx) return;
     try {
       const source = audioCtxRef.current.createMediaElementSource(el);
-      source.connect(analyserRef.current);
+      if (workletNodeRef.current) {
+        source.connect(workletNodeRef.current);
+        if (analyserRef.current) {
+          workletNodeRef.current.connect(analyserRef.current);
+        }
+      } else if (analyserRef.current) {
+        source.connect(analyserRef.current);
+      }
       el.__connectedToCtx = true;
-      setAnalyserNode(analyserRef.current);
+      if (analyserRef.current) setAnalyserNode(analyserRef.current);
+      if (workletNodeRef.current) setWorkletNode(workletNodeRef.current);
     } catch (err) {
       console.warn('Failed to connect media element to AudioContext:', err);
     }
@@ -205,9 +215,9 @@ export function useHtml5Player({
   }, []);
 
   /**
-   * Lazily initializes the Web Audio API AudioContext.
+   * Lazily initializes the Web Audio API AudioContext and registers AudioWorklet.
    */
-  const initAudioContext = useCallback(() => {
+  const initAudioContext = useCallback(async () => {
     if (audioCtxRef.current) {
       if (audioCtxRef.current.state === 'suspended') {
         audioCtxRef.current.resume();
@@ -223,6 +233,22 @@ export function useHtml5Player({
 
       audioCtxRef.current = ctx;
       analyserRef.current = analyser;
+
+      // Attempt to load AudioWorkletProcessor module if supported
+      if (ctx.audioWorklet && typeof ctx.audioWorklet.addModule === 'function') {
+        try {
+          await ctx.audioWorklet.addModule('/audio-processors/dsp-audio-processor.js');
+          const worklet = new AudioWorkletNode(ctx, 'dsp-audio-processor');
+          workletNodeRef.current = worklet;
+          setWorkletNode(worklet);
+          worklet.connect(analyser);
+        } catch (workletErr) {
+          console.warn(
+            'AudioWorklet registration bypassed, using main-thread fallback:',
+            workletErr
+          );
+        }
+      }
 
       // If the primary element is already playing with CORS, connect it now
       if (
@@ -241,6 +267,7 @@ export function useHtml5Player({
     audioRef,
     standbyAudioRef,
     analyserNode,
+    workletNode,
     initAudioContext,
     audioCtxRef,
     preparePlayer,
