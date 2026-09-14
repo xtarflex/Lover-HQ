@@ -127,14 +127,21 @@ export function MusicProvider({ children }) {
   const ytContainerRef = useRef(null);
 
   // ─── Hook 1: HTML5 Audio Player & AudioContext ──────────────────────────────
-  const { audioRef, standbyAudioRef, analyserNode, initAudioContext, audioCtxRef, preparePlayer } =
-    useHtml5Player({
-      volume,
-      isCrossfadingRef: isCrossfading,
-      setCurrentTime,
-      setDuration,
-      handleTrackEnded: () => handleTrackEndedRef.current?.(),
-    });
+  const {
+    audioRef,
+    standbyAudioRef,
+    analyserNode,
+    workletNode,
+    initAudioContext,
+    audioCtxRef,
+    preparePlayer,
+  } = useHtml5Player({
+    volume,
+    isCrossfadingRef: isCrossfading,
+    setCurrentTime,
+    setDuration,
+    handleTrackEnded: () => handleTrackEndedRef.current?.(),
+  });
 
   // ─── Hook 2: YouTube API Players ────────────────────────────────────────────
   const { ytPlayers, ytReady, pendingYtAction, activeYtIndex } = useYoutubePlayer({
@@ -619,6 +626,7 @@ export function MusicProvider({ children }) {
     activePlayer,
     isListenAlongBlocked,
     analyserNode,
+    workletNode,
     // New Issue #61 state
     visualizerMode,
     setVisualizerMode,

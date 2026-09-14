@@ -22,10 +22,17 @@ import { doctorAudioData } from '../lib/audioUtils';
  *   bassBaselineRef: React.RefObject<number>
  * }} Processing refs object.
  */
-export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, containerRef }) {
+export function useAudioProcessor({
+  analyserNode,
+  workletNode,
+  isPlaying,
+  activePlayer,
+  containerRef,
+}) {
   const isPlayingRef = useRef(isPlaying);
   const analyserRef = useRef(analyserNode);
   const activePlayerRef = useRef(activePlayer);
+  const workletRef = useRef(workletNode);
 
   // Audio processing refs
   const audioDataRef = useRef({
@@ -52,6 +59,9 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
   const fluxHistoryIndexRef = useRef(0);
   const frameCountRef = useRef(0);
 
+  // AudioWorklet metrics cache
+  const workletMetricsRef = useRef(null);
+
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
@@ -63,6 +73,28 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
   useEffect(() => {
     activePlayerRef.current = activePlayer;
   }, [activePlayer]);
+
+  useEffect(() => {
+    workletRef.current = workletNode;
+    if (!workletNode || !workletNode.port) return;
+
+    const port = workletNode.port;
+    const handleWorkletMessage = (event) => {
+      if (event.data && event.data.type === 'AUDIO_METRICS') {
+        workletMetricsRef.current = event.data;
+        if (event.data.timeDomainBuffer && timeDomainDataRef.current) {
+          timeDomainDataRef.current.set(event.data.timeDomainBuffer);
+        }
+      }
+    };
+
+    port.addEventListener('message', handleWorkletMessage);
+    port.start();
+
+    return () => {
+      port.removeEventListener('message', handleWorkletMessage);
+    };
+  }, [workletNode]);
 
   const tRef = useRef(0);
 
@@ -79,98 +111,107 @@ export function useAudioProcessor({ analyserNode, isPlaying, activePlayer, conta
       let targetTreble = 0.1;
       let pureRawBass = 0.1;
 
-      if (playing && playerType === 'html5' && analyser) {
-        // ── State 3: Active Spectrum Audio ───────────────────────────────────
-        const raw = rawDataBufferRef.current;
-        const prevRaw = previousFreqDataRef.current;
-        const timeDomain = timeDomainDataRef.current;
-
-        analyser.getByteFrequencyData(raw);
-        analyser.getByteTimeDomainData(timeDomain); // 128 bins of raw waveform
-
-        // Calculate Spectral Flux
-        let currentFlux = 0;
-        for (let i = 0; i < raw.length; i++) {
-          const diff = raw[i] - prevRaw[i];
-          if (diff > 0) {
-            currentFlux += diff;
+      if (playing && playerType === 'html5') {
+        const workletMetrics = workletMetricsRef.current;
+        if (workletMetrics) {
+          // ── State 3A: Offloaded AudioWorklet Metrics ──────────────────────
+          targetBass = workletMetrics.targetBass;
+          targetMid = workletMetrics.targetMid;
+          targetTreble = workletMetrics.targetTreble;
+          pureRawBass = workletMetrics.pureRawBass;
+          audioDataRef.current.flux = workletMetrics.flux;
+          audioDataRef.current.fluxThreshold = workletMetrics.fluxThreshold;
+          if (workletMetrics.bpm > 0) {
+            audioDataRef.current.bpm = workletMetrics.bpm;
           }
-          prevRaw[i] = raw[i]; // Update previous array for next frame
-        }
-        // Normalize flux
-        currentFlux = currentFlux / (raw.length * 255);
+        } else if (analyser) {
+          // ── State 3B: Fallback Main-Thread Spectrum Audio ─────────────────
+          const raw = rawDataBufferRef.current;
+          const prevRaw = previousFreqDataRef.current;
+          const timeDomain = timeDomainDataRef.current;
 
-        // Add to history ring buffer (240 frames ~ 4 seconds)
-        const fluxIndex = fluxHistoryIndexRef.current;
-        fluxHistoryRef.current[fluxIndex] = currentFlux;
-        fluxHistoryIndexRef.current = (fluxIndex + 1) % 240;
+          analyser.getByteFrequencyData(raw);
+          analyser.getByteTimeDomainData(timeDomain); // 128 bins of raw waveform
 
-        // Calculate Flux Threshold (Rolling average of last 15 frames)
-        let fluxSum = 0;
-        for (let i = 1; i <= 15; i++) {
-          let idx = fluxIndex - i;
-          if (idx < 0) idx += 240;
-          fluxSum += fluxHistoryRef.current[idx];
-        }
-        const fluxThreshold = fluxSum / 15;
-
-        // BPM Detection: Autocorrelation on Flux History (every 15 frames to save CPU)
-        frameCountRef.current++;
-        if (frameCountRef.current % 15 === 0) {
-          // Autocorrelation over the 240 frame buffer
-          // 60 BPM = 1 beat per second = 60 frames (at 60fps)
-          // 180 BPM = 3 beats per second = 20 frames (at 60fps)
-          let maxCorrelation = 0;
-          let bestLag = 0;
-
-          for (let lag = 20; lag <= 60; lag++) {
-            let correlation = 0;
-            // Correlate over available history (e.g., oldest 180 frames)
-            for (let i = 0; i < 180; i++) {
-              let idxA = fluxIndex - i - 1;
-              if (idxA < 0) idxA += 240;
-              let idxB = fluxIndex - i - 1 - lag;
-              if (idxB < 0) idxB += 240;
-
-              correlation += fluxHistoryRef.current[idxA] * fluxHistoryRef.current[idxB];
+          // Calculate Spectral Flux
+          let currentFlux = 0;
+          for (let i = 0; i < raw.length; i++) {
+            const diff = raw[i] - prevRaw[i];
+            if (diff > 0) {
+              currentFlux += diff;
             }
-            if (correlation > maxCorrelation) {
-              maxCorrelation = correlation;
-              bestLag = lag;
+            prevRaw[i] = raw[i]; // Update previous array for next frame
+          }
+          // Normalize flux
+          currentFlux = currentFlux / (raw.length * 255);
+
+          // Add to history ring buffer (240 frames ~ 4 seconds)
+          const fluxIndex = fluxHistoryIndexRef.current;
+          fluxHistoryRef.current[fluxIndex] = currentFlux;
+          fluxHistoryIndexRef.current = (fluxIndex + 1) % 240;
+
+          // Calculate Flux Threshold (Rolling average of last 15 frames)
+          let fluxSum = 0;
+          for (let i = 1; i <= 15; i++) {
+            let idx = fluxIndex - i;
+            if (idx < 0) idx += 240;
+            fluxSum += fluxHistoryRef.current[idx];
+          }
+          const fluxThreshold = fluxSum / 15;
+
+          // BPM Detection: Autocorrelation on Flux History (every 15 frames to save CPU)
+          frameCountRef.current++;
+          if (frameCountRef.current % 15 === 0) {
+            let maxCorrelation = 0;
+            let bestLag = 0;
+
+            for (let lag = 20; lag <= 60; lag++) {
+              let correlation = 0;
+              for (let i = 0; i < 180; i++) {
+                let idxA = fluxIndex - i - 1;
+                if (idxA < 0) idxA += 240;
+                let idxB = fluxIndex - i - 1 - lag;
+                if (idxB < 0) idxB += 240;
+
+                correlation += fluxHistoryRef.current[idxA] * fluxHistoryRef.current[idxB];
+              }
+              if (correlation > maxCorrelation) {
+                maxCorrelation = correlation;
+                bestLag = lag;
+              }
+            }
+
+            if (bestLag > 0) {
+              const calculatedBPM = 3600 / bestLag;
+              audioDataRef.current.bpm = calculatedBPM;
             }
           }
 
-          if (bestLag > 0) {
-            // Convert lag (frames) to BPM. (60 fps * 60 seconds) / lag
-            const calculatedBPM = 3600 / bestLag;
-            audioDataRef.current.bpm = calculatedBPM;
+          audioDataRef.current.flux = currentFlux;
+          audioDataRef.current.fluxThreshold = fluxThreshold;
+
+          // Pure raw sub-bass bins 1..5 (uncut by Gaussian edge tapering, avoiding DC offset at bin 0)
+          let rawBSum = 0;
+          for (let i = 1; i < 6; i++) {
+            rawBSum += raw[i] / 255.0;
           }
+          pureRawBass = rawBSum / 5;
+
+          const doctored = doctorAudioData(raw, doctoredBufferRef.current);
+
+          // Map 64 bins logarithmically across Sub-Bass (0..4), Bass/Low-Mid (5..15), Mid (16..35), Treble (36..63)
+          const getBandAverage = (data, startRatio, endRatio) => {
+            const start = Math.floor(data.length * startRatio);
+            const end = Math.max(start + 1, Math.floor(data.length * endRatio));
+            let sum = 0;
+            for (let i = start; i < end; i++) sum += data[i];
+            return sum / (end - start);
+          };
+
+          targetBass = getBandAverage(doctored, 0.0, 0.08); // ~20Hz - 250Hz
+          targetMid = getBandAverage(doctored, 0.08, 0.4); // ~250Hz - 2.5kHz
+          targetTreble = getBandAverage(doctored, 0.4, 0.95); // ~2.5kHz - 16kHz
         }
-
-        audioDataRef.current.flux = currentFlux;
-        audioDataRef.current.fluxThreshold = fluxThreshold;
-
-        // Pure raw sub-bass bins 1..5 (uncut by Gaussian edge tapering, avoiding DC offset at bin 0)
-        let rawBSum = 0;
-        for (let i = 1; i < 6; i++) {
-          rawBSum += raw[i] / 255.0;
-        }
-        pureRawBass = rawBSum / 5;
-
-        const doctored = doctorAudioData(raw, doctoredBufferRef.current);
-
-        // Map 64 bins logarithmically across Sub-Bass (0..4), Bass/Low-Mid (5..15), Mid (16..35), Treble (36..63)
-        const getBandAverage = (data, startRatio, endRatio) => {
-          const start = Math.floor(data.length * startRatio);
-          const end = Math.max(start + 1, Math.floor(data.length * endRatio));
-          let sum = 0;
-          for (let i = start; i < end; i++) sum += data[i];
-          return sum / (end - start);
-        };
-
-        targetBass = getBandAverage(doctored, 0.0, 0.08); // ~20Hz - 250Hz
-        targetMid = getBandAverage(doctored, 0.08, 0.4); // ~250Hz - 2.5kHz
-        targetTreble = getBandAverage(doctored, 0.4, 0.95); // ~2.5kHz - 16kHz
       } else if (playing) {
         // ── State 2: Active Simulated (YouTube / Non-CORS) ───────────────────
         // Subtle low kick pulse & boosted treble peaks (>0.32) for multi-origin ripples
