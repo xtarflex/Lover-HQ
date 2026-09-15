@@ -233,6 +233,7 @@ export function useHtml5Player({
 
       audioCtxRef.current = ctx;
       analyserRef.current = analyser;
+      setAnalyserNode(analyser);
 
       // Attempt to load AudioWorkletProcessor module if supported
       if (ctx.audioWorklet && typeof ctx.audioWorklet.addModule === 'function') {
