@@ -6,33 +6,33 @@ import { useLocation } from 'react-router-dom';
  */
 const ROUTE_SEO_MAP = {
   '/': {
-    title: 'Lover-HQ — Private Digital Sanctuary for Couples',
+    title: 'Lover-HQ — Digital Sanctuary for Couples',
     description:
-      'Connect intimately across the miles in your private digital sanctuary. Enjoy voice notes, synced music, collaborative fridge notes, and daily reveal games.',
+      'Connect intimately across the miles. Enjoy voice notes, synced music, fridge notes, and daily reveal games for couples.',
     robots: 'index, follow',
   },
   '/auth': {
     title: 'Connect Your Sanctuary — Lover-HQ',
     description:
-      'Sign in to access your shared private room or link your account with your partner on Lover-HQ.',
+      'Sign in to access your private couple sanctuary or link your account with your partner on Lover-HQ.',
     robots: 'index, follow',
   },
   '/games': {
-    title: 'Online Couples Games & Two-Player Mini-Games — Lover-HQ',
+    title: 'Online Couples Games & Mini-Games — Lover-HQ',
     description:
-      'Play real-time online two-player games for long-distance couples. Challenge your partner to Scrabble, Math Puzzles, and strategy games anywhere.',
+      'Play online two-player games for long-distance couples. Challenge your partner to Scrabble, Math Puzzles, and strategy.',
     robots: 'index, follow',
   },
   '/music': {
     title: 'Synchronized Music Player for Couples — Lover-HQ',
     description:
-      'Stream and listen to music together synchronously with your partner. Shared queue, real-time playback control, and crossfade audio engine for couples.',
+      'Listen to music together synchronously with your partner. Features shared queue, sync controls, and crossfade audio.',
     robots: 'index, follow',
   },
   '/reveal': {
-    title: 'Daily Relationship Questions & Couple Reveals — Lover-HQ',
+    title: 'Daily Relationship Questions & Reveals — Lover-HQ',
     description:
-      'Deepen your connection with daily interactive relationship questions. Answer independently and reveal your partner’s secret answers every day.',
+      'Deepen your connection with daily relationship questions. Answer independently and reveal your partner’s answers daily.',
     robots: 'index, follow',
   },
   '/chat': {
@@ -53,9 +53,9 @@ const ROUTE_SEO_MAP = {
 };
 
 const DEFAULT_SEO = {
-  title: 'Lover-HQ — Private Digital Sanctuary for Couples',
+  title: 'Lover-HQ — Digital Sanctuary for Couples',
   description:
-    'Connect intimately across the miles in your private digital sanctuary. Enjoy voice notes, synced music, collaborative fridge notes, and daily reveal games.',
+    'Connect intimately across the miles. Enjoy voice notes, synced music, fridge notes, and daily reveal games for couples.',
   robots: 'index, follow',
 };
 
@@ -96,12 +96,18 @@ export function SEO() {
       document.head.appendChild(robotsMeta);
     }
 
-    // Update Open Graph & Twitter Titles dynamically
+    // Update Open Graph & Twitter Titles and Descriptions dynamically
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', config.title);
 
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', config.description);
+
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) twitterTitle.setAttribute('content', config.title);
+
+    const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twitterDesc) twitterDesc.setAttribute('content', config.description);
 
     // Dynamic Canonical URL per route
     const currentUrl = `https://lover-hq.netlify.app${location.pathname === '/' ? '' : location.pathname}`;
