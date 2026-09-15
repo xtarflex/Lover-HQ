@@ -6,34 +6,38 @@ import { useLocation } from 'react-router-dom';
  */
 const ROUTE_SEO_MAP = {
   '/': {
-    title: 'Lover-HQ — Private Digital Sanctuary for Long-Distance Couples',
+    title: 'Lover-HQ — Private Digital Sanctuary for Couples',
     description:
-      'A private digital house for long-distance couples. Share voice notes, synced music, collaborative fridge notes, daily Q&A reveals, and interactive games.',
+      'Connect intimately across the miles in your private digital sanctuary. Enjoy voice notes, synced music, collaborative fridge notes, and daily reveal games.',
     robots: 'index, follow',
   },
   '/auth': {
-    title: 'Sign In & Connect — Lover-HQ',
-    description: 'Log into your private couple room or connect with your partner on Lover-HQ.',
+    title: 'Connect Your Sanctuary — Lover-HQ',
+    description:
+      'Sign in to access your shared private room or link your account with your partner on Lover-HQ.',
     robots: 'index, follow',
   },
   '/games': {
-    title: 'Couples Games & Mini-Games — Lover-HQ',
-    description: 'Play interactive two-player mini-games with your partner in real-time.',
+    title: 'Online Couples Games & Two-Player Mini-Games — Lover-HQ',
+    description:
+      'Play real-time online two-player games for long-distance couples. Challenge your partner to Scrabble, Math Puzzles, and strategy games anywhere.',
     robots: 'index, follow',
   },
   '/music': {
-    title: 'Shared Music Engine — Lover-HQ',
-    description: 'Listen to music together synchronously with your partner across the miles.',
+    title: 'Synchronized Music Player for Couples — Lover-HQ',
+    description:
+      'Stream and listen to music together synchronously with your partner. Shared queue, real-time playback control, and crossfade audio engine for couples.',
     robots: 'index, follow',
   },
   '/reveal': {
-    title: 'Daily Reveal Questions — Lover-HQ',
-    description: 'Answer daily relationship questions and unlock your partner’s answers.',
+    title: 'Daily Relationship Questions & Couple Reveals — Lover-HQ',
+    description:
+      'Deepen your connection with daily interactive relationship questions. Answer independently and reveal your partner’s secret answers every day.',
     robots: 'index, follow',
   },
   '/chat': {
     title: 'Private Couples Chat — Lover-HQ',
-    description: 'Private real-time chat with voice notes, pinned messages, and reactions.',
+    description: 'Private real-time chat with voice notes, pinned messages, and custom reactions.',
     robots: 'noindex, follow',
   },
   '/fridge': {
@@ -43,14 +47,15 @@ const ROUTE_SEO_MAP = {
   },
   '/settings': {
     title: 'Account & Pair Settings — Lover-HQ',
-    description: 'Manage your profile, partner pairing, and app settings.',
+    description: 'Manage your profile, partner pairing, and app preferences.',
     robots: 'noindex, follow',
   },
 };
 
 const DEFAULT_SEO = {
-  title: 'Lover-HQ — Private Digital Sanctuary for Long-Distance Couples',
-  description: 'A private digital space for long-distance couples to stay connected.',
+  title: 'Lover-HQ — Private Digital Sanctuary for Couples',
+  description:
+    'Connect intimately across the miles in your private digital sanctuary. Enjoy voice notes, synced music, collaborative fridge notes, and daily reveal games.',
   robots: 'index, follow',
 };
 
