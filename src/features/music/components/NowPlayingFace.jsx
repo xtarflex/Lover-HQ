@@ -138,7 +138,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
       {/* ── Top Controls Bar ──────────────────────────────────────────────── */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-20 pointer-events-none">
         <button
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate('/settings?tab=music')}
           aria-label="Music settings"
           className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(0,0,0,0.35)] hover:border-white/30 active:scale-95 transition-all pointer-events-auto cursor-pointer"
           style={{

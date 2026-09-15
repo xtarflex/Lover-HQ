@@ -97,6 +97,25 @@ export function SEO() {
 
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) twitterTitle.setAttribute('content', config.title);
+
+    // Dynamic Canonical URL per route
+    const currentUrl = `https://lover-hq.netlify.app${location.pathname === '/' ? '' : location.pathname}`;
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.setAttribute('href', currentUrl);
+    } else {
+      canonicalLink = document.createElement('link');
+      canonicalLink.rel = 'canonical';
+      canonicalLink.href = currentUrl;
+      document.head.appendChild(canonicalLink);
+    }
+
+    // Dynamic og:url and twitter:url per route
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+
+    const twitterUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twitterUrl) twitterUrl.setAttribute('content', currentUrl);
   }, [location.pathname]);
 
   return null;
