@@ -6,7 +6,7 @@ import { Play, Pause } from '../../../lib/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { formatTime } from '../lib/musicEngine';
-import { getTrackArtwork } from '../lib/musicUtils';
+import { getTrackArtwork, findQueueTrackIndex } from '../lib/musicUtils';
 import FloatingQueuePanel from './FloatingQueuePanel';
 import FluidVisualizer from './visualizers/FluidVisualizer';
 import WaveBarVisualizer from './visualizers/WaveBarVisualizer';
@@ -38,6 +38,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
     currentTime,
     duration,
     volume,
+    crossfadeDuration = 0,
     analyserNode,
     workletNode,
     activePlayer,
@@ -61,10 +62,29 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
   // Dynamic CSS accent variable
   const accentStyle = accentColor ? { '--music-accent': accentColor } : {};
 
-  /** @param {number} index */
-  const hasPrev = currentTrack && queue.findIndex((t) => t.id === currentTrack.id) > 0;
-  const hasNext =
-    currentTrack && queue.findIndex((t) => t.id === currentTrack.id) < queue.length - 1;
+  const currentQueueIndex = findQueueTrackIndex(queue, currentTrack);
+  const hasPrev = currentTrack && currentQueueIndex > 0;
+  const hasNext = currentTrack && currentQueueIndex !== -1 && currentQueueIndex < queue.length - 1;
+  const nextTrack = hasNext ? queue[currentQueueIndex + 1] : null;
+
+  // Track queue navigation direction for transitions (official React prev-state pattern)
+  const [prevIndex, setPrevIndex] = useState(currentQueueIndex);
+  const [direction, setDirection] = useState(1);
+
+  if (currentQueueIndex !== prevIndex) {
+    setDirection(currentQueueIndex >= prevIndex ? 1 : -1);
+    setPrevIndex(currentQueueIndex);
+  }
+
+  // Up Next banner displays 5s prior to crossfade threshold
+  const remainingTime = duration > 0 ? duration - currentTime : 0;
+  const crossfadeThresh = crossfadeDuration || 0;
+  const showUpNext = Boolean(
+    nextTrack &&
+    duration > 0 &&
+    remainingTime <= crossfadeThresh + 5 &&
+    remainingTime > crossfadeThresh
+  );
 
   /** Navigates one track back or restarts if less than 3 s in. */
   const handleSkipBack = useCallback(() => {
@@ -73,11 +93,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
       seekLocalPlayback(0);
       return;
     }
-    const idx = queue.findIndex(
-      (t) =>
-        (currentTrack.queue_row_id && t.queue_row_id === currentTrack.queue_row_id) ||
-        t.id === currentTrack.id
-    );
+    const idx = findQueueTrackIndex(queue, currentTrack);
     if (idx > 0) {
       const prevTrack = queue[idx - 1];
       playTrackById(prevTrack.queue_row_id || prevTrack.id, 0);
@@ -89,11 +105,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
   /** Navigates to the next track in the active queue. */
   const handleSkipNext = useCallback(() => {
     if (!currentTrack || queue.length === 0) return;
-    const idx = queue.findIndex(
-      (t) =>
-        (currentTrack.queue_row_id && t.queue_row_id === currentTrack.queue_row_id) ||
-        t.id === currentTrack.id
-    );
+    const idx = findQueueTrackIndex(queue, currentTrack);
     if (idx !== -1 && idx < queue.length - 1) {
       const nextTrack = queue[idx + 1];
       playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
@@ -138,7 +150,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
       {/* ── Top Controls Bar ──────────────────────────────────────────────── */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-20 pointer-events-none">
         <button
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate('/settings?tab=music')}
           aria-label="Music settings"
           className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(0,0,0,0.35)] hover:border-white/30 active:scale-95 transition-all pointer-events-auto cursor-pointer"
           style={{
@@ -229,27 +241,58 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
 
       {/* ── Floating Control Hub ──────────────────────────────────────────── */}
       <div className="playback-controls-hub absolute bottom-0 left-0 right-0 px-6 pb-12 pt-4 z-20 flex flex-col justify-end">
-        {/* Track info */}
-        <div className="mb-5">
-          {currentTrack ? (
-            <>
-              <h2 className="text-xl font-bold text-white truncate font-rounded drop-shadow-lg">
-                {currentTrack.title}
-              </h2>
-              <p className="text-sm text-white/70 truncate mt-0.5 drop-shadow">
-                {currentTrack.artist || 'Unknown Artist'}
-              </p>
-            </>
-          ) : (
-            <>
-              <h2 className="text-xl font-bold text-white/70 font-rounded drop-shadow">
-                Nothing playing
-              </h2>
-              <p className="text-sm text-white/50 mt-0.5 drop-shadow">
-                Add a track from the Library
-              </p>
-            </>
+        {/* Up Next Tag */}
+        <AnimatePresence>
+          {showUpNext && nextTrack && (
+            <motion.div
+              initial={{ opacity: 0, y: 6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="up-next-tag flex items-center gap-1.5 text-[10px] mb-2 px-2.5 py-1 rounded-lg backdrop-blur-md w-fit drop-shadow"
+            >
+              <span className="relative z-10 text-white/40 font-medium uppercase tracking-widest">
+                Up Next:
+              </span>
+              <span className="relative z-10 text-white/90 font-semibold truncate max-w-[220px] normal-case tracking-normal">
+                {nextTrack.title}
+              </span>
+            </motion.div>
           )}
+        </AnimatePresence>
+
+        {/* Track info */}
+        <div className="mb-5 overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentTrack?.queue_row_id || currentTrack?.id || 'empty'}
+              custom={direction}
+              initial={(d) => ({ opacity: 0, x: d > 0 ? 24 : -24 })}
+              animate={{ opacity: 1, x: 0 }}
+              exit={(d) => ({ opacity: 0, x: d > 0 ? -24 : 24 })}
+              transition={{ duration: 0.32, ease: 'easeOut' }}
+            >
+              {currentTrack ? (
+                <>
+                  <h2 className="text-xl font-bold text-white truncate font-rounded drop-shadow-lg">
+                    {currentTrack.title}
+                  </h2>
+                  <p className="text-sm text-white/70 truncate mt-0.5 drop-shadow">
+                    {currentTrack.artist || 'Unknown Artist'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-bold text-white/70 font-rounded drop-shadow">
+                    Nothing playing
+                  </h2>
+                  <p className="text-sm text-white/50 mt-0.5 drop-shadow">
+                    Add a track from the Library
+                  </p>
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Scrubber & Duration (Duration positioned below scrubber) */}

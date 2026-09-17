@@ -142,7 +142,7 @@ export async function extractColorFromImage(imageUrl) {
         const canvas = document.createElement('canvas');
         canvas.width = 100;
         canvas.height = 100;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
           resolve(null);
           return;
@@ -215,4 +215,22 @@ export function getProxiedUrl(url) {
     }
   }
   return url;
+}
+
+/**
+ * Resolves the queue index of the currently playing track.
+ * Prioritizes matching unique session `queue_row_id` over library track `id`
+ * to avoid duplicate track collisions in the queue.
+ *
+ * @param {Array<Object>} queue - The active queue array.
+ * @param {Object|null} currentTrack - The currently active track object.
+ * @returns {number} The index in the queue, or -1 if not found.
+ */
+export function findQueueTrackIndex(queue, currentTrack) {
+  if (!Array.isArray(queue) || !currentTrack) return -1;
+  return queue.findIndex((t) =>
+    currentTrack.queue_row_id
+      ? t.queue_row_id === currentTrack.queue_row_id
+      : t.id === currentTrack.id
+  );
 }

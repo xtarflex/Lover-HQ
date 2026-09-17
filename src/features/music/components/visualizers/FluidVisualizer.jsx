@@ -119,9 +119,18 @@ function FluidShaderMesh({
     }
 
     let spawnTrigger = false;
-    if (audio.flux > audio.fluxThreshold * 1.5 && rippleCooldownRef.current === 0) {
+    const isFluxTransient =
+      audio.flux > 0.015 &&
+      audio.flux > audio.fluxThreshold * 1.12 &&
+      rippleCooldownRef.current === 0;
+
+    // Fallback for simulated audio (e.g. YouTube or non-CORS when flux is 0)
+    const isSimulatedTrebleBurst =
+      (!audio.flux || audio.flux === 0) && audio.treble > 0.26 && rippleCooldownRef.current === 0;
+
+    if (isFluxTransient || isSimulatedTrebleBurst) {
       spawnTrigger = true;
-      rippleCooldownRef.current = 5; // 5-frame cooldown
+      rippleCooldownRef.current = 6; // ~100ms cooldown at 60 FPS
     }
 
     const rippleVectors = uniforms.uRipples.value;
@@ -137,7 +146,7 @@ function FluidShaderMesh({
           0.15 + Math.random() * 0.7,
           0.15 + Math.random() * 0.7,
           0.0,
-          Math.min(1.0, audio.treble * 1.5)
+          Math.min(1.0, Math.max(0.4, (audio.treble || 0.3) * 1.8))
         );
         spawnTrigger = false;
       }

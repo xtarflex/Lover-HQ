@@ -70,6 +70,9 @@ export function adjustColorVibrance(r, g, b) {
   return `rgb(${adjR}, ${adjG}, ${adjB})`;
 }
 
+/** Module-level memory cache for extracted image colors to eliminate duplicate canvas ops */
+const colorCache = new Map();
+
 /**
  * Extracts a dominant accent color from an image URL using the Canvas API.
  * Falls back to `null` when extraction is not possible (CORS, missing URL,
@@ -91,12 +94,20 @@ export function adjustColorVibrance(r, g, b) {
  * // accentColor → 'rgb(186, 44, 92)' or null
  */
 export function useColorExtractor(imageUrl) {
-  const [accentColor, setAccentColor] = useState(null);
+  const [accentColor, setAccentColor] = useState(() =>
+    imageUrl ? colorCache.get(imageUrl) || null : null
+  );
 
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset accent color to null when imageUrl is cleared */
   useEffect(() => {
     if (!imageUrl) {
       setAccentColor(null);
+      return;
+    }
+
+    // Check memory cache first
+    if (colorCache.has(imageUrl)) {
+      setAccentColor(colorCache.get(imageUrl));
       return;
     }
 
@@ -113,13 +124,17 @@ export function useColorExtractor(imageUrl) {
         canvas.width = SAMPLE_CANVAS_SIZE;
         canvas.height = SAMPLE_CANVAS_SIZE;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
+          colorCache.set(imageUrl, null);
           setAccentColor(null);
           return;
         }
 
         ctx.drawImage(img, 0, 0, SAMPLE_CANVAS_SIZE, SAMPLE_CANVAS_SIZE);
+
+        // Perform a single readback of the downscaled buffer instead of 16 individual readbacks
+        const imgData = ctx.getImageData(0, 0, SAMPLE_CANVAS_SIZE, SAMPLE_CANVAS_SIZE).data;
 
         const stepX = Math.floor(SAMPLE_CANVAS_SIZE / SAMPLE_GRID_DIVISIONS);
         const stepY = Math.floor(SAMPLE_CANVAS_SIZE / SAMPLE_GRID_DIVISIONS);
@@ -133,9 +148,11 @@ export function useColorExtractor(imageUrl) {
           for (let col = 0; col < SAMPLE_GRID_DIVISIONS; col++) {
             const x = col * stepX + Math.floor(stepX / 2);
             const y = row * stepY + Math.floor(stepY / 2);
-            const pixelData = ctx.getImageData(x, y, 1, 1).data;
+            const pixelIndex = (y * SAMPLE_CANVAS_SIZE + x) * 4;
 
-            const [r, g, b] = pixelData;
+            const r = imgData[pixelIndex];
+            const g = imgData[pixelIndex + 1];
+            const b = imgData[pixelIndex + 2];
             const luminance = getLuminance(r, g, b);
 
             // Discard near-black and near-white pixels — they don't yield useful accent colors.
@@ -149,7 +166,7 @@ export function useColorExtractor(imageUrl) {
         }
 
         if (sampleCount === 0) {
-          // All samples were extreme — fall back gracefully.
+          colorCache.set(imageUrl, null);
           setAccentColor(null);
           return;
         }
@@ -158,15 +175,18 @@ export function useColorExtractor(imageUrl) {
         const avgG = Math.round(totalG / sampleCount);
         const avgB = Math.round(totalB / sampleCount);
         const vibrantColor = adjustColorVibrance(avgR, avgG, avgB);
+
+        colorCache.set(imageUrl, vibrantColor);
         setAccentColor(vibrantColor);
       } catch {
-        // Canvas taint or getImageData security error — CORS headers missing.
+        colorCache.set(imageUrl, null);
         setAccentColor(null);
       }
     };
 
     img.onerror = () => {
       if (!isCancelled) {
+        colorCache.set(imageUrl, null);
         setAccentColor(null);
       }
     };
@@ -175,7 +195,6 @@ export function useColorExtractor(imageUrl) {
 
     return () => {
       isCancelled = true;
-      // Abort the load by clearing src so the browser can discard the request.
       img.src = '';
     };
   }, [imageUrl]);
