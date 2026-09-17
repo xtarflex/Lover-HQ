@@ -3,7 +3,7 @@ import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { Play, Pause, YoutubeIcon } from '../../../lib/icons';
 import { formatTime } from '../lib/musicEngine';
-import { getTrackArtwork } from '../lib/musicUtils';
+import { getTrackArtwork, findQueueTrackIndex } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import {
   Volume2,
@@ -87,16 +87,23 @@ export default function MusicPlayer() {
       seekLocalPlayback(0);
       return;
     }
-    const idx = queue.findIndex((t) => t.id === currentTrack.id);
-    if (idx > 0) playTrackById(queue[idx - 1].id, 0);
-    else seekLocalPlayback(0);
+    const idx = findQueueTrackIndex(queue, currentTrack);
+    if (idx > 0) {
+      const prevTrack = queue[idx - 1];
+      playTrackById(prevTrack.queue_row_id || prevTrack.id, 0);
+    } else {
+      seekLocalPlayback(0);
+    }
   };
 
   /** Navigates to the next track in queue. */
   const handleSkipNext = () => {
     if (!currentTrack || queue.length === 0) return;
-    const idx = queue.findIndex((t) => t.id === currentTrack.id);
-    if (idx !== -1 && idx < queue.length - 1) playTrackById(queue[idx + 1].id, 0);
+    const idx = findQueueTrackIndex(queue, currentTrack);
+    if (idx !== -1 && idx < queue.length - 1) {
+      const nextTrack = queue[idx + 1];
+      playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+    }
   };
 
   /** Returns who added the current track. */
@@ -220,9 +227,9 @@ export default function MusicPlayer() {
     }
   };
 
-  const hasPrev = currentTrack && queue.findIndex((t) => t.id === currentTrack.id) > 0;
-  const hasNext =
-    currentTrack && queue.findIndex((t) => t.id === currentTrack.id) < queue.length - 1;
+  const currentQueueIndex = findQueueTrackIndex(queue, currentTrack);
+  const hasPrev = currentTrack && currentQueueIndex > 0;
+  const hasNext = currentTrack && currentQueueIndex !== -1 && currentQueueIndex < queue.length - 1;
 
   return (
     <div className="music-glass-card rounded-2xl p-6 flex flex-col items-center shadow-2xl relative overflow-hidden w-full max-w-md mx-auto min-h-[480px]">

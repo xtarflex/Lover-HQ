@@ -9,7 +9,11 @@ import { useHtml5Player } from '../features/music/hooks/useHtml5Player';
 import { useYoutubePlayer } from '../features/music/hooks/useYoutubePlayer';
 import { useCrossfade } from '../features/music/hooks/useCrossfade';
 import { useColorExtractor } from '../features/music/hooks/useColorExtractor';
-import { getTrackArtwork, getProxiedUrl } from '../features/music/lib/musicUtils';
+import {
+  getTrackArtwork,
+  getProxiedUrl,
+  findQueueTrackIndex,
+} from '../features/music/lib/musicUtils';
 
 const MusicContext = createContext(null);
 
@@ -135,11 +139,15 @@ export function MusicProvider({ children }) {
     initAudioContext,
     audioCtxRef,
     preparePlayer,
+    swapAudioPlayers,
+    connectElementToContext,
   } = useHtml5Player({
     volume,
+    isActivePlayer: activePlayer === 'html5',
     isCrossfadingRef: isCrossfading,
     setCurrentTime,
     setDuration,
+    setIsPlaying,
     handleTrackEnded: () => handleTrackEndedRef.current?.(),
   });
 
@@ -152,13 +160,14 @@ export function MusicProvider({ children }) {
     volumeRef,
     setDuration,
     setCurrentTime,
+    setIsPlaying,
     handleTrackEnded: () => handleTrackEndedRef.current?.(),
     playTrackByIdRef,
     ytContainerRef,
   });
 
   // ─── Hook 3: Crossfade Transition Manager ────────────────────────────────────
-  const { startCrossfade } = useCrossfade({
+  const { startCrossfade, cancelCrossfade, finalizeCrossfadeImmediately } = useCrossfade({
     isCrossfadingRef: isCrossfading,
     crossfadeDurationRef,
     volumeRef,
@@ -176,6 +185,10 @@ export function MusicProvider({ children }) {
     isRemoteActionRef: isRemoteAction,
     broadcastPlay: (trackId, startTime) => broadcastPlay(trackId, startTime),
     preparePlayer,
+    swapAudioPlayers,
+    initAudioContext,
+    audioCtxRef,
+    connectElementToContext,
   });
 
   // ─── Playback Controls (Orchestrated Wrapper Calls) ──────────────────────────
@@ -190,6 +203,9 @@ export function MusicProvider({ children }) {
 
   const pauseLocalPlayback = useCallback(
     (shouldBroadcast = true) => {
+      if (isCrossfading.current) {
+        finalizeCrossfadeImmediately();
+      }
       setIsPlaying(false);
       if (pendingYtAction.current) {
         pendingYtAction.current.startPaused = true;
@@ -207,7 +223,7 @@ export function MusicProvider({ children }) {
         broadcastPause();
       }
     },
-    [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
+    [finalizeCrossfadeImmediately, audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
   );
 
   /**
@@ -222,9 +238,10 @@ export function MusicProvider({ children }) {
 
   const playTrackById = useCallback(
     async (trackId, startTime = 0, startPaused = false) => {
-      const track = queueRef.current.find(
-        (t) => (t.queue_row_id && t.queue_row_id === trackId) || t.id === trackId
-      );
+      cancelCrossfade();
+      const track =
+        queueRef.current.find((t) => t.queue_row_id && t.queue_row_id === trackId) ||
+        queueRef.current.find((t) => t.id === trackId);
       if (!track) return;
 
       let isAutoplayBlocked = false;
@@ -309,7 +326,17 @@ export function MusicProvider({ children }) {
         broadcastPlay(trackId, startTime);
       }
     },
-    [initAudioContext, audioCtxRef, audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
+    [
+      cancelCrossfade,
+      pauseLocalPlayback,
+      initAudioContext,
+      audioCtxRef,
+      audioRef,
+      ytPlayers,
+      ytReady,
+      activeYtIndex,
+      pendingYtAction,
+    ]
   );
 
   useEffect(() => {
@@ -367,7 +394,10 @@ export function MusicProvider({ children }) {
     }
 
     if (!isRemoteAction.current && !isAutoplayBlocked && currentTrackRef.current) {
-      broadcastPlay(currentTrackRef.current.id, currentTimeRef.current);
+      broadcastPlay(
+        currentTrackRef.current.queue_row_id || currentTrackRef.current.id,
+        currentTimeRef.current
+      );
     }
   }, [initAudioContext, audioCtxRef, audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]);
 
@@ -381,6 +411,9 @@ export function MusicProvider({ children }) {
 
   const seekLocalPlayback = useCallback(
     (timestamp) => {
+      if (isCrossfading.current) {
+        finalizeCrossfadeImmediately();
+      }
       setCurrentTime(timestamp);
       const ap = activePlayerRef.current;
       if (ap === 'html5' && audioRef.current) {
@@ -397,7 +430,7 @@ export function MusicProvider({ children }) {
         broadcastSeek(timestamp);
       }
     },
-    [audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
+    [finalizeCrossfadeImmediately, audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
   );
 
   /**
@@ -432,9 +465,7 @@ export function MusicProvider({ children }) {
     const q = queueRef.current;
     const ct = currentTrackRef.current;
     if (!q.length || !ct) return;
-    const idx = q.findIndex(
-      (t) => (ct.queue_row_id && t.queue_row_id === ct.queue_row_id) || t.id === ct.id
-    );
+    const idx = findQueueTrackIndex(q, ct);
     if (idx !== -1 && idx < q.length - 1) {
       const nextTrack = q[idx + 1];
       playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
@@ -564,16 +595,34 @@ export function MusicProvider({ children }) {
     navigator.mediaSession.setActionHandler('nexttrack', () => {
       const q = queueRef.current;
       const ct = currentTrackRef.current;
-      const idx = q.findIndex(
-        (t) => (ct?.queue_row_id && t.queue_row_id === ct.queue_row_id) || t.id === ct?.id
-      );
+      const idx = findQueueTrackIndex(q, ct);
       if (idx !== -1 && idx < q.length - 1) {
         const nextTrack = q[idx + 1];
         playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
       }
     });
-    navigator.mediaSession.setActionHandler('previoustrack', () => seekLocalPlayback(0));
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      const q = queueRef.current;
+      const ct = currentTrackRef.current;
+      if (!ct || !q.length) return;
+      if (currentTimeRef.current > 3) {
+        seekLocalPlayback(0);
+        return;
+      }
+      const idx = findQueueTrackIndex(q, ct);
+      if (idx > 0) {
+        const prevTrack = q[idx - 1];
+        playTrackById(prevTrack.queue_row_id || prevTrack.id, 0);
+      } else {
+        seekLocalPlayback(0);
+      }
+    });
   }, [currentTrack, resumeLocalPlayback, pauseLocalPlayback, playTrackById, seekLocalPlayback]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }, [isPlaying]);
 
   // ─── Crossfade Monitor Loop ────────────────────────────────────────────────
   // Reads live values via queueRef/crossfadeDurationRef; adding queueRef causes infinite loops or stale closures.
@@ -583,11 +632,7 @@ export function MusicProvider({ children }) {
     const remainingTime = duration - currentTime;
     const thresh = crossfadeDurationRef.current;
     if (remainingTime <= thresh && thresh > 0 && queueRef.current.length > 0) {
-      const currentIndex = queueRef.current.findIndex(
-        (t) =>
-          (currentTrack.queue_row_id && t.queue_row_id === currentTrack.queue_row_id) ||
-          t.id === currentTrack.id
-      );
+      const currentIndex = findQueueTrackIndex(queueRef.current, currentTrack);
       if (currentIndex !== -1 && currentIndex < queueRef.current.length - 1) {
         startCrossfade(queueRef.current[currentIndex + 1]);
       }
@@ -637,6 +682,8 @@ export function MusicProvider({ children }) {
     setIsCardFlipped,
     // Controls
     setCrossfadeDuration,
+    cancelCrossfade,
+    finalizeCrossfadeImmediately,
     playTrackById,
     pauseLocalPlayback,
     resumeLocalPlayback,
@@ -685,6 +732,8 @@ export function MusicProvider({ children }) {
  *   isListenAlongBlocked: boolean,
  *   analyserNode: AnalyserNode|null,
  *   setCrossfadeDuration: React.Dispatch<React.SetStateAction<number>>,
+ *   cancelCrossfade: () => void,
+ *   finalizeCrossfadeImmediately: () => void,
  *   playTrackById: (trackId: string, startTime?: number, startPaused?: boolean) => Promise<void>,
  *   pauseLocalPlayback: (shouldBroadcast?: boolean) => void,
  *   resumeLocalPlayback: () => Promise<void>,

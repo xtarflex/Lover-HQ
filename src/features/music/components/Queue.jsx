@@ -211,26 +211,30 @@ export default function Queue({ onOpenAddModal }) {
           </div>
         ) : (
           queue.map((track, index) => {
-            const isCurrent = currentTrack?.id === track.id;
+            const isCurrent = currentTrack?.queue_row_id
+              ? currentTrack.queue_row_id === track.queue_row_id
+              : currentTrack?.id === track.id;
             const artworkUrl = getTrackArtwork(track);
             const uploaderAvatar = getUploaderAvatar(track.added_by);
             const isDragTarget = dragOverIndex === index;
 
             return (
               <div
-                key={track.id}
+                key={track.queue_row_id || `${track.id}-${index}`}
                 data-index={index}
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
-                onClick={() => playTrackById(track.id, 0)}
+                onClick={() => playTrackById(track.queue_row_id || track.id, 0)}
                 role="button"
                 tabIndex={0}
                 aria-pressed={isCurrent}
                 aria-label={`${track.title} by ${track.artist || 'Unknown Artist'}${isCurrent ? ', now playing' : ''}`}
-                onKeyDown={(e) => e.key === 'Enter' && playTrackById(track.id, 0)}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && playTrackById(track.queue_row_id || track.id, 0)
+                }
                 className={`queue-item group border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all duration-300 ${
                   isCurrent
                     ? 'bg-primary/10 border-primary/40 shadow-inner now-playing-pulse'

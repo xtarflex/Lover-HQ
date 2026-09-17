@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getTrackArtwork, gradientFromString, getProxiedUrl } from './musicUtils';
+import {
+  getTrackArtwork,
+  gradientFromString,
+  getProxiedUrl,
+  findQueueTrackIndex,
+} from './musicUtils';
 
 describe('getProxiedUrl', () => {
   const originalEnv = import.meta.env.VITE_SUPABASE_URL;
@@ -148,5 +153,93 @@ describe('adjustColorVibrance & getLuminance', () => {
     expect(r).toBeLessThan(brightR);
     expect(g).toBeLessThan(brightG);
     expect(b).toBeLessThan(brightB);
+  });
+});
+
+describe('findQueueTrackIndex', () => {
+  const duplicateTrackId = 'track-wine-pon-you';
+  const mockQueue = [
+    { id: duplicateTrackId, queue_row_id: 'row-0', title: 'Wine Pon You' },
+    { id: 'track-2', queue_row_id: 'row-1', title: 'Song Two' },
+    { id: 'track-3', queue_row_id: 'row-2', title: 'Song Three' },
+    { id: 'track-4', queue_row_id: 'row-3', title: 'Song Four' },
+    { id: 'track-5', queue_row_id: 'row-4', title: 'Song Five' },
+    { id: 'track-6', queue_row_id: 'row-5', title: 'Song Six' },
+    { id: duplicateTrackId, queue_row_id: 'row-6', title: 'Wine Pon You' },
+  ];
+
+  it('should correctly resolve index 6 when playing duplicate track at the end of queue', () => {
+    const activeTrack = mockQueue[6];
+    const index = findQueueTrackIndex(mockQueue, activeTrack);
+    expect(index).toBe(6);
+  });
+
+  it('should correctly resolve index 0 when playing duplicate track at the start of queue', () => {
+    const activeTrack = mockQueue[0];
+    const index = findQueueTrackIndex(mockQueue, activeTrack);
+    expect(index).toBe(0);
+  });
+
+  it('should enable hasPrev navigation from index 6 to index 5 without restarting', () => {
+    const activeTrack = mockQueue[6];
+    const currentQueueIndex = findQueueTrackIndex(mockQueue, activeTrack);
+    const hasPrev = activeTrack && currentQueueIndex > 0;
+    const hasNext =
+      activeTrack && currentQueueIndex !== -1 && currentQueueIndex < mockQueue.length - 1;
+
+    expect(hasPrev).toBe(true);
+    expect(hasNext).toBe(false);
+
+    const prevTrack = mockQueue[currentQueueIndex - 1];
+    expect(prevTrack.queue_row_id).toBe('row-5');
+    expect(prevTrack.title).toBe('Song Six');
+  });
+
+  it('should fallback to matching id when queue_row_id is not present on currentTrack', () => {
+    const legacyTrack = { id: 'track-3', title: 'Song Three' };
+    const index = findQueueTrackIndex(mockQueue, legacyTrack);
+    expect(index).toBe(2);
+  });
+
+  it('should return -1 if track is not found in queue', () => {
+    const unknownTrack = { id: 'track-unknown', queue_row_id: 'row-99' };
+    expect(findQueueTrackIndex(mockQueue, unknownTrack)).toBe(-1);
+  });
+
+  it('should safely return -1 for null, undefined, or empty queue inputs', () => {
+    expect(findQueueTrackIndex(null, mockQueue[0])).toBe(-1);
+    expect(findQueueTrackIndex(undefined, mockQueue[0])).toBe(-1);
+    expect(findQueueTrackIndex([], mockQueue[0])).toBe(-1);
+    expect(findQueueTrackIndex(mockQueue, null)).toBe(-1);
+    expect(findQueueTrackIndex(mockQueue, undefined)).toBe(-1);
+  });
+
+  it('should accurately navigate queues with arbitrary, adjacent, or all-duplicate tracks', () => {
+    // 5 entries of the same song in a row
+    const repeatedQueue = [
+      { id: 'song-repeat', queue_row_id: 'row-a', title: 'Song' },
+      { id: 'song-repeat', queue_row_id: 'row-b', title: 'Song' },
+      { id: 'song-repeat', queue_row_id: 'row-c', title: 'Song' },
+      { id: 'song-repeat', queue_row_id: 'row-d', title: 'Song' },
+      { id: 'song-repeat', queue_row_id: 'row-e', title: 'Song' },
+    ];
+
+    // Testing each position resolves to its exact index
+    for (let i = 0; i < repeatedQueue.length; i++) {
+      const idx = findQueueTrackIndex(repeatedQueue, repeatedQueue[i]);
+      expect(idx).toBe(i);
+
+      // Verify forward navigation from position i
+      if (i < repeatedQueue.length - 1) {
+        const nextTrack = repeatedQueue[idx + 1];
+        expect(nextTrack.queue_row_id).toBe(repeatedQueue[i + 1].queue_row_id);
+      }
+
+      // Verify backward navigation from position i
+      if (i > 0) {
+        const prevTrack = repeatedQueue[idx - 1];
+        expect(prevTrack.queue_row_id).toBe(repeatedQueue[i - 1].queue_row_id);
+      }
+    }
   });
 });

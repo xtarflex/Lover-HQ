@@ -38,6 +38,7 @@ const loadYoutubeApi = () => {
  * @param {React.MutableRefObject<number>} params.volumeRef - Ref to the current volume level.
  * @param {Function} params.setDuration - Callback to update current track duration.
  * @param {Function} params.setCurrentTime - Callback to update current playback time.
+ * @param {Function} [params.setIsPlaying] - Callback to update playing state.
  * @param {Function} params.handleTrackEnded - Callback when track ends.
  * @param {React.MutableRefObject<Function|null>} params.playTrackByIdRef - Ref to playTrackById.
  * @param {React.RefObject<HTMLDivElement>} params.ytContainerRef - Ref to YouTube players div container.
@@ -61,6 +62,7 @@ export function useYoutubePlayer({
   _volumeRef,
   setDuration,
   setCurrentTime,
+  setIsPlaying,
   handleTrackEnded,
   playTrackByIdRef,
   ytContainerRef,
@@ -73,6 +75,8 @@ export function useYoutubePlayer({
   // Store callbacks in stable refs to prevent re-initializing player on callback updates
   const handleTrackEndedRef = useRef(handleTrackEnded);
   const setDurationRef = useRef(setDuration);
+  const isActivePlayerRef = useRef(isActivePlayer);
+  const setIsPlayingRef = useRef(setIsPlaying);
 
   useEffect(() => {
     handleTrackEndedRef.current = handleTrackEnded;
@@ -81,6 +85,14 @@ export function useYoutubePlayer({
   useEffect(() => {
     setDurationRef.current = setDuration;
   }, [setDuration]);
+
+  useEffect(() => {
+    isActivePlayerRef.current = isActivePlayer;
+  }, [isActivePlayer]);
+
+  useEffect(() => {
+    setIsPlayingRef.current = setIsPlaying;
+  }, [setIsPlaying]);
 
   // Initialize YouTube players once when user session is established
   useEffect(() => {
@@ -128,13 +140,32 @@ export function useYoutubePlayer({
             },
             onStateChange: (event) => {
               if (!active) return;
-              if (idx !== activeYtIndex.current) return;
               if (event.data === 1) {
-                setDurationRef.current(
-                  ytPlayers.current[activeYtIndex.current]?.getDuration() || 0
-                );
+                const dur =
+                  event.target?.getDuration?.() || ytPlayers.current[idx]?.getDuration?.() || 0;
+                if (dur > 0 && (idx === activeYtIndex.current || isCrossfadingRef.current)) {
+                  setDurationRef.current(dur);
+                }
+                if (
+                  isActivePlayerRef.current &&
+                  (idx === activeYtIndex.current || isCrossfadingRef.current)
+                ) {
+                  setIsPlayingRef.current?.(true);
+                }
+              } else if (event.data === 2) {
+                if (
+                  !isCrossfadingRef.current &&
+                  isActivePlayerRef.current &&
+                  idx === activeYtIndex.current
+                ) {
+                  setIsPlayingRef.current?.(false);
+                }
               } else if (event.data === 0) {
-                if (!isCrossfadingRef.current) {
+                if (
+                  !isCrossfadingRef.current &&
+                  isActivePlayerRef.current &&
+                  idx === activeYtIndex.current
+                ) {
                   handleTrackEndedRef.current();
                 }
               }
@@ -178,6 +209,10 @@ export function useYoutubePlayer({
       if (ytPlayer?.getPlayerState && ytPlayer.getPlayerState() === 3) return; // buffering
       const time = ytPlayer?.getCurrentTime?.() ?? 0;
       setCurrentTime(time);
+      const dur = ytPlayer?.getDuration?.() ?? 0;
+      if (dur > 0) {
+        setDurationRef.current((prev) => (prev > 0 ? prev : dur));
+      }
     }, 500);
     return () => clearInterval(interval);
   }, [isPlaying, isActivePlayer, isCrossfadingRef, setCurrentTime]);
