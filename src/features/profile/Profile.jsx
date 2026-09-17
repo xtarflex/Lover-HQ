@@ -262,12 +262,13 @@ export default function Profile() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                    <label htmlFor="partner-email" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Email Address
                     </label>
                     <div className="relative">
                       <Info className="absolute left-4 top-3.5 w-4 h-4 text-text-muted" />
                       <input
+                        id="partner-email"
                         type="email"
                         disabled
                         value={partner.email || 'N/A'}
@@ -277,12 +278,13 @@ export default function Profile() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                    <label htmlFor="partner-phone" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Phone Number
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-3.5 w-4 h-4 text-text-muted" />
                       <input
+                        id="partner-phone"
                         type="text"
                         disabled
                         value={partner.phone_number || 'Not provided'}
@@ -292,12 +294,13 @@ export default function Profile() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                    <label htmlFor="partner-birthday" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Birthday
                     </label>
                     <div className="relative">
                       <Calendar className="absolute left-4 top-3.5 w-4 h-4 text-text-muted" />
                       <input
+                        id="partner-birthday"
                         type="text"
                         disabled
                         value={partner.birthday || 'Not provided'}
