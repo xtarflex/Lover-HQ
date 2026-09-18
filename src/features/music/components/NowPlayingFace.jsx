@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, ListOrdered } from 'lucide-react';
-import { SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Settings, ListOrdered, SkipBack, SkipForward } from 'lucide-react';
 import { Play, Pause } from '../../../lib/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { formatTime } from '../lib/musicEngine';
 import { getTrackArtwork, findQueueTrackIndex } from '../lib/musicUtils';
 import FloatingQueuePanel from './FloatingQueuePanel';
+import VolumeControl from './VolumeControl';
 import FluidVisualizer from './visualizers/FluidVisualizer';
 import WaveBarVisualizer from './visualizers/WaveBarVisualizer';
 import VinylDiscVisualizer from './visualizers/VinylDiscVisualizer';
@@ -337,21 +337,8 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
         {/* Playback controls row */}
         <div className="flex items-center justify-between">
           {/* Volume */}
-          <div className="flex items-center gap-2 w-20">
-            <button
-              onClick={() => changeVolume(volume > 0 ? 0 : 0.8)}
-              aria-label={volume === 0 ? 'Unmute' : 'Mute'}
-              className="hover:scale-110 active:scale-95 transition-all flex-shrink-0 drop-shadow-md"
-              style={{
-                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
-              }}
-            >
-              {volume === 0 ? (
-                <VolumeX className="w-5 h-5 drop-shadow-md" />
-              ) : (
-                <Volume2 className="w-5 h-5 drop-shadow-md" />
-              )}
-            </button>
+          <div className="flex items-center gap-2 min-w-20">
+            <VolumeControl volume={volume} changeVolume={changeVolume} accentColor={accentColor} />
           </div>
 
           {/* Skip / Play / Pause */}
@@ -430,6 +417,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
         isVisible={isQueueOpen}
         onOpenAddModal={onOpenAddModal}
         onSaveAsPlaylist={onSaveAsPlaylist}
+        onClose={() => setIsQueueOpen(false)}
       />
     </div>
   );

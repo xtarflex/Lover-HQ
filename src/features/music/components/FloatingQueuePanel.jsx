@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { Trash2, Plus, ListMusic, BookmarkPlus, CheckCircle2 } from 'lucide-react';
+import { Trash2, Plus, ListMusic, BookmarkPlus, CheckCircle2, X } from 'lucide-react';
 import { Play } from '../../../lib/icons';
 import { ChevronUp, ChevronDown, GripVertical, Music } from 'lucide-react';
 import { getTrackArtwork } from '../lib/musicUtils';
@@ -24,9 +24,15 @@ import EqBars from '../../../components/ui/EqBars';
  * @param {boolean} props.isVisible - Whether the panel is shown.
  * @param {Function} props.onOpenAddModal - Opens the Add Track modal.
  * @param {Function} props.onSaveAsPlaylist - Triggers save-queue-as-playlist flow.
+ * @param {Function} [props.onClose] - Closes the floating queue panel.
  * @returns {React.ReactElement} The FloatingQueuePanel component.
  */
-export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAsPlaylist }) {
+export default function FloatingQueuePanel({
+  isVisible,
+  onOpenAddModal,
+  onSaveAsPlaylist,
+  onClose,
+}) {
   const { user, partner } = useAppContext();
   const { queue, currentTrack, isPlaying, playTrackById, removeFromActiveQueue, reorderQueue } =
     useMusic();
@@ -94,6 +100,18 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
     setTimeout(() => setSaveConfirmed(false), 2000);
   };
 
+  // Close queue panel on Escape key
+  useEffect(() => {
+    if (!isVisible || !onClose) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isVisible, onClose]);
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -136,6 +154,16 @@ export default function FloatingQueuePanel({ isVisible, onOpenAddModal, onSaveAs
                 <Plus className="w-3 h-3" />
                 Add
               </button>
+              {/* Close panel */}
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  aria-label="Close queue"
+                  className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors ml-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
 
