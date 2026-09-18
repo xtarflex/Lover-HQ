@@ -15,3 +15,6 @@
 ## 2024-07-22 - aria-labels for Fridge icon buttons
 **Learning:** Several icon-only buttons in the Fridge feature components (like FridgeItem, NoteModal, PhotoModal, and VoiceModal) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
 **Action:** When creating or modifying icon-only functional buttons, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+## 2024-09-18 - Responsive Text Labels and ARIA
+**Learning:** When using responsive utility classes (like Tailwind's `hidden sm:inline`) to hide button text on smaller screens, the buttons lose their accessible names for screen reader users on mobile devices if they solely rely on the text content.
+**Action:** Always provide explicit `aria-label` attributes on buttons where the visible text label might be hidden at certain breakpoints.
