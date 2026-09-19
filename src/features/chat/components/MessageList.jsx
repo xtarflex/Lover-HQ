@@ -4,7 +4,7 @@
  * Extracted verbatim from Chat.jsx.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import {
   Smile,
   Reply,
@@ -82,26 +82,107 @@ export function MessageList({
   pressTimer,
 }) {
   const partnerLastSeen = partnerLastSeenProp || partner?.last_seen;
+  const touchStartPosRef = useRef(null);
 
-  const renderReadStatus = (msg) => {
-    if (!msg) return null;
-    const isRead =
-      presence?.partnerRoom === 'Chat Room' ||
-      (partnerLastSeen &&
-        msg.created_at &&
-        new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+  /**
+   * Handles context menu (right-click on desktop or native long-press on supported mobile devices).
+   * Prevents browser default popup and displays message actions.
+   * @param {Object} msg - The chat message object.
+   * @returns {(e: React.MouseEvent) => void}
+   */
+  const handleMessageContextMenu = useCallback(
+    (msg) => (e) => {
+      if (isSelectionMode) return;
+      e.preventDefault();
+      if (pressTimer?.current) {
+        clearTimeout(pressTimer.current);
+      }
+      touchStartPosRef.current = null;
+      setLongPressedMessage(msg);
+    },
+    [isSelectionMode, pressTimer, setLongPressedMessage]
+  );
 
-    if (isRead) {
-      return <CheckCheck className="w-3 h-3 text-emerald-500" />;
+  /**
+   * Initiates touch press detection by recording touch coordinates and starting timer.
+   * @param {Object} msg - The chat message object.
+   * @returns {(e: React.TouchEvent) => void}
+   */
+  const handleMessageTouchStart = useCallback(
+    (msg) => (e) => {
+      if (isSelectionMode) return;
+      const touch = e.touches?.[0];
+      if (touch) {
+        touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+      }
+      if (pressTimer?.current) {
+        clearTimeout(pressTimer.current);
+      }
+      if (pressTimer) {
+        pressTimer.current = setTimeout(() => {
+          setLongPressedMessage(msg);
+          touchStartPosRef.current = null;
+        }, 500);
+      }
+    },
+    [isSelectionMode, pressTimer, setLongPressedMessage]
+  );
+
+  /**
+   * Monitors touch movement to abort the long-press timer if scrolling or swiping.
+   * A movement greater than 10 pixels cancels the hold timer.
+   * @param {React.TouchEvent} e - Touch move event.
+   */
+  const handleMessageTouchMove = useCallback(
+    (e) => {
+      if (!touchStartPosRef.current || !e.touches?.[0]) return;
+      const touch = e.touches[0];
+      const distance = Math.hypot(
+        touch.clientX - touchStartPosRef.current.x,
+        touch.clientY - touchStartPosRef.current.y
+      );
+      if (distance > 10) {
+        if (pressTimer?.current) {
+          clearTimeout(pressTimer.current);
+        }
+        touchStartPosRef.current = null;
+      }
+    },
+    [pressTimer]
+  );
+
+  /**
+   * Cleans up press timer and touch positions upon touch release or cancellation.
+   */
+  const handleMessageTouchEnd = useCallback(() => {
+    if (pressTimer?.current) {
+      clearTimeout(pressTimer.current);
     }
+    touchStartPosRef.current = null;
+  }, [pressTimer]);
 
-    const isDelivered = presence?.partner === 'online' || !msg.pending;
-    if (isDelivered) {
-      return <CheckCheck className="w-3 h-3 text-gray-400" />;
-    }
+  const renderReadStatus = useCallback(
+    (msg) => {
+      if (!msg) return null;
+      const isRead =
+        presence?.partnerRoom === 'Chat Room' ||
+        (partnerLastSeen &&
+          msg.created_at &&
+          new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
 
-    return <Check className="w-3 h-3 text-gray-400" />;
-  };
+      if (isRead) {
+        return <CheckCheck className="w-3 h-3 text-emerald-500" />;
+      }
+
+      const isDelivered = presence?.partner === 'online' || !msg.pending;
+      if (isDelivered) {
+        return <CheckCheck className="w-3 h-3 text-gray-400" />;
+      }
+
+      return <Check className="w-3 h-3 text-gray-400" />;
+    },
+    [presence?.partnerRoom, presence?.partner, partnerLastSeen]
+  );
 
   const content = useMemo(
     () =>
@@ -298,25 +379,11 @@ export function MessageList({
                         return (
                           <div
                             key={msg.id}
-                            onMouseDown={(e) => {
-                              if (isSelectionMode) return;
-                              if (e.button === 0) {
-                                clearTimeout(pressTimer.current);
-                                pressTimer.current = setTimeout(() => {
-                                  setLongPressedMessage(msg);
-                                }, 500);
-                              }
-                            }}
-                            onMouseUp={() => clearTimeout(pressTimer.current)}
-                            onMouseLeave={() => clearTimeout(pressTimer.current)}
-                            onTouchStart={() => {
-                              if (isSelectionMode) return;
-                              clearTimeout(pressTimer.current);
-                              pressTimer.current = setTimeout(() => {
-                                setLongPressedMessage(msg);
-                              }, 500);
-                            }}
-                            onTouchEnd={() => clearTimeout(pressTimer.current)}
+                            onContextMenu={handleMessageContextMenu(msg)}
+                            onTouchStart={handleMessageTouchStart(msg)}
+                            onTouchMove={handleMessageTouchMove}
+                            onTouchEnd={handleMessageTouchEnd}
+                            onTouchCancel={handleMessageTouchEnd}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (isSelectionMode) {
@@ -463,25 +530,11 @@ export function MessageList({
             <div
               key={`msg-${msg.id}`}
               id={`msg-${msg.id}`}
-              onMouseDown={(e) => {
-                if (isSelectionMode) return;
-                if (e.button === 0) {
-                  clearTimeout(pressTimer.current);
-                  pressTimer.current = setTimeout(() => {
-                    setLongPressedMessage(msg);
-                  }, 500);
-                }
-              }}
-              onMouseUp={() => clearTimeout(pressTimer.current)}
-              onMouseLeave={() => clearTimeout(pressTimer.current)}
-              onTouchStart={() => {
-                if (isSelectionMode) return;
-                clearTimeout(pressTimer.current);
-                pressTimer.current = setTimeout(() => {
-                  setLongPressedMessage(msg);
-                }, 500);
-              }}
-              onTouchEnd={() => clearTimeout(pressTimer.current)}
+              onContextMenu={handleMessageContextMenu(msg)}
+              onTouchStart={handleMessageTouchStart(msg)}
+              onTouchMove={handleMessageTouchMove}
+              onTouchEnd={handleMessageTouchEnd}
+              onTouchCancel={handleMessageTouchEnd}
               onClick={() => {
                 if (isSelectionMode) {
                   handleToggleSelectMessage(msg.id);
@@ -988,8 +1041,6 @@ export function MessageList({
       groupedMessages,
       userId,
       partner,
-      presence?.partner,
-      presence?.partnerRoom,
       editingMessage?.id,
       editText,
       handleReferenceClick,
@@ -1008,7 +1059,6 @@ export function MessageList({
       isSelectionMode,
       selectedMessageIds,
       showUnreadDivider,
-      pressTimer,
       setActiveLightboxImage,
       setEditText,
       setEditingMessage,
@@ -1016,6 +1066,11 @@ export function MessageList({
       setReplyMessage,
       setSelectedMessageIds,
       setIsSelectionMode,
+      handleMessageContextMenu,
+      handleMessageTouchStart,
+      handleMessageTouchMove,
+      handleMessageTouchEnd,
+      renderReadStatus,
     ]
   );
 
