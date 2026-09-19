@@ -2,14 +2,17 @@
  * @file src/features/music/components/VolumeControl.jsx
  * @description Streamlined interactive volume controller for the Music Room.
  * - Desktop: Hover reveals volume percentage and vertical stepper chevrons (plus mouse wheel roulette).
- * - Mobile: Keeps control compact so playback buttons are never pushed or misaligned.
- *   Swiping up/down smoothly adjusts volume. Tapping shows an in-app toast notification with volume level.
+ * - Mobile: Tapping displays a compact, well-proportioned percentage badge beside the icon.
+ *   Clicking/tapping outside dismisses the badge so it never remains stuck.
+ * - Explanatory In-App Notifications: Tapping or dragging dispatches clear in-app toast instructions:
+ *   Mobile: "Volume: 80% • Swipe up to increase, down to decrease" / "Muted • Swipe up on speaker to increase volume"
+ *   Desktop: "Volume: 80% • Scroll wheel or click arrows to adjust" / "Muted • Scroll up or click arrows to increase volume"
  * - Muted state: Dimmed/dull typography and icons.
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, Volume1, VolumeX, ChevronUp, ChevronDown } from 'lucide-react';
-import { useAppContext } from '../../../contexts/AppContext';
+import { useAppDispatch } from '../../../contexts/AppContext';
 
 /**
  * VolumeControl component.
@@ -21,12 +24,15 @@ import { useAppContext } from '../../../contexts/AppContext';
  * @returns {React.ReactElement}
  */
 export default function VolumeControl({ volume, changeVolume, accentColor }) {
-  const { dispatch } = useAppContext();
+  const dispatch = useAppDispatch();
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  const containerRef = useRef(null);
   // Store last non-zero volume to restore on unmute (defaulting to 0.8)
   const previousVolumeRef = useRef(volume > 0 ? volume : 0.8);
   const notificationDebounceRef = useRef(null);
+  const mobileCloseTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (volume > 0) {
@@ -53,39 +59,105 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
   }, []);
 
   /**
-   * Dispatches a lightweight in-app toast notification for mobile volume feedback.
-   * @param {string} message - Message to display.
+   * Helper to check if current device interaction is touch-based.
+   * @returns {boolean}
+   */
+  const checkIsTouch = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(pointer: coarse)').matches;
+  }, []);
+
+  /**
+   * Dispatches an in-app toast notification explaining how to adjust volume.
+   * @param {number} targetVolume - The current/new volume level.
+   * @param {boolean} isTouch - Whether triggered via touch.
    */
   const notifyVolume = useCallback(
-    (message) => {
+    (targetVolume, isTouch) => {
       if (!dispatch) return;
       if (notificationDebounceRef.current) {
         clearTimeout(notificationDebounceRef.current);
       }
+
+      let message = '';
+      if (targetVolume === 0) {
+        message = isTouch
+          ? 'Muted • Swipe up on speaker to increase volume'
+          : 'Muted • Scroll up or click arrows to increase volume';
+      } else {
+        const pct = Math.round(targetVolume * 100);
+        message = isTouch
+          ? `Volume: ${pct}% • Swipe up to increase, down to reduce`
+          : `Volume: ${pct}% • Scroll wheel or click arrows to adjust`;
+      }
+
       dispatch({
         type: 'SET_GLOBAL_NOTIFICATION',
         payload: { message, type: 'info' },
       });
+
       notificationDebounceRef.current = setTimeout(() => {
         dispatch({ type: 'SET_GLOBAL_NOTIFICATION', payload: null });
-      }, 1800);
+      }, 3000);
     },
     [dispatch]
   );
 
   /**
+   * Opens the mobile percentage indicator and schedules an auto-dismiss timer.
+   */
+  const openMobilePercentage = useCallback(() => {
+    setIsMobileOpen(true);
+    if (mobileCloseTimeoutRef.current) {
+      clearTimeout(mobileCloseTimeoutRef.current);
+    }
+    mobileCloseTimeoutRef.current = setTimeout(() => {
+      setIsMobileOpen(false);
+    }, 3500);
+  }, []);
+
+  // Dismiss mobile percentage indicator when clicking/tapping outside
+  useEffect(() => {
+    if (!isMobileOpen) return;
+
+    const handlePointerDown = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isMobileOpen]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (notificationDebounceRef.current) {
+        clearTimeout(notificationDebounceRef.current);
+      }
+      if (mobileCloseTimeoutRef.current) {
+        clearTimeout(mobileCloseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  /**
    * Toggles between muted state and previous active volume.
    */
   const handleToggleMute = useCallback(() => {
+    const isTouch = checkIsTouch();
+    openMobilePercentage();
+
     if (volume > 0) {
       changeVolume(0);
-      notifyVolume('Muted (0%)');
+      notifyVolume(0, isTouch);
     } else {
       const restored = previousVolumeRef.current || 0.8;
       changeVolume(restored);
-      notifyVolume(`Volume: ${Math.round(restored * 100)}%`);
+      notifyVolume(restored, isTouch);
     }
-  }, [volume, changeVolume, notifyVolume]);
+  }, [volume, changeVolume, notifyVolume, checkIsTouch, openMobilePercentage]);
 
   /**
    * Increments volume by 5%.
@@ -94,9 +166,11 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
   const handleIncrementStep = useCallback(
     (e) => {
       e?.stopPropagation();
-      changeVolume(clampVolume(volume + 0.05));
+      const next = clampVolume(volume + 0.05);
+      changeVolume(next);
+      notifyVolume(next, false);
     },
-    [volume, changeVolume, clampVolume]
+    [volume, changeVolume, clampVolume, notifyVolume]
   );
 
   /**
@@ -106,9 +180,11 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
   const handleDecrementStep = useCallback(
     (e) => {
       e?.stopPropagation();
-      changeVolume(clampVolume(volume - 0.05));
+      const next = clampVolume(volume - 0.05);
+      changeVolume(next);
+      notifyVolume(next, false);
     },
-    [volume, changeVolume, clampVolume]
+    [volume, changeVolume, clampVolume, notifyVolume]
   );
 
   /**
@@ -121,9 +197,11 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
       e.preventDefault();
       const step = 0.05;
       const delta = e.deltaY < 0 ? step : -step;
-      changeVolume(clampVolume(volume + delta));
+      const next = clampVolume(volume + delta);
+      changeVolume(next);
+      notifyVolume(next, false);
     },
-    [volume, changeVolume, clampVolume]
+    [volume, changeVolume, clampVolume, notifyVolume]
   );
 
   /**
@@ -159,10 +237,10 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
 
       if (Math.abs(deltaY) > 8) {
         touchStateRef.current.isDragging = true;
+        openMobilePercentage();
       }
 
       if (touchStateRef.current.isDragging) {
-        // Calculate velocity (pixels per millisecond)
         const velocity = Math.abs(deltaY) / elapsed;
         const velocityMultiplier = Math.min(3.5, 1 + velocity * 1.5);
 
@@ -172,32 +250,24 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
         changeVolume(targetVolume);
       }
     },
-    [changeVolume, clampVolume]
+    [changeVolume, clampVolume, openMobilePercentage]
   );
 
   /**
-   * Finalizes touch interaction: clears drag state and shows notification if dragged.
+   * Finalizes touch interaction: clears drag state and notifies with current volume.
    */
   const handleTouchEnd = useCallback(() => {
     if (touchStateRef.current.isDragging) {
-      notifyVolume(`Volume: ${Math.round(volume * 100)}%`);
+      notifyVolume(volume, true);
     }
     setTimeout(() => {
       touchStateRef.current.isDragging = false;
     }, 100);
   }, [notifyVolume, volume]);
 
-  // Clean up any pending notification timer on unmount
-  useEffect(() => {
-    return () => {
-      if (notificationDebounceRef.current) {
-        clearTimeout(notificationDebounceRef.current);
-      }
-    };
-  }, []);
-
   const isMuted = volume === 0;
   const volumePercentage = Math.round(volume * 100);
+  const isIndicatorVisible = isHovered || isMobileOpen;
 
   // Pick appropriate icon based on volume level
   const VolumeIcon = isMuted ? VolumeX : volume <= 0.5 ? Volume1 : Volume2;
@@ -208,6 +278,7 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
 
   return (
     <div
+      ref={containerRef}
       className="relative flex items-center select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -233,18 +304,18 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
         <VolumeIcon className="w-5 h-5 drop-shadow-md" />
       </button>
 
-      {/* Desktop-only Percentage & Stepper chevrons (never displayed on mobile touch screens) */}
+      {/* Percentage & Desktop Stepper chevrons container */}
       <div
-        className={`hidden md:flex items-center gap-1 transition-all duration-200 overflow-hidden ${
-          isHovered
-            ? 'opacity-100 max-w-[85px] ml-1 pointer-events-auto'
+        className={`flex items-center gap-1 transition-all duration-200 overflow-hidden ${
+          isIndicatorVisible
+            ? 'opacity-100 max-w-[85px] ml-1.5 pointer-events-auto'
             : 'opacity-0 max-w-0 pointer-events-none'
         }`}
         title="Scroll or click chevrons to adjust volume"
       >
         {/* Percentage badge */}
         <span
-          className={`text-[11px] font-mono font-bold tracking-tight px-1 py-0.5 rounded border backdrop-blur-sm transition-colors ${
+          className={`text-[10px] font-mono font-bold tracking-tight px-1.5 py-0.5 rounded border backdrop-blur-sm transition-colors ${
             isMuted
               ? 'text-white/35 bg-white/5 border-white/10'
               : 'text-white/90 bg-white/15 border-white/25 drop-shadow-sm'
@@ -257,8 +328,8 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
           {volumePercentage}%
         </span>
 
-        {/* Up/Down Stepper Chevrons */}
-        <div className="flex flex-col items-center justify-center -space-y-1">
+        {/* Desktop-only Up/Down Stepper Chevrons */}
+        <div className="hidden md:flex flex-col items-center justify-center -space-y-1">
           <button
             type="button"
             onClick={handleIncrementStep}

@@ -9,10 +9,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VolumeControl from './VolumeControl';
 
+const mockDispatch = vi.fn();
 vi.mock('../../../contexts/AppContext', () => ({
-  useAppContext: () => ({
-    dispatch: vi.fn(),
-  }),
+  useAppContext: () => ({}),
+  useAppDispatch: () => mockDispatch,
 }));
 
 describe('VolumeControl', () => {
@@ -113,5 +113,40 @@ describe('VolumeControl', () => {
     fireEvent.click(button);
 
     expect(changeVolume).toHaveBeenCalledWith(0);
+  });
+
+  it('dispatches explanatory notification on mute toggle', () => {
+    mockDispatch.mockClear();
+    render(<VolumeControl volume={0.8} changeVolume={vi.fn()} />);
+
+    const button = screen.getByRole('button', { name: /mute volume/i });
+    fireEvent.click(button);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: expect.objectContaining({
+          message: expect.stringMatching(/scroll|swipe|arrow/i),
+        }),
+      })
+    );
+  });
+
+  it('closes mobile percentage indicator on outside click', () => {
+    const { container } = render(
+      <div>
+        <div data-testid="outside-area">Outside</div>
+        <VolumeControl volume={0.8} changeVolume={vi.fn()} />
+      </div>
+    );
+
+    const button = screen.getByRole('button', { name: /mute volume/i });
+    fireEvent.click(button);
+
+    const outsideArea = screen.getByTestId('outside-area');
+    fireEvent.pointerDown(outsideArea);
+
+    const percentageContainer = container.querySelector('.max-w-0');
+    expect(percentageContainer).toBeInTheDocument();
   });
 });
