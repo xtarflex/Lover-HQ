@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
@@ -100,22 +100,42 @@ export default function FloatingQueuePanel({
     setTimeout(() => setSaveConfirmed(false), 2000);
   };
 
-  // Close queue panel on Escape key
+  const panelRef = useRef(null);
+
+  // Close queue panel on Escape key or click outside
   useEffect(() => {
     if (!isVisible || !onClose) return;
+
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         onClose();
       }
     };
+
+    const handlePointerDown = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        // Prevent immediate close if clicking the toggle button that opens/closes the queue
+        if (e.target.closest('button[aria-label*="queue" i]')) {
+          return;
+        }
+        onClose();
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
   }, [isVisible, onClose]);
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          ref={panelRef}
           key="queue-panel"
           className="floating-queue-panel"
           initial={{ opacity: 0, y: 24, scale: 0.96 }}

@@ -81,4 +81,23 @@ describe('FloatingQueuePanel', () => {
 
     expect(queryByText('Up Next')).not.toBeInTheDocument();
   });
+
+  it('calls onClose when clicking outside the panel', () => {
+    const mockOnClose = vi.fn();
+    render(
+      <div>
+        <div data-testid="outside-area">Outside</div>
+        <FloatingQueuePanel
+          isVisible={true}
+          onOpenAddModal={vi.fn()}
+          onSaveAsPlaylist={vi.fn()}
+          onClose={mockOnClose}
+        />
+      </div>
+    );
+
+    const outsideArea = screen.getByTestId('outside-area');
+    fireEvent.pointerDown(outsideArea);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
 });

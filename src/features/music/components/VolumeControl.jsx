@@ -220,17 +220,18 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
         <VolumeIcon className="w-5 h-5 drop-shadow-md" />
       </button>
 
-      {/* Percentage & Stepper chevrons container */}
+      {/* Percentage, Mini Bar & Stepper chevrons container */}
       <div
         className={`flex items-center gap-1.5 transition-all duration-200 overflow-hidden ${
           isOverlayVisible
-            ? 'opacity-100 max-w-[100px] ml-1.5 pointer-events-auto'
+            ? 'opacity-100 max-w-[170px] ml-1.5 pointer-events-auto'
             : 'opacity-0 max-w-0 pointer-events-none'
         }`}
+        title="Scroll wheel, swipe, or click arrows to adjust volume • Click to mute"
       >
         {/* Percentage badge */}
         <span
-          className={`text-[11px] font-mono font-bold tracking-tight px-1.5 py-0.5 rounded-md border backdrop-blur-sm transition-colors ${
+          className={`text-[11px] font-mono font-bold tracking-tight px-1.5 py-0.5 rounded-md border backdrop-blur-sm transition-colors flex items-center gap-0.5 ${
             isMuted
               ? 'text-white/35 bg-white/5 border-white/10'
               : 'text-white/90 bg-white/15 border-white/25 drop-shadow-sm'
@@ -240,11 +241,33 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
           }
           aria-live="polite"
         >
+          <span
+            className="text-[9px] text-white/50 select-none mr-0.5 [@media(pointer:fine)]:hidden"
+            aria-hidden="true"
+          >
+            ↕
+          </span>
           {volumePercentage}%
         </span>
 
-        {/* Desktop-only Up/Down Stepper Chevrons */}
-        <div className="hidden md:flex flex-col items-center justify-center -space-y-1">
+        {/* Mini Volume Bar Gauge */}
+        <div
+          className="w-9 h-1 bg-white/20 rounded-full overflow-hidden flex items-center"
+          aria-hidden="true"
+        >
+          <div
+            className="h-full rounded-full transition-all duration-150"
+            style={{
+              width: `${volumePercentage}%`,
+              backgroundColor: isMuted
+                ? 'rgba(255, 255, 255, 0.3)'
+                : accentColor || 'rgb(var(--primary))',
+            }}
+          />
+        </div>
+
+        {/* Desktop Up/Down Stepper Chevrons */}
+        <div className="flex flex-col items-center justify-center -space-y-1 [@media(pointer:coarse)]:hidden">
           <button
             type="button"
             onClick={handleIncrementStep}
