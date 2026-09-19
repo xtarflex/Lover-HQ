@@ -40,6 +40,7 @@ export function BatchActionBar({ selectedMessageIds, onCancel, onDelete, onPin, 
         <button
           onClick={onDelete}
           disabled={selectedMessageIds.size === 0}
+          aria-label="Delete selected messages"
           className="flex items-center space-x-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-md"
         >
           <Trash2 className="w-4 h-4" />
@@ -50,6 +51,7 @@ export function BatchActionBar({ selectedMessageIds, onCancel, onDelete, onPin, 
         <button
           onClick={onPin}
           disabled={selectedMessageIds.size !== 1}
+          aria-label="Pin selected message"
           className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-850 hover:bg-slate-800 disabled:opacity-50 text-gray-300 rounded-xl text-xs font-bold transition-all border border-slate-700"
         >
           <Pin className="w-4.5 h-4.5" />
@@ -60,6 +62,7 @@ export function BatchActionBar({ selectedMessageIds, onCancel, onDelete, onPin, 
         <button
           onClick={onForward}
           disabled={selectedMessageIds.size === 0}
+          aria-label="Forward selected messages"
           className="flex items-center space-x-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-md"
         >
           <ArrowRight className="w-4.5 h-4.5" />
