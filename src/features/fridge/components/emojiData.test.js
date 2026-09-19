@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getEmojiCdnUrl, ANIMATED_EMOJIS } from './emojiData';
+import {
+  getEmojiCdnUrl,
+  ANIMATED_EMOJIS,
+  ANIMATED_EMOJIS_BY_ID,
+  ANIMATED_EMOJIS_BY_CHAR,
+} from './emojiData';
 
 describe('emojiData', () => {
   describe('getEmojiCdnUrl', () => {
@@ -50,6 +55,27 @@ describe('emojiData', () => {
       const codes = ANIMATED_EMOJIS.map((e) => e.code);
       const uniqueCodes = new Set(codes);
       expect(codes.length).toBe(uniqueCodes.size);
+    });
+  });
+
+  describe('Lookup Maps (O(1) lookups)', () => {
+    it('should index every emoji correctly in ANIMATED_EMOJIS_BY_ID', () => {
+      expect(ANIMATED_EMOJIS_BY_ID.size).toBe(ANIMATED_EMOJIS.length);
+      ANIMATED_EMOJIS.forEach((emoji) => {
+        expect(ANIMATED_EMOJIS_BY_ID.get(emoji.id)).toEqual(emoji);
+      });
+    });
+
+    it('should index every emoji correctly in ANIMATED_EMOJIS_BY_CHAR', () => {
+      expect(ANIMATED_EMOJIS_BY_CHAR.size).toBe(ANIMATED_EMOJIS.length);
+      ANIMATED_EMOJIS.forEach((emoji) => {
+        expect(ANIMATED_EMOJIS_BY_CHAR.get(emoji.char)).toEqual(emoji);
+      });
+    });
+
+    it('should return undefined for non-existent id or char', () => {
+      expect(ANIMATED_EMOJIS_BY_ID.get('non-existent-id')).toBeUndefined();
+      expect(ANIMATED_EMOJIS_BY_CHAR.get('👾')).toBeUndefined();
     });
   });
 });
