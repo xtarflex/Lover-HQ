@@ -27,6 +27,7 @@ import { TypingIndicator, RecordingIndicator } from './TypingIndicator';
 import { AnimatedSticker } from './AnimatedSticker';
 import { StickerPlayer } from './StickerPlayer';
 import { ANIMATED_EMOJIS, getEmojiCdnUrl } from '../../fridge/components/emojiData';
+import { getSafeUrl } from '../../../utils/url';
 
 const EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏'];
 
@@ -933,14 +934,25 @@ export function MessageList({
                                 </span>
                               </div>
                             </div>
-                            <a
-                              href={msg.media_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] font-bold text-blue-400 hover:underline block"
-                            >
-                              View on Google Maps →
-                            </a>
+                            {/* NOTE FOR CHAT EVOLUTION: This deliverable link will be upgraded during chat evolution to interactive rich maps / deep-link cards */}
+                            {(() => {
+                              const safeLocationUrl = getSafeUrl(msg.media_url, '#');
+                              return (
+                                <a
+                                  href={safeLocationUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => {
+                                    if (safeLocationUrl === '#') {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  className="text-[10px] font-bold text-blue-400 hover:underline block"
+                                >
+                                  View on Google Maps →
+                                </a>
+                              );
+                            })()}
                           </div>
                         )}
 
