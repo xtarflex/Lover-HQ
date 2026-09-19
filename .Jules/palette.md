@@ -19,6 +19,10 @@
 **Learning:** When using responsive utility classes (like Tailwind's `hidden sm:inline`) to hide button text on smaller screens, the buttons lose their accessible names for screen reader users on mobile devices if they solely rely on the text content.
 **Action:** Always provide explicit `aria-label` attributes on buttons where the visible text label might be hidden at certain breakpoints.
 
+## 2026-09-17 - aria-labels for Chat interactive buttons
+**Learning:** Several icon-only buttons in the Chat feature components (like `EmojiStickerDrawer` and `MediaPreviewSheet`) lacked `aria-label` attributes, though some had `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
+**Action:** When creating or modifying icon-only functional buttons across the application, ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+
 ## 2026-09-19 - Accessible Custom Dropdowns
 **Learning:** Custom dropdown menus built with generic elements need explicit ARIA roles (like listbox, option, combobox) and states (like aria-expanded, aria-selected) to be fully understandable and navigable by screen readers.
 **Action:** Always verify that custom dropdown triggers use aria-haspopup and aria-expanded, and their options are wrapped in a listbox role with proper aria-selected states.

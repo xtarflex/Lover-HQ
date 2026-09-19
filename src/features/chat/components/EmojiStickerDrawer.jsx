@@ -715,6 +715,7 @@ export function EmojiStickerDrawer({
                       : 'text-text-muted hover:text-white hover:bg-slate-800/60'
                   }`}
                   title="Search Stickers & Emojis"
+                  aria-label="Search Stickers & Emojis"
                 >
                   <Search className="w-3.5 h-3.5" />
                 </button>
@@ -760,6 +761,7 @@ export function EmojiStickerDrawer({
                 onClick={() => setShowEmojiPicker(false)}
                 className="p-1.5 rounded-full text-text-muted hover:text-white hover:bg-slate-800/80 transition-colors"
                 title="Close"
+                aria-label="Close drawer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -997,6 +999,7 @@ export function EmojiStickerDrawer({
                             }}
                             className="aspect-square bg-slate-950/40 rounded-2xl border border-dashed border-primary/40 p-1 hover:bg-primary/10 hover:border-primary flex flex-col items-center justify-center transition-all group shrink-0"
                             title="Create custom sticker"
+                            aria-label="Create custom sticker"
                           >
                             <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary mb-0.5 group-hover:scale-110 transition-transform">
                               <Plus className="w-3.5 h-3.5" />
@@ -1040,6 +1043,7 @@ export function EmojiStickerDrawer({
                 type="button"
                 onClick={() => scrollToPackSection('recent')}
                 title="Recently Sent"
+                aria-label="Recently Sent"
                 className={`p-1.5 rounded-xl transition-all ${
                   activePackId === 'recent' && activeTab === 'stickers'
                     ? 'bg-slate-800 text-primary border border-primary/30'
@@ -1053,6 +1057,7 @@ export function EmojiStickerDrawer({
                 type="button"
                 onClick={() => scrollToPackSection('favorites')}
                 title="Favorite Stickers"
+                aria-label="Favorite Stickers"
                 className={`p-1.5 rounded-xl transition-all ${
                   activePackId === 'favorites' && activeTab === 'stickers'
                     ? 'bg-slate-800 text-amber-400 border border-amber-400/30'
@@ -1083,6 +1088,7 @@ export function EmojiStickerDrawer({
                     type="button"
                     onClick={() => scrollToPackSection(pack.id)}
                     title={pack.name}
+                    aria-label={pack.name}
                     className={`p-1.5 rounded-xl text-xs transition-all shrink-0 flex items-center justify-center ${
                       isSelected
                         ? 'bg-slate-800 text-primary border border-primary/30 scale-105 shadow-sm'
@@ -1121,6 +1127,7 @@ export function EmojiStickerDrawer({
                 }
               }}
               title="Chat Settings"
+              aria-label="Chat Settings"
               className="p-1.5 rounded-xl text-text-muted hover:text-white hover:bg-slate-800/80 transition-colors shrink-0 ml-1"
             >
               <Settings className="w-4 h-4" />
