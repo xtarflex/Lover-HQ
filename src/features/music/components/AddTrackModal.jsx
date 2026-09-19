@@ -379,10 +379,14 @@ export default function AddTrackModal({ isOpen, onClose }) {
             </div>
           ) : (
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold font-rounded uppercase tracking-wider text-text-muted">
+              <label
+                htmlFor="track-youtube-url"
+                className="block text-xs font-bold font-rounded uppercase tracking-wider text-text-muted"
+              >
                 YouTube URL
               </label>
               <input
+                id="track-youtube-url"
                 type="url"
                 placeholder="https://www.youtube.com/watch?v=..."
                 value={ytUrl || ''}
@@ -429,10 +433,14 @@ export default function AddTrackModal({ isOpen, onClose }) {
           {/* Form input fields */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold font-rounded uppercase tracking-wider text-text-muted">
+              <label
+                htmlFor="track-title"
+                className="block text-xs font-bold font-rounded uppercase tracking-wider text-text-muted"
+              >
                 Song Title
               </label>
               <input
+                id="track-title"
                 type="text"
                 placeholder="e.g. Yellow"
                 value={title || ''}
@@ -442,10 +450,14 @@ export default function AddTrackModal({ isOpen, onClose }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold font-rounded uppercase tracking-wider text-text-muted">
+              <label
+                htmlFor="track-artist"
+                className="block text-xs font-bold font-rounded uppercase tracking-wider text-text-muted"
+              >
                 Artist (Optional)
               </label>
               <input
+                id="track-artist"
                 type="text"
                 placeholder="e.g. Coldplay"
                 value={artist || ''}
