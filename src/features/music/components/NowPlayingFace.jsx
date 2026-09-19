@@ -337,7 +337,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
         {/* Playback controls row */}
         <div className="flex items-center justify-between">
           {/* Volume */}
-          <div className="flex items-center gap-2 min-w-28">
+          <div className="flex items-center w-12 md:w-28">
             <VolumeControl volume={volume} changeVolume={changeVolume} accentColor={accentColor} />
           </div>
 
@@ -392,7 +392,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
           </div>
 
           {/* Queue toggle */}
-          <div className="flex justify-end min-w-28">
+          <div className="flex justify-end w-12 md:w-28">
             <button
               onClick={() => setIsQueueOpen((prev) => !prev)}
               aria-label={isQueueOpen ? 'Close queue' : 'Open queue'}

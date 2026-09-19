@@ -9,6 +9,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VolumeControl from './VolumeControl';
 
+vi.mock('../../../contexts/AppContext', () => ({
+  useAppContext: () => ({
+    dispatch: vi.fn(),
+  }),
+}));
+
 describe('VolumeControl', () => {
   it('renders primary volume button with correct aria-label when unmuted', () => {
     render(<VolumeControl volume={0.8} changeVolume={vi.fn()} />);
