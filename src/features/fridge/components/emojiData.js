@@ -74,3 +74,17 @@ export const ANIMATED_EMOJIS = [
 export function getEmojiCdnUrl(code) {
   return `https://fonts.gstatic.com/s/e/notoemoji/latest/${code}/512.webp`;
 }
+
+/**
+ * Pre-computed lookup Map mapping emoji ID to its definition object.
+ * Provides O(1) retrieval instead of repeated O(N) array scans during hot render loops.
+ * @type {Map<string, typeof ANIMATED_EMOJIS[number]>}
+ */
+export const ANIMATED_EMOJIS_BY_ID = new Map(ANIMATED_EMOJIS.map((e) => [e.id, e]));
+
+/**
+ * Pre-computed lookup Map mapping emoji character to its definition object.
+ * Provides O(1) single-emoji detection during chat message rendering.
+ * @type {Map<string, typeof ANIMATED_EMOJIS[number]>}
+ */
+export const ANIMATED_EMOJIS_BY_CHAR = new Map(ANIMATED_EMOJIS.map((e) => [e.char, e]));
