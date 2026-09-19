@@ -6,34 +6,38 @@ import { useLocation } from 'react-router-dom';
  */
 const ROUTE_SEO_MAP = {
   '/': {
-    title: 'Lover-HQ — Private Digital Sanctuary for Long-Distance Couples',
+    title: 'Lover-HQ — Digital Sanctuary for Couples',
     description:
-      'A private digital house for long-distance couples. Share voice notes, synced music, collaborative fridge notes, daily Q&A reveals, and interactive games.',
+      'Connect intimately across the miles. Enjoy voice notes, synced music, fridge notes, and daily reveal games for couples.',
     robots: 'index, follow',
   },
   '/auth': {
-    title: 'Sign In & Connect — Lover-HQ',
-    description: 'Log into your private couple room or connect with your partner on Lover-HQ.',
+    title: 'Connect Your Sanctuary — Lover-HQ',
+    description:
+      'Sign in to access your private couple sanctuary or link your account with your partner on Lover-HQ.',
     robots: 'index, follow',
   },
   '/games': {
-    title: 'Couples Games & Mini-Games — Lover-HQ',
-    description: 'Play interactive two-player mini-games with your partner in real-time.',
+    title: 'Online Couples Games & Mini-Games — Lover-HQ',
+    description:
+      'Play online two-player games for long-distance couples. Challenge your partner to Scrabble, Math Puzzles, and strategy.',
     robots: 'index, follow',
   },
   '/music': {
-    title: 'Shared Music Engine — Lover-HQ',
-    description: 'Listen to music together synchronously with your partner across the miles.',
+    title: 'Synchronized Music Player for Couples — Lover-HQ',
+    description:
+      'Listen to music together synchronously with your partner. Features shared queue, sync controls, and crossfade audio.',
     robots: 'index, follow',
   },
   '/reveal': {
-    title: 'Daily Reveal Questions — Lover-HQ',
-    description: 'Answer daily relationship questions and unlock your partner’s answers.',
+    title: 'Daily Relationship Questions & Reveals — Lover-HQ',
+    description:
+      'Deepen your connection with daily relationship questions. Answer independently and reveal your partner’s answers daily.',
     robots: 'index, follow',
   },
   '/chat': {
     title: 'Private Couples Chat — Lover-HQ',
-    description: 'Private real-time chat with voice notes, pinned messages, and reactions.',
+    description: 'Private real-time chat with voice notes, pinned messages, and custom reactions.',
     robots: 'noindex, follow',
   },
   '/fridge': {
@@ -43,14 +47,15 @@ const ROUTE_SEO_MAP = {
   },
   '/settings': {
     title: 'Account & Pair Settings — Lover-HQ',
-    description: 'Manage your profile, partner pairing, and app settings.',
+    description: 'Manage your profile, partner pairing, and app preferences.',
     robots: 'noindex, follow',
   },
 };
 
 const DEFAULT_SEO = {
-  title: 'Lover-HQ — Private Digital Sanctuary for Long-Distance Couples',
-  description: 'A private digital space for long-distance couples to stay connected.',
+  title: 'Lover-HQ — Digital Sanctuary for Couples',
+  description:
+    'Connect intimately across the miles. Enjoy voice notes, synced music, fridge notes, and daily reveal games for couples.',
   robots: 'index, follow',
 };
 
@@ -91,12 +96,37 @@ export function SEO() {
       document.head.appendChild(robotsMeta);
     }
 
-    // Update Open Graph & Twitter Titles dynamically
+    // Update Open Graph & Twitter Titles and Descriptions dynamically
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', config.title);
 
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', config.description);
+
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) twitterTitle.setAttribute('content', config.title);
+
+    const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twitterDesc) twitterDesc.setAttribute('content', config.description);
+
+    // Dynamic Canonical URL per route
+    const currentUrl = `https://lover-hq.netlify.app${location.pathname === '/' ? '' : location.pathname}`;
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.setAttribute('href', currentUrl);
+    } else {
+      canonicalLink = document.createElement('link');
+      canonicalLink.rel = 'canonical';
+      canonicalLink.href = currentUrl;
+      document.head.appendChild(canonicalLink);
+    }
+
+    // Dynamic og:url and twitter:url per route
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+
+    const twitterUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twitterUrl) twitterUrl.setAttribute('content', currentUrl);
   }, [location.pathname]);
 
   return null;

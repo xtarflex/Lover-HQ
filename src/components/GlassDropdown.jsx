@@ -42,6 +42,7 @@ export default function GlassDropdown({
   // Generate a unique CSS Custom Identifier for CSS Anchor Positioning
   const uniqueId = useId().replace(/:/g, '');
   const anchorName = `--dropdown-anchor-${uniqueId}`;
+  const listboxId = `glass-dropdown-listbox-${uniqueId}`;
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -177,6 +178,8 @@ export default function GlassDropdown({
   const dropdownMenu = (
     <div
       ref={panelRef}
+      id={listboxId}
+      role="listbox"
       onClick={(e) => e.stopPropagation()}
       className={`bg-slate-900/95 dark:bg-slate-950/95 border border-white/10 dark:border-slate-800 backdrop-blur-xl overflow-hidden space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xl ${sizeStyles.panel} ${panelClassName}`}
       style={getPanelStyle()}
@@ -187,6 +190,8 @@ export default function GlassDropdown({
           <button
             key={opt.value}
             type="button"
+            role="option"
+            aria-selected={isSelected}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -212,6 +217,10 @@ export default function GlassDropdown({
       <button
         ref={buttonRef}
         type="button"
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? listboxId : undefined}
         style={{ anchorName }}
         onClick={(e) => {
           e.stopPropagation();

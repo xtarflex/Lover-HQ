@@ -132,7 +132,7 @@ export function useActiveQueueDb({
         !hasCuedInitialTrackRef.current
       ) {
         const shouldStartPaused = !hasFetchedInitiallyRef.current;
-        playTrackById(tracks[0].id, 0, shouldStartPaused);
+        playTrackById(tracks[0].queue_row_id || tracks[0].id, 0, shouldStartPaused);
         hasCuedInitialTrackRef.current = true;
       }
 

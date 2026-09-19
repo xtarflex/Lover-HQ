@@ -44,6 +44,7 @@
 
 .face-now-playing {
   pointer-events: auto;
+  transition: --music-accent 0.8s ease;
 }
 
 .face-collection-management {
@@ -58,6 +59,24 @@
 
 .music-card-rotator.is-flipped .face-collection-management {
   pointer-events: auto;
+}
+
+/* ─── Up Next Floating Tag ──────────────────────────────────────────────── */
+.up-next-tag {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.up-next-tag::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  border-radius: inherit;
 }
 
 /* ─── Layer A: Sharp Ambient Backdrop ────────────────────────────────────── */

@@ -6,9 +6,11 @@ import { useEffect, useRef, useState, useCallback } from 'react';
  *
  * @param {Object} params
  * @param {number} params.volume - Initial volume level (0 to 1).
+ * @param {boolean} [params.isActivePlayer=true] - Whether HTML5 is the currently active player.
  * @param {React.MutableRefObject<boolean>} params.isCrossfadingRef - Ref tracking state.
  * @param {Function} params.setCurrentTime - Callback to update current playback time.
  * @param {Function} params.setDuration - Callback to update current track duration.
+ * @param {Function} [params.setIsPlaying] - Callback to update playing state.
  * @param {Function} params.handleTrackEnded - Callback when track ends.
  * @returns {{
  *   audioRef: React.MutableRefObject<HTMLAudioElement|null>,
@@ -16,14 +18,18 @@ import { useEffect, useRef, useState, useCallback } from 'react';
  *   analyserNode: AnalyserNode|null,
  *   initAudioContext: () => void,
  *   audioCtxRef: React.MutableRefObject<AudioContext|null>,
- *   preparePlayer: (isPrimary: boolean, useCors: boolean) => HTMLAudioElement
+ *   preparePlayer: (isPrimary: boolean, useCors: boolean) => HTMLAudioElement,
+ *   swapAudioPlayers: () => void,
+ *   connectElementToContext: (el: HTMLAudioElement) => void
  * }} HTML5 player state and controls.
  */
 export function useHtml5Player({
   volume,
+  isActivePlayer = true,
   isCrossfadingRef,
   setCurrentTime,
   setDuration,
+  setIsPlaying,
   handleTrackEnded,
 }) {
   const audioRef = useRef(null);
@@ -38,13 +44,18 @@ export function useHtml5Player({
 
   // Store callbacks and settings in stable refs to prevent re-running effects
   const volumeRef = useRef(volume);
+  const isActivePlayerRef = useRef(isActivePlayer);
   const handleTrackEndedRef = useRef(handleTrackEnded);
   const setCurrentTimeRef = useRef(setCurrentTime);
   const setDurationRef = useRef(setDuration);
+  const setIsPlayingRef = useRef(setIsPlaying);
 
   useEffect(() => {
     volumeRef.current = volume;
   }, [volume]);
+  useEffect(() => {
+    isActivePlayerRef.current = isActivePlayer;
+  }, [isActivePlayer]);
   useEffect(() => {
     handleTrackEndedRef.current = handleTrackEnded;
   }, [handleTrackEnded]);
@@ -54,6 +65,9 @@ export function useHtml5Player({
   useEffect(() => {
     setDurationRef.current = setDuration;
   }, [setDuration]);
+  useEffect(() => {
+    setIsPlayingRef.current = setIsPlaying;
+  }, [setIsPlaying]);
 
   // Keep track of event listener cleanups
   const cleanupsRef = useRef({ primary: null, standby: null });
@@ -65,6 +79,12 @@ export function useHtml5Player({
    * Helper to connect an audio element to the AudioContext dynamically.
    */
   const connectElementToContext = useCallback((el) => {
+    if (!el) return;
+    if (audioCtxRef.current?.state === 'suspended') {
+      audioCtxRef.current.resume().catch((err) => {
+        console.warn('Failed to resume AudioContext:', err);
+      });
+    }
     if (!audioCtxRef.current || el.__connectedToCtx) return;
     try {
       const source = audioCtxRef.current.createMediaElementSource(el);
@@ -89,6 +109,18 @@ export function useHtml5Player({
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
+  // When active player transitions to html5, ensure AudioContext is active and connected
+  useEffect(() => {
+    if (isActivePlayer) {
+      if (audioCtxRef.current?.state === 'suspended') {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+      if (audioRef.current && audioRef.current.crossOrigin === 'anonymous') {
+        connectElementToContext(audioRef.current);
+      }
+    }
+  }, [isActivePlayer, connectElementToContext]);
+
   // Initialize and manage audio players on mount
   useEffect(() => {
     const connectElementToContextRef = { current: connectElementToContext };
@@ -108,7 +140,7 @@ export function useHtml5Player({
       };
       const handleEnded = () => {
         if (isCrossfadingRef.current) return;
-        if (el === audioRef.current) {
+        if (el === audioRef.current && isActivePlayerRef.current) {
           handleTrackEndedRef.current();
         }
       };
@@ -118,8 +150,26 @@ export function useHtml5Player({
         } else {
           setAnalyserNode(null);
         }
+        if (el === audioRef.current && isActivePlayerRef.current) {
+          setIsPlayingRef.current?.(true);
+        }
+      };
+      const handlePause = () => {
+        if (isCrossfadingRef.current) return;
+        if (el === audioRef.current && isActivePlayerRef.current) {
+          setIsPlayingRef.current?.(false);
+        }
+      };
+      const handlePlay = () => {
+        if (isCrossfadingRef.current) return;
+        if (el === audioRef.current && isActivePlayerRef.current) {
+          setIsPlayingRef.current?.(true);
+        }
       };
       const handleError = (e) => {
+        // Discard aborted / torn down elements without source
+        if (!el.getAttribute('src') || !el.src || el.src === window.location.href || !el.currentSrc)
+          return;
         if (el.crossOrigin === 'anonymous') {
           console.warn('CORS request failed for HTML5 audio. Re-trying without CORS...');
           const currentSrc = el.src;
@@ -144,6 +194,8 @@ export function useHtml5Player({
       el.addEventListener('durationchange', handleDurationChange);
       el.addEventListener('ended', handleEnded);
       el.addEventListener('playing', handlePlaying);
+      el.addEventListener('pause', handlePause);
+      el.addEventListener('play', handlePlay);
       el.addEventListener('error', handleError);
 
       return () => {
@@ -151,6 +203,8 @@ export function useHtml5Player({
         el.removeEventListener('durationchange', handleDurationChange);
         el.removeEventListener('ended', handleEnded);
         el.removeEventListener('playing', handlePlaying);
+        el.removeEventListener('pause', handlePause);
+        el.removeEventListener('play', handlePlay);
         el.removeEventListener('error', handleError);
       };
     };
@@ -233,6 +287,7 @@ export function useHtml5Player({
 
       audioCtxRef.current = ctx;
       analyserRef.current = analyser;
+      setAnalyserNode(analyser);
 
       // Attempt to load AudioWorkletProcessor module if supported
       if (ctx.audioWorklet && typeof ctx.audioWorklet.addModule === 'function') {
@@ -263,6 +318,20 @@ export function useHtml5Player({
     }
   }, [connectElementToContext]);
 
+  /**
+   * Atomically swaps the primary and standby audio elements along with their
+   * respective event listener cleanup callbacks.
+   */
+  const swapAudioPlayers = useCallback(() => {
+    const tempAudio = audioRef.current;
+    audioRef.current = standbyAudioRef.current;
+    standbyAudioRef.current = tempAudio;
+
+    const tempCleanup = cleanupsRef.current.primary;
+    cleanupsRef.current.primary = cleanupsRef.current.standby;
+    cleanupsRef.current.standby = tempCleanup;
+  }, []);
+
   return {
     audioRef,
     standbyAudioRef,
@@ -271,5 +340,7 @@ export function useHtml5Player({
     initAudioContext,
     audioCtxRef,
     preparePlayer,
+    swapAudioPlayers,
+    connectElementToContext,
   };
 }

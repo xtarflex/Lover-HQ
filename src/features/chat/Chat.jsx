@@ -557,7 +557,14 @@ export default function Chat() {
 
       {/* 3. Longpress Backdrop */}
       {longPressedMessage && (
-        <div className="chat-longpress-overlay" onClick={() => setLongPressedMessage(null)} />
+        <div
+          className="chat-longpress-overlay"
+          onClick={() => setLongPressedMessage(null)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setLongPressedMessage(null);
+          }}
+        />
       )}
 
       {/* 4. Message List */}
