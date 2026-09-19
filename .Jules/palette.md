@@ -18,3 +18,7 @@
 ## 2024-09-18 - Responsive Text Labels and ARIA
 **Learning:** When using responsive utility classes (like Tailwind's `hidden sm:inline`) to hide button text on smaller screens, the buttons lose their accessible names for screen reader users on mobile devices if they solely rely on the text content.
 **Action:** Always provide explicit `aria-label` attributes on buttons where the visible text label might be hidden at certain breakpoints.
+
+## 2026-09-19 - Accessible Custom Dropdowns
+**Learning:** Custom dropdown menus built with generic elements need explicit ARIA roles (like listbox, option, combobox) and states (like aria-expanded, aria-selected) to be fully understandable and navigable by screen readers.
+**Action:** Always verify that custom dropdown triggers use aria-haspopup and aria-expanded, and their options are wrapped in a listbox role with proper aria-selected states.

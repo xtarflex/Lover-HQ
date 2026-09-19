@@ -145,4 +145,60 @@ describe('MessageList', () => {
     expect(screen.getByText('I am replying to m1')).toBeInTheDocument();
     expect(screen.getByText('Original message')).toBeInTheDocument();
   });
+
+  it('triggers setLongPressedMessage on context menu (right click)', () => {
+    const rawMessage = {
+      id: 'm-context',
+      user_id: 'user-1',
+      content: 'Right click me',
+      created_at: '2026-07-23T12:00:00Z',
+    };
+    const setLongPressedMessage = vi.fn();
+
+    const { container } = render(
+      <MessageList
+        loading={false}
+        groupedMessages={[rawMessage]}
+        userId="user-1"
+        partner={{ name: 'Alex' }}
+        presence={{ partner: 'online' }}
+        showUnreadDivider={false}
+        longPressedMessage={null}
+        setLongPressedMessage={setLongPressedMessage}
+        handleToggleReaction={vi.fn()}
+        setReplyMessage={vi.fn()}
+        dispatch={vi.fn()}
+        pinnedMessage={null}
+        handleUnpinMessage={vi.fn()}
+        handlePinMessage={vi.fn()}
+        setIsSelectionMode={vi.fn()}
+        setSelectedMessageIds={vi.fn()}
+        handleDeleteMessage={vi.fn()}
+        selectedMessageIds={new Set()}
+        handleToggleSelectMessage={vi.fn()}
+        setActiveLightboxImage={vi.fn()}
+        getFormattedTime={() => '12:00 PM'}
+        quotedMessagesMap={new Map()}
+        handleScrollToMessage={vi.fn()}
+        handleReferenceClick={vi.fn()}
+        editingMessage={null}
+        editText=""
+        setEditText={vi.fn()}
+        setEditingMessage={vi.fn()}
+        handleSaveEdit={vi.fn()}
+        isSelectionMode={false}
+        partnerIsTyping={false}
+        messagesEndRef={{ current: null }}
+        pressTimer={{ current: null }}
+      />
+    );
+
+    const messageBubble = container.querySelector('#msg-m-context');
+    expect(messageBubble).toBeInTheDocument();
+
+    const contextMenuEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    messageBubble.dispatchEvent(contextMenuEvent);
+
+    expect(setLongPressedMessage).toHaveBeenCalledWith(rawMessage);
+  });
 });

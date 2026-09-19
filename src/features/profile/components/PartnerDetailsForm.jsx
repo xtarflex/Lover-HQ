@@ -68,12 +68,16 @@ export default function PartnerDetailsForm({
 
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+          <label
+            htmlFor="partner-name"
+            className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+          >
             Display Name
           </label>
           <div className="relative">
             <User className="absolute left-4 top-3.5 w-4 h-4 text-text-muted" />
             <input
+              id="partner-name"
               type="text"
               required
               value={name}
