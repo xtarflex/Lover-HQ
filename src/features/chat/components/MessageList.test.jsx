@@ -201,4 +201,56 @@ describe('MessageList', () => {
 
     expect(setLongPressedMessage).toHaveBeenCalledWith(rawMessage);
   });
+
+  it('sanitizes unsafe media_url in location messages', () => {
+    const maliciousMessage = {
+      id: 'm-xss-loc',
+      user_id: 'user-2',
+      content: 'Here is my location',
+      media_type: 'location',
+      media_url: 'javascript:alert(document.domain)',
+      created_at: '2026-07-23T12:00:00Z',
+    };
+
+    render(
+      <MessageList
+        loading={false}
+        groupedMessages={[maliciousMessage]}
+        userId="user-1"
+        partner={{ name: 'Alex' }}
+        presence={{ partner: 'online' }}
+        showUnreadDivider={false}
+        longPressedMessage={null}
+        setLongPressedMessage={vi.fn()}
+        handleToggleReaction={vi.fn()}
+        setReplyMessage={vi.fn()}
+        dispatch={vi.fn()}
+        pinnedMessage={null}
+        handleUnpinMessage={vi.fn()}
+        handlePinMessage={vi.fn()}
+        setIsSelectionMode={vi.fn()}
+        setSelectedMessageIds={vi.fn()}
+        handleDeleteMessage={vi.fn()}
+        selectedMessageIds={new Set()}
+        handleToggleSelectMessage={vi.fn()}
+        setActiveLightboxImage={vi.fn()}
+        getFormattedTime={() => '12:00 PM'}
+        quotedMessagesMap={new Map()}
+        handleScrollToMessage={vi.fn()}
+        handleReferenceClick={vi.fn()}
+        editingMessage={null}
+        editText=""
+        setEditText={vi.fn()}
+        setEditingMessage={vi.fn()}
+        handleSaveEdit={vi.fn()}
+        isSelectionMode={false}
+        partnerIsTyping={false}
+        messagesEndRef={{ current: null }}
+        pressTimer={{ current: null }}
+      />
+    );
+
+    const mapLink = screen.getByRole('link', { name: /view on google maps/i });
+    expect(mapLink).toHaveAttribute('href', '#');
+  });
 });
