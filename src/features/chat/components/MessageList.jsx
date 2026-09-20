@@ -87,6 +87,10 @@ export function MessageList({
   pressTimer,
 }) {
   const partnerLastSeen = partnerLastSeenProp || partner?.last_seen;
+  const partnerLastSeenTimestamp = useMemo(
+    () => (partnerLastSeen ? Date.parse(partnerLastSeen) : null),
+    [partnerLastSeen]
+  );
   const touchStartPosRef = useRef(null);
 
   /**
@@ -169,11 +173,13 @@ export function MessageList({
   const renderReadStatus = useCallback(
     (msg) => {
       if (!msg) return null;
+      // Optimization: Using Date.parse() against memoized partnerLastSeenTimestamp avoids
+      // allocating Date objects for every message during the render loop.
       const isRead =
         presence?.partnerRoom === 'Chat Room' ||
-        (partnerLastSeen &&
+        (partnerLastSeenTimestamp &&
           msg.created_at &&
-          new Date(msg.created_at).getTime() <= new Date(partnerLastSeen).getTime());
+          Date.parse(msg.created_at) <= partnerLastSeenTimestamp);
 
       if (isRead) {
         return <CheckCheck className="w-3 h-3 text-emerald-500" />;
@@ -186,7 +192,7 @@ export function MessageList({
 
       return <Check className="w-3 h-3 text-gray-400" />;
     },
-    [presence?.partnerRoom, presence?.partner, partnerLastSeen]
+    [presence?.partnerRoom, presence?.partner, partnerLastSeenTimestamp]
   );
 
   const content = useMemo(
