@@ -131,7 +131,11 @@ export default function PairingSetup({
           </p>
 
           <form onSubmit={onEnterCode} className="space-y-4">
+            <label htmlFor="pairing-code" className="sr-only">
+              Enter 6-digit pairing code
+            </label>
             <input
+              id="pairing-code"
               type="text"
               maxLength="6"
               required
