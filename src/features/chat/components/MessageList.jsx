@@ -266,6 +266,7 @@ export function MessageList({
                           setLongPressedMessage(null);
                         }}
                         className="reaction-btn"
+                        aria-label={`React with ${emoji}`}
                       >
                         {emoji}
                       </button>
@@ -559,6 +560,7 @@ export function MessageList({
                         setLongPressedMessage(null);
                       }}
                       className="reaction-btn"
+                      aria-label={`React with ${emoji}`}
                     >
                       {emoji}
                     </button>
@@ -1037,6 +1039,9 @@ export function MessageList({
                                 className={`flex items-center space-x-0.5 hover:scale-110 transition-transform ${
                                   didIReact ? 'text-primary' : 'text-gray-400'
                                 }`}
+                                aria-label={
+                                  didIReact ? `Remove ${emoji} reaction` : `React with ${emoji}`
+                                }
                               >
                                 <span>{emoji}</span>
                                 {count > 1 && <span>{count}</span>}
