@@ -895,6 +895,7 @@ export default function Fridge() {
                 top: `${indicator.top}px`,
               }}
               title="Scroll to unread item"
+              aria-label="Scroll to unread item"
             >
               <ChevronsRight
                 className="w-4 h-4 text-brand-surface animate-pulse"
@@ -1005,6 +1006,7 @@ export default function Fridge() {
               onClick={() => setSelectedPhotoUrl(null)}
               className="absolute top-6 right-6 text-white/70 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all shadow-lg"
               title="Close preview"
+              aria-label="Close preview"
             >
               <X className="w-6 h-6" />
             </button>

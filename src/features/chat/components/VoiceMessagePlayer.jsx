@@ -167,6 +167,7 @@ export function VoiceMessagePlayer({ src }) {
           </span>
           <button
             type="button"
+            aria-label={`Change playback speed. Current speed is ${playbackRate}x`}
             onClick={(e) => {
               e.stopPropagation();
               setPlaybackRate((prev) => (prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1));

@@ -48,6 +48,9 @@ export default function PhoneInput({
           <button
             type="button"
             onClick={onToggleDropdown}
+            aria-haspopup="listbox"
+            aria-expanded={showCountryDropdown}
+            aria-label="Select country"
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-surface/40 hover:bg-surface/70 border border-surface-border/50 text-text-main transition-colors text-lg"
           >
             <span className="text-xl leading-none">{selectedCountry.flag}</span>
@@ -61,11 +64,17 @@ export default function PhoneInput({
                 className="fixed inset-0 z-40"
                 onClick={() => onSelectCountry(selectedCountry)}
               />
-              <div className="absolute top-full left-0 mt-2 w-64 max-h-60 overflow-y-auto bg-surface border border-surface-border rounded-2xl shadow-xl z-50 py-2 custom-scrollbar">
+              <div
+                role="listbox"
+                aria-label="Countries"
+                className="absolute top-full left-0 mt-2 w-64 max-h-60 overflow-y-auto bg-surface border border-surface-border rounded-2xl shadow-xl z-50 py-2 custom-scrollbar"
+              >
                 {countriesList.map((c) => (
                   <button
                     key={c.code}
                     type="button"
+                    role="option"
+                    aria-selected={selectedCountry.code === c.code}
                     onClick={() => onSelectCountry(c)}
                     className="w-full px-4 py-2.5 hover:bg-primary/10 flex items-center space-x-3 text-left transition-colors"
                   >

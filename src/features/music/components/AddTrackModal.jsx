@@ -346,6 +346,7 @@ export default function AddTrackModal({ isOpen, onClose }) {
                   </div>
                   <button
                     type="button"
+                    aria-label="Clear selected file"
                     onClick={() => {
                       setFile(null);
                       setDuration(null);
