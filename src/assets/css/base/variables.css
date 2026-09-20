@@ -54,4 +54,9 @@
     --text-muted: 100 116 139;
     --error-bg: 244 63 94;
   }
+
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
 }

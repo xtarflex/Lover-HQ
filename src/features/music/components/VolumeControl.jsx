@@ -31,10 +31,12 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
   const containerRef = useRef(null);
   // Store last non-zero volume to restore on unmute (defaulting to 0.8)
   const previousVolumeRef = useRef(volume > 0 ? volume : 0.8);
+  const volumeRef = useRef(volume);
   const notificationDebounceRef = useRef(null);
   const mobileCloseTimeoutRef = useRef(null);
 
   useEffect(() => {
+    volumeRef.current = volume;
     if (volume > 0) {
       previousVolumeRef.current = volume;
     }
@@ -87,7 +89,7 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
       } else {
         const pct = Math.round(targetVolume * 100);
         message = isTouch
-          ? `Volume: ${pct}% • Swipe up to increase, down to reduce`
+          ? `Volume: ${pct}% • Swipe up or use arrows to adjust`
           : `Volume: ${pct}% • Scroll wheel or click arrows to adjust`;
       }
 
@@ -204,27 +206,44 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
     [volume, changeVolume, clampVolume, notifyVolume]
   );
 
+  // Prevent browser pull-to-refresh and native drag gestures on mobile
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    /**
+     * Native non-passive touchmove handler to cancel browser pull-to-refresh.
+     * @param {TouchEvent} e - Native touch move event.
+     */
+    const handleNativeTouchMove = (e) => {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    return () => {
+      container.removeEventListener('touchmove', handleNativeTouchMove);
+    };
+  }, []);
+
   /**
    * Initiates touch tracking for swipe-to-adjust gesture.
    * @param {React.TouchEvent} e - Touch start event.
    */
-  const handleTouchStart = useCallback(
-    (e) => {
-      const touch = e.touches[0];
-      if (!touch) return;
+  const handleTouchStart = useCallback((e) => {
+    const touch = e.touches[0];
+    if (!touch) return;
 
-      touchStateRef.current = {
-        startY: touch.clientY,
-        startTime: Date.now(),
-        startVolume: volume,
-        isDragging: false,
-      };
-    },
-    [volume]
-  );
+    touchStateRef.current = {
+      startY: touch.clientY,
+      startVolume: volumeRef.current,
+      isDragging: false,
+    };
+  }, []);
 
   /**
-   * Calculates displacement and velocity to adjust volume smoothly during touch drag.
+   * Calculates displacement to adjust volume smoothly during touch drag.
    * @param {React.TouchEvent} e - Touch move event.
    */
   const handleTouchMove = useCallback(
@@ -233,19 +252,25 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
       if (!touch) return;
 
       const deltaY = touchStateRef.current.startY - touch.clientY; // Upward is positive
-      const elapsed = Math.max(1, Date.now() - touchStateRef.current.startTime);
+      const deadband = 6;
 
-      if (Math.abs(deltaY) > 8) {
+      if (!touchStateRef.current.isDragging && Math.abs(deltaY) > deadband) {
         touchStateRef.current.isDragging = true;
         openMobilePercentage();
       }
 
       if (touchStateRef.current.isDragging) {
-        const velocity = Math.abs(deltaY) / elapsed;
-        const velocityMultiplier = Math.min(3.5, 1 + velocity * 1.5);
+        if (e.cancelable) {
+          e.preventDefault();
+        }
 
-        // Standard stroke distance: ~180px maps to 100% volume
-        const volumeChange = (deltaY / 180) * velocityMultiplier;
+        // Subtract deadband so volume adjustment starts smoothly at 0% change
+        const effectiveDeltaY =
+          deltaY > 0 ? Math.max(0, deltaY - deadband) : Math.min(0, deltaY + deadband);
+
+        // Smooth linear 1:1 mapping: stroke distance of 260px maps to 100% volume
+        const strokeDistance = 260;
+        const volumeChange = effectiveDeltaY / strokeDistance;
         const targetVolume = clampVolume(touchStateRef.current.startVolume + volumeChange);
         changeVolume(targetVolume);
       }
@@ -258,12 +283,12 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
    */
   const handleTouchEnd = useCallback(() => {
     if (touchStateRef.current.isDragging) {
-      notifyVolume(volume, true);
+      notifyVolume(volumeRef.current, true);
     }
     setTimeout(() => {
       touchStateRef.current.isDragging = false;
     }, 100);
-  }, [notifyVolume, volume]);
+  }, [notifyVolume]);
 
   const isMuted = volume === 0;
   const volumePercentage = Math.round(volume * 100);
@@ -279,7 +304,8 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center select-none"
+      className="relative flex items-center select-none touch-none"
+      style={{ touchAction: 'none', overscrollBehavior: 'none' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onWheel={handleWheel}
@@ -304,11 +330,11 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
         <VolumeIcon className="w-5 h-5 drop-shadow-md" />
       </button>
 
-      {/* Percentage & Desktop Stepper chevrons container */}
+      {/* Percentage & Stepper chevrons container */}
       <div
         className={`flex items-center gap-1 transition-all duration-200 overflow-hidden ${
           isIndicatorVisible
-            ? 'opacity-100 max-w-[85px] ml-1.5 pointer-events-auto'
+            ? 'opacity-100 max-w-[90px] ml-1.5 pointer-events-auto'
             : 'opacity-0 max-w-0 pointer-events-none'
         }`}
         title="Scroll or click chevrons to adjust volume"
@@ -328,8 +354,8 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
           {volumePercentage}%
         </span>
 
-        {/* Desktop-only Up/Down Stepper Chevrons */}
-        <div className="hidden md:flex flex-col items-center justify-center -space-y-1">
+        {/* Up/Down Stepper Chevrons */}
+        <div className="flex flex-col items-center justify-center -space-y-1">
           <button
             type="button"
             onClick={handleIncrementStep}

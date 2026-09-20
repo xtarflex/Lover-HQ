@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VolumeControl from './VolumeControl';
 
@@ -130,6 +130,65 @@ describe('VolumeControl', () => {
         }),
       })
     );
+  });
+
+  it('handles mobile touch swipe downward to smoothly decrease volume', () => {
+    const changeVolume = vi.fn();
+    render(<VolumeControl volume={0.5} changeVolume={changeVolume} />);
+
+    const container = screen.getByRole('group', { name: /volume controller/i });
+
+    // Start touch at Y: 200
+    fireEvent.touchStart(container, {
+      touches: [{ clientY: 200 }],
+    });
+
+    // Move touch down to Y: 250 (deltaY = -50 downward, deadband 6 -> effectiveDeltaY = -44)
+    fireEvent.touchMove(container, {
+      touches: [{ clientY: 250 }],
+    });
+
+    expect(changeVolume).toHaveBeenCalled();
+    const calledVolume = changeVolume.mock.calls[0][0];
+    expect(calledVolume).toBeLessThan(0.5);
+    // 0.5 - (44 / 260) ≈ 0.3307
+    expect(calledVolume).toBeCloseTo(0.33, 2);
+  });
+
+  it('filters out jitter within deadband threshold before triggering drag', () => {
+    const changeVolume = vi.fn();
+    render(<VolumeControl volume={0.5} changeVolume={changeVolume} />);
+
+    const container = screen.getByRole('group', { name: /volume controller/i });
+
+    // Start touch at Y: 200
+    fireEvent.touchStart(container, {
+      touches: [{ clientY: 200 }],
+    });
+
+    // Move touch slightly (3px deltaY <= 6px deadband)
+    fireEvent.touchMove(container, {
+      touches: [{ clientY: 197 }],
+    });
+
+    expect(changeVolume).not.toHaveBeenCalled();
+  });
+
+  it('prevents default on touchmove events to suppress browser pull-to-refresh', () => {
+    render(<VolumeControl volume={0.5} changeVolume={vi.fn()} />);
+
+    const container = screen.getByRole('group', { name: /volume controller/i });
+
+    const touchMoveEvent = new TouchEvent('touchmove', {
+      bubbles: true,
+      cancelable: true,
+      touches: [{ clientY: 250 }],
+    });
+
+    act(() => {
+      container.dispatchEvent(touchMoveEvent);
+    });
+    expect(touchMoveEvent.defaultPrevented).toBe(true);
   });
 
   it('closes mobile percentage indicator on outside click', () => {
