@@ -77,6 +77,14 @@ export default function Fridge() {
   const { items, setItems, isLoading, error, setError, commentsCount, partnerLastSeen } =
     useFridgeSync({ userId, partnerId, pairingStatus, isPartnerInFridge });
 
+  // ---------------------------------------------------------------------------
+  // Latest Refs Pattern (Performance optimization)
+  // ---------------------------------------------------------------------------
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
   const { offscreenUnreadItems, scrollToItem } = useOffscreenIndicators(
     scrollContainerRef,
     items,
@@ -415,7 +423,7 @@ export default function Fridge() {
   const handlePositionChange = useCallback(
     async (itemId, newX, newY) => {
       playWhiteboardSound('pin');
-      const backupItems = [...items];
+      const backupItems = [...itemsRef.current];
       const timestamp = new Date().toISOString();
 
       setItems((prev) =>
@@ -481,7 +489,7 @@ export default function Fridge() {
         }
       }
     },
-    [items, setItems, playWhiteboardSound, addOfflineUpdate]
+    [setItems, playWhiteboardSound, addOfflineUpdate]
   );
 
   /**
@@ -494,7 +502,7 @@ export default function Fridge() {
   const handleTogglePin = useCallback(
     async (itemId, isPinned) => {
       playWhiteboardSound('pin');
-      const backupItems = [...items];
+      const backupItems = [...itemsRef.current];
       const timestamp = new Date().toISOString();
 
       setItems((prev) =>
@@ -548,7 +556,7 @@ export default function Fridge() {
         }
       }
     },
-    [items, setItems, playWhiteboardSound, addOfflineUpdate]
+    [setItems, playWhiteboardSound, addOfflineUpdate]
   );
 
   /**
@@ -561,10 +569,10 @@ export default function Fridge() {
   const handleDeleteItem = useCallback(
     async (itemId) => {
       playWhiteboardSound('delete');
-      const itemToDelete = items.find((i) => i.id === itemId);
+      const itemToDelete = itemsRef.current.find((i) => i.id === itemId);
       if (!itemToDelete) return;
 
-      const backupItems = [...items];
+      const backupItems = [...itemsRef.current];
       setItems((prev) => prev.filter((item) => item.id !== itemId));
 
       try {
@@ -617,7 +625,7 @@ export default function Fridge() {
         }
       }
     },
-    [items, setItems, playWhiteboardSound, addOfflineDeletion, removeOfflineItem]
+    [setItems, playWhiteboardSound, addOfflineDeletion, removeOfflineItem]
   );
 
   /**
@@ -699,59 +707,64 @@ export default function Fridge() {
    * @param {object} newReactions - Updated reactions mapping.
    * @returns {Promise<void>}
    */
-  const handleUpdateReactions = async (itemId, newReactions) => {
-    const backupItems = [...items];
-    const timestamp = new Date().toISOString();
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? { ...item, reactions: newReactions, updated_at: timestamp, isPending: true }
-          : item
-      )
-    );
-
-    if (selectedCommentItem && selectedCommentItem.id === itemId) {
-      setSelectedCommentItem((prev) => ({ ...prev, reactions: newReactions }));
-    }
-
-    try {
-      if (!navigator.onLine) throw new Error('Offline');
-
-      await updateFridgeItemReactions(itemId, newReactions);
+  const handleUpdateReactions = useCallback(
+    async (itemId, newReactions) => {
+      const backupItems = [...itemsRef.current];
+      const timestamp = new Date().toISOString();
 
       setItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, reactions: newReactions, updated_at: timestamp, isPending: true }
+            : item
+        )
       );
-    } catch (err) {
-      console.error('Optimistic reaction sync failed:', err);
-      const isNetwork =
-        !navigator.onLine || err.message?.includes('Failed to fetch') || err.message === 'Offline';
-      if (isNetwork) {
-        try {
-          addOfflineUpdate({ id: itemId, reactions: newReactions, updated_at: timestamp });
-          setItems((prev) =>
-            prev.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    reactions: newReactions,
-                    updated_at: timestamp,
-                    isPending: true,
-                    isOfflineQueue: true,
-                  }
-                : item
-            )
-          );
-        } catch (e) {
-          console.error('Failed to queue offline reaction update:', e);
+
+      setSelectedCommentItem((prev) =>
+        prev && prev.id === itemId ? { ...prev, reactions: newReactions } : prev
+      );
+
+      try {
+        if (!navigator.onLine) throw new Error('Offline');
+
+        await updateFridgeItemReactions(itemId, newReactions);
+
+        setItems((prev) =>
+          prev.map((item) => (item.id === itemId ? { ...item, isPending: false } : item))
+        );
+      } catch (err) {
+        console.error('Optimistic reaction sync failed:', err);
+        const isNetwork =
+          !navigator.onLine ||
+          err.message?.includes('Failed to fetch') ||
+          err.message === 'Offline';
+        if (isNetwork) {
+          try {
+            addOfflineUpdate({ id: itemId, reactions: newReactions, updated_at: timestamp });
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === itemId
+                  ? {
+                      ...item,
+                      reactions: newReactions,
+                      updated_at: timestamp,
+                      isPending: true,
+                      isOfflineQueue: true,
+                    }
+                  : item
+              )
+            );
+          } catch (e) {
+            console.error('Failed to queue offline reaction update:', e);
+            setItems(backupItems);
+          }
+        } else {
           setItems(backupItems);
         }
-      } else {
-        setItems(backupItems);
       }
-    }
-  };
+    },
+    [setItems, addOfflineUpdate]
+  );
 
   /**
    * Opens the NoteModal pre-filled with the target note content for editing.
