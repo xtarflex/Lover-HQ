@@ -26,3 +26,7 @@
 ## 2026-09-19 - Accessible Custom Dropdowns
 **Learning:** Custom dropdown menus built with generic elements need explicit ARIA roles (like listbox, option, combobox) and states (like aria-expanded, aria-selected) to be fully understandable and navigable by screen readers.
 **Action:** Always verify that custom dropdown triggers use aria-haspopup and aria-expanded, and their options are wrapped in a listbox role with proper aria-selected states.
+
+## 2026-09-20 - aria-labels for emoji reaction buttons
+**Learning:** Icon-only buttons used for emojis (like reaction trays) are ambiguous to screen readers if they lack descriptive accessible names, even if the emoji itself has intrinsic meaning.
+**Action:** When creating reaction buttons or similar emoji-based icon-only controls, always provide an explicit `aria-label` (e.g., `aria-label={"React with ${emoji}"}`). Update dynamically if the state changes.
