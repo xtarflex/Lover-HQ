@@ -105,8 +105,8 @@ describe('AddTrackModal', () => {
     render(<AddTrackModal isOpen={true} onClose={mockOnClose} />);
     const fileInput = screen.getByLabelText(/select audio clip/i, { selector: 'input' });
 
-    // Create a file larger than 10MB
-    const largeFile = new File(['a'.repeat(11 * 1024 * 1024)], 'large-song.mp3', {
+    // Create a file with mocked size larger than 10MB
+    const largeFile = new File(['large-audio'], 'large-song.mp3', {
       type: 'audio/mp3',
     });
     Object.defineProperty(largeFile, 'size', { value: 11 * 1024 * 1024 });
