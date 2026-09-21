@@ -192,11 +192,11 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
   /**
    * Handles mouse wheel scrolling over the volume control.
    * Scroll up increments, scroll down decrements.
+   * Note: Default scroll prevention is handled by the native non-passive wheel listener on container.
    * @param {React.WheelEvent} e - Wheel event.
    */
   const handleWheel = useCallback(
     (e) => {
-      e.preventDefault();
       const step = 0.05;
       const delta = e.deltaY < 0 ? step : -step;
       const next = clampVolume(volume + delta);
@@ -206,7 +206,7 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
     [volume, changeVolume, clampVolume, notifyVolume]
   );
 
-  // Prevent browser pull-to-refresh and native drag gestures on mobile
+  // Prevent browser pull-to-refresh and native drag gestures on mobile via non-passive listeners
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -221,9 +221,21 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
       }
     };
 
+    /**
+     * Native non-passive wheel handler to prevent page scroll during volume adjustments.
+     * @param {WheelEvent} e - Native wheel event.
+     */
+    const handleNativeWheel = (e) => {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
     container.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    container.addEventListener('wheel', handleNativeWheel, { passive: false });
     return () => {
       container.removeEventListener('touchmove', handleNativeTouchMove);
+      container.removeEventListener('wheel', handleNativeWheel);
     };
   }, []);
 
@@ -244,6 +256,7 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
 
   /**
    * Calculates displacement to adjust volume smoothly during touch drag.
+   * Note: Default gesture prevention is handled by the native non-passive listener on container.
    * @param {React.TouchEvent} e - Touch move event.
    */
   const handleTouchMove = useCallback(
@@ -260,10 +273,6 @@ export default function VolumeControl({ volume, changeVolume, accentColor }) {
       }
 
       if (touchStateRef.current.isDragging) {
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-
         // Subtract deadband so volume adjustment starts smoothly at 0% change
         const effectiveDeltaY =
           deltaY > 0 ? Math.max(0, deltaY - deadband) : Math.min(0, deltaY + deadband);
