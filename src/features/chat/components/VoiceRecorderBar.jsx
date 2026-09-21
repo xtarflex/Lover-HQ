@@ -84,6 +84,7 @@ export function VoiceRecorderBar({
                 {formatAudioTime(audioPreviewCurrentTime)}
               </span>
               <input
+                aria-label="Seek time"
                 type="range"
                 min="0"
                 max={audioPreviewDuration || 1}
