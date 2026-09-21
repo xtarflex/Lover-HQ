@@ -191,6 +191,23 @@ describe('VolumeControl', () => {
     expect(touchMoveEvent.defaultPrevented).toBe(true);
   });
 
+  it('prevents default on wheel events to suppress page scrolling', () => {
+    render(<VolumeControl volume={0.5} changeVolume={vi.fn()} />);
+
+    const container = screen.getByRole('group', { name: /volume controller/i });
+
+    const wheelEvent = new WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      deltaY: 100,
+    });
+
+    act(() => {
+      container.dispatchEvent(wheelEvent);
+    });
+    expect(wheelEvent.defaultPrevented).toBe(true);
+  });
+
   it('closes mobile percentage indicator on outside click', () => {
     const { container } = render(
       <div>
