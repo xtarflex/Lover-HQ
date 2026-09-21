@@ -489,6 +489,7 @@ export function MediaPreviewSheet({
         <div className="p-4 bg-slate-900 border-t border-slate-800/80 space-y-3">
           <div className="flex items-center space-x-2">
             <input
+              aria-label="Add a caption"
               type="text"
               value={mediaCaption}
               onChange={(e) => setMediaCaption(e.target.value)}

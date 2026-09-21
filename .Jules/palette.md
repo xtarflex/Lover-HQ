@@ -30,3 +30,7 @@
 ## 2026-09-20 - aria-labels for emoji reaction buttons
 **Learning:** Icon-only buttons used for emojis (like reaction trays) are ambiguous to screen readers if they lack descriptive accessible names, even if the emoji itself has intrinsic meaning.
 **Action:** When creating reaction buttons or similar emoji-based icon-only controls, always provide an explicit `aria-label` (e.g., `aria-label={"React with ${emoji}"}`). Update dynamically if the state changes.
+
+## 2026-09-21 - aria-labels for Chat input fields
+**Learning:** The Chat feature's input fields (like the emoji search, media caption, and voice note slider) lack `aria-label` attributes or matching `id`s for labels, which makes them inaccessible to screen readers as they do not provide context.
+**Action:** Ensure all inputs, especially those without visible text labels (like search bars, sliders, or inline form inputs), include an explicit `aria-label` attribute if they do not have a linked `<label>` element.

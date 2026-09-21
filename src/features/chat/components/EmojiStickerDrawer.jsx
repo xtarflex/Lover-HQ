@@ -776,6 +776,7 @@ export function EmojiStickerDrawer({
                 className="relative"
               >
                 <input
+                  aria-label={activeTab === 'emojis' ? 'Search emojis' : 'Search stickers'}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
