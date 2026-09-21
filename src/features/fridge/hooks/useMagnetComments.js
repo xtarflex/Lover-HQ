@@ -37,6 +37,7 @@ export function useMagnetComments(item, userId) {
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
 
   const typingTimeoutRef = useRef(null);
+  const isTypingLocal = useRef(false);
   const channelRef = useRef(null);
 
   /**
@@ -132,6 +133,7 @@ export function useMagnetComments(item, userId) {
     return () => {
       supabase.removeChannel(channel);
       channelRef.current = null;
+      isTypingLocal.current = false;
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -210,12 +212,16 @@ export function useMagnetComments(item, userId) {
   const handleInputChange = (e) => {
     setInputText(e.target.value);
 
-    if (channelRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { userId, isTyping: true },
-      });
+    // Throttle realtime typing broadcast messages using a local ref
+    if (!isTypingLocal.current) {
+      isTypingLocal.current = true;
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { userId, isTyping: true },
+        });
+      }
     }
 
     if (typingTimeoutRef.current) {
@@ -223,6 +229,7 @@ export function useMagnetComments(item, userId) {
     }
 
     typingTimeoutRef.current = setTimeout(() => {
+      isTypingLocal.current = false;
       if (channelRef.current) {
         channelRef.current.send({
           type: 'broadcast',
@@ -230,7 +237,7 @@ export function useMagnetComments(item, userId) {
           payload: { userId, isTyping: false },
         });
       }
-    }, 3000);
+    }, 2000);
   };
 
   /**
@@ -247,6 +254,7 @@ export function useMagnetComments(item, userId) {
 
     if (onPlaySound) onPlaySound('rustle');
 
+    isTypingLocal.current = false;
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     if (channelRef.current) {
       channelRef.current.send({

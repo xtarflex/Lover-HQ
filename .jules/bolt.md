@@ -27,3 +27,12 @@
 ## 2024-05-18 - Avoid Garbage Collection in High-Frequency DSP using Typed Array Circular Buffers
 **Learning:** When performing per-frame audio Digital Signal Processing (DSP) like tracking historical Spectral Flux for BPM autocorrelation, dynamically growing arrays (e.g., `history.push(val)`, `history.shift()`) cause devastating garbage collection micro-stutters during 60fps render loops.
 **Action:** Use pre-allocated Typed Arrays (e.g., `new Float32Array(240)`) as circular buffers. Track the current index (`index = (index + 1) % size`) to overwrite old data safely, maintaining O(1) performance with zero memory allocation inside the render loop.
+
+## 2026-07-24 - Memoize MessageList and Stabilize Parent Callbacks
+**Learning:** In a fast-updating chat container, passing inline functions or unstable handlers (such as `handleDeleteMessage={(id) => setMessageToDelete(id)}`) forces children to re-render even if they are memoized. Wrapping `MessageList` in `React.memo` and passing stable callbacks/setters ensures that keystrokes do not trigger reconciliation over hundreds of message bubbles.
+**Action:** Wrap `MessageList` in `React.memo` and ensure all passed action handlers are memoized via `useCallback` or passed directly as React state setters.
+
+## 2026-07-25 - Throttle Realtime Typing Broadcasts
+**Learning:** Firing Supabase Realtime broadcast messages on every input keystroke generates $O(N)$ network messages per typing burst, creating unnecessary bandwidth and client socket overhead.
+**Action:** Guard the broadcast using a local boolean ref (`isTypingLocal`) to broadcast `{ isTyping: true }` once per burst and reset via a debounce timeout when typing pauses.
+

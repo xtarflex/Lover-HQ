@@ -48,8 +48,10 @@ function isSingleEmojiChar(str) {
 
 /**
  * MessageList Component.
+ * Wrapped in React.memo to prevent expensive list re-renders when the parent Chat
+ * component updates unrelated state (like input changes or typing indicators).
  */
-export function MessageList({
+export const MessageList = React.memo(function MessageList({
   loading,
   groupedMessages,
   userId,
@@ -1110,6 +1112,6 @@ export function MessageList({
       <div ref={messagesEndRef} />
     </div>
   );
-}
+});
 
 export default MessageList;
