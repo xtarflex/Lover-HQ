@@ -493,7 +493,7 @@ export default function Chat() {
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
           } else {
-            window.open(safeUrl, '_blank');
+            window.open(safeUrl, '_blank', 'noopener,noreferrer');
           }
         }, 'image/png');
       };
@@ -510,7 +510,7 @@ export default function Chat() {
       img.src = safeUrl;
     } catch (err) {
       console.error('Failed to download image:', err);
-      window.open(safeUrl, '_blank');
+      window.open(safeUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
