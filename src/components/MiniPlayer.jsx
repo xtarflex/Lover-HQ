@@ -12,6 +12,14 @@ import EqBars from './ui/EqBars';
  * Minimized MiniPlayer component that docks to the side and is draggable.
  *
  * @param {Object} props
+ * @param {Object} props.currentTrack - Active track metadata.
+ * @param {boolean} props.isPlaying - Whether audio is playing.
+ * @param {string|null} props.artworkUrl - Resolved artwork URL.
+ * @param {Function} props.handleMaximize - Callback to expand to maximized bar.
+ * @param {Function} props.handleClose - Callback to dismiss the mini player.
+ * @param {Function} props.handlePlayPause - Callback to toggle play/pause.
+ * @param {'left'|'right'} props.side - Current docked edge.
+ * @param {Function} props.setSide - Callback to update docked edge.
  * @returns {React.ReactElement}
  */
 function MinimizedMiniPlayer({
@@ -86,7 +94,10 @@ function MinimizedMiniPlayer({
 
   return (
     <motion.div
-      layoutId="miniplayer-container"
+      initial={{ scale: 0.7, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.7, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
       style={{ x, y }}
       drag
       dragMomentum={false}
@@ -109,28 +120,30 @@ function MinimizedMiniPlayer({
 
         {/* Outer Vinyl Container with hover group */}
         <div className="relative group w-11 h-11 flex-shrink-0">
-          {/* Spinning Artwork Disc */}
-          <motion.div
-            layoutId="miniplayer-artwork"
-            className="relative w-11 h-11 rounded-full border border-slate-600/50 overflow-hidden shadow-md animate-[spin_6s_linear_infinite]"
-            style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
-          >
-            {artworkUrl ? (
-              <img
-                src={artworkUrl}
-                alt=""
-                className={`w-full h-full object-cover ${
-                  currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
-                }`}
-              />
-            ) : (
-              <GradientAvatar seed={currentTrack.title} size={44} />
-            )}
-            {/* Spindle */}
+          {/* Vinyl Container */}
+          <div className="relative w-11 h-11 rounded-full border border-slate-600/50 overflow-hidden shadow-md">
+            {/* Spinning Artwork Disc - Inner container isolates rotation from Framer Motion */}
+            <div
+              className="w-full h-full animate-[spin_6s_linear_infinite]"
+              style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+            >
+              {artworkUrl ? (
+                <img
+                  src={artworkUrl}
+                  alt=""
+                  className={`w-full h-full object-cover ${
+                    currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                  }`}
+                />
+              ) : (
+                <GradientAvatar seed={currentTrack?.title || 'music'} size={44} />
+              )}
+            </div>
+            {/* Stationary Spindle */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-1.5 h-1.5 bg-slate-900 rounded-full border border-slate-600" />
             </div>
-          </motion.div>
+          </div>
 
           {/* Overlay Play/Pause Control (Hover visible on desktop, transparent on mobile) */}
           <button
@@ -169,6 +182,7 @@ export function MiniPlayer() {
     pauseLocalPlayback,
     resumeLocalPlayback,
     handleListenAlong,
+    accentColor,
   } = useMusic();
 
   const [isClosed, setIsClosed] = useState(false);
@@ -176,12 +190,12 @@ export function MiniPlayer() {
   const [side, setSide] = useState('right');
   const [lastTrackId, setLastTrackId] = useState(null);
 
-  // Auto-restore and show MiniPlayer on track change
-  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset closed/minimized UI state when a new track starts */
+  // Auto-restore visibility on track change while preserving minimized dock state
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset closed UI state when a new track starts */
   useEffect(() => {
     if (currentTrack?.id && currentTrack.id !== lastTrackId) {
       setIsClosed(false);
-      setIsMinimized(false);
+      // NOTE: Preserve isMinimized! If docked, stay docked without interrupting the user.
       setLastTrackId(currentTrack.id);
     }
   }, [currentTrack, lastTrackId]);
@@ -213,23 +227,30 @@ export function MiniPlayer() {
   };
 
   return (
-    <AnimatePresence initial={false}>
+    <AnimatePresence mode="wait" initial={false}>
       {!isMinimized ? (
         <motion.div
           key="maximized"
-          layoutId="miniplayer-container"
           role="region"
           aria-label="Mini player"
           onClick={() => navigate('/music')}
+          initial={{ y: 24, opacity: 0, scale: 0.98 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 24, opacity: 0, scale: 0.98 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 28 }}
           className="mini-player-bar fixed bottom-20 left-4 right-4 max-w-[calc(100%-2rem)] md:max-w-lg md:left-1/2 md:-translate-x-1/2 z-40 cursor-pointer"
-          transition={{ type: 'spring', stiffness: 350, damping: 26 }}
         >
           {/* Glassmorphic card - NOTE: Keep only top corners rounded (rounded-t-2xl) so bottom stays flush with the bottom dock layout */}
-          <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-t-2xl px-4 py-3 flex items-center justify-between shadow-2xl overflow-hidden transition-all duration-300 hover:bg-slate-900/90">
-            {/* 2px progress bar at bottom */}
+          <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-t-2xl px-4 py-3 flex items-center justify-between shadow-2xl overflow-hidden transition-colors duration-300 hover:bg-slate-900/90">
+            {/* Hairline progress bar at bottom */}
             <div
-              className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-primary via-pink-500 to-violet-500 transition-all duration-500"
-              style={{ width: `${progress}%` }}
+              className="absolute bottom-0 left-0 h-[2px] transition-[width] duration-200"
+              style={{
+                width: `${progress}%`,
+                background: accentColor
+                  ? `linear-gradient(to right, ${accentColor}, rgb(var(--primary)))`
+                  : 'linear-gradient(to right, rgb(var(--primary)), #ec4899, #8b5cf6)',
+              }}
               role="progressbar"
               aria-valuenow={Math.floor(currentTime)}
               aria-valuemin={0}
@@ -238,33 +259,43 @@ export function MiniPlayer() {
             />
 
             {/* Ambient colour tint from track artwork */}
-            <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20"
+              style={{
+                background: accentColor
+                  ? `radial-gradient(ellipse at 50% 100%, ${accentColor} 0%, transparent 75%)`
+                  : 'radial-gradient(ellipse at 50% 100%, rgb(var(--primary)) 0%, transparent 75%)',
+              }}
+            />
 
             {/* Left: vinyl/artwork + track info */}
             <div className="flex items-center space-x-3 overflow-hidden flex-1 mr-3 z-10">
-              {/* Artwork disc — spin when playing */}
-              <motion.div
-                layoutId="miniplayer-artwork"
-                className="relative w-10 h-10 rounded-full border border-slate-600/50 flex-shrink-0 overflow-hidden shadow-md animate-[spin_6s_linear_infinite]"
-                style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+              {/* Artwork disc — outer stationary ring + inner spinning disc */}
+              <div
+                className="relative w-10 h-10 rounded-full border border-slate-600/50 flex-shrink-0 overflow-hidden shadow-md"
                 aria-hidden="true"
               >
-                {artworkUrl ? (
-                  <img
-                    src={artworkUrl}
-                    alt=""
-                    className={`w-full h-full object-cover ${
-                      currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
-                    }`}
-                  />
-                ) : (
-                  <GradientAvatar seed={currentTrack.title} size={40} />
-                )}
-                {/* Spindle */}
+                <div
+                  className="w-full h-full animate-[spin_6s_linear_infinite]"
+                  style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+                >
+                  {artworkUrl ? (
+                    <img
+                      src={artworkUrl}
+                      alt=""
+                      className={`w-full h-full object-cover ${
+                        currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                      }`}
+                    />
+                  ) : (
+                    <GradientAvatar seed={currentTrack?.title || 'music'} size={40} />
+                  )}
+                </div>
+                {/* Stationary Spindle */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-2 h-2 bg-slate-900 rounded-full border border-slate-600" />
                 </div>
-              </motion.div>
+              </div>
 
               {/* Title & artist */}
               <div className="flex flex-col overflow-hidden min-w-0">
