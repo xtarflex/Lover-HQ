@@ -36,3 +36,8 @@
 **Learning:** Firing Supabase Realtime broadcast messages on every input keystroke generates $O(N)$ network messages per typing burst, creating unnecessary bandwidth and client socket overhead.
 **Action:** Guard the broadcast using a local boolean ref (`isTypingLocal`) to broadcast `{ isTyping: true }` once per burst and reset via a debounce timeout when typing pauses.
 
+## 2026-09-22 - O(1) Map Lookups for Frequent Render Paths\n**Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.\n**Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
+
+## $(date +%Y-%m-%d) - O(1) Map Lookups for Frequent Render Paths
+**Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
+**Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.

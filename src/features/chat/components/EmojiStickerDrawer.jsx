@@ -459,6 +459,9 @@ const EMOTION_CHIPS = [
   },
 ];
 
+const EMOTION_CHIPS_BY_ID = new Map(EMOTION_CHIPS.map((c) => [c.id, c]));
+const EMOJI_CATEGORIES_BY_ID = new Map(EMOJI_CATEGORIES.map((c) => [c.id, c]));
+
 /**
  * EmojiStickerDrawer Component.
  *
@@ -623,16 +626,17 @@ export function EmojiStickerDrawer({
   // Filter helper for stickers by emotion chip and search query (emoji & text)
   const filterStickerList = useCallback(
     (list) => {
+      const activeChip = activeEmotion !== 'all' ? EMOTION_CHIPS_BY_ID.get(activeEmotion) : null;
       return list.filter((st) => {
         if (activeEmotion !== 'all') {
-          const chip = EMOTION_CHIPS.find((c) => c.id === activeEmotion);
-          if (chip && chip.keywords) {
+          if (activeChip && activeChip.keywords) {
             const labelLower = (st.label || '').toLowerCase();
             const tagsList = st.tags || [];
             const matchesEmotion =
-              chip.keywords.some((kw) => labelLower.includes(kw)) ||
+              activeChip.keywords.some((kw) => labelLower.includes(kw)) ||
               tagsList.some(
-                (t) => chip.keywords.includes(t.toLowerCase()) || t.toLowerCase() === chip.id
+                (t) =>
+                  activeChip.keywords.includes(t.toLowerCase()) || t.toLowerCase() === activeChip.id
               );
             if (!matchesEmotion) return false;
           }
@@ -674,8 +678,7 @@ export function EmojiStickerDrawer({
 
   if (!showEmojiPicker) return null;
 
-  const currentCategoryData =
-    EMOJI_CATEGORIES.find((c) => c.id === activeCategory) || EMOJI_CATEGORIES[0];
+  const currentCategoryData = EMOJI_CATEGORIES_BY_ID.get(activeCategory) || EMOJI_CATEGORIES[0];
 
   return (
     <AnimatePresence>
