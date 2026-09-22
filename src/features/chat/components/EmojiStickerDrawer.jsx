@@ -696,6 +696,7 @@ export function EmojiStickerDrawer({
             style={{ touchAction: 'none' }}
             className="w-full py-2 flex flex-col items-center justify-center cursor-ns-resize select-none shrink-0 group hover:bg-slate-800/30 transition-colors"
             title="Drag to resize height or pull down to close"
+            aria-label="Drag to resize height or pull down to close"
           >
             <div className="w-12 h-1.5 rounded-full bg-slate-700/80 group-hover:bg-primary/80 transition-colors" />
           </div>
