@@ -101,7 +101,7 @@ export function ChatInputForm({
             setShowItemSelector(!showItemSelector);
             if (setShowEmojiPicker) setShowEmojiPicker(false);
           }}
-          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ease-out ${
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ease-out ${
             showItemSelector
               ? 'bg-primary text-white shadow-md scale-105'
               : 'text-text-muted hover:text-white hover:bg-slate-800/80'
@@ -109,7 +109,7 @@ export function ChatInputForm({
           aria-label="Add attachment"
         >
           <Plus
-            className={`w-5 h-5 transition-transform duration-300 ease-out ${showItemSelector ? 'rotate-45' : 'rotate-0'}`}
+            className={`w-5 h-5 transition-transform duration-200 ease-out ${showItemSelector ? 'rotate-45' : 'rotate-0'}`}
           />
         </button>
 
