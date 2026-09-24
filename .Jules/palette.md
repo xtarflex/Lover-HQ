@@ -34,3 +34,6 @@
 ## 2026-09-21 - aria-labels for Chat input fields
 **Learning:** The Chat feature's input fields (like the emoji search, media caption, and voice note slider) lack `aria-label` attributes or matching `id`s for labels, which makes them inaccessible to screen readers as they do not provide context.
 **Action:** Ensure all inputs, especially those without visible text labels (like search bars, sliders, or inline form inputs), include an explicit `aria-label` attribute if they do not have a linked `<label>` element.
+## 2026-09-24 - Added missing aria-labels to MagnetCommentDrawer emoji buttons
+**Learning:** The emoji reaction buttons generated via mapping `ANIMATED_EMOJIS` in `MagnetCommentDrawer.jsx` lacked explicit `aria-label` attributes, making them inaccessible to screen readers despite having visual icons and `title` attributes.
+**Action:** When creating mapped emoji buttons or interactive elements that rely primarily on icons/titles, always add explicit `aria-label` attributes. Use dynamic values based on interaction state (e.g., `hasReacted ? 'Remove ${emoji.label} reaction' : 'React with ${emoji.label}'`) to provide clear feedback to assistive technologies.
