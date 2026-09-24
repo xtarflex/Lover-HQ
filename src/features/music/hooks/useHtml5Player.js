@@ -127,10 +127,15 @@ export function useHtml5Player({
     connectElementToContextRef.current = connectElementToContext;
 
     const setupListeners = (el) => {
+      let lastTimeUpdate = 0;
       const handleTimeUpdate = () => {
         if (isCrossfadingRef.current) return;
         if (el === audioRef.current) {
-          setCurrentTimeRef.current(el.currentTime);
+          const now = performance.now();
+          if (now - lastTimeUpdate >= 250 || el.ended || el.paused) {
+            lastTimeUpdate = now;
+            setCurrentTimeRef.current(el.currentTime);
+          }
         }
       };
       const handleDurationChange = () => {

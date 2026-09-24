@@ -95,6 +95,18 @@ export default function QuickDraw({
   // Celebration burst emojis
   const [winCelebrationEmojis, setWinCelebrationEmojis] = useState([]);
 
+  // Batched network stroke dispatch refs
+  const strokeBufferRef = useRef([]);
+  const strokeFlushTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (strokeFlushTimeoutRef.current) {
+        clearTimeout(strokeFlushTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Setup screen state
   const [customWord, setCustomWord] = useState('');
   const [selectedWord, setSelectedWord] = useState('');
@@ -187,6 +199,8 @@ export default function QuickDraw({
       nextRound,
     } = handlersRef.current;
 
+    if (!payload || typeof payload !== 'object' || !payload.type) return;
+
     if (payload.type === 'setup_complete') {
       setTargetWord(payload.targetWord);
       setRoundDuration(payload.duration);
@@ -255,42 +269,57 @@ export default function QuickDraw({
         ctx.fillStyle = payload.color;
         ctx.fill();
       }
-    } else if (payload.type === 'stroke' && !iAmDrawer) {
+    } else if ((payload.type === 'stroke' || payload.type === 'stroke_batch') && !iAmDrawer) {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const px = payload.x * canvas.width;
-      const py = payload.y * canvas.height;
 
-      if (remotePointsRef.current.length === 0) {
-        remotePointsRef.current = [{ x: px, y: py }];
-        remoteDrawing.current = true;
-        return;
-      }
+      const renderPoint = (xRatio, yRatio) => {
+        const px = xRatio * canvas.width;
+        const py = yRatio * canvas.height;
 
-      remotePointsRef.current.push({ x: px, y: py });
-      const points = remotePointsRef.current;
+        if (remotePointsRef.current.length === 0) {
+          remotePointsRef.current = [{ x: px, y: py }];
+          remoteDrawing.current = true;
+          return;
+        }
 
-      const ctx = canvas.getContext('2d');
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = remoteColorRef.current;
-      ctx.lineWidth = remoteIsEraserRef.current ? 24 : remoteSizeRef.current;
-      ctx.globalCompositeOperation = remoteIsEraserRef.current ? 'destination-out' : 'source-over';
+        remotePointsRef.current.push({ x: px, y: py });
+        const points = remotePointsRef.current;
 
-      if (points.length >= 3) {
-        ctx.beginPath();
-        const xc1 = (points[points.length - 3].x + points[points.length - 2].x) / 2;
-        const yc1 = (points[points.length - 3].y + points[points.length - 2].y) / 2;
-        ctx.moveTo(xc1, yc1);
-        const xc2 = (points[points.length - 2].x + points[points.length - 1].x) / 2;
-        const yc2 = (points[points.length - 2].y + points[points.length - 1].y) / 2;
-        ctx.quadraticCurveTo(points[points.length - 2].x, points[points.length - 2].y, xc2, yc2);
-        ctx.stroke();
-      } else if (points.length === 2) {
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        ctx.lineTo(points[1].x, points[1].y);
-        ctx.stroke();
+        const ctx = canvas.getContext('2d');
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = remoteColorRef.current;
+        ctx.lineWidth = remoteIsEraserRef.current ? 24 : remoteSizeRef.current;
+        ctx.globalCompositeOperation = remoteIsEraserRef.current
+          ? 'destination-out'
+          : 'source-over';
+
+        if (points.length >= 3) {
+          ctx.beginPath();
+          const xc1 = (points[points.length - 3].x + points[points.length - 2].x) / 2;
+          const yc1 = (points[points.length - 3].y + points[points.length - 2].y) / 2;
+          ctx.moveTo(xc1, yc1);
+          const xc2 = (points[points.length - 2].x + points[points.length - 1].x) / 2;
+          const yc2 = (points[points.length - 2].y + points[points.length - 1].y) / 2;
+          ctx.quadraticCurveTo(points[points.length - 2].x, points[points.length - 2].y, xc2, yc2);
+          ctx.stroke();
+        } else if (points.length === 2) {
+          ctx.beginPath();
+          ctx.moveTo(points[0].x, points[0].y);
+          ctx.lineTo(points[1].x, points[1].y);
+          ctx.stroke();
+        }
+      };
+
+      if (payload.type === 'stroke') {
+        renderPoint(payload.x, payload.y);
+      } else if (Array.isArray(payload.points)) {
+        payload.points.forEach((pt) => {
+          if (pt && typeof pt.x === 'number' && typeof pt.y === 'number') {
+            renderPoint(pt.x, pt.y);
+          }
+        });
       }
     } else if (payload.type === 'stroke_end' && !iAmDrawer) {
       remoteDrawing.current = false;
@@ -473,7 +502,23 @@ export default function QuickDraw({
   };
 
   /**
-   * Extends the active drawing path with quadratic curve smoothing and broadcasts the point.
+   * Flushes buffered stroke coordinates to partner over Realtime channel.
+   *
+   * @returns {void}
+   */
+  const flushStrokeBuffer = useCallback(() => {
+    if (strokeBufferRef.current.length === 0) return;
+    const batch = [...strokeBufferRef.current];
+    strokeBufferRef.current = [];
+    strokeFlushTimeoutRef.current = null;
+    broadcastMove({
+      type: 'stroke_batch',
+      points: batch,
+    });
+  }, [broadcastMove]);
+
+  /**
+   * Extends the active drawing path with quadratic curve smoothing and buffers coordinates for batched broadcast.
    *
    * @param {MouseEvent|TouchEvent} e - The raw pointer/touch event.
    * @returns {void}
@@ -487,11 +532,15 @@ export default function QuickDraw({
     const points = pointsRef.current;
     points.push(pos);
 
-    broadcastMove({
-      type: 'stroke',
+    // Buffer coordinates to prevent flooding WebSocket bridge at 60-120Hz
+    strokeBufferRef.current.push({
       x: pos.x / canvas.width,
       y: pos.y / canvas.height,
     });
+
+    if (!strokeFlushTimeoutRef.current) {
+      strokeFlushTimeoutRef.current = setTimeout(flushStrokeBuffer, 32);
+    }
 
     const ctx = canvas.getContext('2d');
     ctx.lineCap = 'round';
@@ -518,13 +567,20 @@ export default function QuickDraw({
   };
 
   /**
-   * Ends the active drawing stroke and broadcasts the stroke-end event.
+   * Ends the active drawing stroke, flushes remaining stroke coordinates, and broadcasts the stroke-end event.
    *
    * @returns {void}
    */
   const endDraw = () => {
     if (!drawing.current) return;
     drawing.current = false;
+    if (strokeFlushTimeoutRef.current) {
+      clearTimeout(strokeFlushTimeoutRef.current);
+      strokeFlushTimeoutRef.current = null;
+    }
+    if (strokeBufferRef.current.length > 0) {
+      flushStrokeBuffer();
+    }
     if (iAmDrawer) {
       broadcastMove({ type: 'stroke_end' });
     }
@@ -536,6 +592,11 @@ export default function QuickDraw({
    * @returns {void}
    */
   const clearCanvas = () => {
+    if (strokeFlushTimeoutRef.current) {
+      clearTimeout(strokeFlushTimeoutRef.current);
+      strokeFlushTimeoutRef.current = null;
+    }
+    strokeBufferRef.current = [];
     clearCanvasLocal();
     broadcastMove({ type: 'clear' });
   };

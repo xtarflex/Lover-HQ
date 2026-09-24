@@ -23,6 +23,8 @@ export function useOfflineQueue(storageKey, syncCallback, onSyncSuccess) {
     onSyncSuccessRef.current = onSyncSuccess;
   }, [onSyncSuccess]);
 
+  const isSyncingRef = useRef(false);
+
   const queueKey = `${storageKey}_offline_queue`;
   const updatesKey = `${storageKey}_offline_updates_queue`;
   const deletionsKey = `${storageKey}_offline_deletions_queue`;
@@ -104,84 +106,114 @@ export function useOfflineQueue(storageKey, syncCallback, onSyncSuccess) {
 
   /**
    * Iterates through the creation, update, and deletion queues and syncs them to the database.
+   * Employs an in-flight concurrency lock and atomic reconciliation to prevent race conditions.
    */
   const syncOfflineQueue = useCallback(async () => {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine || isSyncingRef.current) return;
+    isSyncingRef.current = true;
 
-    // 1. Sync creations
-    let creations = [];
     try {
-      creations = JSON.parse(localStorage.getItem(queueKey) || '[]');
-    } catch (e) {
-      console.error(`Failed to read creations queue for ${storageKey}:`, e);
-    }
+      // 1. Sync creations
+      let creations = [];
+      try {
+        creations = JSON.parse(localStorage.getItem(queueKey) || '[]');
+      } catch (e) {
+        console.error(`Failed to read creations queue for ${storageKey}:`, e);
+      }
 
-    if (creations.length > 0) {
-      console.log(`Syncing ${creations.length} offline creations for ${storageKey}...`);
-      const remaining = [];
-      for (const item of creations) {
-        try {
-          const syncedData = await syncCallback('create', item);
-          if (onSyncSuccessRef.current) {
-            onSyncSuccessRef.current('create', item.id, syncedData);
+      if (creations.length > 0) {
+        console.log(`Syncing ${creations.length} offline creations for ${storageKey}...`);
+        const successfulCreationIds = new Set();
+        for (const item of creations) {
+          try {
+            const syncedData = await syncCallback('create', item);
+            successfulCreationIds.add(item.id);
+            if (onSyncSuccessRef.current) {
+              onSyncSuccessRef.current('create', item.id, syncedData);
+            }
+          } catch (err) {
+            console.error(`Failed to sync queued creation for ${storageKey}:`, err);
           }
-        } catch (err) {
-          console.error(`Failed to sync queued creation for ${storageKey}:`, err);
-          remaining.push(item);
+        }
+
+        // Atomic reconciliation: preserve any items queued while network calls were in-flight
+        try {
+          const freshQueue = JSON.parse(localStorage.getItem(queueKey) || '[]');
+          const remaining = freshQueue.filter((item) => !successfulCreationIds.has(item.id));
+          localStorage.setItem(queueKey, JSON.stringify(remaining));
+          setOfflineItems(remaining);
+        } catch (e) {
+          console.error(`Failed to update remaining creations for ${storageKey}:`, e);
         }
       }
-      localStorage.setItem(queueKey, JSON.stringify(remaining));
-      setOfflineItems(remaining);
-    }
 
-    // 2. Sync updates
-    let updates = [];
-    try {
-      updates = JSON.parse(localStorage.getItem(updatesKey) || '[]');
-    } catch (e) {
-      console.error(`Failed to read updates queue for ${storageKey}:`, e);
-    }
+      // 2. Sync updates
+      let updates = [];
+      try {
+        updates = JSON.parse(localStorage.getItem(updatesKey) || '[]');
+      } catch (e) {
+        console.error(`Failed to read updates queue for ${storageKey}:`, e);
+      }
 
-    if (updates.length > 0) {
-      console.log(`Syncing ${updates.length} offline updates for ${storageKey}...`);
-      const remaining = [];
-      for (const update of updates) {
-        try {
-          await syncCallback('update', update);
-          if (onSyncSuccessRef.current) {
-            onSyncSuccessRef.current('update', update.id, update);
+      if (updates.length > 0) {
+        console.log(`Syncing ${updates.length} offline updates for ${storageKey}...`);
+        const successfulUpdateIds = new Set();
+        for (const update of updates) {
+          try {
+            await syncCallback('update', update);
+            successfulUpdateIds.add(update.id);
+            if (onSyncSuccessRef.current) {
+              onSyncSuccessRef.current('update', update.id, update);
+            }
+          } catch (err) {
+            console.error(`Failed to sync queued update for ${storageKey}:`, err);
           }
-        } catch (err) {
-          console.error(`Failed to sync queued update for ${storageKey}:`, err);
-          remaining.push(update);
+        }
+
+        // Atomic reconciliation: preserve any updates queued while network calls were in-flight
+        try {
+          const freshUpdates = JSON.parse(localStorage.getItem(updatesKey) || '[]');
+          const remaining = freshUpdates.filter((u) => !successfulUpdateIds.has(u.id));
+          localStorage.setItem(updatesKey, JSON.stringify(remaining));
+        } catch (e) {
+          console.error(`Failed to update remaining updates for ${storageKey}:`, e);
         }
       }
-      localStorage.setItem(updatesKey, JSON.stringify(remaining));
-    }
 
-    // 3. Sync deletions
-    let deletions = [];
-    try {
-      deletions = JSON.parse(localStorage.getItem(deletionsKey) || '[]');
-    } catch (e) {
-      console.error(`Failed to read deletions queue for ${storageKey}:`, e);
-    }
+      // 3. Sync deletions
+      let deletions = [];
+      try {
+        deletions = JSON.parse(localStorage.getItem(deletionsKey) || '[]');
+      } catch (e) {
+        console.error(`Failed to read deletions queue for ${storageKey}:`, e);
+      }
 
-    if (deletions.length > 0) {
-      console.log(`Syncing ${deletions.length} offline deletions for ${storageKey}...`);
-      const remaining = [];
-      for (const id of deletions) {
-        try {
-          await syncCallback('delete', id);
-          if (onSyncSuccessRef.current) {
-            onSyncSuccessRef.current('delete', id, null);
+      if (deletions.length > 0) {
+        console.log(`Syncing ${deletions.length} offline deletions for ${storageKey}...`);
+        const successfulDeletionIds = new Set();
+        for (const id of deletions) {
+          try {
+            await syncCallback('delete', id);
+            successfulDeletionIds.add(id);
+            if (onSyncSuccessRef.current) {
+              onSyncSuccessRef.current('delete', id, null);
+            }
+          } catch (err) {
+            console.error(`Failed to sync queued deletion for ${storageKey}:`, err);
           }
-        } catch (err) {
-          console.error(`Failed to sync queued deletion for ${storageKey}:`, err);
-          remaining.push(id);
+        }
+
+        // Atomic reconciliation: preserve any deletions queued while network calls were in-flight
+        try {
+          const freshDeletions = JSON.parse(localStorage.getItem(deletionsKey) || '[]');
+          const remaining = freshDeletions.filter((id) => !successfulDeletionIds.has(id));
+          localStorage.setItem(deletionsKey, JSON.stringify(remaining));
+        } catch (e) {
+          console.error(`Failed to update remaining deletions for ${storageKey}:`, e);
         }
       }
-      localStorage.setItem(deletionsKey, JSON.stringify(remaining));
+    } finally {
+      isSyncingRef.current = false;
     }
   }, [queueKey, updatesKey, deletionsKey, storageKey, syncCallback]);
 
