@@ -101,7 +101,7 @@ export function ChatInputForm({
             setShowItemSelector(!showItemSelector);
             if (setShowEmojiPicker) setShowEmojiPicker(false);
           }}
-          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ease-out ${
             showItemSelector
               ? 'bg-primary text-white shadow-md scale-105'
               : 'text-text-muted hover:text-white hover:bg-slate-800/80'
@@ -109,7 +109,7 @@ export function ChatInputForm({
           aria-label="Add attachment"
         >
           <Plus
-            className={`w-5 h-5 transition-transform duration-300 ${showItemSelector ? 'rotate-45' : 'rotate-0'}`}
+            className={`w-5 h-5 transition-transform duration-200 ease-out ${showItemSelector ? 'rotate-45' : 'rotate-0'}`}
           />
         </button>
 
@@ -120,7 +120,7 @@ export function ChatInputForm({
             if (setShowEmojiPicker) setShowEmojiPicker(!showEmojiPicker);
             if (setShowItemSelector) setShowItemSelector(false);
           }}
-          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ease-out ${
             showEmojiPicker
               ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 scale-105'
               : 'text-text-muted hover:text-white hover:bg-slate-800/80'
@@ -128,7 +128,7 @@ export function ChatInputForm({
           aria-label="Emoji & Stickers"
         >
           <Smile
-            className={`w-4.5 h-4.5 transition-transform duration-300 ${showEmojiPicker ? 'scale-110 -rotate-12' : 'rotate-0'}`}
+            className={`w-4.5 h-4.5 transition-transform duration-300 ease-out ${showEmojiPicker ? 'scale-110 -rotate-12' : 'rotate-0'}`}
           />
         </button>
 
