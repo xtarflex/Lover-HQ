@@ -1,55 +1,70 @@
 # 🏠 Lover-HQ
 
-A private digital space for long-distance couples, built with love and React.
+A private digital sanctuary for long-distance couples, built with love, React 19, and Supabase.
 
 ## 🎯 Project Overview
 
-Lover-HQ is a mobile-first Progressive Web App (PWA) designed for two people in a long-distance relationship. It's not a messaging app—it's a **private digital house** with rooms for different types of connection:
+Lover-HQ is a mobile-first Progressive Web App (PWA) designed for two people in a long-distance relationship. It's not a generic messaging app—it's a **private digital house** featuring dedicated rooms designed to maintain intimacy and shared presence:
 
-- **🎨 The Fridge**: A shared canvas for notes, photos, and voice messages
-- **🎵 Music Room**: Synchronized listening experience with shared queue
-- **🎲 Games**: Turn-based games (Three Men's Morris)
-- **🔓 Reveal**: Daily blind Q&A that unlocks when both answer
-- **📍 The Board**: Collaborative bucket list for future plans
-- **👤 Profile**: Partner-centric profile with mood tracker and countdown
+- **🎨 The Fridge**: A shared canvas for notes, photos, voice recordings, magnet comments, reactions, and quick speed-dial actions.
+- **🎵 The Music Room**: Synchronized listening with an off-thread AudioWorklet DSP, 3D visualizers, YouTube & HTML5 playback engines, dynamic crossfading, and shared queues.
+- **💬 Intimate Chat**: Real-time messaging with voice notes and animated waveform previews, animated stickers, rich media lightboxes, pinned messages, and message reply threads.
+- **🎲 Games Arcade**: 6 real-time and turn-based games (Quick Draw, Three Men's Morris, Tic-Tac-Toe, Word Chain, Math Puzzle, Scrabble) with move replay recording.
+- **🔓 The Blind Reveal**: Daily blind Q&A where responses unlock only when both partners answer, featuring custom question queues and Memory Lane archives.
+- **📍 The Board**: A collaborative bucket list for future adventures, milestones, and shared dreams.
+- **👤 Partner Profile**: A partner-centric hub featuring real-time mood check-ins, milestone countdowns, and anniversary tracking.
+- **⚙️ Settings & Privacy**: Granular control over sound effects, haptics, theme appearance, storage caching, and pairing data.
+- **🏡 Home**: Central dashboard providing a quick ambient pulse of your partner's active room and status.
 
 ## 🚀 Tech Stack
 
-- **Frontend**: React 18 + Vite
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (Auth, Database, Storage, Realtime)
-- **Hosting**: Netlify
-- **PWA**: Service Worker with offline support
+| Domain | Technology |
+|---|---|
+| **Frontend Framework** | React 19.2 + Vite 8 |
+| **Routing** | React Router v7 |
+| **Styling** | Tailwind CSS with brand design tokens |
+| **Motion & 3D** | Framer Motion + Three.js (`@react-three/fiber`, `@react-three/drei`, `postprocessing`) |
+| **Audio Processing** | Web Audio API + AudioWorklet (off-thread spectral flux & BPM tracking) |
+| **Backend & Realtime** | Supabase (PostgreSQL, Realtime Broadcast & Presence, Storage, Auth) |
+| **Monitoring** | Sentry (`@sentry/react`) |
+| **PWA & Offline** | Vite PWA Plugin + Workbox Service Worker |
+| **Package Manager** | `pnpm` (strictly enforced) |
+| **Testing** | Vitest (400+ unit tests), Playwright (E2E), Stryker (Mutation testing) |
 
 ## 📁 Project Structure
 
 ```
 /src
-  /assets              # Static files
-  /components          # Shared UI components
-  /contexts            # Global state management
-  /features            # Feature modules (lazy-loaded)
-    /auth              # Onboarding & pairing
-    /fridge            # Shared canvas
-    /music             # Music player
-    /games             # Mini-games
-    /reveal            # Daily Q&A
-    /board             # Bucket list
-    /profile           # Partner profile
-  /hooks               # Custom React hooks
-  /lib                 # Utilities & Supabase client
+  /assets              # Static artwork, sound effects, and avatars
+  /components          # Shared UI components (MiniPlayer, GlassDropdown, Notification)
+  /contexts            # Core state providers (AppContext, MusicContext)
+  /features            # 10 modular lazy-loaded feature rooms
+    /auth              # Onboarding, pairing codes, and invite links
+    /board             # Bucket list and milestones
+    /chat              # Intimate chat, voice notes, stickers, and lightbox
+    /fridge            # Interactive whiteboard canvas, magnets, comments
+    /games             # Turn-based and real-time multiplayer games suite
+    /home              # Ambient dashboard hub
+    /music             # Audio player, queue, visualizers, and playlists
+    /profile           # Partner-centric profile and mood tracker
+    /reveal            # Daily blind Q&A and Memory Lane
+    /settings          # Audio, notification, and data management panels
+  /hooks               # Reusable hooks (usePresence, useOfflineQueue, useAudioProcessor)
+  /lib                 # Supabase client singleton, icons, and constants
+  /services            # Data services (fridge, dictionary)
   /types               # JSDoc type definitions
-  App.jsx              # Main app with routing
-  main.jsx             # Entry point
+  /utils               # Geometry, compression, notification, and time helpers
+  App.jsx              # Main routing and presence orchestration
+  main.jsx             # React 19 application entry point
 ```
 
 ## 🛠️ Setup Instructions
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- Supabase account (free tier)
-- Netlify account (free tier)
+- Node.js 20+
+- `pnpm` (`npm install -g pnpm` or `corepack enable`)
+- Supabase project
 
 ### Installation
 
@@ -61,7 +76,7 @@ Lover-HQ is a mobile-first Progressive Web App (PWA) designed for two people in 
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -69,163 +84,49 @@ Lover-HQ is a mobile-first Progressive Web App (PWA) designed for two people in 
    cp .env.example .env.local
    ```
    
-   Then edit `.env.local` with your Supabase credentials:
-   ```
+   Configure `.env.local` with your Supabase credentials:
+   ```env
    VITE_SUPABASE_URL=https://xxxxx.supabase.co
    VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    ```
 
-4. **Set up Supabase database**
-   
-   Run the SQL migrations in `/supabase/migrations/` in your Supabase SQL editor:
-   - `001_create_users_table.sql`
-   - `002_create_fridge_items_table.sql`
-   - `003_create_music_queue_table.sql`
-   - `004_create_reveals_table.sql`
-   - `005_create_board_items_table.sql`
-   - `006_create_game_sessions_table.sql`
-   - `007_enable_rls_policies.sql`
+4. **Run migrations**
+   Apply SQL files from `/supabase/migrations/` in your Supabase SQL editor or CLI.
 
-5. **Run development server**
+5. **Start local development**
    ```bash
-   npm run dev
+   pnpm dev
    ```
+   Open `http://localhost:5173` in your browser.
 
-   Open http://localhost:5173 in your browser.
+## 🧪 Testing & Verification
 
-## 🔐 Authentication Flow
+```bash
+# Run unit test suite (Vitest)
+pnpm test:run
 
-### Pairing Process
+# Run linter
+pnpm lint
 
-1. **User A** sets up their profile and generates a 6-digit pairing code
-2. **User B** enters the code to link accounts
-3. Both users are now paired and can access shared features
+# Production build check
+pnpm build
 
-### Important Notes
-
-- Each user sets their own name and avatar during setup
-- The **Profile tab** displays your partner's details (not your own)
-- You can edit your partner's name/avatar, but not your own
-- This creates a partner-centric experience
-
-## 🎨 Design System
-
-### Colors (Dark Theme)
-
-```css
-Background: #0F172A (Deep Slate)
-Surface:    #1E293B (Charcoal)
-Primary:    #F59E0B (Warm Gold)
-Text:       #F8FAFC (Off-white)
-Border:     #334155 (Medium Slate)
+# Mutation testing
+pnpm test:mutation
 ```
 
-### Typography
+## 🔐 Architecture & Security
 
-- **Headers**: Nunito (rounded, friendly)
-- **Body**: Inter (clean, readable)
-- **Handwritten notes**: Caveat (personal touch)
+- **Row Level Security (RLS)**: Enforced across all Supabase PostgreSQL tables; partners can only access their shared couple records.
+- **Singleton Client**: Centralized Supabase client in `src/lib/supabase.js` prevents connection duplication.
+- **Offline Resilient**: Local caching via `useOfflineQueue` with atomic reconciliation and mutex guards.
+- **Realtime Presence**: High-performance in-memory presence tracking decoupled from navigation to prevent state flickers.
 
-### Voice & Tone
+## 📚 Documentation Sitemap
 
-- Warm, not corporate: "A note is waiting" vs "New message received"
-- Partner-centric: "They're here" vs "User 2 is online"
-- Asynchronous-friendly: No urgency pressure
+- [doc/ARCHITECTURE.md](file:///c:/lover%20hq/doc/ARCHITECTURE.md) - System architecture, state topology, audio DSP, and realtime sync
+- [doc/MODULES.md](file:///c:/lover%20hq/doc/MODULES.md) - Component and feature module responsibility breakdown
+- [doc/DECISIONS.md](file:///c:/lover%20hq/doc/DECISIONS.md) - Architecture Decision Records (ADRs)
+- [doc/AGENTS.md](file:///c:/lover%20hq/doc/AGENTS.md) - Coding standards and agent guardrails
+- [doc/BRANDING.md](file:///c:/lover%20hq/doc/BRANDING.md) - Design tokens, color palette, and typography standards
 
-## 📱 PWA Features
-
-- **Installable**: Add to home screen on mobile
-- **Offline support**: Cached fridge view when offline
-- **Push notifications**: For games, daily prompts, presence alerts
-- **Fast loading**: < 2s initial load, lazy-loaded features
-
-## 🧪 Development Workflow
-
-### Using Jules (AI Coding Agent)
-
-This project uses Jules for automated code generation via Pull Requests:
-
-1. **Connect repo to Netlify** for preview deployments
-2. **Create feature branch** for each PR
-3. **Use Jules prompts** from ROADMAP.md for each phase
-4. **Review preview URL** on Netlify
-5. **Merge to main** when approved
-
-### Code Quality
-
-- **Linting**: ESLint with React + Hooks rules
-- **Formatting**: Prettier (run `npm run format`)
-- **Type safety**: JSDoc annotations
-- **Testing**: Manual testing on mobile devices
-
-## 🚢 Deployment
-
-### Netlify Configuration
-
-1. Connect GitHub repo to Netlify
-2. Build settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-3. Environment variables: Add Supabase credentials
-4. Deploy settings: Auto-deploy on push to `main`
-
-### Supabase Configuration
-
-1. Database: PostgreSQL with Row Level Security
-2. Storage: For user avatars, fridge photos, audio uploads
-3. Realtime: For presence tracking and live sync
-4. Auth: Anonymous sessions (no email required)
-
-## 📊 Monitoring
-
-### Performance
-
-- Monitor Netlify analytics for page load times
-- Track Supabase realtime connection stability
-- Measure media upload success rates
-
-### Errors
-
-- Client-side errors logged to Supabase Edge Functions
-- Error boundaries catch and display failures gracefully
-
-## 🔒 Security
-
-### Row Level Security (RLS)
-
-All Supabase tables have RLS policies ensuring:
-- Users can only access their own data and their partner's data
-- Profile edits are restricted to partner's data only
-- No user can access data from other couples
-
-### Content Validation
-
-- Image uploads: Max 1MB, validated MIME types
-- Voice notes: Max 5MB, audio/* only
-- XSS protection: All user content sanitized
-
-## 🤝 Contributing
-
-This is a private project for two users, but if you're building something similar:
-
-1. Fork the repository
-2. Check out ARCHITECTURE.md for technical details
-3. Review CODE_SNIPPETS.md for patterns
-4. Follow the ROADMAP.md for feature development
-
-## 📄 License
-
-Private project - All rights reserved
-
-## 💖 Built With Love
-
-Created for maintaining intimacy across distance. May your connection stay strong! 🏠✨
-
----
-
-## 📚 Additional Documentation
-
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Technical architecture details
-- [BRANDING.md](./BRANDING.md) - Design system and brand guidelines
-- [ROADMAP.md](./ROADMAP.md) - Development phases and milestones
-- [CODE_SNIPPETS.md](./CODE_SNIPPETS.md) - Reusable patterns and snippets
