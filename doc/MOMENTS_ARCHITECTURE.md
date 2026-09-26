@@ -96,8 +96,13 @@ interface MomentMessage<T = unknown> {
 | **Host $\rightarrow$ Iframe** | `MOMENT_READY` | Returns session context | Identity, theme, initial state snapshot |
 | **Iframe $\rightarrow$ Host** | `MOMENT_DISPATCH_ACTION` | Relays turn or real-time event | `{ action: "PLACE_MARK", x: 1, y: 2 }` |
 | **Host $\rightarrow$ Iframe** | `MOMENT_RECEIVE_ACTION` | Forwards partner's turn | `{ from: "partner", action: "...", ... }` |
-| **Iframe $\rightarrow$ Host** | `MOMENT_SAVE_STATE` | Persists session or utility data | Arbitrary JSON payload ($\le$ 64KB) |
-| **Iframe $\rightarrow$ Host** | `MOMENT_COMPLETE` | Signals match resolution | `{ winnerId: "...", scores: { ... } }` |
+| **Iframe $\rightarrow$ Host** | `MOMENT_STORAGE_GET` | Requests persistent key/all data | `{ key?: string }` |
+| **Host $\rightarrow$ Iframe** | `MOMENT_STORAGE_RESPONSE` | Delivers requested stored data | `{ key?: string, value: any }` |
+| **Iframe $\rightarrow$ Host** | `MOMENT_STORAGE_SET` | Persists couple document data | `{ key: string, value: any }` |
+| **Host $\rightarrow$ Iframe** | `MOMENT_STORAGE_UPDATED` | Broadcasts partner's storage edit | `{ key: string, value: any, updatedBy: string }` |
+| **Iframe $\rightarrow$ Host** | `MOMENT_COMPLETE` | Signals match resolution | `{ winnerId: "...", scores: { ... }, endReason: "..." }` |
+| **Host $\rightarrow$ Iframe** | `MOMENT_RESTART` | Signals accepted rematch reset | `{ sessionId: "...", resetState: true }` |
+| **Host $\rightarrow$ Iframe** | `MOMENT_FORFEIT` | Notifies surrender/forfeit | `{ forfeitedBy: "partner" }` |
 | **Host $\rightarrow$ Iframe** | `MOMENT_PARTNER_PRESENCE` | Signals partner connectivity | `{ isConnected: boolean, isFocused: boolean }` |
 
 ---
@@ -180,3 +185,110 @@ The iframe is wrapped in an outer Lover-HQ frame providing:
 - **Persistent Header:** Top navigation with a back arrow, current partner connection pill (`Online`, `In Moment`, or `Away`), and a session pause/exit modal.
 - **Floating Reaction Tray:** Lover-HQ's native romantic reaction buttons overlayed along the bottom right, enabling instantaneous partner feedback independent of the third-party game's capabilities.
 - **Connection Curtain:** A warm, synchronized loading state showing both partner avatars connecting before the iframe is revealed.
+
+---
+
+## 6. Utility Moments Storage Architecture & Cross-Partner Sync
+
+Utility Moments (e.g. Habit Trackers, Shared Bucket Lists, Scratch Maps, Countdown Clocks, Budget Planners) require long-term structured state persistence rather than ephemeral match scores.
+
+```mermaid
+flowchart LR
+    subgraph Iframe["Sandboxed Utility Moment"]
+        SDK["@lover-hq/moment-sdk\nLoverHQ.storage.set('habits', data)"]
+    end
+
+    subgraph Host["Lover-HQ Host Shell (useMomentBridge)"]
+        Validator["Schema & Quota Guard\n(< 5MB per Couple)"]
+        Cache["Optimistic Local Cache\n(IndexedDB)"]
+    end
+
+    subgraph Supabase["Lover-HQ Cloud Infrastructure"]
+        Postgres[("PostgreSQL\ncouple_moment_data")]
+        Realtime["Realtime Channel\nmoment:pair:*"]
+    end
+
+    SDK -->|"postMessage (MOMENT_STORAGE_SET)"| Validator
+    Validator --> Cache
+    Validator --> Postgres
+    Validator --> Realtime
+    Realtime -->|"Broadcast to Partner's Host"| Host
+    Host -->|"postMessage (MOMENT_STORAGE_UPDATED)"| SDK
+```
+
+### The Developer Storage API (`LoverHQ.storage`)
+```javascript
+import { LoverHQ } from '@lover-hq/moment-sdk';
+
+// 1. Retrieve stored data
+const bucketList = await LoverHQ.storage.get('bucket_list');
+
+// 2. Persist updated data (cloud-synced automatically)
+await LoverHQ.storage.set('bucket_list', updatedList);
+
+// 3. Listen for live updates when partner makes a change
+LoverHQ.storage.onUpdate((key, newValue, metadata) => {
+  if (key === 'bucket_list') {
+    renderBucketList(newValue);
+    showNotification(`${metadata.updatedBy} checked off an item!`);
+  }
+});
+```
+
+### Storage Security & Partitioning
+1. **Tenant Isolation:** All storage records in `couple_moment_data` are strictly keyed on `(couple_id, moment_id, data_key)`. Moment A cannot access Moment B's data, and Couple X cannot read Couple Y's records.
+2. **Quota Enforcement:** Host container enforces a maximum limit of **5MB JSON storage** per couple per Moment. Requests exceeding this threshold are rejected with a `QUOTA_EXCEEDED` error.
+3. **Cross-Partner Realtime Synchronization:** When Partner A writes data, the host writes to PostgreSQL and broadcasts an update event over the couple's Realtime channel. Partner B's host shell intercepts this broadcast and forwards `MOMENT_STORAGE_UPDATED` into Partner B's iframe without requiring a page reload.
+
+---
+
+## 7. Multiplayer Game Orchestration & Lifecycle
+
+To ensure a seamless, native couple experience, **the Lover-HQ host shell owns session invitations, forfeits, and rematch handshakes**, while the sandboxed iframe focuses purely on game board rendering and turn mechanics.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P1 as Partner 1 (Host)
+    participant Shell1 as Lover-HQ Shell (P1)
+    participant Relay as Supabase Realtime
+    participant Shell2 as Lover-HQ Shell (P2)
+    actor P2 as Partner 2 (Joiner)
+    participant Iframe1 as Iframe Game (P1)
+    participant Iframe2 as Iframe Game (P2)
+
+    Note over P1,Shell1: 1. INVITATION & HANDSHAKE
+    P1->>Shell1: Taps "Play Tic-Tac-Toe"
+    Shell1->>Relay: Broadcast 'game_invite' (slug, hostName, sessionId)
+    Relay->>Shell2: Deliver 'game_invite'
+    Shell2->>P2: Display <GameInviteModal />
+    P2->>Shell2: Taps "Join Game"
+    Shell2->>Shell2: Navigate to /games/tic-tac-toe?session=...
+
+    Note over Shell1,Iframe2: 2. GAMEPLAY & TURNS
+    Shell1->>Iframe1: Mount Iframe & send MOMENT_READY
+    Shell2->>Iframe2: Mount Iframe & send MOMENT_READY
+    Iframe1->>Shell1: postMessage(DISPATCH_ACTION, { move: 4 })
+    Shell1->>Relay: Broadcast 'game_move'
+    Relay->>Shell2: Deliver 'game_move'
+    Shell2->>Iframe2: postMessage(RECEIVE_ACTION, { move: 4 })
+
+    Note over Shell1,Iframe2: 3. CONCLUSION & REMATCH
+    Iframe1->>Shell1: postMessage(MOMENT_COMPLETE, { winnerId: P1 })
+    Shell1->>P1: Show <GameResults result="win" /> (Confetti)
+    Shell2->>P2: Show <GameResults result="loss" />
+    P2->>Shell2: Taps "Rematch"
+    Shell2->>Relay: Broadcast 'game_rematch_request'
+    Relay->>Shell1: Show "Partner wants a rematch!"
+    P1->>Shell1: Taps "Accept Rematch"
+    Shell1->>Iframe1: postMessage(MOMENT_RESTART)
+    Shell2->>Iframe2: postMessage(MOMENT_RESTART)
+```
+
+### Native Modal & Lifecycle Integration
+1. **Game Invitations (`GameInviteModal.jsx`):**
+   When Partner A launches a Game Moment, Lover-HQ broadcasts `game_invite` over `presence:pair:*`. Partner B receives the native Lover-HQ invite modal anywhere in the app (Chat, Fridge, Profile). Tapping "Join" routes directly into `/games/:slug?session=...`.
+2. **Surrenders & Forfeits (`ForfeitModal.jsx`):**
+   If a user taps "Exit" in the persistent header during an active match, Lover-HQ opens the native `ForfeitModal`. Upon confirmation, Lover-HQ broadcasts a forfeit event to the partner and notifies the iframe via `MOMENT_FORFEIT`, cleanly settling match state.
+3. **Match Conclusion & Rematches (`GameResults.jsx`):**
+   When the iframe detects a terminal state, it dispatches `MOMENT_COMPLETE`. Lover-HQ overlays the romantic, confetti-filled `GameResults` modal. When both players tap "Rematch", Lover-HQ issues `MOMENT_RESTART` into both iframes, resetting the board state without any page reload flicker.
