@@ -118,3 +118,25 @@ Lover-HQ is hosted on Netlify's free tier. In the event that monthly build minut
 ### Consequences
 - **Positive**: High availability and zero-downtime failover for the couple.
 - **Positive**: Preserves identical client environment variables and PWA service worker configurations across both platforms.
+
+---
+
+## ADR-007: Moments Iframe Architecture & Host-Mediated Proxy
+
+### Status
+Accepted
+
+### Context
+Lover-HQ features interactive multiplayer games and couple activities. Historically, all games were hardcoded directly as built-in React components within `src/features/games/games/`. This tightly coupled external game complexity to the core bundle, prevented independent authoring by creators, risked application stability if a game encountered unhandled runtime exceptions, and restricted interactive modules strictly to the games category.
+
+### Decision
+- Transition to an extensible, sandboxed micro-app platform branded as **Moments**, spanning both **Game Moments** and **Together / Utility Moments**.
+- Execute embedded Moments inside a hardened HTML5 `<iframe>` using strict sandboxing (`sandbox="allow-scripts allow-same-origin allow-forms"` with `allow-top-navigation` strictly omitted).
+- Enforce the **Host-Mediated Proxy Pattern**: The iframe has zero direct network access to Lover-HQ databases or Supabase tokens. All real-time messaging, state snapshots, and presence signals flow via a typed `postMessage` protocol through Lover-HQ's host shell using `@lover-hq/moment-sdk`.
+- Retain existing built-in games via the **Strangler Fig Pattern** while dogfooding the iframe bridge with an extracted Tic-Tac-Toe pilot.
+
+### Consequences
+- **Positive**: Complete process isolation; buggy or malicious third-party code cannot crash or hijack Lover-HQ.
+- **Positive**: Language and engine agnosticism—creators can build in vanilla JS, Canvas, React, Phaser, Pixi, or WebGL engines.
+- **Positive**: Unifies games and living couple utilities under a common runtime and catalog.
+- **Negative**: Requires careful host-shell overlay design (reaction trays, partner status pills) to maintain a cohesive, native look and feel.

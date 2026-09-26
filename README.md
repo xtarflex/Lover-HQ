@@ -126,6 +126,8 @@ pnpm test:mutation
 
 - [doc/ARCHITECTURE.md](file:///c:/lover%20hq/doc/ARCHITECTURE.md) - System architecture, state topology, audio DSP, and realtime sync
 - [doc/MODULES.md](file:///c:/lover%20hq/doc/MODULES.md) - Component and feature module responsibility breakdown
+- [doc/MOMENTS_ARCHITECTURE.md](file:///c:/lover%20hq/doc/MOMENTS_ARCHITECTURE.md) - Moments platform architecture, sandbox model, and postMessage RPC protocol
+- [doc/MOMENTS_STRATEGY.md](file:///c:/lover%20hq/doc/MOMENTS_STRATEGY.md) - Moments roadmap, developer SDK, and dogfooding pilot strategy
 - [doc/DECISIONS.md](file:///c:/lover%20hq/doc/DECISIONS.md) - Architecture Decision Records (ADRs)
 - [doc/AGENTS.md](file:///c:/lover%20hq/doc/AGENTS.md) - Coding standards and agent guardrails
 - [doc/BRANDING.md](file:///c:/lover%20hq/doc/BRANDING.md) - Design tokens, color palette, and typography standards
