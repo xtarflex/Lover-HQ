@@ -20,3 +20,7 @@
 **Vulnerability:** Calls to `window.open(url, '_blank')` without explicitly setting `noopener,noreferrer` window features.
 **Learning:** Even when URLs are sanitized for protocol/XSS, opening them in a new tab without `noopener,noreferrer` allows the opened page to potentially control the `window.opener` object of the original tab (reverse tabnabbing).
 **Prevention:** Always append `'noopener,noreferrer'` as the third argument to `window.open` when opening external or user-provided links.
+## 2024-10-25 - Hardcoded developer credentials
+**Vulnerability:** Developer bypass logic contained hardcoded passwords for test accounts in the source code.
+**Learning:** Even if conditionally rendered for developers only (`import.meta.env.DEV`), hardcoding secrets in source code risks exposing those credentials if the codebase is made public or accessed by unauthorized individuals, especially if those test accounts are reused elsewhere.
+**Prevention:** Always rely on environment variables (e.g. `import.meta.env.VITE_DEV_PASSWORD`) to inject secrets at build or runtime, rather than committing them directly into the repository.

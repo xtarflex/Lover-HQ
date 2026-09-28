@@ -277,14 +277,15 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={async () => {
+                      const devPassword = import.meta.env.VITE_DEV_PASSWORD || '';
                       setEmail('player1@lover.hq');
-                      setPassword('password123');
+                      setPassword(devPassword);
                       setLoading(true);
                       setError(null);
                       try {
                         const { data, error: authError } = await supabase.auth.signInWithPassword({
                           email: 'player1@lover.hq',
-                          password: 'password123',
+                          password: devPassword,
                         });
                         if (authError) throw authError;
                         if (data.user) {
@@ -304,14 +305,15 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={async () => {
+                      const devPassword = import.meta.env.VITE_DEV_PASSWORD || '';
                       setEmail('player2@lover.hq');
-                      setPassword('password123');
+                      setPassword(devPassword);
                       setLoading(true);
                       setError(null);
                       try {
                         const { data, error: authError } = await supabase.auth.signInWithPassword({
                           email: 'player2@lover.hq',
-                          password: 'password123',
+                          password: devPassword,
                         });
                         if (authError) throw authError;
                         if (data.user) {
