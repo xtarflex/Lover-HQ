@@ -27,17 +27,23 @@ export default function ScrabbleBoard({
   onDropCell,
   onTouchStartTile,
 }) {
-  // Helper to check if a tile is placed in this cell this turn
-  const getNewPlacement = (r, c) => {
-    return newPlacements.find((p) => p.r === r && p.c === c);
-  };
+  // Convert newPlacements to a 2D array for O(1) lookup during board render
+  const newPlacementsGrid = Array(BOARD_SIZE)
+    .fill(null)
+    .map(() => Array(BOARD_SIZE).fill(null));
+
+  newPlacements.forEach((p, idx) => {
+    if (p.r >= 0 && p.r < BOARD_SIZE && p.c >= 0 && p.c < BOARD_SIZE) {
+      newPlacementsGrid[p.r][p.c] = { ...p, index: idx };
+    }
+  });
 
   const cells = [];
 
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const tile = board[r][c];
-      const newPlacement = getNewPlacement(r, c);
+      const newPlacement = newPlacementsGrid[r][c];
       const mult = getMultiplier(r, c);
 
       let cellClass = 'cell-plain';
@@ -88,14 +94,12 @@ export default function ScrabbleBoard({
               draggable={isNew}
               onDragStart={(e) => {
                 if (isNew && onDragStartTile) {
-                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
-                  onDragStartTile(e, idx, r, c);
+                  onDragStartTile(e, newPlacement.index, r, c);
                 }
               }}
               onTouchStart={(e) => {
                 if (isNew && onTouchStartTile) {
-                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
-                  onTouchStartTile(e, idx);
+                  onTouchStartTile(e, newPlacement.index);
                 }
               }}
               className={`scrabble-tile ${isNew ? 'new-placement' : ''} ${isBlank ? 'blank-tile' : ''} ${isNew ? 'cursor-grab active:cursor-grabbing' : ''}`}
