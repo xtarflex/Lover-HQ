@@ -40,3 +40,7 @@
 **Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
 **Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
 
+
+## 2024-10-02 - Optimize grid-based loops with O(1) lookups
+**Learning:** When calculating values inside a 2D nested loop for a grid React component (like a 15x15 Scrabble board), avoid recalculating constants or iterating over arrays (e.g. `array.find` or array instantiations). Repeatedly calling array methods or array allocations inside an inner render loop results in severe O(N^2) or higher processing overhead.
+**Action:** Use `Map` or precomputed 2D arrays initialized outside the component or before the render loops for O(1) lookups. This applies to placement maps and constant properties like board multipliers.

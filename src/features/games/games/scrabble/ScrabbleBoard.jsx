@@ -27,17 +27,16 @@ export default function ScrabbleBoard({
   onDropCell,
   onTouchStartTile,
 }) {
-  // Helper to check if a tile is placed in this cell this turn
-  const getNewPlacement = (r, c) => {
-    return newPlacements.find((p) => p.r === r && p.c === c);
-  };
+  const placementsMap = new Map(
+    newPlacements.map((p, idx) => [`${p.r},${p.c}`, { ...p, originalIndex: idx }])
+  );
 
   const cells = [];
 
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const tile = board[r][c];
-      const newPlacement = getNewPlacement(r, c);
+      const newPlacement = placementsMap.get(`${r},${c}`);
       const mult = getMultiplier(r, c);
 
       let cellClass = 'cell-plain';
@@ -88,14 +87,12 @@ export default function ScrabbleBoard({
               draggable={isNew}
               onDragStart={(e) => {
                 if (isNew && onDragStartTile) {
-                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
-                  onDragStartTile(e, idx, r, c);
+                  onDragStartTile(e, newPlacement.originalIndex, r, c);
                 }
               }}
               onTouchStart={(e) => {
                 if (isNew && onTouchStartTile) {
-                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
-                  onTouchStartTile(e, idx);
+                  onTouchStartTile(e, newPlacement.originalIndex);
                 }
               }}
               className={`scrabble-tile ${isNew ? 'new-placement' : ''} ${isBlank ? 'blank-tile' : ''} ${isNew ? 'cursor-grab active:cursor-grabbing' : ''}`}
