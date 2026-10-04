@@ -7,6 +7,10 @@ import React from 'react';
 import { getMultiplier, BOARD_SIZE } from './utils/scoring';
 import { getLetterScore } from './utils/tileBag';
 
+const BOARD_MULTIPLIERS = Array.from({ length: BOARD_SIZE }, (_, r) =>
+  Array.from({ length: BOARD_SIZE }, (_, c) => getMultiplier(r, c))
+);
+
 /**
  * @param {object} props
  * @param {string[][]} props.board - Immutable board state (grid of letters or null).
@@ -27,18 +31,19 @@ export default function ScrabbleBoard({
   onDropCell,
   onTouchStartTile,
 }) {
-  // Helper to check if a tile is placed in this cell this turn
-  const getNewPlacement = (r, c) => {
-    return newPlacements.find((p) => p.r === r && p.c === c);
-  };
+  const placementsMap = React.useMemo(() => {
+    const map = new Map();
+    newPlacements.forEach((p, idx) => map.set(`${p.r},${p.c}`, { ...p, idx }));
+    return map;
+  }, [newPlacements]);
 
   const cells = [];
 
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const tile = board[r][c];
-      const newPlacement = getNewPlacement(r, c);
-      const mult = getMultiplier(r, c);
+      const newPlacement = placementsMap.get(`${r},${c}`);
+      const mult = BOARD_MULTIPLIERS[r][c];
 
       let cellClass = 'cell-plain';
       let multText = '';
@@ -88,14 +93,12 @@ export default function ScrabbleBoard({
               draggable={isNew}
               onDragStart={(e) => {
                 if (isNew && onDragStartTile) {
-                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
-                  onDragStartTile(e, idx, r, c);
+                  onDragStartTile(e, newPlacement.idx, r, c);
                 }
               }}
               onTouchStart={(e) => {
                 if (isNew && onTouchStartTile) {
-                  const idx = newPlacements.findIndex((p) => p.r === r && p.c === c);
-                  onTouchStartTile(e, idx);
+                  onTouchStartTile(e, newPlacement.idx);
                 }
               }}
               className={`scrabble-tile ${isNew ? 'new-placement' : ''} ${isBlank ? 'blank-tile' : ''} ${isNew ? 'cursor-grab active:cursor-grabbing' : ''}`}
