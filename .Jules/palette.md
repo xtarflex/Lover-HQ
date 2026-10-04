@@ -34,3 +34,6 @@
 ## 2026-09-21 - aria-labels for Chat input fields
 **Learning:** The Chat feature's input fields (like the emoji search, media caption, and voice note slider) lack `aria-label` attributes or matching `id`s for labels, which makes them inaccessible to screen readers as they do not provide context.
 **Action:** Ensure all inputs, especially those without visible text labels (like search bars, sliders, or inline form inputs), include an explicit `aria-label` attribute if they do not have a linked `<label>` element.
+## 2024-10-04 - Accessible Modals
+**Learning:** Icon-only close buttons in modals (like `<X />` in game headers) are completely invisible to screen readers without explicit ARIA labels.
+**Action:** Ensure all icon-only functional buttons, especially those controlling modal state like close, back, or confirm, have descriptive `aria-label`s.

@@ -258,6 +258,7 @@ export default function GameHeader({
                 </h4>
                 <button
                   onClick={() => setShowRules(false)}
+                  aria-label="Close rules"
                   className="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
                 >
                   <X className="w-4 h-4" />
