@@ -225,7 +225,11 @@ Created for maintaining intimacy across distance. May your connection stay stron
 
 ## 📚 Additional Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Technical architecture details
-- [BRANDING.md](./BRANDING.md) - Design system and brand guidelines
-- [ROADMAP.md](./ROADMAP.md) - Development phases and milestones
-- [CODE_SNIPPETS.md](./CODE_SNIPPETS.md) - Reusable patterns and snippets
+- [doc/ARCHITECTURE.md](file:///c:/lover%20hq/doc/ARCHITECTURE.md) - System architecture and state topology
+- [doc/MODULES.md](file:///c:/lover%20hq/doc/MODULES.md) - Module breakdown and responsibilities
+- [doc/MOMENTS_ARCHITECTURE.md](file:///c:/lover%20hq/doc/MOMENTS_ARCHITECTURE.md) - Moments platform architecture, hybrid split, and sandbox specifications
+- [doc/MOMENTS_STRATEGY.md](file:///c:/lover%20hq/doc/MOMENTS_STRATEGY.md) - Moments implementation roadmap and developer SDK
+- [doc/DECISIONS.md](file:///c:/lover%20hq/doc/DECISIONS.md) - Architecture Decision Records (ADRs)
+- [doc/BRANDING.md](file:///c:/lover%20hq/doc/BRANDING.md) - Design system and brand guidelines
+- [doc/ROADMAP.md](file:///c:/lover%20hq/doc/ROADMAP.md) - Development phases and milestones
+- [doc/CODE_SNIPPETS.md](file:///c:/lover%20hq/doc/CODE_SNIPPETS.md) - Reusable patterns and snippets
