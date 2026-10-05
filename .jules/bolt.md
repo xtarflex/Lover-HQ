@@ -40,3 +40,6 @@
 **Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
 **Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
 
+## 2026-07-09 - Avoid Date Instantiation in Render Loops
+**Learning:** Comparing Supabase timestamps in React mapping loops by converting them to Date objects (`new Date(created_at).getTime() - new Date(last_seen).getTime()`) creates massive performance overhead on every keystroke/render in long lists.
+**Action:** Since Supabase timestamps are standard ISO 8601 strings (YYYY-MM-DDTHH:mm:ss.sssZ), they can be safely compared using standard JavaScript string comparison operators (`created_at > last_seen`), completely eliminating the Date instantiation overhead in hot paths.

@@ -89,10 +89,7 @@ export const MessageList = React.memo(function MessageList({
   pressTimer,
 }) {
   const partnerLastSeen = partnerLastSeenProp || partner?.last_seen;
-  const partnerLastSeenTimestamp = useMemo(
-    () => (partnerLastSeen ? Date.parse(partnerLastSeen) : null),
-    [partnerLastSeen]
-  );
+  const partnerLastSeenString = partnerLastSeen; // Optimization: direct ISO string comparison
   const touchStartPosRef = useRef(null);
 
   /**
@@ -175,13 +172,11 @@ export const MessageList = React.memo(function MessageList({
   const renderReadStatus = useCallback(
     (msg) => {
       if (!msg) return null;
-      // Optimization: Using Date.parse() against memoized partnerLastSeenTimestamp avoids
+      // Optimization: Using direct ISO string comparison against memoized partnerLastSeenString avoids
       // allocating Date objects for every message during the render loop.
       const isRead =
         presence?.partnerRoom === 'Chat Room' ||
-        (partnerLastSeenTimestamp &&
-          msg.created_at &&
-          Date.parse(msg.created_at) <= partnerLastSeenTimestamp);
+        (partnerLastSeenString && msg.created_at && msg.created_at <= partnerLastSeenString);
 
       if (isRead) {
         return <CheckCheck className="w-3 h-3 text-emerald-500" />;
@@ -194,7 +189,7 @@ export const MessageList = React.memo(function MessageList({
 
       return <Check className="w-3 h-3 text-gray-400" />;
     },
-    [presence?.partnerRoom, presence?.partner, partnerLastSeenTimestamp]
+    [presence?.partnerRoom, presence?.partner, partnerLastSeenString]
   );
 
   const content = useMemo(
