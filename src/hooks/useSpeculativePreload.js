@@ -32,7 +32,6 @@ export function useSpeculativePreload() {
       preloadComponent(() => import('../features/music/Music'));
       preloadComponent(() => import('../features/games/Games'));
       preloadComponent(() => import('../features/reveal/Reveal'));
-      preloadComponent(() => import('../features/board/Board'));
       preloadComponent(() => import('../features/profile/Profile'));
       preloadComponent(() => import('../features/settings/Settings'));
     }, 2000);

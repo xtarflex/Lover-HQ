@@ -29,6 +29,7 @@ import { usePreferences } from './hooks/usePreferences';
 import { useAuthSync } from './hooks/useAuthSync';
 import { useSpeculativePreload } from './hooks/useSpeculativePreload';
 import { useSyncPreferencesToStorage } from './hooks/useSyncPreferencesToStorage';
+import { useUnreadChatSync } from './hooks/useUnreadChatSync';
 import GameInviteModal from './components/GameInviteModal';
 import { Notification } from './components/Notification';
 import { MusicProvider } from './contexts/MusicContext';
@@ -43,10 +44,11 @@ const Fridge = lazy(() => import('./features/fridge/Fridge'));
 const Music = lazy(() => import('./features/music/Music'));
 const Games = lazy(() => import('./features/games/Games'));
 const Reveal = lazy(() => import('./features/reveal/Reveal'));
-const Board = lazy(() => import('./features/board/Board'));
 const Profile = lazy(() => import('./features/profile/Profile'));
 const Settings = lazy(() => import('./features/settings/Settings'));
 const Chat = lazy(() => import('./features/chat/Chat'));
+const Theatre = lazy(() => import('./features/theatre/Theatre'));
+const Journal = lazy(() => import('./features/journal/Journal'));
 
 /**
  * Inner layout shell rendered for every authenticated route. Renders the
@@ -98,6 +100,10 @@ function MainLayout() {
         return 'Settings';
       case 'chat':
         return 'Chat Room';
+      case 'theatre':
+        return 'Theatre Room';
+      case 'journal':
+        return 'Journal Room';
       default:
         return 'Lover-HQ';
     }
@@ -105,6 +111,7 @@ function MainLayout() {
 
   const friendlyRoomName = getFriendlyRoomName(location.pathname);
   usePresence(friendlyRoomName);
+  useUnreadChatSync(location.pathname);
 
   const isFridgeRoute = location.pathname === '/fridge';
   const isGamesRoute = location.pathname === '/games';
@@ -301,10 +308,11 @@ export default function App() {
             <Route path="/music" element={<Music />} />
             <Route path="/games" element={<Games />} />
             <Route path="/reveal" element={<Reveal />} />
-            <Route path="/board" element={<Board />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/theatre" element={<Theatre />} />
+            <Route path="/journal" element={<Journal />} />
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
         </Routes>

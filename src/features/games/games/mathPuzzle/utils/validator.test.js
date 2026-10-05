@@ -51,6 +51,20 @@ describe('CrossMath validator', () => {
       expect(checkRowEquation(grid, 0)).toBe('incorrect');
     });
 
+    it('should return incorrect for equations evaluating to negative numbers', () => {
+      // 5 - 12 = -7 (negative result, invalid in CrossMath)
+      const grid = [
+        [
+          { type: 'number', value: 5 },
+          { type: 'operator', value: '-' },
+          { type: 'number', value: 12 },
+          { type: 'equals', value: '=' },
+          { type: 'result', value: 3 },
+        ],
+      ];
+      expect(checkRowEquation(grid, 0)).toBe('incorrect');
+    });
+
     it('should return incomplete if numbers are empty/null', () => {
       const grid = [
         [

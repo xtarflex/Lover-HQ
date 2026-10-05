@@ -47,7 +47,6 @@ export default function Profile() {
 
   useEffect(() => {
     if (editTarget) {
-
       setName(editTarget.name || '');
       setAvatarUrl(editTarget.avatar_url || '');
     }
@@ -262,7 +261,10 @@ export default function Profile() {
 
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="partner-email" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                    <label
+                      htmlFor="partner-email"
+                      className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+                    >
                       Email Address
                     </label>
                     <div className="relative">
@@ -278,7 +280,10 @@ export default function Profile() {
                   </div>
 
                   <div>
-                    <label htmlFor="partner-phone" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                    <label
+                      htmlFor="partner-phone"
+                      className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+                    >
                       Phone Number
                     </label>
                     <div className="relative">
@@ -294,7 +299,10 @@ export default function Profile() {
                   </div>
 
                   <div>
-                    <label htmlFor="partner-birthday" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                    <label
+                      htmlFor="partner-birthday"
+                      className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2"
+                    >
                       Birthday
                     </label>
                     <div className="relative">

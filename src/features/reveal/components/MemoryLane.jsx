@@ -200,7 +200,9 @@ export default function MemoryLane({
       {(() => {
         const selectedMemory = filteredMemories.find((mem) => mem.question_id === expandedMemoryId);
         const q = selectedMemory ? getQuestionDetails(selectedMemory.question_id) : null;
-        const commentsList = selectedMemory ? (archiveComments[selectedMemory.question_id] || []) : [];
+        const commentsList = selectedMemory
+          ? archiveComments[selectedMemory.question_id] || []
+          : [];
 
         return (
           <BottomDrawer isOpen={!!selectedMemory} onClose={() => setExpandedMemoryId(null)}>
@@ -322,7 +324,10 @@ export default function MemoryLane({
                     className="flex-grow bg-slate-950/20 dark:bg-slate-950/40 border border-surface-border/60 dark:border-slate-800/80 text-text-main placeholder:text-text-muted/40 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-primary transition-colors"
                     maxLength={200}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (newCommentTexts[selectedMemory.question_id] || '').trim()) {
+                      if (
+                        e.key === 'Enter' &&
+                        (newCommentTexts[selectedMemory.question_id] || '').trim()
+                      ) {
                         onAddComment(selectedMemory.question_id);
                       }
                     }}

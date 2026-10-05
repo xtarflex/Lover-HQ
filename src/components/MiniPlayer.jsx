@@ -201,7 +201,8 @@ export function MiniPlayer() {
   }, [currentTrack, lastTrackId]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  if (!currentTrack || isClosed || location.pathname === '/music') return null;
+  if (!currentTrack || isClosed || location.pathname === '/music' || location.pathname === '/home')
+    return null;
 
   const artworkUrl = getTrackArtwork(currentTrack);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
