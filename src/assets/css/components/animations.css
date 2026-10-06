@@ -149,3 +149,30 @@
   animation: pulse-gold 1s ease-in-out 2;
 }
 
+/* Chassis border revolving lights 3-sequence animation:
+   Sequence 1: Slow clockwise (0% -> 50%)
+   Sequence 2: Semi-fast counter-clockwise (50% -> 80%)
+   Sequence 3: Faster clockwise again (80% -> 100%)
+   All phases driven by smooth cubic easing. */
+@keyframes chassis-revolve-tri-sequence {
+  0% {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+  }
+  50% {
+    stroke-dashoffset: -100;
+    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+  }
+  80% {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+  }
+  100% {
+    stroke-dashoffset: -100;
+  }
+}
+
+.animate-chassis-revolve {
+  animation: chassis-revolve-tri-sequence 9s infinite;
+}
+

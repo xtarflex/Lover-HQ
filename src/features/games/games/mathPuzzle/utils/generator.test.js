@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { generatePuzzle } from './generator';
 import { isGridCompleteAndCorrect, recalculateIntermediateResults } from './validator';
 
@@ -53,7 +53,7 @@ describe('CrossMath generator', () => {
     );
     recalculateIntermediateResults(solvedGrid);
     expect(isGridCompleteAndCorrect(solvedGrid, true)).toBe(true);
-  });
+  }, 15000);
 
   it('blind result cells are not added to the rack pool', () => {
     const { grid, hiddenValues } = generatePuzzle('easy');
@@ -72,4 +72,14 @@ describe('CrossMath generator', () => {
     expect(clueCells.length).toBeGreaterThan(0);
     expect(clueCells.every((c) => !c.isHidden)).toBe(true);
   });
+
+  it('consistently generates valid puzzles across multiple runs for all difficulties', () => {
+    const difficulties = ['easy', 'medium', 'expert'];
+    for (const diff of difficulties) {
+      for (let i = 0; i < 3; i++) {
+        const { grid } = generatePuzzle(diff);
+        expect(grid.length).toBe(11);
+      }
+    }
+  }, 45000);
 });

@@ -94,7 +94,8 @@ export default function Games() {
         <div className="space-y-2">
           <h2 className="font-heading text-2xl font-extrabold text-text-main">Pairing Required</h2>
           <p className="text-sm text-text-muted max-w-xs mx-auto leading-relaxed">
-            The Game Room is built for two. Link up with your partner to unlock turn-based games, challenge each other, and see who wins!
+            The Game Room is built for two. Link up with your partner to unlock turn-based games,
+            challenge each other, and see who wins!
           </p>
         </div>
         <button

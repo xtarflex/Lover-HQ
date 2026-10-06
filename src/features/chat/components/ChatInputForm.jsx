@@ -57,6 +57,15 @@ export function ChatInputForm({
     }
   }, [newMessageText]);
 
+  // Auto-focus and place cursor at end if initialized with prefilled text
+  useEffect(() => {
+    if (newMessageText && textareaRef.current && document.activeElement !== textareaRef.current) {
+      textareaRef.current.focus();
+      const length = textareaRef.current.value.length;
+      textareaRef.current.setSelectionRange(length, length);
+    }
+  }, [newMessageText]);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();

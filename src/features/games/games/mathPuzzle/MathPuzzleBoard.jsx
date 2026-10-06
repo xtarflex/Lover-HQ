@@ -115,26 +115,20 @@ export default function MathPuzzleBoard({
         continue;
       }
 
-      // --- Blind result N cell (isBlind=true): value hidden, NOT in rack ---
-      // Renders as a blank dark tile. Player deduces from context.
-      if (cell.type === 'number' && cell.isBlind) {
-        cells.push(
-          <div
-            key={key}
-            className={`math-cell math-cell-blind-result ${statusClass}`}
-            aria-label={`Hidden result at row ${r + 1}, col ${c + 1}`}
-          />
-        );
-        continue;
-      }
-
-      // --- Visible result N cell (isClue=true, auto-computed anchor) ---
+      // --- Result N cell (follows =) ---
+      // Dynamically displays calculated derived value (cell.currentValue) of the equation,
+      // and uses statusClass (math-eq-correct / math-eq-incorrect) for color feedback.
       const isResultCell =
         cell.type === 'number' &&
         (isCellHorizontalResult(grid, r, c) || isCellVerticalResult(grid, r, c));
 
-      if (isResultCell && cell.isClue) {
-        const val = cell.currentValue ?? cell.value;
+      if (isResultCell) {
+        const val =
+          cell.currentValue !== undefined && cell.currentValue !== null
+            ? cell.currentValue
+            : cell.isClue
+              ? cell.value
+              : null;
         const hasVal = val !== undefined && val !== null && val !== '' && !isNaN(val);
         const valStr = hasVal ? String(val) : '';
         const style =
@@ -142,13 +136,14 @@ export default function MathPuzzleBoard({
         cells.push(
           <div
             key={key}
-            className={`math-cell math-cell-result math-cell-intermediate has-value ${statusClass}`}
+            className={`math-cell math-cell-result math-cell-intermediate ${hasVal ? 'has-value' : ''} ${statusClass}`}
             style={style}
             aria-label={`Result ${hasVal ? val : 'empty'}`}
           >
             {hasVal ? val : ''}
           </div>
         );
+        continue;
       } else if (cell.type === 'number') {
         // Visible independent N cell (given clue)
         const valStr = String(cell.value ?? '');

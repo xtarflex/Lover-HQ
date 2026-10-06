@@ -37,7 +37,7 @@ let mockQueueRows = [];
  * We call this lazily so vitest hoisting doesn't cause problems.
  * @returns {object}
  */
- async () => {
+async () => {
   const { default: supabaseMock } = await import('@/hooks/useSupabase');
   return supabaseMock;
 };

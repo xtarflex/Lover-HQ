@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppContext, useAppDispatch } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
@@ -47,14 +47,25 @@ export default function Chat() {
   const { user, partner, presence } = useAppContext();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const userId = user?.id;
   const partnerId = partner?.id;
 
-  const [newMessageText, setNewMessageText] = useState('');
+  const [newMessageText, setNewMessageText] = useState(() => location.state?.prefilledText || '');
   const [referencedItem, setReferencedItem] = useState(null);
   const [replyMessage, setReplyMessage] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [editText, setEditText] = useState('');
+
+  // Synchronize prefilled spark message when navigated with route state
+  /* eslint-disable react-hooks/set-state-in-effect -- Synchronize route prefilled prompt to input state */
+  useEffect(() => {
+    if (location.state?.prefilledText) {
+      setNewMessageText(location.state.prefilledText);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.prefilledText, navigate, location.pathname]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const [fridgeItems, setFridgeItems] = useState([]);
   const [showItemSelector, setShowItemSelector] = useState(false);
@@ -540,10 +551,10 @@ export default function Chat() {
 
   return (
     <motion.div
-      initial={{ x: '100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '100%' }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
       className="flex flex-col h-full w-full bg-slate-950 text-white relative overflow-hidden transition-all duration-300"
       style={{
         ...(bgStyles[chatBg] || bgStyles.doodle),

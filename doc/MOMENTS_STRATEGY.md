@@ -37,34 +37,25 @@ Third-party and first-party developers interact with Lover-HQ through a typed NP
 ```javascript
 import { LoverHQ } from '@lover-hq/moment-sdk';
 
-// 1. Initialize the session handshake
+// 1. Initialize the session handshake (Zero PII)
 const session = await LoverHQ.init();
 console.log(`Connected as ${session.displayName}. Partner is ${session.partner.displayName}`);
 
-// 2. Listen for partner actions
-LoverHQ.on('action', ({ type, payload }) => {
-  if (type === 'PLACE_TOKEN') {
-    renderToken(payload.x, payload.y);
-  }
-});
+// 2. Gameplay Loop (Handled by Developer's Server or WebSockets)
+// In a serverless/turn-based game, developers can relay events:
+myGameSocket.on('move', (data) => renderBoard(data));
 
-// 3. Dispatch an action to the partner
-function handleCellClick(x, y) {
-  renderToken(x, y);
-  LoverHQ.dispatchAction({
-    type: 'PLACE_TOKEN',
-    payload: { x, y }
+// 3. Optional Convenience Storage (For lightweight serverless applets <= 256KB)
+await LoverHQ.storage.set('settings', { soundEnabled: true });
+
+// 4. Report Final Match Outcome to Lover-HQ
+function handleGameOver(winnerId) {
+  LoverHQ.completeSession({
+    winnerId,
+    scores: { player1: 10, player2: 8 },
+    summary: "Match concluded with a close victory!"
   });
 }
-
-// 4. Save persistent state (for utility moments or resume snapshots)
-await LoverHQ.saveState({ boardState: currentBoard });
-
-// 5. Complete session
-LoverHQ.completeSession({
-  winnerId: session.participantId,
-  scores: { [session.participantId]: 1, [session.partner.participantId]: 0 }
-});
 ```
 
 ---
@@ -86,7 +77,7 @@ gantt
     Validate Realtime Turn Latency & Sync       :p2_4, after p2_3, 5d
     section Phase 3: Database & Multi-Category
     Create Supabase Catalog & Session Tables    :p3_1, after p2_4, 6d
-    Implement Couple Key-Value Store API        :p3_2, after p3_1, 5d
+    Implement Optional Convenience Cache API    :p3_2, after p3_1, 5d
     section Phase 4: UI Surfaces & Routing
     Build Dedicated Moments Hub (/moments)       :p4_1, after p3_2, 7d
     Refactor Games Lobby (/games)                :p4_2, after p4_1, 6d
@@ -96,23 +87,23 @@ gantt
 ### Phase Details
 
 #### Phase 1: Core Host Container & Bridge
-- Build [`src/components/moments/MomentFrameHost.jsx`](file:///c:/lover%20hq/src/components/moments/MomentFrameHost.jsx) with strict sandbox flags (`allow-scripts allow-same-origin allow-forms`).
-- Develop the `useMomentBridge` hook to manage the `postMessage` protocol, map messages to active Supabase Realtime channels, and handle unmount cleanup.
+- Build `src/components/moments/MomentFrameHost.jsx` with strict sandbox flags (`allow-scripts allow-same-origin allow-forms`).
+- Develop the `useMomentBridge` hook to manage the `postMessage` protocol, validate incoming messages, and trigger native modals.
 - Add error boundary fallbacks for network dropouts or broken remote endpoints.
 
 #### Phase 2: First-Party Dogfooding Pilot (Tic-Tac-Toe)
 - **Target Selection:** Extract [`src/features/games/games/ticTacToe/`](file:///c:/lover%20hq/src/features/games/games/ticTacToe/) into a clean, standalone repository.
 - **Validation Checklist:**
   - Zero CORS or CSP console errors during initial handshake.
-  - Round-trip turn latency $< 80\text{ms}$ over Supabase Realtime broadcast.
+  - Round-trip turn latency $< 80\text{ms}$.
   - Accurate partner connection state reflected in the host status pill.
   - Instant cleanup on tab close without zombie channel subscriptions.
 
 #### Phase 3: Supabase Schema & State Engine
-- Deploy migration scripts for `moments_catalog`, `couple_installed_moments`, `couple_moment_data`, and `moment_sessions`.
-- Enable Row-Level Security (RLS) guaranteeing that `couple_installed_moments` and `couple_moment_data` are accessible strictly by the authenticated couple members.
+- Deploy migration scripts for `moments_catalog`, `couple_installed_moments`, `couple_moment_cache`, and `moment_sessions`.
+- Enable Row-Level Security (RLS) guaranteeing that `couple_installed_moments` and `couple_moment_cache` are accessible strictly by the authenticated couple members.
 
 #### Phase 4: Storefront & Hub Experiences
 - **`/moments`:** Launch the Moments Hub supporting tabs for *All*, *Games*, and *Together Spaces*.
 - **`/games`:** Streamline the Game Room to consume the Moments registry for game items, displaying both installed favorites and discoverable titles.
-- **Dashboard Hooks:** Expose `useInstalledMoments({ category: 'utility', pinnedOnly: true })` ready for upcoming dashboard widgets.
+- **Dashboard Integration:** Expose `useInstalledMoments({ category: 'utility', pinnedOnly: true })` ready for mobile dashboard grid widgets.

@@ -200,7 +200,7 @@ export function checkEquationStatus(eq, grid, useRawValues = false) {
   const numValues = eq.numbers.map(Number);
   const actualResult = evaluateEquation(numValues, eq.operators);
 
-  if (isNaN(actualResult)) return 'incorrect';
+  if (isNaN(actualResult) || actualResult < 0) return 'incorrect';
 
   // If we are strictly checking the generated target values (e.g. during solving/generating),
   // do full strict validation.

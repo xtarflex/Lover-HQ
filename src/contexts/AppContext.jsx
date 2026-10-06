@@ -17,6 +17,7 @@ const initialState = {
   globalNotification: null,
   activeGameId: null,
   isAuthLoading: true,
+  unreadChatCount: 0,
 };
 
 const AppContext = createContext(null);
@@ -95,6 +96,8 @@ function appReducer(state, action) {
       return { ...state, globalNotification: action.payload };
     case 'SET_ACTIVE_GAME':
       return { ...state, activeGameId: action.payload };
+    case 'SET_UNREAD_CHAT_COUNT':
+      return { ...state, unreadChatCount: action.payload };
     case 'RESET_STATE':
       return { ...initialState, isAuthLoading: false };
     default:

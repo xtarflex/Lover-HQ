@@ -129,8 +129,7 @@ export default function GameHeader({
           </button>
         </div>
 
-        <div className="flex items-center justify-end min-w-[40px]">
-        </div>
+        <div className="flex items-center justify-end min-w-[40px]"></div>
       </div>
 
       {/* Bottom Match Board: Player Cards + VS Split */}

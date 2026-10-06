@@ -121,22 +121,27 @@ Lover-HQ is hosted on Netlify's free tier. In the event that monthly build minut
 
 ---
 
-## ADR-007: Moments Iframe Architecture & Host-Mediated Proxy
+## ADR-007: Moments Iframe Architecture & Hybrid Split Model
 
 ### Status
 Accepted
 
 ### Context
-Lover-HQ features interactive multiplayer games and couple activities. Historically, all games were hardcoded directly as built-in React components within `src/features/games/games/`. This tightly coupled external game complexity to the core bundle, prevented independent authoring by creators, risked application stability if a game encountered unhandled runtime exceptions, and restricted interactive modules strictly to the games category.
+Lover-HQ features interactive multiplayer games and couple activities. Historically, all games were hardcoded directly as built-in React components within `src/features/games/games/`. This tightly coupled external game complexity to the core bundle, prevented independent authoring by creators, risked application stability if a game encountered unhandled runtime exceptions, and restricted interactive modules strictly to the games category. Furthermore, attempting to host arbitrary real-time game loops and unbounded JSON databases for third-party developers would balloon Supabase bandwidth and compute costs.
 
 ### Decision
 - Transition to an extensible, sandboxed micro-app platform branded as **Moments**, spanning both **Game Moments** and **Together / Utility Moments**.
 - Execute embedded Moments inside a hardened HTML5 `<iframe>` using strict sandboxing (`sandbox="allow-scripts allow-same-origin allow-forms"` with `allow-top-navigation` strictly omitted).
-- Enforce the **Host-Mediated Proxy Pattern**: The iframe has zero direct network access to Lover-HQ databases or Supabase tokens. All real-time messaging, state snapshots, and presence signals flow via a typed `postMessage` protocol through Lover-HQ's host shell using `@lover-hq/moment-sdk`.
+- Adopt the **Industry-Standard Hybrid Split Model** (mirroring Discord Activities):
+  - **Lover-HQ Core Platform**: Manages user authentication (zero PII passed; opaque session tokens), storefront catalog discovery, couple installation states, and high-level outcome ingestion (`completeSession` reporting winner and scores to trigger celebratory modals and chat milestones).
+  - **Third-Party Creators**: Maintain authoritative gameplay loops, custom databases, and real-time multiplayer servers on their own infrastructure (AWS, Supabase, Firebase, WebSockets).
+  - **Convenience Cache Helper**: Provide an optional, scoped key-value store (`couple_moment_cache`) strictly capped at $\le$ 256KB per couple per Moment for serverless applets.
+  - **First-Party Exception**: Official built-in games and relationship utilities continue utilizing Lover-HQ's internal Supabase Realtime channels.
 - Retain existing built-in games via the **Strangler Fig Pattern** while dogfooding the iframe bridge with an extracted Tic-Tac-Toe pilot.
 
 ### Consequences
 - **Positive**: Complete process isolation; buggy or malicious third-party code cannot crash or hijack Lover-HQ.
+- **Positive**: Cost and quota protection; Lover-HQ is never billed for high-frequency third-party gameplay loops or unbounded database tables.
 - **Positive**: Language and engine agnosticism—creators can build in vanilla JS, Canvas, React, Phaser, Pixi, or WebGL engines.
 - **Positive**: Unifies games and living couple utilities under a common runtime and catalog.
 - **Negative**: Requires careful host-shell overlay design (reaction trays, partner status pills) to maintain a cohesive, native look and feel.
