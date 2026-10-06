@@ -35,10 +35,44 @@ export function useMusicSync({
   // Track the timestamp of the last local user interaction to prevent race conditions
   const lastLocalActionAt = useRef(0);
 
-  useEffect(() => {
-    if (!user || !user.id || !user.partner_id) return;
+  const currentTrackIdRef = useRef(currentTrackId);
+  const isPlayingRef = useRef(isPlaying);
+  const onRemotePlayRef = useRef(onRemotePlay);
+  const onRemotePauseRef = useRef(onRemotePause);
+  const onRemoteSeekRef = useRef(onRemoteSeek);
+  const getCurrentTimeRef = useRef(getCurrentTime);
 
-    const sortedIds = [user.id, user.partner_id].sort();
+  useEffect(() => {
+    currentTrackIdRef.current = currentTrackId;
+  }, [currentTrackId]);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  useEffect(() => {
+    onRemotePlayRef.current = onRemotePlay;
+  }, [onRemotePlay]);
+
+  useEffect(() => {
+    onRemotePauseRef.current = onRemotePause;
+  }, [onRemotePause]);
+
+  useEffect(() => {
+    onRemoteSeekRef.current = onRemoteSeek;
+  }, [onRemoteSeek]);
+
+  useEffect(() => {
+    getCurrentTimeRef.current = getCurrentTime;
+  }, [getCurrentTime]);
+
+  const userId = user?.id;
+  const partnerId = user?.partner_id;
+
+  useEffect(() => {
+    if (!userId || !partnerId) return;
+
+    const sortedIds = [userId, partnerId].sort();
     const channelName = `music:pair:${sortedIds.join('_')}`;
     const channel = supabase.channel(channelName);
     channelRef.current = channel;
@@ -49,32 +83,39 @@ export function useMusicSync({
 
     channel
       .on('broadcast', { event: 'play' }, ({ payload }) => {
-        if (payload.senderId !== user.id) {
+        if (!payload || typeof payload !== 'object') return;
+        if (payload.senderId !== userId) {
           if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
-            onRemotePlay(payload.trackId, payload.timestamp);
+            onRemotePlayRef.current?.(payload.trackId, payload.timestamp);
           }
         }
       })
       .on('broadcast', { event: 'pause' }, ({ payload }) => {
-        if (payload.senderId !== user.id) {
+        if (!payload || typeof payload !== 'object') return;
+        if (payload.senderId !== userId) {
           if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
-            onRemotePause();
+            onRemotePauseRef.current?.();
           }
         }
       })
       .on('broadcast', { event: 'seek' }, ({ payload }) => {
-        if (payload.senderId !== user.id) {
+        if (!payload || typeof payload !== 'object') return;
+        if (payload.senderId !== userId) {
           if (!isRecentLocalAction() || payload.eventSentAt > lastLocalActionAt.current) {
-            onRemoteSeek(payload.timestamp);
+            onRemoteSeekRef.current?.(payload.timestamp);
           }
         }
       })
       .on('broadcast', { event: 'heartbeat' }, ({ payload }) => {
-        if (payload.senderId === user.id) return;
+        if (!payload || typeof payload !== 'object' || payload.senderId === userId) return;
 
         // Passive sync correction logic:
-        if (payload.trackId === currentTrackId && payload.isPlaying && isPlaying) {
-          const localTime = getCurrentTime();
+        if (
+          payload.trackId === currentTrackIdRef.current &&
+          payload.isPlaying &&
+          isPlayingRef.current
+        ) {
+          const localTime = getCurrentTimeRef.current ? getCurrentTimeRef.current() : 0;
 
           if (
             payload.timestamp > localTime + 1.5 &&
@@ -83,7 +124,7 @@ export function useMusicSync({
             console.debug(
               `Sync drift detected: partner is ahead. Correcting time to match partner.`
             );
-            onRemoteSeek(payload.timestamp);
+            onRemoteSeekRef.current?.(payload.timestamp);
           }
         }
       })
@@ -98,16 +139,7 @@ export function useMusicSync({
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [
-    user,
-    currentTrackId,
-    isPlaying,
-    onRemotePlay,
-    onRemotePause,
-    onRemoteSeek,
-    getCurrentTime,
-    supabase,
-  ]);
+  }, [userId, partnerId, supabase]);
 
   /**
    * Broadcast a play action to the partner.

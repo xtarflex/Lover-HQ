@@ -1,65 +1,59 @@
-# Lover-HQ Agent Context & Knowledge
+# 🤖 Lover-HQ Agent Guidelines & Guardrails
 
-This file contains the core knowledge, rules, and context for the Lover-HQ project. AI agents working on this repository must read and adhere to these guidelines.
+This document defines style guidelines, behavioral constraints, testing workflows, and instructions that AI agents working on this codebase must follow.
 
-## 1. Core Concept & App Architecture
+---
 
-*   **Project Vision:** Lover-HQ is a "private digital house" designed to maintain intimacy in a long-distance relationship. It's a specialized software solution meant to solve communication fatigue and asynchronous schedules, moving away from standard texting apps.
-*   **Platform:** Mobile-first Progressive Web App (PWA) designed to feel like a native app. Built with React + Vite + Supabase.
-*   **Target Audience:** Strictly for two users (the creator and their girlfriend).
-*   **App Shell Structure:**
-    *   **Top Bar:** Minimalist Logo (Left), Dynamic Status Indicator (Center, showing partner's activity or synced track), Partner's Avatar (Right, glowing when online).
-    *   **Main Content:** Dynamic space for rendering the active feature. Defaults to "The Fridge".
-    *   **Bottom Navigation:** Minimalist strip displaying the active room label, with an elevated, circular center "Home" button that opens a dashboard grid.
-*   **The Profile Logic:** Crucial concept. The app is partner-centric. Initial setup configures your own details, which are locked (or 24h grace period). The persistent "Profile" tab inside the app focuses *entirely* on viewing and interacting with the *partner's* details (e.g., mood tracker, their countdowns).
+## 1. Code Verification & Quality Gates
 
-## 2. Branding & UI Specifications
+Before staging, committing, or pushing code to GitHub, the agent must ALWAYS run local validation checks using the repository's package manager (**pnpm**):
 
-*   **Themes:**
-    *   **Default Theme (Dark):** Deep Slate/Charcoal background (`#0F172A`, `#1E293B`), Warm Gold primary accent (`#F59E0B`), Off-white text (`#F8FAFC`).
-    *   **Future Theme (Light):** White/Off-white background (`#FFFFFF`, `#F1F5F9`), Soft Pink/Red primary accent (`#EC4899`), Dark text (`#0F172A`).
-*   **Typography:**
-    *   **Headings:** Quicksand / Nunito (friendly, rounded).
-    *   **Body:** Inter / Roboto (clean, readable).
-    *   **Messages:** Caveat / Kalam (handwriting fonts for personal touch).
-*   **Logo & Icons:** Minimalist house outline with a subtle heart shape. Lucide React icons.
-*   **Tone:** Warm, asynchronous-focused (e.g., "A note was left" instead of "Message Sent").
+1. **Linting**: Run `pnpm lint` to ensure there are no ESLint errors.
+2. **Tests**: Run `pnpm test:run` to ensure all 400+ Vitest unit tests pass.
+3. **Build Check**: Run `pnpm build` to verify the production bundle builds without errors before opening PRs.
+4. **No Broken Code**: If any local check fails, the agent must resolve the lint errors or test failures before committing or pushing code.
 
-## 3. Strict Technical Rules & Architecture Requirements
+---
 
-Agents must adhere to these rules to ensure production-grade code:
+## 2. GitHub PR Merge & CI/CD Behavior
 
-*   **Workflow & Branching:** Always perform new development work on a dedicated feature branch. Do not commit or work directly on the `main` branch.
-*   **State Management:** Use Context API + `useReducer` for global state (e.g., `AppContext.jsx`). **DO NOT use prop drilling.**
-*   **Supabase Client:** Implement a **Singleton Pattern** for the Supabase API client (`src/lib/supabase.js`) to prevent multiple WebSocket connections and quota exhaustion.
-*   **Real-time Subscriptions:** Custom hooks (e.g., `useRealtimeSubscription`) MUST be used for Supabase real-time channels, and they **MUST include proper cleanup functions** on unmount to prevent memory leaks.
-*   **Security (RLS):** Database security relies on Row Level Security (RLS). Users can only read their own and their partner's data. Users can only update their partner's profile.
-*   **Type Safety:** Use JSDoc type definitions for all data structures (e.g., User, FridgeItem) to ensure type safety.
-*   **Resilience:** Wrap the app in an Error Boundary component to prevent total crashes.
-*   **Environment Variables:** Validate required environment variables (like Supabase URLs/keys) at startup using custom validation logic. Do not hardcode secrets.
-*   **Performance:**
-    *   Implement lazy loading for route components (`src/features/`) using `Suspense` and `react-router-dom`.
-    *   Implement proper loading states (e.g., `useAsyncData` hook) to prevent flashing empty content.
-*   **PWA Setup:** Use `vite-plugin-pwa` for service worker configuration (e.g., caching media and offline fallbacks).
-*   **Styling:** Use Tailwind CSS configured with design tokens (from branding specs). Strictly avoid magic strings.
-*   **Linting:** Adhere to standard recommended strict rules for ESLint and Prettier for React + Hooks.
+- **Verify CI/CD Status**: When merging a Pull Request (PR) on GitHub, the agent must ALWAYS wait for all CI/CD status checks to complete: `gh pr checks --watch --fail-fast`.
+- **No Early Merges**: Verify that all checks have successfully passed (`pass` status) before executing `gh pr merge`.
+- **Handle Failures**: If a check fails, inspect the logs, resolve the underlying errors on the source branch, push the fixes, and re-verify before attempting to merge.
 
-## 4. Feature Specifications (The Rooms)
+---
 
-1.  **The Fridge (Default View):** A shared canvas for handwriting-style notes, photos (max 1MB), and voice snippets (max 5MB). Drag-and-drop requires a "long-press to edit" mode for mobile. Uses Supabase real-time broadcast for dragging if both are online.
-2.  **The Listening Room:** A custom audio player. Syncs exactly for uploaded audio files using Supabase broadcast. External links (YouTube) offer optional sync or just "shared awareness" of what the partner is listening to.
-3.  **The Arcade (Games):** Turn-based games like Three Men's Morris. State stored in Supabase. Push notifications indicate when it's the user's turn.
-4.  **The Blind Reveal:** A daily Q&A where answers are blurred until both partners answer. Uses Supabase RLS to hide answers until conditions are met. Starts with a static JSON bank of prompts.
-5.  **The Board (Someday List):** A categorized bucket list. Can vote with hearts. Items can be marked as complete, prompting for a photo or memory to create a scrapbook effect.
-6.  **Onboarding/Pairing:** User sets up their own profile, generates a 6-digit pairing code (or invite link), and sends it to their partner. Partner inputs the code to sync accounts.
+## 3. Deployment & Commit Message Restrictions
 
-## 5. Development Phases
+- **No Unauthorized Deploys**: Never append `[release]`, `[feature release]`, `[deploy]`, or `[major]` tags to any commit message. You are strictly forbidden from triggering a production build unless the `deploy-trigger` skill has been explicitly activated by the user.
 
-*   **Phase 1:** Foundation (App shell, Supabase singleton, Context, Error Boundaries).
-*   **Phase 2:** Onboarding & Pairing.
-*   **Phase 3:** Presence indicator & Top Bar logic.
-*   **Phase 4:** The Fridge.
-*   **Phase 5:** Reveal (Blind Q&A).
-*   **Phase 6:** Games.
-*   **Phase 7:** Music Room.
-*   **Phase 8:** The Board.
+---
+
+## 4. Professional Code Abstraction & Naming Rules
+
+Enforce professional code abstraction at all times across UI components, files, CSS classes, and JavaScript identifiers:
+- **Detach Names from Prompts**: Never copy the user's prompt phrasing, conversational slang, or typos into variable names, CSS classes, or function identifiers.
+- **User-Facing UI Copy**: Apply the same abstraction to user-facing text. Never place raw prompt instructions or technical plumbing jargon directly onto the UI. Translate them into warm, polished, partner-centric, or professional application copy.
+- **Standardize Terminology**: Translate raw user intent into clean, industry-standard technical terms (e.g. "button to hide the popup" -> `dismissOverlay` or `toggleModal`).
+- **Contextual Naming**: Name variables based on their **function** and **data type**, following existing conventions (`is[Action]`, `handle[Event]`, `[Entity]Controller`).
+- **Avoid Literalism**: Do not treat the description of a problem as the name of the solution (e.g. do not name a bug-fix function `fixPlayLoopBug()`).
+- **Human-Centric Copy (No Mechanism-First Jargon)**: Never describe internal hardware actuators, backend plumbing, or sensory mechanics (e.g., "vibrates", "nudges", "cloud-sync engine", "fetching data") in user-facing text. Always translate the technical mechanism into the human benefit (e.g., replace *"Answer questions and watch as your partner gets real-time nudges and vibrations to answer"* with *"Answer fun questions together and see your partner's responses instantly"*).
+
+---
+
+## 5. Browser Permission Request Guidelines
+
+When requesting browser-level permissions (e.g. Geolocation, Notifications, Microphone, Camera):
+- **Diagnostic Catch Blocks**: Always catch permission rejection errors (like `NotAllowedError` or `PermissionDeniedError`) specifically.
+- **Actionable Advice**: Provide clear instructions guiding the user to the address bar (such as the 🔒 lock icon) to manually reset permissions, since browsers block automatic re-prompting once denied.
+- **Friendly Fallbacks**: Advise the user on alternative steps or device checks if the hardware is missing (e.g. `NotFoundError` or `DevicesNotFoundError`).
+
+---
+
+## 6. Architecture & Concurrency Rules
+
+- **Feature Branch Development**: Always perform new development work on a dedicated feature branch. Do not commit or work directly on the `main` branch.
+- **Context Isolation**: Keep high-frequency audio playback in `MusicContext` and general session state in `AppContext`. Always wrap context values in `useMemo`.
+- **Channel Decoupling**: Do not bind Supabase Realtime channel subscriptions to transient UI re-render states or room routes. Read dynamic values via `useRef` handles inside message listeners.
+- **Atomic Offline Queues**: Use concurrency locks (`isSyncingRef`) and atomic set reconciliation in offline storage queues to guarantee zero data loss.
+- **Singleton Pattern**: Always import the Supabase client from `src/lib/supabase.js`. Never call `createClient` inside components.
