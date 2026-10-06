@@ -40,3 +40,6 @@
 **Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
 **Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
 
+## 2026-09-23 - O(1) Lookups for Coordinate Checking During Rendering
+**Learning:** Checking grid coordinates against static lists (e.g. `dlSpots.some(([tr, tc]) => tr === r && tc === c)`) during per-cell mapping functions causes heavy O(N) array scans across loops, becoming an O(N²) overall rendering bottleneck.
+**Action:** Always pre-compute static grid data (like Scrabble board multipliers) into 2D arrays outside the function scope, allowing O(1) lookups during the render phase.
