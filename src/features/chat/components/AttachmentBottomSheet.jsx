@@ -20,6 +20,46 @@ import { FridgeItemList } from './FridgeItemList';
 import { ANIMATED_EMOJIS_BY_ID, getEmojiCdnUrl } from '../../fridge/components/emojiData';
 
 /**
+ * Backdrop motion variants with slight entrance delay to stagger behind button rotation.
+ */
+const BACKDROP_VARIANTS = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.2, delay: 0.15 },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.15, delay: 0 },
+  },
+};
+
+/**
+ * Bottom sheet panel motion variants with staggered entrance delay so plus button rotation plays first.
+ */
+const DRAWER_VARIANTS = {
+  hidden: { y: '100%' },
+  visible: {
+    y: 0,
+    transition: {
+      type: 'spring',
+      damping: 28,
+      stiffness: 350,
+      delay: 0.22,
+    },
+  },
+  exit: {
+    y: '100%',
+    transition: {
+      type: 'spring',
+      damping: 28,
+      stiffness: 350,
+      delay: 0,
+    },
+  },
+};
+
+/**
  * AttachmentBottomSheet Component.
  *
  * @param {{
@@ -65,19 +105,20 @@ export function AttachmentBottomSheet({
         <div className="fixed inset-0 z-[120] flex flex-col justify-end">
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            variants={BACKDROP_VARIANTS}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={handleDismiss}
             className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
           />
 
           {/* Smart Drag-to-Dismiss Panel */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+            variants={DRAWER_VARIANTS}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.6 }}

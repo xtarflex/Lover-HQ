@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSupabase } from './useSupabase';
 import { useAppDispatch, useAppContext } from '../contexts/AppContext';
 import { triggerBuzz, triggerPush } from '../utils/notification';
@@ -16,37 +16,28 @@ export function usePresence(roomName) {
   const dispatch = useAppDispatch();
   const { user } = useAppContext();
 
-  // Track last assigned room in a ref to avoid database write race conditions on page changes
-  const lastAssignedRoomRef = useRef(roomName);
+  const channelRef = useRef(null);
+  const roomNameRef = useRef(roomName);
+  const writeSeqRef = useRef(0);
 
-  useEffect(() => {
-    lastAssignedRoomRef.current = roomName;
-  }, [roomName]);
+  const userId = user?.id;
+  const partnerId = user?.partner_id;
 
-  // Single effect to manage the presence subscription and track updates
-  useEffect(() => {
-    if (!user || !user.id || !user.partner_id) return;
-
-    const sortedIds = [user.id, user.partner_id].sort();
-    const channelName = `presence:pair:${sortedIds.join('_')}`;
-    const channel = supabase.channel(channelName);
-
-    /**
-     * Updates the user's presence record in the database.
-     *
-     * @param {boolean} isOnline - Whether the user is currently online.
-     * @param {string|null} currentRoom - The room the user is currently in, or null.
-     * @returns {Promise<void>}
-     */
-    const updateDbPresence = async (isOnline, currentRoom) => {
-      // If setting offline/null, ensure we aren't overriding a newer active room update
-      if (!isOnline && lastAssignedRoomRef.current !== roomName) {
-        return;
-      }
+  /**
+   * Updates the user's presence record in the database with monotonic sequence tracking.
+   *
+   * @param {boolean} isOnline - Whether the user is currently online.
+   * @param {string|null} currentRoom - The room the user is currently in, or null.
+   * @returns {Promise<void>}
+   */
+  const updateDbPresence = useCallback(
+    async (isOnline, currentRoom) => {
+      if (!userId) return;
+      const seq = ++writeSeqRef.current;
       try {
         const { error } = await supabase.from('presence').upsert(
           {
-            user_id: user.id,
+            user_id: userId,
             is_online: isOnline,
             current_room: currentRoom,
             last_seen: new Date().toISOString(),
@@ -54,13 +45,41 @@ export function usePresence(roomName) {
           { onConflict: 'user_id' }
         );
 
-        if (error) {
+        if (error && seq === writeSeqRef.current) {
           console.error('Error updating presence in DB:', error);
         }
       } catch (err) {
-        console.error('Failed to update presence in DB:', err);
+        if (seq === writeSeqRef.current) {
+          console.error('Failed to update presence in DB:', err);
+        }
       }
-    };
+    },
+    [userId, supabase]
+  );
+
+  // Synchronize room transitions without tearing down the Realtime channel
+  useEffect(() => {
+    roomNameRef.current = roomName;
+    const channel = channelRef.current;
+    if (channel && channel.state === 'joined' && userId) {
+      channel.track({
+        user_id: userId,
+        current_room: roomName,
+        is_online: true,
+        last_seen: new Date().toISOString(),
+      });
+      updateDbPresence(true, roomName);
+    }
+  }, [roomName, userId, updateDbPresence]);
+
+  // Manage Realtime channel lifecycle bound to the user pair session
+  useEffect(() => {
+    if (!userId || !partnerId) return;
+
+    const sortedIds = [userId, partnerId].sort();
+    const channelName = `presence:pair:${sortedIds.join('_')}`;
+    const channel = supabase.channel(channelName);
+    channelRef.current = channel;
 
     let heartbeatInterval = null;
 
@@ -70,9 +89,9 @@ export function usePresence(roomName) {
         const presences = Object.values(state).flat();
 
         // Find partner's presence
-        const partnerPresence = presences.find((p) => p.user_id === user.partner_id);
+        const partnerPresence = presences.find((p) => p.user_id === partnerId);
         // Find own presence
-        const ownPresence = presences.find((p) => p.user_id === user.id);
+        const ownPresence = presences.find((p) => p.user_id === userId);
 
         dispatch({
           type: 'SET_PRESENCE',
@@ -84,7 +103,7 @@ export function usePresence(roomName) {
         });
       })
       .on('broadcast', { event: 'game_invite' }, ({ payload }) => {
-        if (payload.senderId === user.id) return;
+        if (!payload || typeof payload !== 'object' || payload.senderId === userId) return;
         const autoJoin = localStorage.getItem('preferences_auto_join_games') === 'true';
         if (autoJoin) {
           dispatch({ type: 'SET_AUTO_JOIN', payload: payload.gameId });
@@ -102,6 +121,7 @@ export function usePresence(roomName) {
         dispatch({ type: 'SET_INVITATION', payload: null });
       })
       .on('broadcast', { event: 'game_invite_decline' }, ({ payload }) => {
+        if (!payload || typeof payload !== 'object') return;
         dispatch({
           type: 'SET_GLOBAL_NOTIFICATION',
           payload: { message: `${payload.partnerName} declined your invite.`, type: 'info' },
@@ -109,6 +129,7 @@ export function usePresence(roomName) {
         window.dispatchEvent(new CustomEvent('game-invite-declined'));
       })
       .on('broadcast', { event: 'reveal_nudge' }, ({ payload }) => {
+        if (!payload || typeof payload !== 'object') return;
         const allowNudges = localStorage.getItem('reveal_allow_nudges') !== 'false';
         if (!allowNudges) return;
 
@@ -132,12 +153,12 @@ export function usePresence(roomName) {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           channel.track({
-            user_id: user.id,
-            current_room: roomName,
+            user_id: userId,
+            current_room: roomNameRef.current,
             is_online: true,
             last_seen: new Date().toISOString(),
           });
-          updateDbPresence(true, roomName);
+          updateDbPresence(true, roomNameRef.current);
         }
       });
 
@@ -145,13 +166,13 @@ export function usePresence(roomName) {
     heartbeatInterval = setInterval(() => {
       if (channel.state === 'joined') {
         channel.track({
-          user_id: user.id,
-          current_room: roomName,
+          user_id: userId,
+          current_room: roomNameRef.current,
           is_online: true,
           last_seen: new Date().toISOString(),
         });
       }
-      updateDbPresence(true, roomName);
+      updateDbPresence(true, roomNameRef.current);
     }, 10000);
 
     return () => {
@@ -160,7 +181,8 @@ export function usePresence(roomName) {
       }
       channel.untrack();
       supabase.removeChannel(channel);
+      channelRef.current = null;
       updateDbPresence(false, null);
     };
-  }, [roomName, user, supabase, dispatch]);
+  }, [userId, partnerId, supabase, dispatch, updateDbPresence]);
 }

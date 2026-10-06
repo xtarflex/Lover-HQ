@@ -1,5 +1,13 @@
 /* eslint-disable react-hooks/immutability */
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAppContext } from './AppContext';
 import { useMusicSync } from '../features/music/hooks/useMusicSync';
@@ -644,56 +652,101 @@ export function MusicProvider({ children }) {
     resumeLocalPlayback();
   }, [resumeLocalPlayback]);
 
-  const value = {
-    // Library
-    library,
-    addToLibrary,
-    removeFromLibrary,
-    // Active queue
-    queue,
-    injectTrackIntoQueue,
-    removeFromActiveQueue,
-    reorderQueue,
-    clearQueue,
-    // Backwards compat alias for AddTrackModal which calls addToQueue
-    addToQueue,
-    // Playlists
-    playlists,
-    saveQueueAsPlaylist,
-    loadPlaylist,
-    // Playback
-    currentTrack,
-    isPlaying,
-    currentTime,
-    duration,
-    volume,
-    crossfadeDuration,
-    activePlayer,
-    isListenAlongBlocked,
-    analyserNode,
-    workletNode,
-    // New Issue #61 state
-    visualizerMode,
-    setVisualizerMode,
-    fallbackBackdrop,
-    setFallbackBackdrop,
-    accentColor,
-    isCardFlipped,
-    setIsCardFlipped,
-    // Controls
-    setCrossfadeDuration,
-    cancelCrossfade,
-    finalizeCrossfadeImmediately,
-    playTrackById,
-    pauseLocalPlayback,
-    resumeLocalPlayback,
-    seekLocalPlayback,
-    changeVolume,
-    handleListenAlong,
-    ytReady,
-    ytPlayers,
-    preparePlayer,
-  };
+  const value = useMemo(
+    () => ({
+      // Library
+      library,
+      addToLibrary,
+      removeFromLibrary,
+      // Active queue
+      queue,
+      injectTrackIntoQueue,
+      removeFromActiveQueue,
+      reorderQueue,
+      clearQueue,
+      // Backwards compat alias for AddTrackModal which calls addToQueue
+      addToQueue,
+      // Playlists
+      playlists,
+      saveQueueAsPlaylist,
+      loadPlaylist,
+      // Playback
+      currentTrack,
+      isPlaying,
+      currentTime,
+      duration,
+      volume,
+      crossfadeDuration,
+      activePlayer,
+      isListenAlongBlocked,
+      analyserNode,
+      workletNode,
+      // New Issue #61 state
+      visualizerMode,
+      setVisualizerMode,
+      fallbackBackdrop,
+      setFallbackBackdrop,
+      accentColor,
+      isCardFlipped,
+      setIsCardFlipped,
+      // Controls
+      setCrossfadeDuration,
+      cancelCrossfade,
+      finalizeCrossfadeImmediately,
+      playTrackById,
+      pauseLocalPlayback,
+      resumeLocalPlayback,
+      seekLocalPlayback,
+      changeVolume,
+      handleListenAlong,
+      ytReady,
+      ytPlayers,
+      preparePlayer,
+    }),
+    [
+      library,
+      addToLibrary,
+      removeFromLibrary,
+      queue,
+      injectTrackIntoQueue,
+      removeFromActiveQueue,
+      reorderQueue,
+      clearQueue,
+      addToQueue,
+      playlists,
+      saveQueueAsPlaylist,
+      loadPlaylist,
+      currentTrack,
+      isPlaying,
+      currentTime,
+      duration,
+      volume,
+      crossfadeDuration,
+      activePlayer,
+      isListenAlongBlocked,
+      analyserNode,
+      workletNode,
+      visualizerMode,
+      setVisualizerMode,
+      fallbackBackdrop,
+      setFallbackBackdrop,
+      accentColor,
+      isCardFlipped,
+      setIsCardFlipped,
+      setCrossfadeDuration,
+      cancelCrossfade,
+      finalizeCrossfadeImmediately,
+      playTrackById,
+      pauseLocalPlayback,
+      resumeLocalPlayback,
+      seekLocalPlayback,
+      changeVolume,
+      handleListenAlong,
+      ytReady,
+      ytPlayers,
+      preparePlayer,
+    ]
+  );
 
   return (
     <MusicContext.Provider value={value}>
