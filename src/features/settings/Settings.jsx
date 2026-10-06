@@ -523,6 +523,7 @@ export default function Settings() {
             <input
               type="text"
               placeholder="Search settings..."
+              aria-label="Search settings"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 text-sm bg-surface/50 border border-surface-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-text-main placeholder:text-text-muted/50 transition-all"
