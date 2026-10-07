@@ -1,5 +1,6 @@
 import React from 'react';
 import GradientAvatar from '../../../../components/ui/GradientAvatar';
+import { isYouTubeThumbnail } from '../../lib/musicUtils';
 
 /**
  * @file src/features/music/components/visualizers/VinylDiscVisualizer.jsx
@@ -60,7 +61,9 @@ export default function VinylDiscVisualizer({ isPlaying, artworkUrl, trackTitle,
             <img
               src={artworkUrl}
               alt={trackTitle || 'Track artwork'}
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover ${
+                isYouTubeThumbnail(null, artworkUrl) ? 'scale-[1.33]' : ''
+              }`}
               crossOrigin="anonymous"
             />
           ) : (

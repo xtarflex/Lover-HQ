@@ -4,6 +4,11 @@ import { useSupabase } from '../../../hooks/useSupabase';
 import { X, Upload, FileAudio, AlertCircle, Loader2 } from 'lucide-react';
 import { YoutubeIcon } from '../../../lib/icons';
 import { extractYoutubeId, parseFilenameMetadata, cleanArtistName } from '../lib/musicEngine';
+import {
+  fetchTrackMetadataArtwork,
+  resolveYouTubeThumbnail,
+  isYouTubeThumbnail,
+} from '../lib/musicUtils';
 
 /**
  * AddTrackModal component. Renders the modal with tabs for
@@ -25,6 +30,8 @@ export default function AddTrackModal({ isOpen, onClose }) {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [duration, setDuration] = useState(null);
+  const [resolvedArtwork, setResolvedArtwork] = useState(null);
+  const [isResolvingArtwork, setIsResolvingArtwork] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -147,6 +154,8 @@ export default function AddTrackModal({ isOpen, onClose }) {
     setTitle('');
     setArtist('');
     setDuration(null);
+    setResolvedArtwork(null);
+    setIsResolvingArtwork(false);
     setError(null);
     setIsUploading(false);
     onClose();
@@ -233,8 +242,17 @@ export default function AddTrackModal({ isOpen, onClose }) {
           return;
         }
 
+        // 3. Resolve best artwork (external clean square first, then maxres thumbnail fallback)
+        let artworkToSave = resolvedArtwork;
+        if (!artworkToSave) {
+          artworkToSave = await fetchTrackMetadataArtwork(title.trim(), artist.trim());
+        }
+        if (!artworkToSave) {
+          artworkToSave = await resolveYouTubeThumbnail(ytId);
+        }
+
         // Add to context/db queue (duration_seconds is null, fetched dynamically on play)
-        await addToQueue(title.trim(), artist.trim(), 'youtube', ytId, null);
+        await addToQueue(title.trim(), artist.trim(), 'youtube', ytId, null, artworkToSave || null);
       }
 
       handleClose();
@@ -405,17 +423,33 @@ export default function AddTrackModal({ isOpen, onClose }) {
                       .then((res) => res.json())
                       .then((data) => {
                         if (data) {
+                          const resolvedTitle = data.title || placeholder;
+                          const resolvedArtist = cleanArtistName(data.author_name) || '';
                           setTitle((prev) =>
                             !prev ||
                             prev === 'Loading video details...' ||
                             prev === 'YouTube Video' ||
                             prev === 'YouTube Music'
-                              ? data.title || placeholder
+                              ? resolvedTitle
                               : prev
                           );
-                          setArtist((prev) =>
-                            !prev ? cleanArtistName(data.author_name) || '' : prev
-                          );
+                          setArtist((prev) => (!prev ? resolvedArtist : prev));
+
+                          // Search for clean square artwork via metadata APIs
+                          setIsResolvingArtwork(true);
+                          fetchTrackMetadataArtwork(resolvedTitle, resolvedArtist)
+                            .then((squareArtwork) => {
+                              if (squareArtwork) {
+                                setResolvedArtwork(squareArtwork);
+                              } else {
+                                resolveYouTubeThumbnail(id).then((thumb) => {
+                                  setResolvedArtwork(thumb);
+                                });
+                              }
+                            })
+                            .finally(() => {
+                              setIsResolvingArtwork(false);
+                            });
                         }
                       })
                       .catch((err) => {
@@ -423,11 +457,50 @@ export default function AddTrackModal({ isOpen, onClose }) {
                         setTitle((prev) =>
                           prev === 'Loading video details...' ? placeholder : prev
                         );
+                        // Fallback to youtube thumbnail
+                        resolveYouTubeThumbnail(id).then((thumb) => {
+                          setResolvedArtwork(thumb);
+                        });
                       });
                   }
                 }}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-main placeholder-slate-600 focus:outline-none"
               />
+
+              {/* Artwork Discovery Preview Card */}
+              {activeTab === 'youtube' && (resolvedArtwork || isResolvingArtwork) && (
+                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 animate-fade-in mt-2">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-950 border border-slate-700/50 flex items-center justify-center">
+                    {isResolvingArtwork ? (
+                      <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                    ) : (
+                      <img
+                        src={resolvedArtwork}
+                        alt="Artwork preview"
+                        className={`w-full h-full object-cover ${
+                          isYouTubeThumbnail(null, resolvedArtwork) ? 'scale-[1.33]' : ''
+                        }`}
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                        {isResolvingArtwork
+                          ? 'Finding Artwork...'
+                          : isYouTubeThumbnail(null, resolvedArtwork)
+                            ? 'Video Thumbnail'
+                            : 'Clean Square Artwork'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-text-main truncate mt-0.5">
+                      {title && title !== 'Loading video details...'
+                        ? title
+                        : 'Loading track details...'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

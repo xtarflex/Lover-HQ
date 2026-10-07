@@ -20,7 +20,11 @@ import { motion } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, Heart } from 'lucide-react';
 import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { getTrackArtwork, findQueueTrackIndex } from '../../music/lib/musicUtils';
+import {
+  getTrackArtwork,
+  findQueueTrackIndex,
+  isYouTubeThumbnail,
+} from '../../music/lib/musicUtils';
 import { AndroidWaveScrubber } from './AndroidWaveScrubber';
 import { useNavigate } from 'react-router-dom';
 
@@ -75,7 +79,6 @@ export function HeroCard() {
   }, [currentTrack]);
 
   const backdropSrc = artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png';
-  const isYoutube = currentTrack?.source === 'youtube';
 
   // Initialize days together once safely in state to keep rendering pure
   const [daysTogether] = useState(() => {
@@ -141,7 +144,7 @@ export function HeroCard() {
             src={backdropSrc}
             alt={currentTrack.title || 'Track Art'}
             className={`w-full h-full object-cover filter blur-[2px] transition-transform duration-700 group-hover:scale-105 ${
-              isYoutube ? 'scale-[1.33]' : 'scale-100'
+              isYouTubeThumbnail(currentTrack, artworkUrl) ? 'scale-[1.33]' : 'scale-100'
             }`}
           />
         </div>

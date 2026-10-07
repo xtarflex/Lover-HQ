@@ -3,7 +3,7 @@ import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { Play, Pause, YoutubeIcon } from '../../../lib/icons';
 import { formatTime } from '../lib/musicEngine';
-import { getTrackArtwork, findQueueTrackIndex } from '../lib/musicUtils';
+import { getTrackArtwork, findQueueTrackIndex, isYouTubeThumbnail } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import {
   Volume2,
@@ -317,7 +317,7 @@ export default function MusicPlayer() {
                       src={artworkUrl}
                       alt={currentTrack?.title || 'Track artwork'}
                       className={`w-full h-full object-cover ${
-                        currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                        isYouTubeThumbnail(currentTrack, artworkUrl) ? 'scale-[1.33]' : ''
                       }`}
                     />
                   ) : (

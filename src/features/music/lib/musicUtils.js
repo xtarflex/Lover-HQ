@@ -23,6 +23,87 @@ export function getTrackArtwork(track) {
 }
 
 /**
+ * Cleans a track title and optional artist by removing bracketed noise,
+ * video indicators, and extra punctuation to optimize metadata search hits.
+ *
+ * @param {string} title - The track title.
+ * @param {string} [artist=''] - The artist name.
+ * @returns {string} Cleaned query string.
+ */
+export function cleanSearchQuery(title, artist = '') {
+  if (!title) return '';
+  let clean = title
+    .replace(
+      /[([][^\])]*(?:official|video|audio|lyrics|remaster|hd|4k|visualizer|mv|prod\.)[^\])]*[)\]]/gi,
+      ''
+    )
+    .replace(/[-|–—]/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  if (artist && artist.trim()) {
+    const cleanArtist = artist.trim();
+    if (!clean.toLowerCase().includes(cleanArtist.toLowerCase())) {
+      return `${cleanArtist} ${clean}`.trim();
+    }
+  }
+  return clean;
+}
+
+/**
+ * Searches public music metadata providers (such as iTunes Search API)
+ * for pristine, high-resolution square album cover artwork.
+ *
+ * @param {string} title - The track title.
+ * @param {string} [artist=''] - The track artist.
+ * @returns {Promise<string|null>} Clean square artwork URL (1000x1000) or null if unavailable.
+ */
+export async function fetchTrackMetadataArtwork(title, artist = '') {
+  if (!title) return null;
+
+  const queries = [];
+  const combined = cleanSearchQuery(title, artist);
+  if (combined) queries.push(combined);
+
+  // If artist was provided, also try artist + raw clean title
+  const rawClean = cleanSearchQuery(title);
+  if (rawClean && rawClean !== combined) {
+    queries.push(rawClean);
+  }
+
+  for (const query of queries) {
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.results && data.results.length > 0 && data.results[0].artworkUrl100) {
+        // Upgrade 100x100 thumbnail to 1000x1000 HD square artwork
+        return data.results[0].artworkUrl100.replace('100x100bb.jpg', '1000x1000bb.jpg');
+      }
+    } catch (err) {
+      console.warn('[musicUtils] Metadata lookup failed for query:', query, err);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Determines whether an artwork URL or track object is using a raw YouTube video thumbnail
+ * (which contains letterbox/pillarbox padding and requires scale compensation).
+ *
+ * @param {Object|null} track - Track database row or object.
+ * @param {string|null} [artworkUrl=null] - Optional pre-resolved artwork URL.
+ * @returns {boolean} True if the image is a YouTube video thumbnail.
+ */
+export function isYouTubeThumbnail(track, artworkUrl = null) {
+  const url = artworkUrl || (track ? getTrackArtwork(track) : null);
+  if (!url) return false;
+  return url.includes('img.youtube.com') || url.includes('i.ytimg.com');
+}
+
+/**
  * Resolves the best-available YouTube thumbnail URL for a given video ID.
  * Prefers maxresdefault, falls back to hqdefault.
  *

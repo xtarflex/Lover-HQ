@@ -4,7 +4,7 @@ import { useMusic } from '../contexts/MusicContext';
 import { Play, Pause } from '../lib/icons';
 import { Radio, X, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion';
-import { getTrackArtwork } from '../features/music/lib/musicUtils';
+import { getTrackArtwork, isYouTubeThumbnail } from '../features/music/lib/musicUtils';
 import GradientAvatar from './ui/GradientAvatar';
 import EqBars from './ui/EqBars';
 
@@ -132,7 +132,7 @@ function MinimizedMiniPlayer({
                   src={artworkUrl}
                   alt=""
                   className={`w-full h-full object-cover ${
-                    currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                    isYouTubeThumbnail(currentTrack, artworkUrl) ? 'scale-[1.33]' : ''
                   }`}
                 />
               ) : (
@@ -285,7 +285,7 @@ export function MiniPlayer() {
                       src={artworkUrl}
                       alt=""
                       className={`w-full h-full object-cover ${
-                        currentTrack?.source === 'youtube' ? 'scale-[1.33]' : ''
+                        isYouTubeThumbnail(currentTrack, artworkUrl) ? 'scale-[1.33]' : ''
                       }`}
                     />
                   ) : (
