@@ -7,6 +7,17 @@ import path from 'path';
 /* eslint-disable-next-line no-undef -- Node.js global in config file */
 const cwd = process.cwd();
 
+let appVersion = '0.1.0';
+try {
+  const pkgPath = path.resolve(cwd, 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    if (pkg.version) appVersion = pkg.version;
+  }
+} catch {
+  // fallback
+}
+
 // Parse .env file manually in Node to resolve VITE_SUPABASE_URL
 // without exporting a callback (fixes Vitest mergeConfig issues).
 let supabaseUrl = 'https://oxqpmfdoytdfxmofmeno.supabase.co';
@@ -69,6 +80,9 @@ const devtoolsWorkspacePlugin = () => {
 };
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   plugins: [
     devtoolsWorkspacePlugin(),
     react(),

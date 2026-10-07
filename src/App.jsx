@@ -35,6 +35,8 @@ import { Notification } from './components/Notification';
 import { MusicProvider } from './contexts/MusicContext';
 import { MiniPlayer } from './components/MiniPlayer';
 import { SEO } from './components/SEO';
+import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
+import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
 
 // Lazy-loaded feature components
 const Auth = lazy(() => import('./features/auth/Auth'));
@@ -65,6 +67,7 @@ function MainLayout() {
   const navigate = useNavigate();
   const { globalNotification, autoJoinGameId, activeGameId } = useAppContext();
   const dispatch = useAppDispatch();
+  const { isUpdateAvailable, handleApplyUpdate, dismissUpdateBanner } = useServiceWorkerUpdate();
 
   // Redirect to games page if auto-join game ID is active and user is not in games room
   useEffect(() => {
@@ -149,6 +152,12 @@ function MainLayout() {
       {showGlobalNav && <MiniPlayer />}
       {showGlobalNav && <BottomNav />}
       <GameInviteModal />
+      {isUpdateAvailable && (
+        <UpdateNotificationBanner
+          onApplyUpdate={handleApplyUpdate}
+          onDismiss={dismissUpdateBanner}
+        />
+      )}
       {globalNotification && (
         <Notification
           message={globalNotification.message}
