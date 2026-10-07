@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { LogOut, ChevronRight } from 'lucide-react';
+import { APP_VERSION } from '../../../constants/version';
 
 /**
  * @param {{
@@ -76,6 +77,11 @@ export default function SettingsSidebar({
           <LogOut className="h-4 w-4" />
           <span>Sign Out</span>
         </button>
+        <div className="text-center pt-3 pb-1">
+          <span className="text-[11px] font-medium text-text-muted tracking-wider">
+            Lover-HQ v{APP_VERSION}
+          </span>
+        </div>
       </div>
     </section>
   );
