@@ -145,3 +145,27 @@ Lover-HQ features interactive multiplayer games and couple activities. Historica
 - **Positive**: Language and engine agnosticism—creators can build in vanilla JS, Canvas, React, Phaser, Pixi, or WebGL engines.
 - **Positive**: Unifies games and living couple utilities under a common runtime and catalog.
 - **Negative**: Requires careful host-shell overlay design (reaction trays, partner status pills) to maintain a cohesive, native look and feel.
+
+---
+
+## ADR-008: YouTube Track Artwork Hybrid Strategy & Clean Square Cover Art Resolution
+
+### Status
+Accepted & Implemented
+
+### Context
+YouTube video audio tracks played in Lover-HQ frequently supply 16:9 or 4:3 landscape thumbnails containing letterbox black bars, pillarbox side bars, or colored borders. When rendered inside square UI elements (such as vinyl record disc labels, mini-player thumbnails, queue cards, and lockscreen/mediaSession notification panels), these borders create harsh visual artifacts. Naive CSS solutions like `transform: scaleX(1.777)` distort the aspect ratio, while `clip-path` fails when thumbnail resolutions and border paddings differ between tracks (`maxresdefault.jpg` vs `hqdefault.jpg`).
+
+### Decision
+- Implement a three-tiered hybrid artwork strategy:
+  1. **Automated Zero-Auth Metadata Lookup**: Query the public iTunes Search API (`Access-Control-Allow-Origin: *`, zero API keys or rate limits for client queries) using sanitized track and artist titles (`cleanSearchQuery`) to fetch clean studio square 1000x1000 cover art.
+  2. **High-Resolution Fallback Selection**: When studio square art is unavailable or before external lookup resolves, verify and select the highest resolution YouTube thumbnail available (`maxresdefault.jpg` over `hqdefault.jpg`).
+  3. **Conditional Calibrated Zoom**: Maintain a subtle calibrated zoom (`scale-[1.33]`) specifically on confirmed YouTube thumbnails via `isYouTubeThumbnail()`, pushing letterboxing outside square masks while preserving unscaled 1:1 geometry (`scale-100`) for clean square album artwork.
+  4. **Dynamic Metadata Propagation**: Automatically enhance track artwork in the background during playback, persist upgraded URLs to Supabase `music_library`, and register clean art in `navigator.mediaSession.metadata`.
+
+### Consequences
+- **Positive**: Pristine square cover art for popular music tracks without visual letterbox bars.
+- **Positive**: Zero API key dependencies or proxy server costs.
+- **Positive**: Seamless lockscreen and OS notification media controls with high-res artwork.
+- **Positive**: Consistent scaling across all music UI surfaces (`VinylDiscVisualizer`, `NowPlayingFace`, `MiniPlayer`, `Queue`, `FloatingQueuePanel`, `HeroCard`, `MusicPlayer`).
+
