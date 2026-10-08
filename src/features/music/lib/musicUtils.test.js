@@ -4,6 +4,9 @@ import {
   gradientFromString,
   getProxiedUrl,
   findQueueTrackIndex,
+  cleanSearchQuery,
+  fetchTrackMetadataArtwork,
+  isYouTubeThumbnail,
 } from './musicUtils';
 
 describe('getProxiedUrl', () => {
@@ -241,5 +244,104 @@ describe('findQueueTrackIndex', () => {
         expect(prevTrack.queue_row_id).toBe(repeatedQueue[i - 1].queue_row_id);
       }
     }
+  });
+});
+
+describe('cleanSearchQuery', () => {
+  it('should return empty string for empty input', () => {
+    expect(cleanSearchQuery('')).toBe('');
+    expect(cleanSearchQuery(null)).toBe('');
+  });
+
+  it('should strip bracketed video descriptors and punctuation', () => {
+    const dirty = 'Citizen - The Thought of Me (Official Video) [Audio]';
+    expect(cleanSearchQuery(dirty)).toBe('Citizen The Thought of Me');
+  });
+
+  it('should combine artist with title if artist not in title', () => {
+    expect(cleanSearchQuery('Yellow', 'Coldplay')).toBe('Coldplay Yellow');
+  });
+
+  it('should not duplicate artist if already in title', () => {
+    expect(cleanSearchQuery('Coldplay - Yellow', 'Coldplay')).toBe('Coldplay Yellow');
+  });
+});
+
+describe('isYouTubeThumbnail', () => {
+  it('should return false for null/undefined', () => {
+    expect(isYouTubeThumbnail(null)).toBe(false);
+    expect(isYouTubeThumbnail(null, null)).toBe(false);
+  });
+
+  it('should detect youtube thumbnail urls correctly', () => {
+    const hqThumb = 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg';
+    const maxresThumb = 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg';
+    expect(isYouTubeThumbnail(null, hqThumb)).toBe(true);
+    expect(isYouTubeThumbnail(null, maxresThumb)).toBe(true);
+  });
+
+  it('should return false for external metadata or custom upload urls', () => {
+    const appleCover = 'https://is1-ssl.mzstatic.com/image/thumb/Music/artwork.jpg/1000x1000bb.jpg';
+    const uploadAudio = 'https://test.supabase.co/storage/v1/object/public/music-media/test.mp3';
+    expect(isYouTubeThumbnail(null, appleCover)).toBe(false);
+    expect(isYouTubeThumbnail(null, uploadAudio)).toBe(false);
+  });
+
+  it('should inspect track object if artworkUrl is not passed directly', () => {
+    const ytTrack = { source: 'youtube', youtube_id: 'dQw4w9WgXcQ' };
+    expect(isYouTubeThumbnail(ytTrack)).toBe(true);
+
+    const itunesTrack = {
+      source: 'youtube',
+      artwork_url: 'https://is1-ssl.mzstatic.com/image/thumb/artwork.jpg',
+    };
+    expect(isYouTubeThumbnail(itunesTrack)).toBe(false);
+  });
+});
+
+describe('fetchTrackMetadataArtwork', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('should return null for empty title', async () => {
+    const result = await fetchTrackMetadataArtwork('');
+    expect(result).toBeNull();
+  });
+
+  it('should query iTunes API and upgrade to 1000x1000 square artwork on match', async () => {
+    const mockJson = {
+      results: [
+        {
+          artworkUrl100: 'https://is1-ssl.mzstatic.com/image/thumb/Music/artwork.jpg/100x100bb.jpg',
+        },
+      ],
+    };
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockJson),
+      })
+    );
+
+    const result = await fetchTrackMetadataArtwork('The Thought of Me', 'Citizen');
+    expect(result).toBe(
+      'https://is1-ssl.mzstatic.com/image/thumb/Music/artwork.jpg/1000x1000bb.jpg'
+    );
+  });
+
+  it('should return null when iTunes API returns no results', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ results: [] }),
+      })
+    );
+
+    const result = await fetchTrackMetadataArtwork('Nonexistent Rare Track');
+    expect(result).toBeNull();
   });
 });

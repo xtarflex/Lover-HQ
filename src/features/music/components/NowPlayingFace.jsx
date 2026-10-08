@@ -5,7 +5,7 @@ import { Play, Pause } from '../../../lib/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { formatTime } from '../lib/musicEngine';
-import { getTrackArtwork, findQueueTrackIndex } from '../lib/musicUtils';
+import { getTrackArtwork, findQueueTrackIndex, isYouTubeThumbnail } from '../lib/musicUtils';
 import FloatingQueuePanel from './FloatingQueuePanel';
 import VolumeControl from './VolumeControl';
 import FluidVisualizer from './visualizers/FluidVisualizer';
@@ -125,13 +125,13 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
     if (isFlipped) setIsQueueOpen(false); // eslint-disable-line react-hooks/set-state-in-effect
   }, [isFlipped]);
 
-  const isYoutube = currentTrack?.source === 'youtube';
+  const isYoutubeThumb = isYouTubeThumbnail(currentTrack, artworkUrl);
 
   return (
     <div className="face-now-playing" style={accentStyle}>
       {/* ── Layer A: Sharp Ambient Backdrop (Scale 1.33x) ───────────────────── */}
       <div
-        className={`ambient-blur-backdrop ${isYoutube ? 'is-youtube' : ''}`}
+        className={`ambient-blur-backdrop ${isYoutubeThumb ? 'is-youtube' : ''}`}
         style={{ backgroundImage: `url("${backdropSrc}")` }}
         aria-hidden="true"
       />
@@ -206,7 +206,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
                 src={artworkUrl || fallbackBackdrop || '/backdrops/backdrop-1.png'}
                 alt={currentTrack?.title || 'Now playing'}
                 className={`w-28 h-28 rounded-2xl object-cover mx-auto mb-4 shadow-2xl border-2 border-white/10 ${
-                  isYoutube ? 'scale-[1.33]' : ''
+                  isYoutubeThumb ? 'scale-[1.33]' : ''
                 }`}
               />
               <WaveBarVisualizer

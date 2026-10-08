@@ -5,7 +5,7 @@ import { useAppContext } from '../../../contexts/AppContext';
 import { Trash2, Plus, ListMusic, BookmarkPlus, CheckCircle2, X } from 'lucide-react';
 import { Play } from '../../../lib/icons';
 import { ChevronUp, ChevronDown, GripVertical, Music } from 'lucide-react';
-import { getTrackArtwork } from '../lib/musicUtils';
+import { getTrackArtwork, isYouTubeThumbnail } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
 
@@ -243,7 +243,7 @@ export default function FloatingQueuePanel({
                         <img
                           src={artworkUrl}
                           alt=""
-                          className={`w-full h-full object-cover ${track.source === 'youtube' ? 'scale-[1.33]' : ''}`}
+                          className={`w-full h-full object-cover ${isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''}`}
                         />
                       ) : (
                         <GradientAvatar seed={track.title} size={28} />

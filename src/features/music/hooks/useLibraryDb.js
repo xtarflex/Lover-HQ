@@ -184,6 +184,44 @@ export function useLibraryDb() {
     [supabase, fetchLibrary]
   );
 
+  // ─── Update Artwork ───────────────────────────────────────────────────────
+
+  /**
+   * Updates a track's artwork URL in `music_library` and local state.
+   *
+   * @param {string} libraryTrackId - UUID of the library track.
+   * @param {string} artworkUrl     - New artwork image URL.
+   * @returns {Promise<boolean>} True if updated successfully.
+   */
+  const updateTrackArtwork = useCallback(
+    async (libraryTrackId, artworkUrl) => {
+      if (!libraryTrackId || !artworkUrl) return false;
+      try {
+        const { error } = await supabase
+          .from('music_library')
+          .update({ artwork_url: artworkUrl })
+          .eq('id', libraryTrackId);
+
+        if (error) {
+          console.warn('[useLibraryDb] Error updating track artwork:', error);
+          return false;
+        }
+
+        setLibrary((prev) =>
+          prev.map((t) => (t.id === libraryTrackId ? { ...t, artwork_url: artworkUrl } : t))
+        );
+        libraryRef.current = libraryRef.current.map((t) =>
+          t.id === libraryTrackId ? { ...t, artwork_url: artworkUrl } : t
+        );
+        return true;
+      } catch (err) {
+        console.warn('[useLibraryDb] Failed to update track artwork:', err);
+        return false;
+      }
+    },
+    [supabase]
+  );
+
   // ─── Real-Time Subscription ────────────────────────────────────────────────
 
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: initial fetch + live updates */
@@ -225,5 +263,6 @@ export function useLibraryDb() {
     fetchLibrary,
     addToLibrary,
     removeFromLibrary,
+    updateTrackArtwork,
   };
 }

@@ -21,6 +21,8 @@ import {
   getTrackArtwork,
   getProxiedUrl,
   findQueueTrackIndex,
+  fetchTrackMetadataArtwork,
+  resolveYouTubeThumbnail,
 } from '../features/music/lib/musicUtils';
 
 const MusicContext = createContext(null);
@@ -321,11 +323,12 @@ export function MusicProvider({ children }) {
       }
 
       if ('mediaSession' in navigator) {
+        const resolvedArtwork = getTrackArtwork(track);
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title,
           artist: track.artist ?? 'Unknown Artist',
-          artwork: track.artwork_url
-            ? [{ src: track.artwork_url, sizes: '512x512', type: 'image/jpeg' }]
+          artwork: resolvedArtwork
+            ? [{ src: resolvedArtwork, sizes: '512x512', type: 'image/jpeg' }]
             : [],
         });
       }
@@ -491,7 +494,7 @@ export function MusicProvider({ children }) {
   }, [handleTrackEnded]);
 
   // ─── Hook 4a: Library Database CRUD ─────────────────────────────────────
-  const { library, addToLibrary, removeFromLibrary } = useLibraryDb();
+  const { library, addToLibrary, removeFromLibrary, updateTrackArtwork } = useLibraryDb();
 
   // ─── Hook 4b: Active Queue Session CRUD & Subscriptions ─────────────────
   const {
@@ -582,6 +585,45 @@ export function MusicProvider({ children }) {
 
   // If extraction fails entirely, fall back to global theme primary token
   const accentColor = extractedAccent || 'rgb(var(--primary))';
+
+  // ─── Lazy Artwork Resolution for Legacy / Unresolved Tracks ────────────────
+  useEffect(() => {
+    if (!currentTrack || currentTrack.artwork_url || currentTrack.source !== 'youtube') return;
+    let isCancelled = false;
+
+    async function enhanceArtwork() {
+      try {
+        const squareArtwork = await fetchTrackMetadataArtwork(
+          currentTrack.title,
+          currentTrack.artist
+        );
+        if (isCancelled) return;
+        const targetArtwork =
+          squareArtwork ||
+          (await resolveYouTubeThumbnail(currentTrack.youtube_id || currentTrack.url));
+
+        if (targetArtwork && !isCancelled && currentTrack.id && updateTrackArtwork) {
+          updateTrackArtwork(currentTrack.id, targetArtwork);
+        }
+      } catch (err) {
+        console.warn('[MusicContext] Lazy artwork enhancement error:', err);
+      }
+    }
+
+    enhanceArtwork();
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    currentTrack?.id,
+    currentTrack?.artwork_url,
+    currentTrack?.source,
+    currentTrack?.title,
+    currentTrack?.artist,
+    currentTrack?.youtube_id,
+    currentTrack?.url,
+    updateTrackArtwork,
+  ]);
 
   // ─── Heartbeat Coordination ────────────────────────────────────────────────
   useEffect(() => {
@@ -702,11 +744,13 @@ export function MusicProvider({ children }) {
       ytReady,
       ytPlayers,
       preparePlayer,
+      updateTrackArtwork,
     }),
     [
       library,
       addToLibrary,
       removeFromLibrary,
+      updateTrackArtwork,
       queue,
       injectTrackIntoQueue,
       removeFromActiveQueue,

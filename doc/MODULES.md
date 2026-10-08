@@ -30,6 +30,8 @@ Lover-HQ is organized into 10 lazy-loaded feature modules rendered via React Rou
 - **`hooks/useCrossfade.js`**: Equal-power crossfade transition engine blending primary and standby decks.
 - **`hooks/useAudioProcessor.js`**: Off-thread AudioWorklet metrics consumer with dynamic high-water mark peak normalization.
 - **`hooks/useMusicSync.js`**: Real-time play, pause, seek, and drift-correcting heartbeat broadcast synchronization.
+- **`hooks/useLibraryDb.js`**: Music library persistence, custom playlists, track curation, and artwork metadata updates.
+- **`lib/musicUtils.js`**: YouTube title/artist noise cleaning (`cleanSearchQuery`), high-res thumbnail resolution (`resolveYouTubeThumbnail`), zero-auth iTunes square cover art lookup (`fetchTrackMetadataArtwork`), and YouTube thumbnail format heuristics (`isYouTubeThumbnail`).
 
 ### 💬 Intimate Chat (`src/features/chat`)
 - **`Chat.jsx`**: Private asynchronous messaging space tailored for long-distance partners.

@@ -3,7 +3,7 @@ import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
 import { Trash2 } from '../../../lib/icons';
 import { ChevronUp, ChevronDown, Plus, Play, GripVertical, Music } from 'lucide-react';
-import { getTrackArtwork } from '../lib/musicUtils';
+import { getTrackArtwork, isYouTubeThumbnail } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
 
@@ -263,7 +263,7 @@ export default function Queue({ onOpenAddModal }) {
                         src={artworkUrl}
                         alt=""
                         className={`w-full h-full object-cover group-hover:opacity-70 transition-opacity ${
-                          track?.source === 'youtube' ? 'scale-[1.33]' : ''
+                          isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''
                         }`}
                       />
                     ) : (

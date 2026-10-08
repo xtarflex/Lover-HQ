@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Library, BookOpen, Music, Trash2, BookmarkPlus, Play } from 'lucide-react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { getTrackArtwork } from '../lib/musicUtils';
+import { getTrackArtwork, isYouTubeThumbnail } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
 
@@ -214,7 +214,7 @@ export default function CollectionManagementFace({ onOpenAddModal }) {
                               src={artworkUrl}
                               alt=""
                               className={`w-full h-full object-cover ${
-                                track.source === 'youtube' ? 'scale-[1.33]' : ''
+                                isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''
                               }`}
                             />
                           ) : (
