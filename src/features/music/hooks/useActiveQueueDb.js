@@ -157,7 +157,7 @@ export function useActiveQueueDb({
     async (libraryTrackId, insertMode = 'append') => {
       if (!user?.id) return;
       try {
-        if (insertMode === 'replace') {
+        if (insertMode === 'replace' || insertMode === 'override') {
           const { error: deleteError } = await supabase
             .from('music_queue')
             .delete()

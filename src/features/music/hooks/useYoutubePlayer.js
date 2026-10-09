@@ -40,6 +40,7 @@ const loadYoutubeApi = () => {
  * @param {Function} params.setCurrentTime - Callback to update current playback time.
  * @param {Function} [params.setIsPlaying] - Callback to update playing state.
  * @param {Function} params.handleTrackEnded - Callback when track ends.
+ * @param {Function} [params.onPlayerError] - Callback when playback errors occur.
  * @param {React.MutableRefObject<Function|null>} params.playTrackByIdRef - Ref to playTrackById.
  * @param {React.RefObject<HTMLDivElement>} params.ytContainerRef - Ref to YouTube players div container.
  * @returns {{
@@ -64,6 +65,7 @@ export function useYoutubePlayer({
   setCurrentTime,
   setIsPlaying,
   handleTrackEnded,
+  onPlayerError,
   playTrackByIdRef,
   ytContainerRef,
 }) {
@@ -74,6 +76,7 @@ export function useYoutubePlayer({
 
   // Store callbacks in stable refs to prevent re-initializing player on callback updates
   const handleTrackEndedRef = useRef(handleTrackEnded);
+  const onPlayerErrorRef = useRef(onPlayerError);
   const setDurationRef = useRef(setDuration);
   const isActivePlayerRef = useRef(isActivePlayer);
   const setIsPlayingRef = useRef(setIsPlaying);
@@ -81,6 +84,10 @@ export function useYoutubePlayer({
   useEffect(() => {
     handleTrackEndedRef.current = handleTrackEnded;
   }, [handleTrackEnded]);
+
+  useEffect(() => {
+    onPlayerErrorRef.current = onPlayerError;
+  }, [onPlayerError]);
 
   useEffect(() => {
     setDurationRef.current = setDuration;
@@ -125,6 +132,11 @@ export function useYoutubePlayer({
             origin: window.location.origin,
           },
           events: {
+            onError: (event) => {
+              if (!active) return;
+              console.warn(`[YouTubePlayer] Error on player ${idx}:`, event.data);
+              onPlayerErrorRef.current?.(event.data, idx);
+            },
             onReady: (event) => {
               if (!active) return;
               ytReady.current[idx] = true;

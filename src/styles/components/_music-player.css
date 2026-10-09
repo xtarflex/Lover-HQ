@@ -47,22 +47,35 @@
 }
 
 .face-now-playing {
+  z-index: 2;
   pointer-events: auto;
   transition: --music-accent 0.8s ease;
 }
 
 .face-collection-management {
   transform: rotateY(180deg);
+  z-index: 1;
   pointer-events: none;
 }
 
-/* Toggle pointer events when card is flipped so inactive face never blocks clicks */
+/* Invert stacking order & shield pointer events when card is flipped so inactive face never intercepts clicks */
 .music-card-rotator.is-flipped .face-now-playing {
-  pointer-events: none;
+  z-index: 1;
+  pointer-events: none !important;
+}
+
+.music-card-rotator.is-flipped .face-now-playing * {
+  pointer-events: none !important;
 }
 
 .music-card-rotator.is-flipped .face-collection-management {
+  z-index: 10;
   pointer-events: auto;
+}
+
+.collection-tab-viewport {
+  position: relative;
+  overflow: hidden;
 }
 
 /* ─── Up Next Floating Tag ──────────────────────────────────────────────── */

@@ -219,12 +219,19 @@ export function useCrossfade({
   ]);
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.hidden && isCrossfadingRef.current) {
+        finalizeCrossfadeImmediately();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (crossfadeIntervalRef.current) {
         clearInterval(crossfadeIntervalRef.current);
       }
     };
-  }, []);
+  }, [finalizeCrossfadeImmediately, isCrossfadingRef]);
 
   const startCrossfade = useCallback(
     (nextTrack) => {
@@ -232,6 +239,15 @@ export function useCrossfade({
       if (isCrossfadingRef.current || crossfadeIntervalRef.current) {
         finalizeCrossfadeImmediately();
       }
+
+      // If document is backgrounded, browser timers throttle to <= 1 tick/min.
+      // Immediately finalize the transition instead of stalling on 100ms intervals.
+      if (typeof document !== 'undefined' && document.hidden) {
+        incomingTrackRef.current = nextTrack;
+        finalizeCrossfadeImmediately();
+        return;
+      }
+
       isCrossfadingRef.current = true;
       incomingTrackRef.current = nextTrack;
 

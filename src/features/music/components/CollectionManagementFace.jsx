@@ -32,7 +32,7 @@ const tabVariants = {
  * @param {Function} props.onOpenAddModal - Opens the Add Track modal.
  * @returns {React.ReactElement} The CollectionManagementFace component.
  */
-export default function CollectionManagementFace({ onOpenAddModal }) {
+export default function CollectionManagementFace({ onOpenAddModal, isFlipped }) {
   const {
     library,
     queue,
@@ -46,6 +46,7 @@ export default function CollectionManagementFace({ onOpenAddModal }) {
     loadPlaylist,
     deletePlaylist,
     setIsCardFlipped,
+    libraryTapMode,
   } = useMusic();
 
   const [activeTab, setActiveTab] = useState('library'); // 'library' | 'playlists'
@@ -94,7 +95,7 @@ export default function CollectionManagementFace({ onOpenAddModal }) {
    * @param {string} libraryTrackId - The ID of the track in music_library.
    */
   const handleTrackSelect = (libraryTrackId) => {
-    injectTrackIntoQueue(libraryTrackId, 'append');
+    injectTrackIntoQueue(libraryTrackId, libraryTapMode || 'append');
     setIsCardFlipped(false);
   };
 
@@ -116,6 +117,7 @@ export default function CollectionManagementFace({ onOpenAddModal }) {
     <div
       className="face-collection-management bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col"
       style={accentStyle}
+      inert={!isFlipped ? true : undefined}
     >
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/8 flex-shrink-0 pr-24">
@@ -159,7 +161,7 @@ export default function CollectionManagementFace({ onOpenAddModal }) {
       </div>
 
       {/* ── Tab Content ─────────────────────────────────────────────────── */}
-      <div className="collection-tab-viewport flex-1">
+      <div className="collection-tab-viewport flex-1 relative overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}

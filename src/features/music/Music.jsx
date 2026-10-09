@@ -88,6 +88,7 @@ export default function Music() {
 
         {/* ── Face 2: Collection Management ──────────────────────────────── */}
         <CollectionManagementFace
+          isFlipped={isCardFlipped}
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onLoadPlaylist={handleLoadPlaylist}
         />
