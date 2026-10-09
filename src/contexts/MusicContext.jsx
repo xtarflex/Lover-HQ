@@ -9,7 +9,7 @@ import React, {
   useMemo,
 } from 'react';
 import { useSupabase } from '../hooks/useSupabase';
-import { useAppContext } from './AppContext';
+import { useAppContext, useAppDispatch } from './AppContext';
 import { useMusicSync } from '../features/music/hooks/useMusicSync';
 import { useLibraryDb } from '../features/music/hooks/useLibraryDb';
 import { useActiveQueueDb } from '../features/music/hooks/useActiveQueueDb';
@@ -39,6 +39,7 @@ const MusicContext = createContext(null);
 export function MusicProvider({ children }) {
   const supabase = useSupabase();
   const { user } = useAppContext();
+  const appDispatch = useAppDispatch();
 
   // ─── Orchestrated Playback States ──────────────────────────────────────────
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -51,6 +52,75 @@ export function MusicProvider({ children }) {
     const saved = localStorage.getItem('music_crossfade_duration');
     return saved !== null ? parseInt(saved, 10) : 3;
   });
+
+  // ─── Issue #61 & #268 Preferences ──────────────────────────────────────────
+  const [libraryTapMode, setLibraryTapModeState] = useState(() => {
+    if (typeof window === 'undefined') return 'append';
+    return localStorage.getItem('music_library_tap_mode') || 'append';
+  });
+
+  const setLibraryTapMode = useCallback((mode) => {
+    setLibraryTapModeState(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_library_tap_mode', mode);
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'music_library_tap_mode', value: mode },
+        })
+      );
+    }
+  }, []);
+
+  const [queueLoopMode, setQueueLoopModeState] = useState(() => {
+    if (typeof window === 'undefined') return 'off';
+    return localStorage.getItem('music_queue_loop_mode') || 'off';
+  });
+
+  const setQueueLoopMode = useCallback((mode) => {
+    setQueueLoopModeState(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_queue_loop_mode', mode);
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'music_queue_loop_mode', value: mode },
+        })
+      );
+    }
+  }, []);
+
+  const [backgroundKeepAlive, setBackgroundKeepAliveState] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('music_background_keepalive') !== 'false';
+  });
+
+  const setBackgroundKeepAlive = useCallback((enabled) => {
+    setBackgroundKeepAliveState(enabled);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_background_keepalive', enabled ? 'true' : 'false');
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'music_background_keepalive', value: enabled },
+        })
+      );
+    }
+  }, []);
+
+  const [streamErrorAction, setStreamErrorActionState] = useState(() => {
+    if (typeof window === 'undefined') return 'auto_skip';
+    return localStorage.getItem('music_stream_error_action') || 'auto_skip';
+  });
+
+  const setStreamErrorAction = useCallback((action) => {
+    setStreamErrorActionState(action);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_stream_error_action', action);
+      window.dispatchEvent(
+        new CustomEvent('preference_change', {
+          detail: { key: 'music_stream_error_action', value: action },
+        })
+      );
+    }
+  }, []);
 
   // ─── New UI State (Issue #61) ──────────────────────────────────────────────
   /** @type {'liquid'|'wave'|'vinyl'|'ring'} */
@@ -161,6 +231,17 @@ export function MusicProvider({ children }) {
     handleTrackEnded: () => handleTrackEndedRef.current?.(),
   });
 
+  const handlePlayerErrorRef = useRef(null);
+  const queueLoopModeRef = useRef(queueLoopMode);
+  const streamErrorActionRef = useRef(streamErrorAction);
+
+  useEffect(() => {
+    queueLoopModeRef.current = queueLoopMode;
+  }, [queueLoopMode]);
+  useEffect(() => {
+    streamErrorActionRef.current = streamErrorAction;
+  }, [streamErrorAction]);
+
   // ─── Hook 2: YouTube API Players ────────────────────────────────────────────
   const { ytPlayers, ytReady, pendingYtAction, activeYtIndex } = useYoutubePlayer({
     user,
@@ -172,6 +253,7 @@ export function MusicProvider({ children }) {
     setCurrentTime,
     setIsPlaying,
     handleTrackEnded: () => handleTrackEndedRef.current?.(),
+    onPlayerError: (code, idx) => handlePlayerErrorRef.current?.(code, idx),
     playTrackByIdRef,
     ytContainerRef,
   });
@@ -235,6 +317,42 @@ export function MusicProvider({ children }) {
     },
     [finalizeCrossfadeImmediately, audioRef, ytPlayers, ytReady, activeYtIndex, pendingYtAction]
   );
+
+  const handlePlayerError = useCallback(
+    (errorCode, _playerIndex) => {
+      let userReason = 'Unable to stream this YouTube track.';
+      if (errorCode === 100) {
+        userReason = 'This track is no longer available on YouTube.';
+      } else if (errorCode === 101 || errorCode === 150) {
+        userReason = 'The owner of this track restricts embedded playback.';
+      } else if (errorCode === 2) {
+        userReason = 'Invalid YouTube track parameters.';
+      }
+
+      const shouldAutoSkip = streamErrorActionRef.current === 'auto_skip';
+      const notice = shouldAutoSkip
+        ? `${userReason} Skipping to next track...`
+        : `${userReason} Playback paused.`;
+
+      appDispatch?.({
+        type: 'SET_GLOBAL_NOTIFICATION',
+        payload: { message: notice, type: 'warning' },
+      });
+
+      if (shouldAutoSkip) {
+        setTimeout(() => {
+          handleTrackEndedRef.current?.();
+        }, 800);
+      } else {
+        pauseLocalPlayback(false);
+      }
+    },
+    [appDispatch, pauseLocalPlayback]
+  );
+
+  useEffect(() => {
+    handlePlayerErrorRef.current = handlePlayerError;
+  }, [handlePlayerError]);
 
   /**
    * Plays a track by its queue database ID, setting up HTML5 or YouTube resources.
@@ -476,10 +594,20 @@ export function MusicProvider({ children }) {
     const q = queueRef.current;
     const ct = currentTrackRef.current;
     if (!q.length || !ct) return;
+
+    const loopMode = queueLoopModeRef.current;
+    if (loopMode === 'one') {
+      playTrackById(ct.queue_row_id || ct.id, 0);
+      return;
+    }
+
     const idx = findQueueTrackIndex(q, ct);
     if (idx !== -1 && idx < q.length - 1) {
       const nextTrack = q[idx + 1];
       playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+    } else if (loopMode === 'all' && q.length > 0) {
+      const firstTrack = q[0];
+      playTrackById(firstTrack.queue_row_id || firstTrack.id, 0);
     } else {
       setIsPlaying(false);
       setCurrentTrack(null);
@@ -635,7 +763,7 @@ export function MusicProvider({ children }) {
     return () => clearInterval(interval);
   }, [isPlaying, currentTrack, broadcastHeartbeat]);
 
-  // ─── OS Media Session Listeners ────────────────────────────────────────────
+  // ─── OS Media Session Listeners & Synchronization (Issue #268) ────────────
   // Handlers read live values via currentTrackRef/queueRef; adding queueRef causes unnecessary re-registration.
 
   useEffect(() => {
@@ -649,6 +777,9 @@ export function MusicProvider({ children }) {
       if (idx !== -1 && idx < q.length - 1) {
         const nextTrack = q[idx + 1];
         playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+      } else if (queueLoopModeRef.current === 'all' && q.length > 0) {
+        const firstTrack = q[0];
+        playTrackById(firstTrack.queue_row_id || firstTrack.id, 0);
       }
     });
     navigator.mediaSession.setActionHandler('previoustrack', () => {
@@ -673,6 +804,67 @@ export function MusicProvider({ children }) {
     if (!('mediaSession' in navigator)) return;
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
   }, [isPlaying]);
+
+  // ─── Reactive MediaSession Metadata Sync (Issue #268) ──────────────────────
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !currentTrack) return;
+    const resolvedArtwork = getTrackArtwork(currentTrack);
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist || 'Unknown Artist',
+        artwork: resolvedArtwork
+          ? [{ src: resolvedArtwork, sizes: '512x512', type: 'image/jpeg' }]
+          : [],
+      });
+    } catch (e) {
+      console.warn('[MusicContext] Failed to update mediaSession metadata:', e);
+    }
+  }, [currentTrack]);
+
+  // ─── Reactive MediaSession Position State Sync (Issue #268) ───────────────
+  const lastPositionSyncRef = useRef(0);
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+    if (!currentTrack || duration <= 0) return;
+    const now = Date.now();
+    if (now - lastPositionSyncRef.current < 1000) return;
+    lastPositionSyncRef.current = now;
+    try {
+      const pos = Math.min(Math.max(0, currentTime), duration);
+      navigator.mediaSession.setPositionState({
+        duration: Math.max(1, duration),
+        playbackRate: isPlaying ? 1 : 0,
+        position: pos,
+      });
+    } catch {
+      // Safe fallback if duration or position values are momentarily indeterminate
+    }
+  }, [currentTime, duration, isPlaying, currentTrack]);
+
+  // ─── Background Playback Keep-Alive & Screen WakeLock (Issue #268) ────────
+  useEffect(() => {
+    if (!backgroundKeepAlive || !isPlaying) return;
+    let wakeLockSentinel = null;
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator && navigator.wakeLock.request) {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+        }
+      } catch {
+        // Safe fallback if WakeLock request is disallowed or unsupported
+      }
+    }
+
+    requestWakeLock();
+
+    return () => {
+      if (wakeLockSentinel && !wakeLockSentinel.released) {
+        wakeLockSentinel.release().catch(() => {});
+      }
+    };
+  }, [backgroundKeepAlive, isPlaying]);
 
   // ─── Crossfade Monitor Loop ────────────────────────────────────────────────
   // Reads live values via queueRef/crossfadeDurationRef; adding queueRef causes infinite loops or stale closures.
@@ -731,6 +923,15 @@ export function MusicProvider({ children }) {
       accentColor,
       isCardFlipped,
       setIsCardFlipped,
+      // Preferences (Issues #61 & #268)
+      libraryTapMode,
+      setLibraryTapMode,
+      queueLoopMode,
+      setQueueLoopMode,
+      backgroundKeepAlive,
+      setBackgroundKeepAlive,
+      streamErrorAction,
+      setStreamErrorAction,
       // Controls
       setCrossfadeDuration,
       cancelCrossfade,
@@ -777,6 +978,14 @@ export function MusicProvider({ children }) {
       accentColor,
       isCardFlipped,
       setIsCardFlipped,
+      libraryTapMode,
+      setLibraryTapMode,
+      queueLoopMode,
+      setQueueLoopMode,
+      backgroundKeepAlive,
+      setBackgroundKeepAlive,
+      streamErrorAction,
+      setStreamErrorAction,
       setCrossfadeDuration,
       cancelCrossfade,
       finalizeCrossfadeImmediately,
@@ -828,6 +1037,20 @@ export function MusicProvider({ children }) {
  *   activePlayer: 'html5'|'youtube'|'none',
  *   isListenAlongBlocked: boolean,
  *   analyserNode: AnalyserNode|null,
+ *   visualizerMode: 'liquid'|'wave'|'vinyl'|'ring',
+ *   setVisualizerMode: (mode: 'liquid'|'wave'|'vinyl'|'ring') => void,
+ *   fallbackBackdrop: string,
+ *   setFallbackBackdrop: (path: string) => void,
+ *   isCardFlipped: boolean,
+ *   setIsCardFlipped: React.Dispatch<React.SetStateAction<boolean>>,
+ *   libraryTapMode: 'append'|'override',
+ *   setLibraryTapMode: (mode: 'append'|'override') => void,
+ *   queueLoopMode: 'off'|'all'|'one',
+ *   setQueueLoopMode: (mode: 'off'|'all'|'one') => void,
+ *   backgroundKeepAlive: boolean,
+ *   setBackgroundKeepAlive: (enabled: boolean) => void,
+ *   streamErrorAction: 'auto_skip'|'pause',
+ *   setStreamErrorAction: (action: 'auto_skip'|'pause') => void,
  *   setCrossfadeDuration: React.Dispatch<React.SetStateAction<number>>,
  *   cancelCrossfade: () => void,
  *   finalizeCrossfadeImmediately: () => void,

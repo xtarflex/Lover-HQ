@@ -221,4 +221,57 @@ describe('useCrossfade', () => {
     expect(params.isCrossfadingRef.current).toBe(false);
     expect(params.broadcastPlay).toHaveBeenLastCalledWith('track-b', 0);
   });
+
+  it('finalizes in-flight crossfade immediately when document becomes hidden', () => {
+    const { result } = renderHook(() => useCrossfade(params));
+
+    const nextTrack = {
+      id: 'track-bg-1',
+      source: 'upload',
+      url: 'https://example.com/track-bg.mp3',
+      duration_seconds: 200,
+    };
+
+    act(() => {
+      result.current.startCrossfade(nextTrack);
+    });
+
+    expect(params.isCrossfadingRef.current).toBe(true);
+
+    // Simulate document becoming hidden (tab switched or device locked)
+    act(() => {
+      Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(params.isCrossfadingRef.current).toBe(false);
+    expect(params.swapAudioPlayers).toHaveBeenCalled();
+    expect(params.setActivePlayer).toHaveBeenCalledWith('html5');
+    expect(params.broadcastPlay).toHaveBeenCalledWith('track-bg-1', 0);
+  });
+
+  it('immediately finalizes crossfade if started while document is already hidden', () => {
+    Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+    const { result } = renderHook(() => useCrossfade(params));
+
+    const nextTrack = {
+      id: 'track-bg-2',
+      source: 'upload',
+      url: 'https://example.com/track-bg2.mp3',
+      duration_seconds: 150,
+    };
+
+    act(() => {
+      result.current.startCrossfade(nextTrack);
+    });
+
+    // Should complete immediately without needing timer ticks
+    expect(params.isCrossfadingRef.current).toBe(false);
+    expect(params.swapAudioPlayers).toHaveBeenCalled();
+    expect(params.setActivePlayer).toHaveBeenCalledWith('html5');
+    expect(params.broadcastPlay).toHaveBeenCalledWith('track-bg-2', 0);
+
+    // Reset document.hidden
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+  });
 });

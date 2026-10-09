@@ -21,15 +21,16 @@ Lover-HQ is organized into 10 lazy-loaded feature modules rendered via React Rou
 - **`hooks/useFridgeZoom.js`**: Smooth pinch-to-zoom and canvas panning navigation.
 
 ### 🎵 The Music Room (`src/features/music`)
-- **`Music.jsx`**: Dual-sided turntable player interface (Now Playing turntable face + Collection Management queue face).
-- **`components/NowPlayingFace.jsx`**: Active turntable vinyl disc, cover artwork, playback controls, scrub bar, dynamic background glow, and listen-along status.
-- **`components/CollectionManagementFace.jsx`**: Playlist curation, track library, search, and queue reordering.
+- **`Music.jsx`**: Dual-sided 3D card player interface with spatial z-index stacking and hit-test isolation (Now Playing face + Collection Management face).
+- **`components/NowPlayingFace.jsx`**: Active audio player face with ambient backdrop blur, audio-reactive visualizers, playback hub, queue repeat/loop cycling ('off' | 'all' | 'one'), and inert hit-test shielding when flipped.
+- **`components/CollectionManagementFace.jsx`**: Library curation, playlists tab, search, and queue reordering with configurable tap injection modes (`append` vs `override`) and inert shielding when inactive.
 - **`components/visualizers/*`**: WebGL and 2D canvas visualizers (`CircularRingVisualizer`, `FluidVisualizer`, `VinylDiscVisualizer`, `WaveBarVisualizer`) driven by audio spectrum analysis.
 - **`hooks/useHtml5Player.js`**: High-performance HTML5 `<audio>` player with throttled time tracking and error fallbacks.
-- **`hooks/useYoutubePlayer.js`**: Dual hidden iframe YouTube player deck for seamless crossfading between video audio tracks.
-- **`hooks/useCrossfade.js`**: Equal-power crossfade transition engine blending primary and standby decks.
+- **`hooks/useYoutubePlayer.js`**: Dual hidden iframe YouTube player deck with `onError` diagnostic forwarding for resilient stream playback and crossfading.
+- **`hooks/useCrossfade.js`**: Equal-power crossfade transition engine with background visibility event listeners (`visibilitychange`) for stall-free transitions when device is locked or app is minimized.
 - **`hooks/useAudioProcessor.js`**: Off-thread AudioWorklet metrics consumer with dynamic high-water mark peak normalization.
 - **`hooks/useMusicSync.js`**: Real-time play, pause, seek, and drift-correcting heartbeat broadcast synchronization.
+- **`hooks/useActiveQueueDb.js`**: Realtime active queue database synchronization, drag-and-drop reordering, and track injection strategies (`append` vs `override`).
 - **`hooks/useLibraryDb.js`**: Music library persistence, custom playlists, track curation, and artwork metadata updates.
 - **`lib/musicUtils.js`**: YouTube title/artist noise cleaning (`cleanSearchQuery`), high-res thumbnail resolution (`resolveYouTubeThumbnail`), zero-auth iTunes square cover art lookup (`fetchTrackMetadataArtwork`), and YouTube thumbnail format heuristics (`isYouTubeThumbnail`).
 

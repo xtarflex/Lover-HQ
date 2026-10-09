@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, ListOrdered, SkipBack, SkipForward } from 'lucide-react';
+import { Settings, ListOrdered, SkipBack, SkipForward, Repeat, Repeat1 } from 'lucide-react';
 import { Play, Pause } from '../../../lib/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
@@ -51,7 +51,17 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
     changeVolume,
     queue,
     playTrackById,
+    queueLoopMode,
+    setQueueLoopMode,
   } = useMusic();
+
+  const handleCycleLoopMode = useCallback(() => {
+    setQueueLoopMode((prev) => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
+  }, [setQueueLoopMode]);
 
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [scrubValue, setScrubValue] = useState(null);
@@ -128,7 +138,7 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
   const isYoutubeThumb = isYouTubeThumbnail(currentTrack, artworkUrl);
 
   return (
-    <div className="face-now-playing" style={accentStyle}>
+    <div className="face-now-playing" style={accentStyle} inert={isFlipped ? true : undefined}>
       {/* ── Layer A: Sharp Ambient Backdrop (Scale 1.33x) ───────────────────── */}
       <div
         className={`ambient-blur-backdrop ${isYoutubeThumb ? 'is-youtube' : ''}`}
@@ -391,8 +401,40 @@ export default function NowPlayingFace({ isFlipped, onOpenAddModal, onSaveAsPlay
             </button>
           </div>
 
-          {/* Queue toggle */}
-          <div className="flex justify-end min-w-[68px] md:min-w-[110px]">
+          {/* Controls Right Area: Repeat toggle + Queue toggle */}
+          <div className="flex items-center justify-end gap-2 min-w-[68px] md:min-w-[110px]">
+            <button
+              onClick={handleCycleLoopMode}
+              aria-label={
+                queueLoopMode === 'one'
+                  ? 'Repeat current track'
+                  : queueLoopMode === 'all'
+                    ? 'Repeat entire queue'
+                    : 'Repeat off'
+              }
+              title={
+                queueLoopMode === 'one'
+                  ? 'Repeat: Current Track'
+                  : queueLoopMode === 'all'
+                    ? 'Repeat: Entire Queue'
+                    : 'Repeat: Off'
+              }
+              className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all drop-shadow-md ${
+                queueLoopMode !== 'off'
+                  ? 'bg-white/30 border-white/50 ring-1 ring-white/40'
+                  : 'bg-white/12 border-white/20 hover:bg-white/25 opacity-70 hover:opacity-100'
+              }`}
+              style={{
+                color: `color-mix(in srgb, ${accentColor || 'rgb(var(--primary))'} 30%, #ffffff)`,
+              }}
+            >
+              {queueLoopMode === 'one' ? (
+                <Repeat1 className="w-5 h-5 drop-shadow-md" />
+              ) : (
+                <Repeat className="w-5 h-5 drop-shadow-md" />
+              )}
+            </button>
+
             <button
               onClick={() => setIsQueueOpen((prev) => !prev)}
               aria-label={isQueueOpen ? 'Close queue' : 'Open queue'}

@@ -169,3 +169,39 @@ YouTube video audio tracks played in Lover-HQ frequently supply 16:9 or 4:3 land
 - **Positive**: Seamless lockscreen and OS notification media controls with high-res artwork.
 - **Positive**: Consistent scaling across all music UI surfaces (`VinylDiscVisualizer`, `NowPlayingFace`, `MiniPlayer`, `Queue`, `FloatingQueuePanel`, `HeroCard`, `MusicPlayer`).
 
+---
+
+## ADR-009: 3D Spatial Stacking, Hit-Test Shielding & Audio Engine Resilience
+
+### Status
+Accepted & Implemented
+
+### Context
+In the dual-faced 3D Music Room card (`preserve-3d`), Face 1 (Now Playing) and Face 2 (Collection Management) share a coplanar spatial context. Chromium and WebKit rendering engines do not reliably prevent pointer events from hitting composited layers on backfaces even when `backface-visibility: hidden` is declared. As a result, the visualizer canvas and control containers from Face 1 intercepted clicks on Face 2 (e.g. preventing users from clicking tracks or switching tabs in the middle area of Face 2).
+Furthermore, when playing music in background tabs or on locked mobile devices:
+1. Crossfade timer intervals (`setInterval`) are throttled by mobile operating systems to $\le$ 1 tick per minute, causing in-flight crossfades to stall and never finalize, which blocked automatic track progression.
+2. Unhandled YouTube player stream errors (e.g. video removed, restricted embeds) caused playback to halt without clear partner feedback.
+3. Lockscreen OS media controls and timeline scrubbers fell out of sync without explicit `navigator.mediaSession.setPositionState` telemetry and reactive metadata updates.
+
+### Decision
+1. **Multi-Layered Hit-Test Shielding**:
+   - Invert stacking z-index dynamically on `.music-card-rotator.is-flipped`: Face 2 receives `z-index: 10`, while Face 1 drops to `z-index: 1`.
+   - Apply strict descendant pointer-events suppression via `.music-card-rotator.is-flipped .face-now-playing * { pointer-events: none !important; }`.
+   - Set native HTML5 `inert` dynamically (`inert={isFlipped ? true : undefined}` on Face 1 and `inert={!isFlipped ? true : undefined}` on Face 2) to eliminate pointer hits and keyboard focus rings on hidden faces.
+2. **Background Keep-Alive & Visibility Recovery**:
+   - Subscribe to `document.addEventListener('visibilitychange')` in `useCrossfade.js`. When the tab becomes hidden (`document.hidden === true`), finalize any active crossfade immediately via `finalizeCrossfadeImmediately()`, ensuring volume levels settle and the next track cues without waiting for throttled timers.
+   - Maintain an optional screen WakeLock sentinel (`backgroundKeepAlive`) during active playback.
+3. **Stream Error Resilience & Auto-Skip**:
+   - Wire YouTube iframe `onError` events to `handlePlayerError` in `MusicContext`.
+   - Present human-friendly partner toasts for restricted or dead tracks and auto-advance to the next queued song based on user preference (`streamErrorAction`).
+4. **Queue Looping & Selection Preferences**:
+   - Provide user-configurable queue loop modes (`off`, `all`, `one`) with quick toggle access in the player hub and persistent preferences in `MusicSettingsPanel`.
+   - Provide user-configurable library tap behaviors (`append` vs `override`) supporting both queued listening and instant play.
+
+### Consequences
+- **Positive**: Eliminates dead-zone hit interception on Face 2 across all browsers and devices.
+- **Positive**: Seamless background track progression with zero stalls on mobile lockscreens.
+- **Positive**: Resilient playback recovery when online audio streams fail or are region-restricted.
+- **Positive**: Full accessibility compliance with proper `inert` attribute management on 3D card faces.
+
+

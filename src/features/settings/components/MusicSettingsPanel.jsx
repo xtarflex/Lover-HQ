@@ -1,15 +1,34 @@
 /**
  * @file MusicSettingsPanel.jsx
  * @description Settings panel for Music Room features:
- * visualizer picker, tap-to-next mode, and crossfade transition parameters.
+ * visualizer picker, library tap behavior, queue repeat mode, background playback,
+ * stream recovery, and crossfade transition parameters.
  */
 
 import React from 'react';
 import { useMusic } from '../../../contexts/MusicContext';
-import { Sliders, Radio, Disc, Waves, CircleDot, Image as ImageIcon } from 'lucide-react';
+import {
+  Sliders,
+  Radio,
+  Disc,
+  Waves,
+  CircleDot,
+  Image as ImageIcon,
+  ListPlus,
+  PlayCircle,
+  Repeat,
+  Repeat1,
+  ListMusic,
+  ShieldCheck,
+  AlertCircle,
+  Moon,
+} from 'lucide-react';
 
 /**
  * @typedef {'liquid'|'wave'|'vinyl'|'ring'} VisualizerMode
+ * @typedef {'append'|'override'} LibraryTapMode
+ * @typedef {'off'|'all'|'one'} QueueLoopMode
+ * @typedef {'auto_skip'|'pause'} StreamErrorAction
  */
 
 /** @type {Array<{id: VisualizerMode, label: string, description: string, icon: React.ComponentType}>} */
@@ -63,9 +82,64 @@ const BACKDROP_OPTIONS = [
   },
 ];
 
+const LIBRARY_TAP_OPTIONS = [
+  {
+    id: 'append',
+    label: 'Add to Queue',
+    description:
+      'Adds selected songs to the end of the playlist without interrupting what is currently playing.',
+    icon: ListPlus,
+  },
+  {
+    id: 'override',
+    label: 'Play Immediately',
+    description:
+      'Starts playing the selected song right away and brings it to the top of your queue.',
+    icon: PlayCircle,
+  },
+];
+
+const QUEUE_LOOP_OPTIONS = [
+  {
+    id: 'off',
+    label: 'Stop at End',
+    description: 'Playback naturally stops when reaching the end of the playlist.',
+    icon: ListMusic,
+  },
+  {
+    id: 'all',
+    label: 'Loop Entire Queue',
+    description: 'Seamlessly restarts from the beginning when the last song finishes.',
+    icon: Repeat,
+  },
+  {
+    id: 'one',
+    label: 'Repeat Current Song',
+    description: 'Plays the active song continuously on repeat.',
+    icon: Repeat1,
+  },
+];
+
+const STREAM_ERROR_OPTIONS = [
+  {
+    id: 'auto_skip',
+    label: 'Skip to Next Song',
+    description:
+      'Automatically advances to the next playable track if an online stream is unavailable.',
+    icon: ShieldCheck,
+  },
+  {
+    id: 'pause',
+    label: 'Pause & Notify',
+    description: 'Pauses playback and alerts you so you can choose another song together.',
+    icon: AlertCircle,
+  },
+];
+
 /**
  * MusicSettingsPanel component.
- * Configures the shared Music Room preferences: visualizer, crossfade, fallback backdrop.
+ * Configures shared Music Room preferences: visualizer, library action, repeat behavior,
+ * background playback resilience, stream recovery, and crossfade duration.
  *
  * @returns {React.ReactElement} The settings panel.
  */
@@ -87,6 +161,14 @@ export default function MusicSettingsPanel() {
     setVisualizerMode,
     fallbackBackdrop,
     setFallbackBackdrop,
+    libraryTapMode = 'append',
+    setLibraryTapMode,
+    queueLoopMode = 'off',
+    setQueueLoopMode,
+    backgroundKeepAlive = true,
+    setBackgroundKeepAlive,
+    streamErrorAction = 'auto_skip',
+    setStreamErrorAction,
   } = music;
 
   return (
@@ -112,7 +194,7 @@ export default function MusicSettingsPanel() {
               <button
                 key={id}
                 type="button"
-                onClick={() => setFallbackBackdrop(id)}
+                onClick={() => setFallbackBackdrop?.(id)}
                 aria-pressed={(fallbackBackdrop || '/backdrops/backdrop-1.png') === id}
                 className={`group relative overflow-hidden rounded-xl border-2 transition-all aspect-video flex flex-col justify-end p-2 text-left ${
                   (fallbackBackdrop || '/backdrops/backdrop-1.png') === id
@@ -148,13 +230,14 @@ export default function MusicSettingsPanel() {
             <span className="text-sm font-bold text-text-main">Visualizer Style</span>
           </div>
           <p className="text-xs text-text-muted leading-relaxed">
-            Choose how the audio is visualized on the Now Playing screen.
+            Choose how audio movements are animated on the Now Playing screen.
           </p>
           <div className="grid grid-cols-1 gap-2 pt-1">
             {VISUALIZER_OPTIONS.map(({ id, label, description, icon: Icon }) => (
               <button
                 key={id}
-                onClick={() => setVisualizerMode(id)}
+                type="button"
+                onClick={() => setVisualizerMode?.(id)}
                 aria-pressed={visualizerMode === id}
                 className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
                   visualizerMode === id
@@ -191,6 +274,189 @@ export default function MusicSettingsPanel() {
           </div>
         </div>
 
+        {/* ── Library Selection Behavior (Issue #61) ────────────────────── */}
+        <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
+          <div className="flex items-center space-x-2">
+            <ListPlus className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-text-main">Library Selection Action</span>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Choose what happens when tapping or clicking a song from your music library collection.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            {LIBRARY_TAP_OPTIONS.map(({ id, label, description, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setLibraryTapMode?.(id)}
+                aria-pressed={libraryTapMode === id}
+                className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+                  libraryTapMode === id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                }`}
+              >
+                <div
+                  className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${
+                    libraryTapMode === id
+                      ? 'bg-primary/20 text-primary'
+                      : 'bg-slate-800 text-text-muted'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <p
+                    className={`text-xs font-bold ${libraryTapMode === id ? 'text-text-main' : 'text-text-muted'}`}
+                  >
+                    {label}
+                  </p>
+                  <p className="text-[10px] text-text-muted/70 mt-0.5 leading-relaxed">
+                    {description}
+                  </p>
+                </div>
+                {libraryTapMode === id && (
+                  <div className="ml-auto flex-shrink-0 w-4 h-4 rounded-full bg-primary mt-0.5 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-slate-950" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Queue Looping & Repeat (Issue #268) ────────────────────────── */}
+        <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
+          <div className="flex items-center space-x-2">
+            <Repeat className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-text-main">Repeat & Looping</span>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Control how playback behaves when reaching the end of a track or the full queue.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+            {QUEUE_LOOP_OPTIONS.map(({ id, label, description, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setQueueLoopMode?.(id)}
+                aria-pressed={queueLoopMode === id}
+                className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+                  queueLoopMode === id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                }`}
+              >
+                <div
+                  className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${
+                    queueLoopMode === id
+                      ? 'bg-primary/20 text-primary'
+                      : 'bg-slate-800 text-text-muted'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <p
+                    className={`text-xs font-bold ${queueLoopMode === id ? 'text-text-main' : 'text-text-muted'}`}
+                  >
+                    {label}
+                  </p>
+                  <p className="text-[10px] text-text-muted/70 mt-0.5 leading-relaxed">
+                    {description}
+                  </p>
+                </div>
+                {queueLoopMode === id && (
+                  <div className="ml-auto flex-shrink-0 w-4 h-4 rounded-full bg-primary mt-0.5 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-slate-950" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Background Audio Keep-Alive (Issue #268) ──────────────────── */}
+        <div className="flex items-center justify-between p-4 bg-surface/50 rounded-2xl border border-surface-border">
+          <div className="flex flex-col mr-4">
+            <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
+              <Moon className="w-4 h-4 text-primary" />
+              Continuous Background Playback
+            </span>
+            <span className="text-xs text-text-muted mt-0.5 leading-relaxed">
+              Keeps your music playing smoothly when switching apps or locking your device.
+            </span>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={backgroundKeepAlive}
+            aria-label="Toggle continuous background playback"
+            onClick={() => setBackgroundKeepAlive?.(!backgroundKeepAlive)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              backgroundKeepAlive ? 'bg-primary' : 'bg-surface-border'
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${
+                backgroundKeepAlive ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* ── Streaming Recovery (Issue #268) ───────────────────────────── */}
+        <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
+          <div className="flex items-center space-x-2">
+            <ShieldCheck className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-text-main">Stream Interruption Recovery</span>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Choose what happens when an online track cannot be played or is restricted by its
+            source.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            {STREAM_ERROR_OPTIONS.map(({ id, label, description, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setStreamErrorAction?.(id)}
+                aria-pressed={streamErrorAction === id}
+                className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+                  streamErrorAction === id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                }`}
+              >
+                <div
+                  className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${
+                    streamErrorAction === id
+                      ? 'bg-primary/20 text-primary'
+                      : 'bg-slate-800 text-text-muted'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <p
+                    className={`text-xs font-bold ${streamErrorAction === id ? 'text-text-main' : 'text-text-muted'}`}
+                  >
+                    {label}
+                  </p>
+                  <p className="text-[10px] text-text-muted/70 mt-0.5 leading-relaxed">
+                    {description}
+                  </p>
+                </div>
+                {streamErrorAction === id && (
+                  <div className="ml-auto flex-shrink-0 w-4 h-4 rounded-full bg-primary mt-0.5 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-slate-950" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* ── Crossfade parameter ────────────────────────────────────────── */}
         <div className="p-4 bg-surface/50 rounded-2xl border border-surface-border space-y-3">
           <div className="flex items-center space-x-2">
@@ -198,7 +464,7 @@ export default function MusicSettingsPanel() {
             <span className="text-sm font-bold text-text-main">Crossfade Transition</span>
           </div>
           <p className="text-xs text-text-muted leading-relaxed">
-            Set the overlap duration in seconds when transitioning from one track to another. High
+            Set the overlap duration in seconds when transitioning from one song to another. High
             values create a smoother fade.
           </p>
           <div className="flex items-center justify-between space-x-4 pt-1">
@@ -208,7 +474,7 @@ export default function MusicSettingsPanel() {
               max="10"
               step="1"
               value={crossfadeDuration}
-              onChange={(e) => setCrossfadeDuration(parseInt(e.target.value))}
+              onChange={(e) => setCrossfadeDuration?.(parseInt(e.target.value, 10))}
               aria-label="Crossfade duration in seconds"
               className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
             />
