@@ -8,37 +8,19 @@ import { getLetterScore } from './tileBag';
 export const BOARD_SIZE = 15;
 export const CENTER_CELL = { r: 7, c: 7 };
 
-/**
- * Returns the board multiplier definition for a given cell.
- *
- * @param {number} r - Row index (0-14).
- * @param {number} c - Column index (0-14).
- * @returns {{ type: 'DL'|'TL'|'DW'|'TW'|null, value: number }} Multiplier info.
- */
-export function getMultiplier(r, c) {
-  // TW (Triple Word): 8 squares
-  // Corners: (0,0), (0,14), (14,0), (14,14)
-  // Mids: (0,7), (7,0), (14,7), (7,14)
+const computeMultiplier = (r, c) => {
   const isTw =
     (r === 0 && (c === 0 || c === 7 || c === 14)) ||
     (r === 7 && (c === 0 || c === 14)) ||
     (r === 14 && (c === 0 || c === 7 || c === 14));
-  if (isTw) {
-    return { type: 'TW', value: 3 };
-  }
+  if (isTw) return { type: 'TW', value: 3 };
 
-  // DW (Double Word): 17 squares (including center star)
-  // Diagonals: (1,1), (2,2), (3,3), (4,4) and mirrors
-  // Center star: (7,7)
   const isDw =
     (r === c && ((r >= 1 && r <= 4) || (r >= 10 && r <= 13))) ||
     (r === 14 - c && ((r >= 1 && r <= 4) || (r >= 10 && r <= 13))) ||
     (r === 7 && c === 7);
-  if (isDw) {
-    return { type: 'DW', value: 2 };
-  }
+  if (isDw) return { type: 'DW', value: 2 };
 
-  // TL (Triple Letter): 12 squares
   const tlSpots = [
     [1, 5],
     [1, 9],
@@ -53,12 +35,8 @@ export function getMultiplier(r, c) {
     [13, 5],
     [13, 9],
   ];
-  const isTl = tlSpots.some(([tr, tc]) => tr === r && tc === c);
-  if (isTl) {
-    return { type: 'TL', value: 3 };
-  }
+  if (tlSpots.some(([tr, tc]) => tr === r && tc === c)) return { type: 'TL', value: 3 };
 
-  // DL (Double Letter): 24 squares
   const dlSpots = [
     [0, 3],
     [0, 11],
@@ -85,12 +63,24 @@ export function getMultiplier(r, c) {
     [14, 3],
     [14, 11],
   ];
-  const isDl = dlSpots.some(([dr, dc]) => dr === r && dc === c);
-  if (isDl) {
-    return { type: 'DL', value: 2 };
-  }
+  if (dlSpots.some(([dr, dc]) => dr === r && dc === c)) return { type: 'DL', value: 2 };
 
   return { type: null, value: 1 };
+};
+
+const MULTIPLIERS_GRID = Array.from({ length: BOARD_SIZE }, (_, r) =>
+  Array.from({ length: BOARD_SIZE }, (_, c) => computeMultiplier(r, c))
+);
+
+/**
+ * Returns the board multiplier definition for a given cell.
+ *
+ * @param {number} r - Row index (0-14).
+ * @param {number} c - Column index (0-14).
+ * @returns {{ type: 'DL'|'TL'|'DW'|'TW'|null, value: number }} Multiplier info.
+ */
+export function getMultiplier(r, c) {
+  return MULTIPLIERS_GRID[r][c];
 }
 
 /**
