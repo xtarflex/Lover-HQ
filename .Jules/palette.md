@@ -34,3 +34,6 @@
 ## 2026-09-21 - aria-labels for Chat input fields
 **Learning:** The Chat feature's input fields (like the emoji search, media caption, and voice note slider) lack `aria-label` attributes or matching `id`s for labels, which makes them inaccessible to screen readers as they do not provide context.
 **Action:** Ensure all inputs, especially those without visible text labels (like search bars, sliders, or inline form inputs), include an explicit `aria-label` attribute if they do not have a linked `<label>` element.
+## 2026-10-06 - aria-labels for settings search input
+**Learning:** Standalone input fields like the search bar in the Settings feature lacked an explicit `aria-label` attribute or associated `<label>` element, making them unreadable to screen readers.
+**Action:** When creating or modifying standalone inputs without a visual label, always include an explicit `aria-label` attribute to ensure proper accessibility for screen reader users.
