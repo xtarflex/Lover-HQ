@@ -94,6 +94,11 @@ export default function FridgeToolbar({
                   : 'text-text-muted hover:text-text-main hover:bg-white/5 border border-transparent'
               }`}
               title={hideOld ? 'Show All Messages' : 'Hide Messages Older Than Threshold'}
+              aria-label={
+                hideOld
+                  ? 'Recent Only: Show All Messages'
+                  : 'Clean Fridge: Hide Messages Older Than Threshold'
+              }
             >
               {hideOld ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               {hideOld ? 'Recent Only' : 'Clean Fridge'}
@@ -125,6 +130,7 @@ export default function FridgeToolbar({
                 ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                 : 'text-text-muted hover:text-text-main hover:bg-white/5 border border-transparent'
             }`}
+            aria-label={isEditMode ? 'Done editing magnets' : 'Edit magnets'}
           >
             <Trash2 className="w-3.5 h-3.5" />
             {isEditMode ? 'Done' : 'Edit'}

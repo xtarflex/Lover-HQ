@@ -34,3 +34,6 @@
 ## 2026-09-21 - aria-labels for Chat input fields
 **Learning:** The Chat feature's input fields (like the emoji search, media caption, and voice note slider) lack `aria-label` attributes or matching `id`s for labels, which makes them inaccessible to screen readers as they do not provide context.
 **Action:** Ensure all inputs, especially those without visible text labels (like search bars, sliders, or inline form inputs), include an explicit `aria-label` attribute if they do not have a linked `<label>` element.
+## 2024-05-18 - WCAG 2.5.3 Label in Name
+**Learning:** When adding `aria-label` to buttons that contain visible text, it's easy to accidentally replace the visible text entirely, which breaks voice control software (WCAG 2.5.3).
+**Action:** Always ensure the `aria-label` string includes the exact visible text of the element, e.g., instead of replacing "Clean Fridge" with "Hide Messages", use "Clean Fridge: Hide Messages".
