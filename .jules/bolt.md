@@ -40,3 +40,6 @@
 **Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
 **Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
 
+## 2024-05-18 - Pre-calculate Grid Data for O(1) Lookups in Render Loops
+**Learning:** Performing array searches (e.g., `.find()`, `.some()`) inside nested grid loops (like iterating over a 15x15 Scrabble board) creates an O(N * Rows * Cols) bottleneck. Even for small arrays, this causes unnecessary garbage collection and CPU overhead when called frequently during renders.
+**Action:** Before the render loop, map the linear array data into a 2D grid array (e.g., `grid[r][c] = value`) or a `Map` structure using coordinates as keys. This reduces the per-cell lookup to O(1), significantly improving rendering performance.

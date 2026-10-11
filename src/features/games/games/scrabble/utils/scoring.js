@@ -8,6 +8,85 @@ import { getLetterScore } from './tileBag';
 export const BOARD_SIZE = 15;
 export const CENTER_CELL = { r: 7, c: 7 };
 
+// Pre-calculate multipliers into a 2D grid for O(1) lookup
+const MULTIPLIER_GRID = Array(BOARD_SIZE)
+  .fill(null)
+  .map(() => Array(BOARD_SIZE).fill(null));
+
+// Set TW
+const twCoords = [
+  [0, 0],
+  [0, 7],
+  [0, 14],
+  [7, 0],
+  [7, 14],
+  [14, 0],
+  [14, 7],
+  [14, 14],
+];
+twCoords.forEach(([r, c]) => {
+  MULTIPLIER_GRID[r][c] = { type: 'TW', value: 3 };
+});
+
+// Set DW
+for (let i = 1; i <= 4; i++) {
+  MULTIPLIER_GRID[i][i] = { type: 'DW', value: 2 };
+  MULTIPLIER_GRID[14 - i][i] = { type: 'DW', value: 2 };
+  MULTIPLIER_GRID[i][14 - i] = { type: 'DW', value: 2 };
+  MULTIPLIER_GRID[14 - i][14 - i] = { type: 'DW', value: 2 };
+}
+MULTIPLIER_GRID[7][7] = { type: 'DW', value: 2 };
+
+// Set TL
+const tlSpots = [
+  [1, 5],
+  [1, 9],
+  [5, 1],
+  [5, 5],
+  [5, 9],
+  [5, 13],
+  [9, 1],
+  [9, 5],
+  [9, 9],
+  [9, 13],
+  [13, 5],
+  [13, 9],
+];
+tlSpots.forEach(([r, c]) => {
+  MULTIPLIER_GRID[r][c] = { type: 'TL', value: 3 };
+});
+
+// Set DL
+const dlSpots = [
+  [0, 3],
+  [0, 11],
+  [2, 6],
+  [2, 8],
+  [3, 0],
+  [3, 7],
+  [3, 14],
+  [6, 2],
+  [6, 6],
+  [6, 8],
+  [6, 12],
+  [7, 3],
+  [7, 11],
+  [8, 2],
+  [8, 6],
+  [8, 8],
+  [8, 12],
+  [11, 0],
+  [11, 7],
+  [11, 14],
+  [12, 6],
+  [12, 8],
+  [14, 3],
+  [14, 11],
+];
+dlSpots.forEach(([r, c]) => {
+  MULTIPLIER_GRID[r][c] = { type: 'DL', value: 2 };
+});
+
 /**
  * Returns the board multiplier definition for a given cell.
  *
@@ -16,81 +95,7 @@ export const CENTER_CELL = { r: 7, c: 7 };
  * @returns {{ type: 'DL'|'TL'|'DW'|'TW'|null, value: number }} Multiplier info.
  */
 export function getMultiplier(r, c) {
-  // TW (Triple Word): 8 squares
-  // Corners: (0,0), (0,14), (14,0), (14,14)
-  // Mids: (0,7), (7,0), (14,7), (7,14)
-  const isTw =
-    (r === 0 && (c === 0 || c === 7 || c === 14)) ||
-    (r === 7 && (c === 0 || c === 14)) ||
-    (r === 14 && (c === 0 || c === 7 || c === 14));
-  if (isTw) {
-    return { type: 'TW', value: 3 };
-  }
-
-  // DW (Double Word): 17 squares (including center star)
-  // Diagonals: (1,1), (2,2), (3,3), (4,4) and mirrors
-  // Center star: (7,7)
-  const isDw =
-    (r === c && ((r >= 1 && r <= 4) || (r >= 10 && r <= 13))) ||
-    (r === 14 - c && ((r >= 1 && r <= 4) || (r >= 10 && r <= 13))) ||
-    (r === 7 && c === 7);
-  if (isDw) {
-    return { type: 'DW', value: 2 };
-  }
-
-  // TL (Triple Letter): 12 squares
-  const tlSpots = [
-    [1, 5],
-    [1, 9],
-    [5, 1],
-    [5, 5],
-    [5, 9],
-    [5, 13],
-    [9, 1],
-    [9, 5],
-    [9, 9],
-    [9, 13],
-    [13, 5],
-    [13, 9],
-  ];
-  const isTl = tlSpots.some(([tr, tc]) => tr === r && tc === c);
-  if (isTl) {
-    return { type: 'TL', value: 3 };
-  }
-
-  // DL (Double Letter): 24 squares
-  const dlSpots = [
-    [0, 3],
-    [0, 11],
-    [2, 6],
-    [2, 8],
-    [3, 0],
-    [3, 7],
-    [3, 14],
-    [6, 2],
-    [6, 6],
-    [6, 8],
-    [6, 12],
-    [7, 3],
-    [7, 11],
-    [8, 2],
-    [8, 6],
-    [8, 8],
-    [8, 12],
-    [11, 0],
-    [11, 7],
-    [11, 14],
-    [12, 6],
-    [12, 8],
-    [14, 3],
-    [14, 11],
-  ];
-  const isDl = dlSpots.some(([dr, dc]) => dr === r && dc === c);
-  if (isDl) {
-    return { type: 'DL', value: 2 };
-  }
-
-  return { type: null, value: 1 };
+  return MULTIPLIER_GRID[r]?.[c] || { type: null, value: 1 };
 }
 
 /**
