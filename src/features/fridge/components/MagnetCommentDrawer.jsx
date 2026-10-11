@@ -261,6 +261,9 @@ export default function MagnetCommentDrawer({
                       : 'bg-surface/30 text-text-muted border-surface-border/30 hover:border-text-muted/30 hover:bg-surface/60'
                   }`}
                   title={emoji.label}
+                  aria-label={
+                    hasReacted ? `Remove ${emoji.label} reaction` : `React with ${emoji.label}`
+                  }
                 >
                   <img
                     src={getEmojiCdnUrl(emoji.code)}
