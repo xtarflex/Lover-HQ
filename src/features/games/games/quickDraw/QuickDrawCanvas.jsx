@@ -172,6 +172,7 @@ export default function QuickDrawCanvas({
                     : 'bg-slate-950 border-slate-800 text-text-muted hover:text-text-main hover:border-slate-700'
                 }`}
                 title="Eraser Mode"
+                aria-label="Eraser Mode"
               >
                 <Eraser className="w-4 h-4" />
               </button>
@@ -181,6 +182,7 @@ export default function QuickDrawCanvas({
                 onClick={clearCanvas}
                 className="p-1.5 rounded-lg border border-slate-800 bg-slate-950 text-text-muted hover:text-rose-400 hover:border-rose-500/30 transition-all"
                 title="Clear Canvas"
+                aria-label="Clear Canvas"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
