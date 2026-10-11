@@ -40,3 +40,7 @@
 **Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
 **Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
 
+
+## 2026-10-04 - Optimize Grid Rendering
+**Learning:** In 2D grid rendering (like ScrabbleBoard), computing state dynamically inside O(N^2) loops causes huge overhead. Finding array elements repeatedly (O(M)) inside a 225-cell grid render yields O(M*N^2) complexity, causing lag during board interactions.
+**Action:** Use useMemo to transform arrays into O(1) Map lookups, and extract static data calculation out of the component scope completely.
