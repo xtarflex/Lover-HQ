@@ -205,7 +205,7 @@ export function generatePuzzle(difficulty) {
 
   let attempts = 0;
 
-  while (attempts < 1000) {
+  while (attempts < 3000) {
     attempts++;
 
     const template = templates[Math.floor(Math.random() * templates.length)];
@@ -331,7 +331,7 @@ export function generatePuzzle(difficulty) {
     }
   }
 
-  throw new Error('Failed to generate a unique CrossMath puzzle after 1000 attempts.');
+  throw new Error('Failed to generate a unique CrossMath puzzle after 3000 attempts.');
 }
 
 /**
