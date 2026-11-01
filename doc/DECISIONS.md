@@ -205,3 +205,41 @@ Furthermore, when playing music in background tabs or on locked mobile devices:
 - **Positive**: Full accessibility compliance with proper `inert` attribute management on 3D card faces.
 
 
+
+
+---
+
+## ADR-010: Audio Engine Autoplay Preservation, Seamless Crossfade Looping & Mobile Queue Parity
+
+### Status
+Accepted & Implemented
+
+### Context
+Following the implementation of the 3D Music card and repeat mode toggles, testing identified several regressions and mobile UX friction points:
+1. **Queue Replacement Playback Stall (BUG-01)**: When tapping a track with `libraryTapMode === 'override'` ("Play Immediately"), the active queue was cleared and replaced with the selected track, but playback did not trigger automatically, leaving the previous song in Now Playing until manually clicked.
+2. **Single-Track Loop Hard Cuts (BUG-02)**: On single-track loop mode (`queueLoopMode === 'one'`), crossfade was completely bypassed because the index check strictly required a next track in the queue (`currentIndex < queue.length - 1`), causing abrupt cuts upon looping.
+3. **Automatic Crossfade Desync & Playback Stall (BUG-03)**: On automatic track progression with crossfade enabled, `useHtml5Player.js` dynamically instantiated `new Audio()` inside asynchronous interval loops. Modern browser autoplay policies require user-activation tokens, causing `standbyPlayer.play()` to be blocked with `NotAllowedError`. Furthermore, `finalizeCrossfadeImmediately` failed to resume playback if the standby element was paused, causing the outgoing track to fade into total silence and stall.
+4. **Mobile Control Choking & Queue Hover Friction (UI-01, UI-02)**: Placing the repeat toggle directly in the bottom player bar crowded navigation controls on mobile screens. Additionally, queue item actions (`Added By`, `Reorder Up/Down`, `Delete`) relied on desktop `:hover` states, which degraded touch navigation on mobile devices.
+
+### Decision
+1. **Immediate Queue Replacement Playback**:
+   - In `useActiveQueueDb.js`, consolidate `replace` and `override` strategies: clear existing couple queue entries, insert the selected track at position 0, optimistically update `queue` state, and immediately trigger playback via `playTrackById(track.id, 0)`.
+   - In `CollectionManagementFace.jsx`, invoke `playTrackById` synchronously on track selection in `override` mode.
+2. **Audio Element Preservation & Uninterrupted Autoplay**:
+   - In `useHtml5Player.js`, reuse existing pre-instantiated, blessed `Audio` elements (`recreateAudioElement`) when CORS modes match, avoiding destroying unlocked elements.
+   - In `useCrossfade.js`, catch any unexpected standby `.play()` rejection and immediately trigger `finalizeCrossfadeImmediately()` as a self-healing fallback to prevent silent stalls.
+   - In `finalizeCrossfadeImmediately`, actively ensure the newly promoted primary audio or YouTube player begins playback (`audioRef.current.play()` / `standbyYt.playVideo()`).
+3. **Seamless Self-Crossfading & Queue Wrap**:
+   - In `MusicContext.jsx` crossfade monitor loop, detect `queueLoopMode === 'one'` and trigger `startCrossfade(currentTrack)`. When at the queue end with `queueLoopMode === 'all'`, trigger `startCrossfade(queue[0])`.
+   - Self-crossfade seamlessly loads the beginning of the track into the standby audio element or secondary YouTube player and fades it in while the end of the track in the primary player fades out.
+4. **Mobile Control Decongestion & Queue Mobile Touch Parity**:
+   - Move the Repeat Mode toggle button out of `NowPlayingFace.jsx` bottom bar and relocate it into `FloatingQueuePanel.jsx` header alongside playlist and add-track actions.
+   - Relocate track uploader details (`Added By` avatar and name) to secondary muted subtext beneath the artist name on every queue item.
+   - Remove legacy Up/Down reordering buttons in favor of native reorder grab handle (`≡`) and Framer Motion swipe-to-delete gesture (`drag="x"`) with accessible tap-to-delete.
+
+### Consequences
+- **Positive**: "Play Immediately" cleanly replaces the queue and starts playback without manual intervention.
+- **Positive**: Single-track loop and queue wrap crossfading operate seamlessly without audible cuts.
+- **Positive**: Eliminates browser autoplay desync and playback stalls during automatic track transitions.
+- **Positive**: Uncluttered playback control bar with generous touch targets on mobile.
+- **Positive**: Native mobile swipe gesture and clear uploader attribution on all queue items.

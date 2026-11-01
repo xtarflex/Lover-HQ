@@ -2,9 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusic } from '../../../contexts/MusicContext';
 import { useAppContext } from '../../../contexts/AppContext';
-import { Trash2, Plus, ListMusic, BookmarkPlus, CheckCircle2, X } from 'lucide-react';
+import {
+  Trash2,
+  Plus,
+  ListMusic,
+  BookmarkPlus,
+  CheckCircle2,
+  X,
+  Repeat,
+  Repeat1,
+} from 'lucide-react';
 import { Play } from '../../../lib/icons';
-import { ChevronUp, ChevronDown, GripVertical, Music } from 'lucide-react';
+import { GripVertical, Music } from 'lucide-react';
 import { getTrackArtwork, isYouTubeThumbnail } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
@@ -34,8 +43,16 @@ export default function FloatingQueuePanel({
   onClose,
 }) {
   const { user, partner } = useAppContext();
-  const { queue, currentTrack, isPlaying, playTrackById, removeFromActiveQueue, reorderQueue } =
-    useMusic();
+  const {
+    queue,
+    currentTrack,
+    isPlaying,
+    playTrackById,
+    removeFromActiveQueue,
+    reorderQueue,
+    queueLoopMode,
+    setQueueLoopMode,
+  } = useMusic();
 
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [saveConfirmed, setSaveConfirmed] = useState(false);
@@ -52,22 +69,30 @@ export default function FloatingQueuePanel({
     return null;
   };
 
-  /** @param {number} index @param {React.SyntheticEvent} e */
-  const handleMoveUp = (index, e) => {
-    e.stopPropagation();
-    if (index === 0) return;
-    const next = [...queue];
-    [next[index], next[index - 1]] = [next[index - 1], next[index]];
-    reorderQueue(next);
+  /**
+   * Returns human-readable label for track uploader.
+   *
+   * @param {string} addedById - UUID of the user who added the track.
+   * @returns {string|null} Uploader display label.
+   */
+  const resolveUploaderName = (addedById) => {
+    if (user && addedById === user.id) return 'You';
+    if (partner && addedById === partner.id) return partner.name || 'Partner';
+    return null;
   };
 
-  /** @param {number} index @param {React.SyntheticEvent} e */
-  const handleMoveDown = (index, e) => {
-    e.stopPropagation();
-    if (index === queue.length - 1) return;
-    const next = [...queue];
-    [next[index], next[index + 1]] = [next[index + 1], next[index]];
-    reorderQueue(next);
+  /**
+   * Cycles queue loop mode: off -> all -> one -> off.
+   *
+   * @param {React.SyntheticEvent} [e] - Click event.
+   */
+  const handleCycleLoopMode = (e) => {
+    e?.stopPropagation?.();
+    setQueueLoopMode((prev) => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
   };
 
   const handleDragStart = (e, index) => {
@@ -152,12 +177,42 @@ export default function FloatingQueuePanel({
                 {queue.length}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {/* Repeat Mode Toggle */}
+              <button
+                onClick={handleCycleLoopMode}
+                aria-label={
+                  queueLoopMode === 'one'
+                    ? 'Repeat current track'
+                    : queueLoopMode === 'all'
+                      ? 'Repeat entire queue'
+                      : 'Repeat off'
+                }
+                title={
+                  queueLoopMode === 'one'
+                    ? 'Repeat: Current Track'
+                    : queueLoopMode === 'all'
+                      ? 'Repeat: Entire Queue'
+                      : 'Repeat: Off'
+                }
+                className={`p-1 rounded-md border transition-all ${
+                  queueLoopMode !== 'off'
+                    ? 'bg-white/20 border-white/40 text-pink-300'
+                    : 'border-transparent text-white/50 hover:text-white/80'
+                }`}
+              >
+                {queueLoopMode === 'one' ? (
+                  <Repeat1 className="w-3.5 h-3.5" />
+                ) : (
+                  <Repeat className="w-3.5 h-3.5" />
+                )}
+              </button>
+
               {/* Save as Playlist */}
               <button
                 onClick={handleSaveAsPlaylist}
                 aria-label="Save queue as playlist"
-                className="flex items-center gap-1 text-[10px] font-bold text-white/60 hover:text-white/90 transition-colors"
+                className="flex items-center gap-1 text-[10px] font-bold text-white/60 hover:text-white/90 transition-colors p-1"
               >
                 {saveConfirmed ? (
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
@@ -165,15 +220,17 @@ export default function FloatingQueuePanel({
                   <BookmarkPlus className="w-3.5 h-3.5" />
                 )}
               </button>
+
               {/* Add song */}
               <button
                 onClick={onOpenAddModal}
                 aria-label="Add song to library"
-                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white/80 rounded-full px-2.5 py-1 text-[10px] font-bold transition-colors"
+                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white/80 rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 Add
               </button>
+
               {/* Close panel */}
               {onClose && (
                 <button
@@ -201,110 +258,116 @@ export default function FloatingQueuePanel({
                   : currentTrack?.id === track.id;
                 const artworkUrl = getTrackArtwork(track);
                 const avatar = resolveUploaderAvatar(track.added_by);
+                const uploaderName = resolveUploaderName(track.added_by);
                 const isDragTarget = dragOverIndex === index;
 
                 return (
                   <div
                     key={track.queue_row_id || track.id}
-                    data-index={index}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragLeave={() => setDragOverIndex(null)}
-                    onDrop={(e) => handleDrop(e, index)}
-                    onClick={() => playTrackById(track.queue_row_id || track.id, 0)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && playTrackById(track.queue_row_id || track.id, 0)
-                    }
-                    aria-pressed={isCurrent}
-                    aria-label={`${track.title}${isCurrent ? ', now playing' : ''}`}
-                    className={`group flex items-center gap-2 rounded-xl px-2.5 py-2 cursor-pointer transition-all duration-200
-                      ${
-                        isCurrent
-                          ? 'bg-white/12 border border-white/15'
-                          : 'hover:bg-white/8 border border-transparent'
-                      }
-                      ${isDragTarget ? 'border-pink-400/40 scale-[1.01]' : ''}`}
+                    className="relative overflow-hidden rounded-xl"
                   >
-                    {/* Drag grip */}
-                    <div className="text-white/20 group-hover:text-white/40 cursor-grab touch-none flex-shrink-0">
-                      <GripVertical className="w-3.5 h-3.5" />
+                    {/* Background swipe action (revealed on drag) */}
+                    <div className="absolute inset-y-0 right-0 w-16 bg-red-500/20 text-red-400 flex items-center justify-center rounded-xl">
+                      <Trash2 className="w-4 h-4" />
                     </div>
 
-                    {/* Artwork */}
-                    <div className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden bg-slate-900 relative">
-                      {isCurrent && isPlaying ? (
-                        <div className="w-full h-full flex items-center justify-center bg-pink-500/20">
-                          <EqBars size="sm" color="text-pink-400" paused={false} />
-                        </div>
-                      ) : artworkUrl ? (
-                        <img
-                          src={artworkUrl}
-                          alt=""
-                          className={`w-full h-full object-cover ${isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''}`}
-                        />
-                      ) : (
-                        <GradientAvatar seed={track.title} size={28} />
-                      )}
-                      {!isCurrent && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
-                          <Play className="w-3 h-3 text-white fill-white ml-0.5" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Text */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-[11px] font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/75'}`}
-                      >
-                        {track.title}
-                      </p>
-                      <p className="text-[10px] text-white/40 truncate">
-                        {track.artist || 'Unknown Artist'}
-                      </p>
-                    </div>
-
-                    {/* Controls */}
-                    <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {avatar && (
-                        <img
-                          src={avatar}
-                          alt="Added by"
-                          className="w-4 h-4 rounded-full object-cover border border-white/10"
-                        />
-                      )}
-                      <div className="flex flex-col">
-                        <button
-                          disabled={index === 0}
-                          onClick={(e) => handleMoveUp(index, e)}
-                          aria-label={`Move ${track.title} up`}
-                          className="text-white/40 hover:text-white/80 disabled:opacity-20 transition-colors"
-                        >
-                          <ChevronUp className="w-3 h-3" />
-                        </button>
-                        <button
-                          disabled={index === queue.length - 1}
-                          onClick={(e) => handleMoveDown(index, e)}
-                          aria-label={`Move ${track.title} down`}
-                          className="text-white/40 hover:text-white/80 disabled:opacity-20 transition-colors"
-                        >
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
+                    <motion.div
+                      drag="x"
+                      dragConstraints={{ left: -60, right: 0 }}
+                      dragElastic={0.1}
+                      onDragEnd={(e, { offset, velocity }) => {
+                        if (offset.x < -40 || velocity.x < -300) {
+                          removeFromActiveQueue(track.queue_row_id);
+                        }
+                      }}
+                      data-index={index}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragLeave={() => setDragOverIndex(null)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onClick={() => playTrackById(track.queue_row_id || track.id, 0)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && playTrackById(track.queue_row_id || track.id, 0)
+                      }
+                      aria-pressed={isCurrent}
+                      aria-label={`${track.title}${isCurrent ? ', now playing' : ''}`}
+                      className={`relative z-10 group flex items-center gap-2 rounded-xl px-2.5 py-2 cursor-pointer transition-all duration-200 bg-slate-900/90
+                        ${
+                          isCurrent
+                            ? 'bg-white/12 border border-white/15'
+                            : 'hover:bg-white/8 border border-transparent'
+                        }
+                        ${isDragTarget ? 'border-pink-400/40 scale-[1.01]' : ''}`}
+                    >
+                      {/* Drag grip */}
+                      <div className="text-white/20 group-hover:text-white/50 cursor-grab touch-none flex-shrink-0">
+                        <GripVertical className="w-3.5 h-3.5" />
                       </div>
+
+                      {/* Artwork */}
+                      <div className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden bg-slate-900 relative">
+                        {isCurrent && isPlaying ? (
+                          <div className="w-full h-full flex items-center justify-center bg-pink-500/20">
+                            <EqBars size="sm" color="text-pink-400" paused={false} />
+                          </div>
+                        ) : artworkUrl ? (
+                          <img
+                            src={artworkUrl}
+                            alt=""
+                            className={`w-full h-full object-cover ${isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''}`}
+                          />
+                        ) : (
+                          <GradientAvatar seed={track.title} size={28} />
+                        )}
+                        {!isCurrent && (
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
+                            <Play className="w-3 h-3 text-white fill-white ml-0.5" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Text */}
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`text-[11px] font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/85'}`}
+                        >
+                          {track.title}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[10px] text-white/40 truncate">
+                          <span className="truncate">{track.artist || 'Unknown Artist'}</span>
+                          {uploaderName && (
+                            <>
+                              <span className="text-white/20">•</span>
+                              <span className="inline-flex items-center gap-1 text-white/40 text-[9px] flex-shrink-0">
+                                {avatar && (
+                                  <img
+                                    src={avatar}
+                                    alt=""
+                                    className="w-3 h-3 rounded-full object-cover border border-white/10"
+                                  />
+                                )}
+                                <span>{uploaderName}</span>
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Delete action (visible on touch, hover on desktop) */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           removeFromActiveQueue(track.queue_row_id);
                         }}
                         aria-label={`Remove ${track.title} from queue`}
-                        className="p-1 text-white/30 hover:text-red-400 rounded-md hover:bg-red-500/10 transition-colors"
+                        className="p-1 text-white/30 hover:text-red-400 rounded-md hover:bg-red-500/10 transition-colors opacity-60 md:opacity-0 md:group-hover:opacity-100 flex-shrink-0"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
-                    </div>
+                    </motion.div>
                   </div>
                 );
               })

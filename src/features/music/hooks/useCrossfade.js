@@ -120,6 +120,11 @@ export function useCrossfade({
           if (audioRef.current.duration && !isNaN(audioRef.current.duration)) {
             finalDuration = audioRef.current.duration;
           }
+          if (audioRef.current.paused) {
+            audioRef.current.play().catch((err) => {
+              console.warn('[useCrossfade] Ensure audio playing after finalize:', err);
+            });
+          }
         }
       } else if (nextTrack.source === 'youtube') {
         const standbyYt = ytPlayers.current[standbyYtIdx];
@@ -128,6 +133,11 @@ export function useCrossfade({
         }
         activeYtIndexRef.current = standbyYtIdx;
         setActivePlayer('youtube');
+        try {
+          standbyYt?.playVideo?.();
+        } catch (ytErr) {
+          console.warn('[useCrossfade] YouTube standby playVideo failed:', ytErr);
+        }
         const ytDur = ytPlayers.current[standbyYtIdx]?.getDuration?.();
         if (ytDur && ytDur > 0) {
           finalDuration = ytDur;
@@ -276,6 +286,7 @@ export function useCrossfade({
             standbyPlayer.volume = 0;
             standbyPlayer.play().catch((err) => {
               console.warn('Standby HTML5 play failed during crossfade:', err);
+              finalizeCrossfadeImmediately();
             });
           }
         }
