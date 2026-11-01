@@ -27,6 +27,7 @@ describe('CollectionManagementFace component', () => {
   const mockInjectTrackIntoQueue = vi.fn();
   const mockRemoveFromLibrary = vi.fn();
   const mockSetIsCardFlipped = vi.fn();
+  const mockPlayTrackById = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,6 +54,7 @@ describe('CollectionManagementFace component', () => {
       deletePlaylist: vi.fn(),
       setIsCardFlipped: mockSetIsCardFlipped,
       libraryTapMode: 'override',
+      playTrackById: mockPlayTrackById,
     });
   });
 
@@ -74,6 +76,7 @@ describe('CollectionManagementFace component', () => {
     const trackRow = screen.getByText('Midnight City');
     fireEvent.click(trackRow);
 
+    expect(mockPlayTrackById).toHaveBeenCalledWith('lib-track-1', 0);
     expect(mockInjectTrackIntoQueue).toHaveBeenCalledWith('lib-track-1', 'override');
     expect(mockSetIsCardFlipped).toHaveBeenCalledWith(false);
   });

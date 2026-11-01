@@ -103,24 +103,18 @@ describe('NowPlayingFace component', () => {
     expect(faceEl).not.toHaveAttribute('inert');
   });
 
-  it('cycles queue loop mode when clicking repeat button', () => {
+  it('toggles queue panel when clicking the queue toggle button', () => {
     render(
       <MemoryRouter>
         <NowPlayingFace isFlipped={false} onOpenAddModal={vi.fn()} onSaveAsPlaylist={vi.fn()} />
       </MemoryRouter>
     );
 
-    const repeatBtn = screen.getByRole('button', { name: /Repeat off/i });
-    expect(repeatBtn).toBeInTheDocument();
+    const queueBtn = screen.getByRole('button', { name: /Open queue/i });
+    expect(queueBtn).toBeInTheDocument();
 
-    fireEvent.click(repeatBtn);
-    expect(mockSetQueueLoopMode).toHaveBeenCalled();
-
-    // Verify updater function behavior
-    const updater = mockSetQueueLoopMode.mock.calls[0][0];
-    expect(updater('off')).toBe('all');
-    expect(updater('all')).toBe('one');
-    expect(updater('one')).toBe('off');
+    fireEvent.click(queueBtn);
+    expect(screen.getAllByRole('button', { name: /Close queue/i }).length).toBeGreaterThan(0);
   });
 
   it('toggles playback when clicking the play/pause button', () => {

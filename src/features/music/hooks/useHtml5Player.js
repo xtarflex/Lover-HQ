@@ -215,9 +215,22 @@ export function useHtml5Player({
     };
 
     const recreateAudioElement = (isPrimary, useCors) => {
-      const oldEl = isPrimary ? audioRef.current : standbyAudioRef.current;
-      if (oldEl) {
-        oldEl.pause();
+      const existingEl = isPrimary ? audioRef.current : standbyAudioRef.current;
+      const targetCors = useCors ? 'anonymous' : null;
+
+      // If audio element already exists and matches target CORS, reuse it!
+      if (
+        existingEl &&
+        (targetCors === 'anonymous'
+          ? existingEl.crossOrigin === 'anonymous'
+          : !existingEl.crossOrigin)
+      ) {
+        existingEl.volume = isPrimary ? volumeRef.current : 0;
+        return existingEl;
+      }
+
+      if (existingEl) {
+        existingEl.pause();
         if (isPrimary && cleanupsRef.current.primary) {
           cleanupsRef.current.primary();
           cleanupsRef.current.primary = null;

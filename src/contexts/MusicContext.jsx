@@ -190,6 +190,8 @@ export function MusicProvider({ children }) {
   const isRemoteAction = useRef(false);
   const isCrossfading = useRef(false);
   const playTrackByIdRef = useRef(null);
+  const broadcastPlayRef = useRef(null);
+  const libraryRef = useRef([]);
   const handleTrackEndedRef = useRef(null);
 
   useEffect(() => {
@@ -258,6 +260,10 @@ export function MusicProvider({ children }) {
     ytContainerRef,
   });
 
+  const handleBroadcastPlay = useCallback((trackId, startTime) => {
+    broadcastPlayRef.current?.(trackId, startTime);
+  }, []);
+
   // ─── Hook 3: Crossfade Transition Manager ────────────────────────────────────
   const { startCrossfade, cancelCrossfade, finalizeCrossfadeImmediately } = useCrossfade({
     isCrossfadingRef: isCrossfading,
@@ -275,7 +281,7 @@ export function MusicProvider({ children }) {
     setDuration,
     setIsPlaying,
     isRemoteActionRef: isRemoteAction,
-    broadcastPlay: (trackId, startTime) => broadcastPlay(trackId, startTime),
+    broadcastPlay: handleBroadcastPlay,
     preparePlayer,
     swapAudioPlayers,
     initAudioContext,
@@ -369,7 +375,8 @@ export function MusicProvider({ children }) {
       cancelCrossfade();
       const track =
         queueRef.current.find((t) => t.queue_row_id && t.queue_row_id === trackId) ||
-        queueRef.current.find((t) => t.id === trackId);
+        queueRef.current.find((t) => t.id === trackId) ||
+        libraryRef.current?.find((t) => t.id === trackId);
       if (!track) return;
 
       let isAutoplayBlocked = false;
@@ -595,19 +602,38 @@ export function MusicProvider({ children }) {
     const ct = currentTrackRef.current;
     if (!q.length || !ct) return;
 
+    if (isCrossfading.current) {
+      finalizeCrossfadeImmediately();
+      return;
+    }
+
     const loopMode = queueLoopModeRef.current;
+    const crossfadeDur = crossfadeDurationRef.current;
+
     if (loopMode === 'one') {
-      playTrackById(ct.queue_row_id || ct.id, 0);
+      if (crossfadeDur > 0) {
+        startCrossfade(ct);
+      } else {
+        playTrackById(ct.queue_row_id || ct.id, 0);
+      }
       return;
     }
 
     const idx = findQueueTrackIndex(q, ct);
     if (idx !== -1 && idx < q.length - 1) {
       const nextTrack = q[idx + 1];
-      playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+      if (crossfadeDur > 0) {
+        startCrossfade(nextTrack);
+      } else {
+        playTrackById(nextTrack.queue_row_id || nextTrack.id, 0);
+      }
     } else if (loopMode === 'all' && q.length > 0) {
       const firstTrack = q[0];
-      playTrackById(firstTrack.queue_row_id || firstTrack.id, 0);
+      if (crossfadeDur > 0) {
+        startCrossfade(firstTrack);
+      } else {
+        playTrackById(firstTrack.queue_row_id || firstTrack.id, 0);
+      }
     } else {
       setIsPlaying(false);
       setCurrentTrack(null);
@@ -615,7 +641,7 @@ export function MusicProvider({ children }) {
       setDuration(0);
       setActivePlayer('none');
     }
-  }, [playTrackById]);
+  }, [playTrackById, startCrossfade, finalizeCrossfadeImmediately]);
 
   useEffect(() => {
     handleTrackEndedRef.current = handleTrackEnded;
@@ -623,6 +649,9 @@ export function MusicProvider({ children }) {
 
   // ─── Hook 4a: Library Database CRUD ─────────────────────────────────────
   const { library, addToLibrary, removeFromLibrary, updateTrackArtwork } = useLibraryDb();
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
 
   // ─── Hook 4b: Active Queue Session CRUD & Subscriptions ─────────────────
   const {
@@ -874,9 +903,16 @@ export function MusicProvider({ children }) {
     const remainingTime = duration - currentTime;
     const thresh = crossfadeDurationRef.current;
     if (remainingTime <= thresh && thresh > 0 && queueRef.current.length > 0) {
-      const currentIndex = findQueueTrackIndex(queueRef.current, currentTrack);
-      if (currentIndex !== -1 && currentIndex < queueRef.current.length - 1) {
-        startCrossfade(queueRef.current[currentIndex + 1]);
+      const loopMode = queueLoopModeRef.current;
+      if (loopMode === 'one') {
+        startCrossfade(currentTrack);
+      } else {
+        const currentIndex = findQueueTrackIndex(queueRef.current, currentTrack);
+        if (currentIndex !== -1 && currentIndex < queueRef.current.length - 1) {
+          startCrossfade(queueRef.current[currentIndex + 1]);
+        } else if (loopMode === 'all' && queueRef.current.length > 0) {
+          startCrossfade(queueRef.current[0]);
+        }
       }
     }
   }, [currentTime, duration, isPlaying, currentTrack, startCrossfade]);
@@ -934,6 +970,7 @@ export function MusicProvider({ children }) {
       setStreamErrorAction,
       // Controls
       setCrossfadeDuration,
+      startCrossfade,
       cancelCrossfade,
       finalizeCrossfadeImmediately,
       playTrackById,
@@ -987,6 +1024,7 @@ export function MusicProvider({ children }) {
       streamErrorAction,
       setStreamErrorAction,
       setCrossfadeDuration,
+      startCrossfade,
       cancelCrossfade,
       finalizeCrossfadeImmediately,
       playTrackById,

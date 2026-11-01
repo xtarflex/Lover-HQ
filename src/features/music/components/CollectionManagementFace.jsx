@@ -47,6 +47,7 @@ export default function CollectionManagementFace({ onOpenAddModal, isFlipped }) 
     deletePlaylist,
     setIsCardFlipped,
     libraryTapMode,
+    playTrackById,
   } = useMusic();
 
   const [activeTab, setActiveTab] = useState('library'); // 'library' | 'playlists'
@@ -94,8 +95,13 @@ export default function CollectionManagementFace({ onOpenAddModal, isFlipped }) 
    *
    * @param {string} libraryTrackId - The ID of the track in music_library.
    */
-  const handleTrackSelect = (libraryTrackId) => {
-    injectTrackIntoQueue(libraryTrackId, libraryTapMode || 'append');
+  const handleTrackSelect = async (libraryTrackId) => {
+    if (libraryTapMode === 'override') {
+      playTrackById(libraryTrackId, 0);
+      injectTrackIntoQueue(libraryTrackId, 'override');
+    } else {
+      injectTrackIntoQueue(libraryTrackId, 'append');
+    }
     setIsCardFlipped(false);
   };
 

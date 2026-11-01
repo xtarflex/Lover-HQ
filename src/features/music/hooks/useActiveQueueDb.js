@@ -145,17 +145,18 @@ export function useActiveQueueDb({
   // ─── Inject ────────────────────────────────────────────────────────────────
 
   /**
-   * Appends or replaces the active queue with the specified library track.
+   * Appends, overrides (prepends & plays), or replaces the active queue with the specified library track.
    * - `'append'`: Adds the track at position_index = max + 1.
+   * - `'override'`: Prepends the track at index 0 (shifting existing tracks) and immediately plays it.
    * - `'replace'`: Clears all existing queue rows, then inserts the track at index 0.
    *
-   * @param {string}           libraryTrackId          - UUID from `music_library.id`.
-   * @param {'append'|'replace'} [insertMode='append'] - Queue injection strategy.
-   * @returns {Promise<void>}
+   * @param {string}                        libraryTrackId - UUID from `music_library.id`.
+   * @param {'append'|'override'|'replace'} [insertMode='append'] - Queue injection strategy.
+   * @returns {Promise<ActiveQueueTrack|null>} The inserted track or null.
    */
   const injectTrackIntoQueue = useCallback(
     async (libraryTrackId, insertMode = 'append') => {
-      if (!user?.id) return;
+      if (!user?.id) return null;
       try {
         if (insertMode === 'replace' || insertMode === 'override') {
           const { error: deleteError } = await supabase
@@ -165,32 +166,72 @@ export function useActiveQueueDb({
 
           if (deleteError) {
             console.error('[useActiveQueueDb] Error clearing queue for replace:', deleteError);
-            return;
+            return null;
           }
 
-          await supabase.from('music_queue').insert({
-            library_track_id: libraryTrackId,
-            added_by: user.id,
-            position_index: 0,
-          });
+          const { data, error } = await supabase
+            .from('music_queue')
+            .insert({
+              library_track_id: libraryTrackId,
+              added_by: user.id,
+              position_index: 0,
+            })
+            .select(
+              'id, position_index, added_at, added_by, music_library:library_track_id(id, title, artist, source, url, duration_seconds, artwork_url, added_by, created_at)'
+            )
+            .single();
+
+          if (error) {
+            console.error('[useActiveQueueDb] Error inserting replace track:', error);
+            return null;
+          }
+
+          if (data) {
+            const mapped = mapQueueRowToTrack(data);
+            setQueue([mapped]);
+            queueRef.current = [mapped];
+            playTrackById(mapped.queue_row_id || mapped.id, 0);
+            return mapped;
+          }
         } else {
+          // Append to end of queue
           const maxPos = queueRef.current.reduce(
             (max, track) => Math.max(max, track.position_index || 0),
             -1
           );
 
-          await supabase.from('music_queue').insert({
-            library_track_id: libraryTrackId,
-            added_by: user.id,
-            position_index: maxPos + 1,
-          });
+          const { data, error } = await supabase
+            .from('music_queue')
+            .insert({
+              library_track_id: libraryTrackId,
+              added_by: user.id,
+              position_index: maxPos + 1,
+            })
+            .select(
+              'id, position_index, added_at, added_by, music_library:library_track_id(id, title, artist, source, url, duration_seconds, artwork_url, added_by, created_at)'
+            )
+            .single();
+
+          if (error) {
+            console.error('[useActiveQueueDb] Error appending track to queue:', error);
+            return null;
+          }
+
+          if (data) {
+            const mapped = mapQueueRowToTrack(data);
+            const nextQueue = [...queueRef.current, mapped];
+            setQueue(nextQueue);
+            queueRef.current = nextQueue;
+            return mapped;
+          }
         }
-        // Real-time subscription triggers a re-fetch automatically.
+        return null;
       } catch (err) {
         console.error('[useActiveQueueDb] Failed to inject track into queue:', err);
+        return null;
       }
     },
-    [user, supabase]
+    [user, supabase, playTrackById]
   );
 
   // ─── Remove ────────────────────────────────────────────────────────────────

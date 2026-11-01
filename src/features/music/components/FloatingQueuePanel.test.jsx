@@ -10,6 +10,8 @@ import '@testing-library/jest-dom';
 import FloatingQueuePanel from './FloatingQueuePanel';
 
 // Mock contexts
+const mockSetQueueLoopMode = vi.fn();
+
 vi.mock('../../../contexts/MusicContext', () => ({
   useMusic: () => ({
     queue: [
@@ -21,6 +23,8 @@ vi.mock('../../../contexts/MusicContext', () => ({
     playTrackById: vi.fn(),
     removeFromActiveQueue: vi.fn(),
     reorderQueue: vi.fn(),
+    queueLoopMode: 'off',
+    setQueueLoopMode: mockSetQueueLoopMode,
   }),
 }));
 
@@ -99,5 +103,22 @@ describe('FloatingQueuePanel', () => {
     const outsideArea = screen.getByTestId('outside-area');
     fireEvent.pointerDown(outsideArea);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('cycles queue loop mode when clicking repeat button in header', () => {
+    render(
+      <FloatingQueuePanel
+        isVisible={true}
+        onOpenAddModal={vi.fn()}
+        onSaveAsPlaylist={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    const repeatBtn = screen.getByRole('button', { name: /Repeat off/i });
+    expect(repeatBtn).toBeInTheDocument();
+
+    fireEvent.click(repeatBtn);
+    expect(mockSetQueueLoopMode).toHaveBeenCalled();
   });
 });
