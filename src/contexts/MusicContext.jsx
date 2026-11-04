@@ -902,6 +902,30 @@ export function MusicProvider({ children }) {
     if (!isPlaying || isCrossfading.current || !currentTrack || duration <= 0) return;
     const remainingTime = duration - currentTime;
     const thresh = crossfadeDurationRef.current;
+    // Pre-buffer incoming upload track 2s before crossfade threshold for zero-latency audio start
+    if (remainingTime <= thresh + 2 && remainingTime > thresh && !isCrossfading.current) {
+      const q = queueRef.current;
+      const loopMode = queueLoopModeRef.current;
+      let nextTrack = null;
+      if (loopMode === 'one') {
+        nextTrack = currentTrack;
+      } else {
+        const idx = findQueueTrackIndex(q, currentTrack);
+        if (idx !== -1 && idx < q.length - 1) {
+          nextTrack = q[idx + 1];
+        } else if (loopMode === 'all' && q.length > 0) {
+          nextTrack = q[0];
+        }
+      }
+      if (nextTrack && nextTrack.source === 'upload' && standbyAudioRef.current) {
+        const targetSrc = getProxiedUrl(nextTrack.url);
+        if (standbyAudioRef.current.src !== targetSrc) {
+          standbyAudioRef.current.src = targetSrc;
+          standbyAudioRef.current.preload = 'auto';
+        }
+      }
+    }
+
     if (remainingTime <= thresh && thresh > 0 && queueRef.current.length > 0) {
       const loopMode = queueLoopModeRef.current;
       if (loopMode === 'one') {
@@ -915,7 +939,7 @@ export function MusicProvider({ children }) {
         }
       }
     }
-  }, [currentTime, duration, isPlaying, currentTrack, startCrossfade]);
+  }, [currentTime, duration, isPlaying, currentTrack, startCrossfade, queueRef, standbyAudioRef]);
 
   const handleListenAlong = useCallback(() => {
     setIsListenAlongBlocked(false);

@@ -11,6 +11,8 @@ import FloatingQueuePanel from './FloatingQueuePanel';
 
 // Mock contexts
 const mockSetQueueLoopMode = vi.fn();
+const mockReorderQueue = vi.fn();
+const mockRemoveFromActiveQueue = vi.fn();
 
 vi.mock('../../../contexts/MusicContext', () => ({
   useMusic: () => ({
@@ -21,8 +23,8 @@ vi.mock('../../../contexts/MusicContext', () => ({
     currentTrack: { id: 'track-1', queue_row_id: 'q-1' },
     isPlaying: true,
     playTrackById: vi.fn(),
-    removeFromActiveQueue: vi.fn(),
-    reorderQueue: vi.fn(),
+    removeFromActiveQueue: mockRemoveFromActiveQueue,
+    reorderQueue: mockReorderQueue,
     queueLoopMode: 'off',
     setQueueLoopMode: mockSetQueueLoopMode,
   }),
@@ -105,7 +107,7 @@ describe('FloatingQueuePanel', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('cycles queue loop mode when clicking repeat button in header', () => {
+  it('cycles queue loop mode when clicking repeat button in bottom toolbar', () => {
     render(
       <FloatingQueuePanel
         isVisible={true}
@@ -120,5 +122,63 @@ describe('FloatingQueuePanel', () => {
 
     fireEvent.click(repeatBtn);
     expect(mockSetQueueLoopMode).toHaveBeenCalled();
+  });
+
+  it('moves track down when clicking Move Down button', () => {
+    render(
+      <FloatingQueuePanel
+        isVisible={true}
+        onOpenAddModal={vi.fn()}
+        onSaveAsPlaylist={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    const moveDownBtn = screen.getByRole('button', { name: /Move Song One down/i });
+    expect(moveDownBtn).toBeInTheDocument();
+
+    fireEvent.click(moveDownBtn);
+    expect(mockReorderQueue).toHaveBeenCalledWith([
+      { id: 'track-2', queue_row_id: 'q-2', title: 'Song Two', artist: 'Artist B' },
+      { id: 'track-1', queue_row_id: 'q-1', title: 'Song One', artist: 'Artist A' },
+    ]);
+  });
+
+  it('removes track when clicking delete button', () => {
+    render(
+      <FloatingQueuePanel
+        isVisible={true}
+        onOpenAddModal={vi.fn()}
+        onSaveAsPlaylist={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    const deleteBtn = screen.getByRole('button', { name: /Remove Song One from queue/i });
+    expect(deleteBtn).toBeInTheDocument();
+
+    fireEvent.click(deleteBtn);
+    expect(mockRemoveFromActiveQueue).toHaveBeenCalledWith('q-1');
+  });
+
+  it('triggers onSaveAsPlaylist and onOpenAddModal', () => {
+    const mockSave = vi.fn();
+    const mockAdd = vi.fn();
+    render(
+      <FloatingQueuePanel
+        isVisible={true}
+        onOpenAddModal={mockAdd}
+        onSaveAsPlaylist={mockSave}
+        onClose={vi.fn()}
+      />
+    );
+
+    const saveBtn = screen.getByRole('button', { name: /Save queue as playlist/i });
+    fireEvent.click(saveBtn);
+    expect(mockSave).toHaveBeenCalledTimes(1);
+
+    const addBtn = screen.getByRole('button', { name: /Add song to library/i });
+    fireEvent.click(addBtn);
+    expect(mockAdd).toHaveBeenCalledTimes(1);
   });
 });
