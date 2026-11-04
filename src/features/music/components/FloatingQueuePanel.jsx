@@ -11,9 +11,12 @@ import {
   X,
   Repeat,
   Repeat1,
+  GripVertical,
+  Music,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { Play } from '../../../lib/icons';
-import { GripVertical, Music } from 'lucide-react';
 import { getTrackArtwork, isYouTubeThumbnail } from '../lib/musicUtils';
 import GradientAvatar from '../../../components/ui/GradientAvatar';
 import EqBars from '../../../components/ui/EqBars';
@@ -75,6 +78,24 @@ export default function FloatingQueuePanel({
    * @param {string} addedById - UUID of the user who added the track.
    * @returns {string|null} Uploader display label.
    */
+  /** @param {number} index @param {React.SyntheticEvent} e */
+  const handleMoveUp = (index, e) => {
+    e.stopPropagation();
+    if (index === 0) return;
+    const next = [...queue];
+    [next[index], next[index - 1]] = [next[index - 1], next[index]];
+    reorderQueue(next);
+  };
+
+  /** @param {number} index @param {React.SyntheticEvent} e */
+  const handleMoveDown = (index, e) => {
+    e.stopPropagation();
+    if (index === queue.length - 1) return;
+    const next = [...queue];
+    [next[index], next[index + 1]] = [next[index + 1], next[index]];
+    reorderQueue(next);
+  };
+
   const resolveUploaderName = (addedById) => {
     if (user && addedById === user.id) return 'You';
     if (partner && addedById === partner.id) return partner.name || 'Partner';
@@ -177,71 +198,15 @@ export default function FloatingQueuePanel({
                 {queue.length}
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              {/* Repeat Mode Toggle */}
+            {onClose && (
               <button
-                onClick={handleCycleLoopMode}
-                aria-label={
-                  queueLoopMode === 'one'
-                    ? 'Repeat current track'
-                    : queueLoopMode === 'all'
-                      ? 'Repeat entire queue'
-                      : 'Repeat off'
-                }
-                title={
-                  queueLoopMode === 'one'
-                    ? 'Repeat: Current Track'
-                    : queueLoopMode === 'all'
-                      ? 'Repeat: Entire Queue'
-                      : 'Repeat: Off'
-                }
-                className={`p-1 rounded-md border transition-all ${
-                  queueLoopMode !== 'off'
-                    ? 'bg-white/20 border-white/40 text-pink-300'
-                    : 'border-transparent text-white/50 hover:text-white/80'
-                }`}
+                onClick={onClose}
+                aria-label="Close queue"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/70 hover:text-white transition-all ml-0.5"
               >
-                {queueLoopMode === 'one' ? (
-                  <Repeat1 className="w-3.5 h-3.5" />
-                ) : (
-                  <Repeat className="w-3.5 h-3.5" />
-                )}
+                <X className="w-3.5 h-3.5" />
               </button>
-
-              {/* Save as Playlist */}
-              <button
-                onClick={handleSaveAsPlaylist}
-                aria-label="Save queue as playlist"
-                className="flex items-center gap-1 text-[10px] font-bold text-white/60 hover:text-white/90 transition-colors p-1"
-              >
-                {saveConfirmed ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-                ) : (
-                  <BookmarkPlus className="w-3.5 h-3.5" />
-                )}
-              </button>
-
-              {/* Add song */}
-              <button
-                onClick={onOpenAddModal}
-                aria-label="Add song to library"
-                className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white/80 rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors"
-              >
-                <Plus className="w-3 h-3" />
-                Add
-              </button>
-
-              {/* Close panel */}
-              {onClose && (
-                <button
-                  onClick={onClose}
-                  aria-label="Close queue"
-                  className="w-6 h-6 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors ml-0.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Track list */}
@@ -264,114 +229,187 @@ export default function FloatingQueuePanel({
                 return (
                   <div
                     key={track.queue_row_id || track.id}
-                    className="relative overflow-hidden rounded-xl"
+                    data-index={index}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={() => setDragOverIndex(null)}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onClick={() => playTrackById(track.queue_row_id || track.id, 0)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && playTrackById(track.queue_row_id || track.id, 0)
+                    }
+                    aria-pressed={isCurrent}
+                    aria-label={`${track.title}${isCurrent ? ', now playing' : ''}`}
+                    className={`group flex items-center gap-2 rounded-xl px-2.5 py-2 cursor-pointer transition-all duration-200
+                      ${
+                        isCurrent
+                          ? 'bg-white/15 border border-white/20 shadow-sm'
+                          : 'bg-white/5 hover:bg-white/10 border border-white/5'
+                      }
+                      ${isDragTarget ? 'border-pink-400/40 scale-[1.01]' : ''}`}
                   >
-                    {/* Background swipe action (revealed on drag) */}
-                    <div className="absolute inset-y-0 right-0 w-16 bg-red-500/20 text-red-400 flex items-center justify-center rounded-xl">
-                      <Trash2 className="w-4 h-4" />
+                    {/* Desktop Drag grip */}
+                    <div className="hidden md:flex text-white/25 group-hover:text-white/60 cursor-grab touch-none flex-shrink-0">
+                      <GripVertical className="w-3.5 h-3.5" />
                     </div>
 
-                    <motion.div
-                      drag="x"
-                      dragConstraints={{ left: -60, right: 0 }}
-                      dragElastic={0.1}
-                      onDragEnd={(e, { offset, velocity }) => {
-                        if (offset.x < -40 || velocity.x < -300) {
-                          removeFromActiveQueue(track.queue_row_id);
-                        }
-                      }}
-                      data-index={index}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDragLeave={() => setDragOverIndex(null)}
-                      onDrop={(e) => handleDrop(e, index)}
-                      onClick={() => playTrackById(track.queue_row_id || track.id, 0)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) =>
-                        e.key === 'Enter' && playTrackById(track.queue_row_id || track.id, 0)
-                      }
-                      aria-pressed={isCurrent}
-                      aria-label={`${track.title}${isCurrent ? ', now playing' : ''}`}
-                      className={`relative z-10 group flex items-center gap-2 rounded-xl px-2.5 py-2 cursor-pointer transition-all duration-200 bg-slate-900/90
-                        ${
-                          isCurrent
-                            ? 'bg-white/12 border border-white/15'
-                            : 'hover:bg-white/8 border border-transparent'
-                        }
-                        ${isDragTarget ? 'border-pink-400/40 scale-[1.01]' : ''}`}
-                    >
-                      {/* Drag grip */}
-                      <div className="text-white/20 group-hover:text-white/50 cursor-grab touch-none flex-shrink-0">
-                        <GripVertical className="w-3.5 h-3.5" />
-                      </div>
-
-                      {/* Artwork */}
-                      <div className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden bg-slate-900 relative">
-                        {isCurrent && isPlaying ? (
-                          <div className="w-full h-full flex items-center justify-center bg-pink-500/20">
-                            <EqBars size="sm" color="text-pink-400" paused={false} />
-                          </div>
-                        ) : artworkUrl ? (
-                          <img
-                            src={artworkUrl}
-                            alt=""
-                            className={`w-full h-full object-cover ${isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''}`}
-                          />
-                        ) : (
-                          <GradientAvatar seed={track.title} size={28} />
-                        )}
-                        {!isCurrent && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
-                            <Play className="w-3 h-3 text-white fill-white ml-0.5" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Text */}
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-[11px] font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/85'}`}
-                        >
-                          {track.title}
-                        </p>
-                        <div className="flex items-center gap-1.5 text-[10px] text-white/40 truncate">
-                          <span className="truncate">{track.artist || 'Unknown Artist'}</span>
-                          {uploaderName && (
-                            <>
-                              <span className="text-white/20">•</span>
-                              <span className="inline-flex items-center gap-1 text-white/40 text-[9px] flex-shrink-0">
-                                {avatar && (
-                                  <img
-                                    src={avatar}
-                                    alt=""
-                                    className="w-3 h-3 rounded-full object-cover border border-white/10"
-                                  />
-                                )}
-                                <span>{uploaderName}</span>
-                              </span>
-                            </>
-                          )}
+                    {/* Artwork */}
+                    <div className="w-7 h-7 rounded-md flex-shrink-0 overflow-hidden bg-slate-900 relative">
+                      {isCurrent && isPlaying ? (
+                        <div className="w-full h-full flex items-center justify-center bg-pink-500/20">
+                          <EqBars size="sm" color="text-pink-400" paused={false} />
                         </div>
+                      ) : artworkUrl ? (
+                        <img
+                          src={artworkUrl}
+                          alt=""
+                          className={`w-full h-full object-cover ${isYouTubeThumbnail(track, artworkUrl) ? 'scale-[1.33]' : ''}`}
+                        />
+                      ) : (
+                        <GradientAvatar seed={track.title} size={28} />
+                      )}
+                      {!isCurrent && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 transition-opacity">
+                          <Play className="w-3 h-3 text-white fill-white ml-0.5" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text */}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-[11px] font-semibold truncate ${isCurrent ? 'text-white' : 'text-white/85'}`}
+                      >
+                        {track.title}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-white/40 truncate">
+                        <span className="truncate">{track.artist || 'Unknown Artist'}</span>
+                        {uploaderName && (
+                          <>
+                            <span className="text-white/20">•</span>
+                            <span className="inline-flex items-center gap-1 text-white/40 text-[9px] flex-shrink-0">
+                              {avatar && (
+                                <img
+                                  src={avatar}
+                                  alt=""
+                                  className="w-3 h-3 rounded-full object-cover border border-white/10"
+                                />
+                              )}
+                              <span>{uploaderName}</span>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Controls: Reorder buttons & Delete */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Reorder Up/Down */}
+                      <div className="flex flex-col opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <button
+                          disabled={index === 0}
+                          onClick={(e) => handleMoveUp(index, e)}
+                          aria-label={`Move ${track.title} up`}
+                          className="text-white/40 hover:text-white/80 active:text-white disabled:opacity-20 p-0.5 transition-colors"
+                        >
+                          <ChevronUp className="w-3 h-3" />
+                        </button>
+                        <button
+                          disabled={index === queue.length - 1}
+                          onClick={(e) => handleMoveDown(index, e)}
+                          aria-label={`Move ${track.title} down`}
+                          className="text-white/40 hover:text-white/80 active:text-white disabled:opacity-20 p-0.5 transition-colors"
+                        >
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
                       </div>
 
-                      {/* Delete action (visible on touch, hover on desktop) */}
+                      {/* Delete */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           removeFromActiveQueue(track.queue_row_id);
                         }}
                         aria-label={`Remove ${track.title} from queue`}
-                        className="p-1 text-white/30 hover:text-red-400 rounded-md hover:bg-red-500/10 transition-colors opacity-60 md:opacity-0 md:group-hover:opacity-100 flex-shrink-0"
+                        className="p-1 text-white/40 hover:text-red-400 active:text-red-400 rounded-md hover:bg-red-500/10 transition-colors opacity-70 md:opacity-0 md:group-hover:opacity-100"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
-                    </motion.div>
+                    </div>
                   </div>
                 );
               })
             )}
+          </div>
+
+          {/* Bottom Action Bar */}
+          <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-white/8 bg-black/25 backdrop-blur-md flex-shrink-0">
+            {/* Repeat Mode Toggle */}
+            <button
+              onClick={handleCycleLoopMode}
+              aria-label={
+                queueLoopMode === 'one'
+                  ? 'Repeat current track'
+                  : queueLoopMode === 'all'
+                    ? 'Repeat entire queue'
+                    : 'Repeat off'
+              }
+              title={
+                queueLoopMode === 'one'
+                  ? 'Repeat: Current Track'
+                  : queueLoopMode === 'all'
+                    ? 'Repeat: Entire Queue'
+                    : 'Repeat: Off'
+              }
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+                queueLoopMode !== 'off'
+                  ? 'bg-pink-500/20 border-pink-400/40 text-pink-300'
+                  : 'bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {queueLoopMode === 'one' ? (
+                <Repeat1 className="w-3.5 h-3.5 text-pink-400" />
+              ) : (
+                <Repeat
+                  className={`w-3.5 h-3.5 ${queueLoopMode !== 'off' ? 'text-pink-400' : 'text-white/60'}`}
+                />
+              )}
+              <span>
+                {queueLoopMode === 'one'
+                  ? 'Repeat Track'
+                  : queueLoopMode === 'all'
+                    ? 'Repeat All'
+                    : 'Repeat Off'}
+              </span>
+            </button>
+
+            {/* Right: Save as Playlist + Add Track */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveAsPlaylist}
+                aria-label="Save queue as playlist"
+                className="flex items-center gap-1 text-[11px] font-medium text-white/70 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/10"
+              >
+                {saveConfirmed ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                ) : (
+                  <BookmarkPlus className="w-3.5 h-3.5" />
+                )}
+                <span>Save</span>
+              </button>
+
+              <button
+                onClick={onOpenAddModal}
+                aria-label="Add song to library"
+                className="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 text-white rounded-full px-3 py-1 text-[11px] font-semibold transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add</span>
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

@@ -323,23 +323,34 @@ export function useCrossfade({
         const elapsedSec = (step * intervalTime) / 1000;
         setCurrentTime(elapsedSec);
 
+        // Equal-power perceptual crossfade curves
+        // Ensures smooth acoustic energy distribution and perceptible volume reduction
+        const fadeOutFactor = Math.max(
+          0,
+          Math.min(1, Math.cos(ratio * 0.5 * Math.PI) * (1 - ratio * 0.2))
+        );
+        const fadeInFactor = Math.max(0, Math.min(1, Math.sin(ratio * 0.5 * Math.PI)));
+
+        const fadeOutVol = targetVol * fadeOutFactor;
+        const fadeInVol = targetVol * fadeInFactor;
+
         // Fade out active player
         if (ap === 'html5' && audioRef.current) {
-          audioRef.current.volume = targetVol * (1 - ratio);
+          audioRef.current.volume = Number(fadeOutVol.toFixed(3));
         } else if (ap === 'youtube') {
           const activeYt = ytPlayers.current[activeYtIndexRef.current];
           if (ytReady.current[activeYtIndexRef.current] && activeYt?.setVolume) {
-            activeYt.setVolume(targetVol * (1 - ratio) * 100);
+            activeYt.setVolume(Math.round(fadeOutVol * 100));
           }
         }
 
         // Fade in standby player
         if (nextTrack.source === 'upload' && standbyAudioRef.current) {
-          standbyAudioRef.current.volume = targetVol * ratio;
+          standbyAudioRef.current.volume = Number(fadeInVol.toFixed(3));
         } else if (nextTrack.source === 'youtube') {
           const standbyYt = ytPlayers.current[standbyYtIdx];
           if (ytReady.current[standbyYtIdx] && standbyYt?.setVolume) {
-            standbyYt.setVolume(targetVol * ratio * 100);
+            standbyYt.setVolume(Math.round(fadeInVol * 100));
           }
           const ytDur = standbyYt?.getDuration?.();
           if (ytDur && ytDur > 0) {
