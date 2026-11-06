@@ -168,7 +168,6 @@ export function StickerPlayer({
       ref={containerRef}
       onClick={handleTap}
       title="Tap to replay"
-      aria-label="Tap to replay"
       className={`cursor-pointer select-none flex items-center justify-center relative active:scale-95 transition-transform ${className}`}
     >
       {/* Loading Skeleton Placeholder */}
