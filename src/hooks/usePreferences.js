@@ -98,13 +98,14 @@ export function usePreferences(userId) {
       setPrefs((prev) => (prev ? { ...prev, [key]: value } : { [key]: value }));
 
       try {
-        const { error } = await supabase
-          .from('user_preferences')
-          .update({
+        const { error } = await supabase.from('user_preferences').upsert(
+          {
+            user_id: userId,
             [key]: value,
             updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
+          },
+          { onConflict: 'user_id' }
+        );
 
         if (error) {
           throw error;

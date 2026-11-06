@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAppDispatch, useAppContext } from '../../contexts/AppContext';
 import { LoverHQLogo } from '../../assets/Logo';
@@ -49,6 +50,13 @@ const slideTransition = {
 export default function Onboarding() {
   const { user } = useAppContext();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.onboarding_completed) {
+      navigate('/home', { replace: true });
+    }
+  }, [user?.onboarding_completed, navigate]);
 
   const [[step, direction], setStepState] = useState(() => {
     const savedStep = sessionStorage.getItem('lover_hq_onboarding_step');
@@ -304,16 +312,17 @@ export default function Onboarding() {
 
       sessionStorage.removeItem('lover_hq_pairing_code');
       sessionStorage.removeItem('lover_hq_onboarding_step');
-      dispatch({
-        type: 'SET_USER',
-        payload: {
-          ...user,
-          partner_id: partner.id,
-          onboarding_completed: true,
-          pairing_code: null,
-          pairing_code_expires_at: null,
-        },
-      });
+      const updatedUser = {
+        ...user,
+        partner_id: partner.id,
+        onboarding_completed: true,
+        pairing_code: null,
+        pairing_code_expires_at: null,
+      };
+      localStorage.setItem('lover_hq_user', JSON.stringify(updatedUser));
+      localStorage.setItem('lover_hq_partner', JSON.stringify(partner));
+      localStorage.setItem('lover_hq_pairing_status', 'paired');
+      dispatch({ type: 'SET_USER', payload: updatedUser });
       dispatch({ type: 'SET_PARTNER', payload: partner });
       dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
     } catch (err) {
@@ -338,9 +347,11 @@ export default function Onboarding() {
       if (updateError) throw updateError;
 
       sessionStorage.removeItem('lover_hq_onboarding_step');
+      const updatedUser = { ...user, onboarding_completed: true };
+      localStorage.setItem('lover_hq_user', JSON.stringify(updatedUser));
       dispatch({
         type: 'SET_USER',
-        payload: { ...user, onboarding_completed: true },
+        payload: updatedUser,
       });
     } catch (err) {
       setError(err.message);
@@ -374,6 +385,62 @@ export default function Onboarding() {
       alert('Link copied to clipboard!');
     }
   };
+
+  // Poll for partner pairing in the background while waiting on step 5 with an active pairing code
+  useEffect(() => {
+    if (step !== 5 || !user?.id || !user?.pairing_code || user?.partner_id) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('partner_id, onboarding_completed')
+          .eq('id', user.id)
+          .single();
+
+        if (!error && profile?.partner_id) {
+          clearInterval(interval);
+
+          // Ensure DB flags onboarding as completed
+          await supabase.from('users').update({ onboarding_completed: true }).eq('id', user.id);
+
+          const { data: partner } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', profile.partner_id)
+            .single();
+
+          sessionStorage.removeItem('lover_hq_pairing_code');
+          sessionStorage.removeItem('lover_hq_onboarding_step');
+
+          const updatedUser = {
+            ...user,
+            partner_id: profile.partner_id,
+            onboarding_completed: true,
+            pairing_code: null,
+            pairing_code_expires_at: null,
+          };
+
+          localStorage.setItem('lover_hq_user', JSON.stringify(updatedUser));
+          if (partner) {
+            localStorage.setItem('lover_hq_partner', JSON.stringify(partner));
+            dispatch({ type: 'SET_PARTNER', payload: partner });
+          }
+          localStorage.setItem('lover_hq_pairing_status', 'paired');
+
+          dispatch({
+            type: 'SET_USER',
+            payload: updatedUser,
+          });
+          dispatch({ type: 'SET_PAIRING_STATUS', payload: 'paired' });
+        }
+      } catch (pollErr) {
+        console.warn('Pairing poll check error:', pollErr);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [step, user, dispatch]);
 
   const isExpired = user?.pairing_code_expires_at
     ? new Date(user.pairing_code_expires_at) < new Date()

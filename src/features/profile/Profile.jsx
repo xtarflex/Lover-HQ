@@ -27,6 +27,7 @@ import {
 import { usePairingManager } from './hooks/usePairingManager';
 import PairingSetup from './components/PairingSetup';
 import PartnerDetailsForm from './components/PartnerDetailsForm';
+import MoodSelector, { getMoodById } from '../settings/components/MoodSelector';
 
 /**
  * Profile page component — shows partner info when paired, or the pairing
@@ -38,6 +39,29 @@ export default function Profile() {
   const { user, partner, presence } = useAppContext();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const handleUpdateUserMood = (newMood) => {
+    localStorage.setItem('user_mood', newMood);
+    if (user) {
+      const updatedUser = { ...user, mood: newMood };
+      dispatch({ type: 'SET_USER', payload: updatedUser });
+      localStorage.setItem('lover_hq_user', JSON.stringify(updatedUser));
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-mood-changed', { detail: { mood: newMood } }));
+    }
+    if (partner?.id && user?.id) {
+      const sortedIds = [user.id, partner.id].sort();
+      const channel = supabase.channel(`presence:pair:${sortedIds.join('_')}`);
+      channel.send({
+        type: 'broadcast',
+        event: 'mood_change',
+        payload: { userId: user.id, mood: newMood },
+      });
+    }
+    const moodObj = getMoodById(newMood);
+    setMessage({ type: 'success', text: `Mood set to ${moodObj.label} ${moodObj.emoji}` });
+  };
 
   const editTarget = partner;
 
@@ -234,17 +258,38 @@ export default function Profile() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-surface-border/50">
-                    <div className="flex items-center gap-2">
-                      <Coffee className="w-4 h-4 text-amber-500" />
-                      <span className="text-sm font-semibold text-text-main">Current Mood</span>
-                    </div>
-                    <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
-                      {/* We will add actual mood selection later in TopBar or a modal */}
-                      <Smile className="w-3.5 h-3.5" /> Happy
-                    </span>
-                  </div>
+                  {(() => {
+                    const partnerMoodObj = getMoodById(partner?.mood || (typeof localStorage !== 'undefined' ? localStorage.getItem('partner_mood') : null) || 'happy');
+                    return (
+                      <div className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-surface-border/50">
+                        <div className="flex items-center gap-2">
+                          <Coffee className="w-4 h-4 text-amber-500" />
+                          <span className="text-sm font-semibold text-text-main">Their Mood</span>
+                        </div>
+                        <span className="text-xs font-bold text-amber-500 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20" data-testid="their-mood-badge">
+                          <span className="text-sm" data-testid="their-mood-emoji">{partnerMoodObj.emoji}</span>
+                          <span data-testid="their-mood-label">{partnerMoodObj.label}</span>
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
+              </div>
+
+              {/* Your Mood Status */}
+              <div className="bg-surface/60 dark:bg-slate-900/40 backdrop-blur-xl border border-surface-border dark:border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-text-main text-base flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    Your Current Mood
+                  </h3>
+                  <span className="text-xs font-semibold text-text-muted">Tap to update</span>
+                </div>
+                <MoodSelector
+                  currentMood={user?.mood || (typeof localStorage !== 'undefined' ? localStorage.getItem('user_mood') : null) || 'happy'}
+                  onSelectMood={handleUpdateUserMood}
+                  isCompact
+                />
               </div>
             </div>
 

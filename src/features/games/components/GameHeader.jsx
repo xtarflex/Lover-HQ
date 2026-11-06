@@ -104,28 +104,28 @@ export default function GameHeader({
   };
 
   return (
-    <div className="w-full bg-surface/80 backdrop-blur-lg border-b border-surface-border/60 z-10 relative flex flex-col">
+    <div className="w-full bg-brand-surface/85 backdrop-blur-md border-b border-gray-800/80 z-10 relative flex flex-col select-none">
       {/* Top Toolbar: Back Button + Game Title + Info + Timer */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-surface-border/30">
+      <div className="h-20 flex items-center justify-between px-4 sm:px-6 border-b border-gray-800/60">
         <button
           onClick={onBack}
           aria-label="Back to lobby"
-          className="p-2 rounded-xl text-text-muted hover:text-primary hover:bg-primary/10 transition-all flex-shrink-0"
+          className="p-2.5 rounded-2xl text-text-muted hover:text-primary hover:bg-primary/10 transition-all flex-shrink-0"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-1.5 justify-center">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-2 justify-center">
+          <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-text-main">
             {gameName}
           </span>
           <button
             onClick={() => setShowRules(true)}
             aria-label="How to play"
-            className="p-1 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+            className="p-1.5 rounded-xl text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
             title="How to play"
           >
-            <Info className="w-3.5 h-3.5" />
+            <Info className="w-4 h-4" />
           </button>
         </div>
 
@@ -133,7 +133,7 @@ export default function GameHeader({
       </div>
 
       {/* Bottom Match Board: Player Cards + VS Split */}
-      <div className="flex items-center justify-between px-6 py-3 max-w-lg mx-auto w-full gap-4">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 max-w-lg mx-auto w-full gap-4">
         {/* Player 1 Card (You) */}
         <div
           className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-surface/30 border transition-all relative flex-1 min-w-0 ${

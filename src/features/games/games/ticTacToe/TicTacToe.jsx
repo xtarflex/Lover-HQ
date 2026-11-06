@@ -56,6 +56,7 @@ export default function TicTacToe({
 
   const {
     board,
+    currentSymbol,
     isMyTurn,
     winner,
     winnerId,
@@ -65,6 +66,7 @@ export default function TicTacToe({
     applyRemoteMove,
     reset,
     forceWinner,
+    syncState,
   } = useTicTacToeLogic({ userId, partnerId, mySymbol });
 
   // Use a ref so we only call useGameSync once but always have the latest callbacks
@@ -82,24 +84,11 @@ export default function TicTacToe({
     setActivePartnerBubble,
     setEndReason,
     setRematchStatus,
-  });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    handlersRef.current = {
-      applyRemoteMove,
-      reset,
-      recorder,
-      partnerId,
-      gameId,
-      userId,
-      forceWinner,
-      sym,
-      setUserEmojis,
-      setPartnerEmojis,
-      setActivePartnerBubble,
-      setEndReason,
-      setRematchStatus,
-    };
+    board,
+    currentSymbol,
+    winner,
+    syncState,
+    broadcastMove: null,
   });
 
   const handleRemoteMove = useCallback((payload) => {
@@ -120,6 +109,24 @@ export default function TicTacToe({
     if (payload.type === 'move') {
       applyRemoteMove(payload);
       recorder.current.recordMove(partnerId, 'place', { index: payload.index });
+    } else if (payload.type === 'sync_request') {
+      const {
+        board: latestBoard,
+        currentSymbol: latestSymbol,
+        winner: latestWinner,
+        broadcastMove: sendSync,
+      } = handlersRef.current;
+      const isBoardEmpty = latestBoard.every((cell) => cell === null);
+      if (!isBoardEmpty && sendSync) {
+        sendSync({
+          type: 'sync_state',
+          board: latestBoard,
+          currentSymbol: latestSymbol,
+          winner: latestWinner,
+        });
+      }
+    } else if (payload.type === 'sync_state') {
+      handlersRef.current.syncState(payload.board, payload.currentSymbol, payload.winner);
     } else if (payload.type === 'rematch_request') {
       setRematchStatus('receiving');
     } else if (payload.type === 'rematch_accept') {
@@ -170,6 +177,30 @@ export default function TicTacToe({
 
   const broadcastMove = useGameSync(gameId, sessionId, handleRemoteMove);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    handlersRef.current = {
+      applyRemoteMove,
+      reset,
+      recorder,
+      partnerId,
+      gameId,
+      userId,
+      forceWinner,
+      sym,
+      setUserEmojis,
+      setPartnerEmojis,
+      setActivePartnerBubble,
+      setEndReason,
+      setRematchStatus,
+      board,
+      currentSymbol,
+      winner,
+      syncState,
+      broadcastMove,
+    };
+  });
+
   // Save replay when game ends (only host saves to prevent duplicates)
   useEffect(() => {
     if (!winner || !isHost) return;
@@ -210,11 +241,13 @@ export default function TicTacToe({
     broadcastMove({ type: 'rematch_decline' });
   };
 
+  const isGameInProgress = board.some((cell) => cell !== null);
+
   const handleBackAction = () => {
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
     }
-    if (!winner && partnerOnline) {
+    if (!winner && isGameInProgress && partnerOnline) {
       setShowForfeitModal(true);
     } else {
       onBack();

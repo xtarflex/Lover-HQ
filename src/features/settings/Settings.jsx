@@ -32,6 +32,7 @@ import {
 } from '../../services/fridge';
 
 import SettingsSidebar from './components/SettingsSidebar';
+import { getMoodById } from './components/MoodSelector';
 import AccountPanel from './components/AccountPanel';
 import PreferencesPanel from './components/PreferencesPanel';
 import FridgeSettingsPanel from './components/FridgeSettingsPanel';
@@ -150,6 +151,20 @@ export default function Settings() {
   const [gameReactions, setGameReactions] = useState(
     () => localStorage.getItem('preferences_game_reactions_enabled') !== 'false'
   );
+  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [hideProfileStatus, setHideProfileStatus] = useState(
+    () => localStorage.getItem('privacy_hide_profile_status') === 'true'
+  );
+  const [mood, setMood] = useState(
+    () => user?.mood || localStorage.getItem('user_mood') || 'happy'
+  );
+
+  useEffect(() => {
+    if (user?.mood) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMood(user.mood);
+    }
+  }, [user?.mood]);
 
   const [message, setMessage] = useState(null);
 
@@ -235,6 +250,57 @@ export default function Settings() {
       setCompactDays,
       'Auto-compaction threshold updated'
     );
+  };
+
+  const handleThemeChange = (newTheme) => {
+    handlePreferenceChange('theme', newTheme, setActiveTheme, `Theme updated to ${newTheme} mode`);
+    const effectiveTheme =
+      newTheme === 'system'
+        ? typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : newTheme;
+    if (effectiveTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const handleToggleHideProfileStatus = () => {
+    const nextVal = !hideProfileStatus;
+    setHideProfileStatus(nextVal);
+    localStorage.setItem('privacy_hide_profile_status', nextVal.toString());
+    setMessage({
+      type: 'success',
+      text: nextVal ? 'Profile status hidden from partner' : 'Profile status visible to partner',
+    });
+  };
+
+  const handleMoodChange = (newMood) => {
+    setMood(newMood);
+    localStorage.setItem('user_mood', newMood);
+    if (user) {
+      const updatedUser = { ...user, mood: newMood };
+      dispatch({ type: 'SET_USER', payload: updatedUser });
+      localStorage.setItem('lover_hq_user', JSON.stringify(updatedUser));
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-mood-changed', { detail: { mood: newMood } }));
+    }
+    if (partnerId && userId) {
+      const sortedIds = [userId, partnerId].sort();
+      const channel = supabase.channel(`presence:pair:${sortedIds.join('_')}`);
+      channel.send({
+        type: 'broadcast',
+        event: 'mood_change',
+        payload: { userId, mood: newMood },
+      });
+    }
+    const moodObj = getMoodById(newMood);
+    setMessage({ type: 'success', text: `Mood updated to ${moodObj.label} ${moodObj.emoji}` });
   };
 
   /**
@@ -424,6 +490,9 @@ export default function Settings() {
    */
   const handleLogout = async () => {
     try {
+      localStorage.removeItem('lover_hq_user');
+      localStorage.removeItem('lover_hq_partner');
+      localStorage.removeItem('lover_hq_pairing_status');
       await supabase.auth.signOut();
       dispatch({ type: 'RESET_STATE' });
       navigate('/auth');
@@ -575,10 +644,16 @@ export default function Settings() {
                 saving={saving}
                 onSubmit={handleSaveProfile}
                 onOpenAvatarPicker={() => setShowAvatarPicker(true)}
+                hideProfileStatus={hideProfileStatus}
+                onToggleHideProfileStatus={handleToggleHideProfileStatus}
+                mood={mood}
+                onSelectMood={handleMoodChange}
               />
             )}
             {activeCategory === 'preferences' && (
               <PreferencesPanel
+                activeTheme={activeTheme}
+                onChangeTheme={handleThemeChange}
                 soundMuted={soundMuted}
                 onToggleSound={() =>
                   handlePreferenceChange('fridge_sound_muted', !soundMuted, setSoundMuted, null)
@@ -619,6 +694,8 @@ export default function Settings() {
                     null
                   )
                 }
+                mood={mood}
+                onSelectMood={handleMoodChange}
               />
             )}
             {activeCategory === 'fridge' && (

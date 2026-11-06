@@ -14,14 +14,14 @@ import { triggerBuzz, triggerPush } from '../utils/notification';
 export function usePresence(roomName) {
   const supabase = useSupabase();
   const dispatch = useAppDispatch();
-  const { user } = useAppContext();
+  const { user, partner } = useAppContext();
 
   const channelRef = useRef(null);
   const roomNameRef = useRef(roomName);
   const writeSeqRef = useRef(0);
 
   const userId = user?.id;
-  const partnerId = user?.partner_id;
+  const partnerId = user?.partner_id || partner?.id;
 
   /**
    * Updates the user's presence record in the database with monotonic sequence tracking.
@@ -62,13 +62,16 @@ export function usePresence(roomName) {
     roomNameRef.current = roomName;
     const channel = channelRef.current;
     if (channel && channel.state === 'joined' && userId) {
+      const isHidden =
+        typeof localStorage !== 'undefined' &&
+        localStorage.getItem('privacy_hide_profile_status') === 'true';
       channel.track({
         user_id: userId,
-        current_room: roomName,
-        is_online: true,
+        current_room: isHidden ? null : roomName,
+        is_online: !isHidden,
         last_seen: new Date().toISOString(),
       });
-      updateDbPresence(true, roomName);
+      updateDbPresence(!isHidden, isHidden ? null : roomName);
     }
   }, [roomName, userId, updateDbPresence]);
 
@@ -101,6 +104,14 @@ export function usePresence(roomName) {
             partnerRoom: partnerPresence ? partnerPresence.current_room : null,
           },
         });
+
+        if (partnerPresence?.mood) {
+          localStorage.setItem('partner_mood', partnerPresence.mood);
+          const cachedPartner = JSON.parse(localStorage.getItem('lover_hq_partner') || '{}');
+          const updated = { ...cachedPartner, mood: partnerPresence.mood };
+          localStorage.setItem('lover_hq_partner', JSON.stringify(updated));
+          dispatch({ type: 'SET_PARTNER', payload: updated });
+        }
       })
       .on('broadcast', { event: 'game_invite' }, ({ payload }) => {
         if (!payload || typeof payload !== 'object' || payload.senderId === userId) return;
@@ -128,6 +139,16 @@ export function usePresence(roomName) {
         });
         window.dispatchEvent(new CustomEvent('game-invite-declined'));
       })
+      .on('broadcast', { event: 'mood_change' }, ({ payload }) => {
+        if (!payload || typeof payload !== 'object' || payload.userId === userId) return;
+        if (payload.mood) {
+          localStorage.setItem('partner_mood', payload.mood);
+          const cachedPartner = JSON.parse(localStorage.getItem('lover_hq_partner') || '{}');
+          const updated = { ...cachedPartner, mood: payload.mood };
+          localStorage.setItem('lover_hq_partner', JSON.stringify(updated));
+          dispatch({ type: 'SET_PARTNER', payload: updated });
+        }
+      })
       .on('broadcast', { event: 'reveal_nudge' }, ({ payload }) => {
         if (!payload || typeof payload !== 'object') return;
         const allowNudges = localStorage.getItem('reveal_allow_nudges') !== 'false';
@@ -152,30 +173,77 @@ export function usePresence(roomName) {
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
+          const isHidden =
+            typeof localStorage !== 'undefined' &&
+            localStorage.getItem('privacy_hide_profile_status') === 'true';
+          const currentMood =
+            (typeof localStorage !== 'undefined' ? localStorage.getItem('user_mood') : null) ||
+            'happy';
           channel.track({
             user_id: userId,
-            current_room: roomNameRef.current,
-            is_online: true,
+            current_room: isHidden ? null : roomNameRef.current,
+            is_online: !isHidden,
             last_seen: new Date().toISOString(),
+            mood: currentMood,
           });
-          updateDbPresence(true, roomNameRef.current);
+          updateDbPresence(!isHidden, isHidden ? null : roomNameRef.current);
         }
       });
 
     // Keep DB last_seen heartbeat updated every 10 seconds while active
     heartbeatInterval = setInterval(() => {
       if (channel.state === 'joined') {
+        const currentMood =
+          (typeof localStorage !== 'undefined' ? localStorage.getItem('user_mood') : null) ||
+          'happy';
         channel.track({
           user_id: userId,
           current_room: roomNameRef.current,
           is_online: true,
           last_seen: new Date().toISOString(),
+          mood: currentMood,
         });
       }
       updateDbPresence(true, roomNameRef.current);
     }, 10000);
 
+    // Listen for local mood change and immediately update track + broadcast
+    const handleLocalMoodChange = (e) => {
+      const newMood = e.detail?.mood;
+      if (!newMood || !channelRef.current) return;
+      const isHidden =
+        typeof localStorage !== 'undefined' &&
+        localStorage.getItem('privacy_hide_profile_status') === 'true';
+
+      const payload = {
+        user_id: userId,
+        current_room: isHidden ? null : roomNameRef.current,
+        is_online: !isHidden,
+        last_seen: new Date().toISOString(),
+        mood: newMood,
+      };
+
+      try {
+        channelRef.current.track(payload);
+      } catch (err) {
+        console.warn('Track mood error:', err);
+      }
+
+      try {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'mood_change',
+          payload: { userId, mood: newMood },
+        });
+      } catch (err) {
+        console.warn('Broadcast mood error:', err);
+      }
+    };
+
+    window.addEventListener('local-mood-changed', handleLocalMoodChange);
+
     return () => {
+      window.removeEventListener('local-mood-changed', handleLocalMoodChange);
       if (heartbeatInterval) {
         clearInterval(heartbeatInterval);
       }
