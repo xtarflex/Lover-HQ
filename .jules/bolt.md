@@ -40,3 +40,6 @@
 **Learning:** Repeatedly calling `.find()` on constant arrays (like `EMOJI_CATEGORIES` or `EMOTION_CHIPS`) inside loops or hot render paths causes O(N) array scans, leading to unnecessary CPU overhead.
 **Action:** Convert constant arrays to Maps (e.g., `new Map(arr.map(c => [c.id, c]))`) for O(1) lookups whenever they are accessed frequently, and pull lookups outside of `.filter()` or `.map()` callbacks when possible.
 
+## 2026-11-06 - ISO 8601 Timestamp Optimization
+**Learning:** Using `Date.parse()` or `new Date()` inside React render loops or iterative array functions like `.map` or `.filter` adds unnecessary overhead for ISO 8601 strings.
+**Action:** Direct string comparisons should be used for Supabase timestamps in the format `date1 >= date2` for improved performance in render loops.

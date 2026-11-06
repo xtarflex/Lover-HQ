@@ -172,9 +172,7 @@ export default function MagnetCommentDrawer({
       );
     }
 
-    const isRead =
-      isPartnerInFridge ||
-      (partnerLastSeen && Date.parse(partnerLastSeen) >= Date.parse(comment.created_at));
+    const isRead = isPartnerInFridge || (partnerLastSeen && partnerLastSeen >= comment.created_at);
 
     if (isRead) {
       return <CheckCheck className="w-3 h-3 text-primary" title="Read" />;
