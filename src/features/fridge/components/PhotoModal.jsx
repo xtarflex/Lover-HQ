@@ -130,7 +130,16 @@ export function PhotoModal({ isOpen, onClose, userId, onSave }) {
         {/* Polaroid Style Preview */}
         <div
           onClick={() => !isUploading && fileInputRef.current?.click()}
-          className="w-full bg-[#f3f4f6] text-gray-800 p-4 pb-8 rounded-lg shadow-md border border-gray-300 flex flex-col items-center justify-center aspect-[4/5] cursor-pointer hover:bg-gray-200/90 transition-all group overflow-hidden"
+          role="button"
+          tabIndex={0}
+          aria-label="Click to select a photo to upload"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              if (!isUploading) fileInputRef.current?.click();
+            }
+          }}
+          className="w-full bg-[#f3f4f6] text-gray-800 p-4 pb-8 rounded-lg shadow-md border border-gray-300 flex flex-col items-center justify-center aspect-[4/5] cursor-pointer hover:bg-gray-200/90 transition-all group overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <input
             type="file"
@@ -138,6 +147,7 @@ export function PhotoModal({ isOpen, onClose, userId, onSave }) {
             onChange={handleFileChange}
             accept="image/*"
             className="hidden"
+            tabIndex={-1}
             disabled={isUploading}
           />
 

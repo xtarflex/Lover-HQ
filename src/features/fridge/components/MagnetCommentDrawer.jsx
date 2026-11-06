@@ -259,6 +259,9 @@ export default function MagnetCommentDrawer({
                       : 'bg-surface/30 text-text-muted border-surface-border/30 hover:border-text-muted/30 hover:bg-surface/60'
                   }`}
                   title={emoji.label}
+                  aria-label={
+                    hasReacted ? `Remove ${emoji.label} reaction` : `React with ${emoji.label}`
+                  }
                 >
                   <img
                     src={getEmojiCdnUrl(emoji.code)}
@@ -431,6 +434,7 @@ export default function MagnetCommentDrawer({
             value={inputText}
             onChange={handleInputChange}
             placeholder="Type a message..."
+            aria-label="Type a message"
             className="flex-grow bg-slate-900 border border-surface-border/50 text-text-main placeholder:text-text-muted/50 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
             maxLength={300}
           />
