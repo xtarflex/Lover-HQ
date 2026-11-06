@@ -32,12 +32,12 @@ export function groupChatMessages(messages, userId, lastReadTimestamp) {
     day: 'numeric',
   });
 
-  const lastReadTime = lastReadTimestamp ? Date.parse(lastReadTimestamp) : null;
+  const nowIso = new Date().toISOString();
   const partnerUnreadMessages = messages.filter(
     (m) =>
       m.user_id !== userId &&
-      lastReadTime &&
-      (m.created_at ? Date.parse(m.created_at) : Date.now()) > lastReadTime
+      lastReadTimestamp &&
+      (m.created_at || nowIso) > lastReadTimestamp
   );
   const unreadCount = partnerUnreadMessages.length;
   let hasInsertedUnreadDivider = false;
