@@ -6,6 +6,7 @@ import Avatar from './Avatar';
 import { LoverHQLogo } from '../assets/Logo';
 import { Heart, Bell, ArrowLeft } from 'lucide-react';
 import { NotificationDrawer } from './NotificationDrawer';
+import { getMoodById } from '../features/settings/components/MoodSelector';
 import { ConnectionFavoritesModal } from './ConnectionFavoritesModal';
 
 /**
@@ -88,7 +89,7 @@ export function TopBar() {
 
   return (
     <>
-      <header className="bg-brand-surface/85 backdrop-blur-md border-b border-gray-800/80 h-20 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-[60] select-none">
+      <header className="shrink-0 bg-surface/90 backdrop-blur-md border-b border-surface-border h-20 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-[60] select-none">
         {/* Top Left: Logo or Back Button */}
         <div className="flex items-center text-primary gap-3">
           {location.pathname === '/chat' ? (
@@ -108,7 +109,7 @@ export function TopBar() {
 
         {/* Center: Ambient Status Pill (Hidden on Mobile/Tablet) */}
         {partner && (
-          <div className="hidden lg:flex items-center bg-brand-surface/60 border border-gray-800 px-4 py-1.5 rounded-full">
+          <div className="hidden lg:flex items-center bg-surface/60 border border-surface-border px-4 py-1.5 rounded-full">
             <span className="text-xs text-gray-300 flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -137,7 +138,7 @@ export function TopBar() {
           <button
             onClick={handleOpenNotifications}
             aria-label="Open notifications"
-            className="hidden md:flex relative p-2 rounded-full bg-brand-slate/40 hover:bg-brand-slate/70 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white transition-all duration-200 cursor-pointer"
+            className="hidden md:flex relative p-2 rounded-full bg-surface-border/40 hover:bg-surface-border/70 border border-surface-border text-text-muted hover:text-text-main transition-all duration-200 cursor-pointer"
           >
             <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             <AnimatePresence>
@@ -158,7 +159,7 @@ export function TopBar() {
             <div className="relative">
               <Link
                 to="/settings"
-                className="flex items-center bg-brand-slate/40 pr-2.5 pl-1 py-1 rounded-full border border-gray-800 hover:bg-brand-slate/60 hover:border-gray-700 transition-colors relative"
+                className="flex items-center bg-surface-border/40 pr-2.5 pl-1 py-1 rounded-full border border-surface-border hover:bg-surface-border/60 transition-colors relative"
                 aria-label="Settings and profile"
               >
                 <Avatar
@@ -167,8 +168,19 @@ export function TopBar() {
                   isOnline={presence.user === 'online'}
                   size="sm"
                 />
-                <span className="text-xs font-bold text-gray-300 ml-1.5 sm:ml-2">
-                  {formatName(user.name || 'You')}
+                <span className="text-xs font-bold text-gray-300 ml-1.5 sm:ml-2 flex items-center gap-1">
+                  <span className="text-sm">
+                    {
+                      getMoodById(
+                        user?.mood ||
+                          (typeof localStorage !== 'undefined'
+                            ? localStorage.getItem('user_mood')
+                            : null) ||
+                          'happy'
+                      ).emoji
+                    }
+                  </span>
+                  <span>{formatName(user.name || 'You')}</span>
                 </span>
               </Link>
               {/* Functional Bell Icon Badge with Smooth Animated Exit for Mobile */}
@@ -213,11 +225,22 @@ export function TopBar() {
             <div className="flex flex-col items-center relative">
               <Link
                 to="/profile"
-                className="flex items-center bg-brand-slate/40 pl-2.5 pr-1 py-1 rounded-full border border-gray-800 hover:bg-brand-slate/60 hover:border-gray-700 transition-colors"
+                className="flex items-center bg-surface-border/40 pl-2.5 pr-1 py-1 rounded-full border border-surface-border hover:bg-surface-border/60 transition-colors"
                 aria-label={`${partner.name}'s profile`}
               >
-                <span className="text-xs font-bold text-gray-300 mr-1.5 sm:mr-2">
-                  {formatName(partner.name || 'Partner')}
+                <span className="text-xs font-bold text-gray-300 mr-1.5 sm:mr-2 flex items-center gap-1">
+                  <span>{formatName(partner.name || 'Partner')}</span>
+                  <span className="text-sm">
+                    {
+                      getMoodById(
+                        partner?.mood ||
+                          (typeof localStorage !== 'undefined'
+                            ? localStorage.getItem('partner_mood')
+                            : null) ||
+                          'happy'
+                      ).emoji
+                    }
+                  </span>
                 </span>
                 <Avatar
                   src={partner.avatar_url?.startsWith('http') ? partner.avatar_url : null}

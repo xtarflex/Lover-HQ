@@ -124,6 +124,9 @@ export function useAuthSync() {
         }
 
         let mergedUser = { ...authUser, ...(profile || {}) };
+        if (!mergedUser.mood) {
+          mergedUser.mood = localStorage.getItem('user_mood') || 'happy';
+        }
 
         // Auto-mark onboarding as completed if a partner is linked in the DB
         if (profile?.partner_id && !profile.onboarding_completed) {
@@ -146,6 +149,10 @@ export function useAuthSync() {
             .eq('id', profile.partner_id)
             .single();
           if (partner) {
+            const partnerMood = localStorage.getItem('partner_mood');
+            if (!partner.mood && partnerMood) {
+              partner.mood = partnerMood;
+            }
             dispatch({ type: 'SET_PARTNER', payload: partner });
             localStorage.setItem('lover_hq_partner', JSON.stringify(partner));
           }

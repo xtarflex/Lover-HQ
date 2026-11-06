@@ -93,10 +93,24 @@ export function useTicTacToeLogic({ userId, partnerId, mySymbol }) {
     setCurrentSymbol(null);
   }, []);
 
+  /**
+   * Synchronizes the local board state with the partner's state upon reconnect or late join.
+   *
+   * @param {Array<string|null>} remoteBoard
+   * @param {string|null} remoteSymbol
+   * @param {string|null} remoteWinner
+   */
+  const syncState = useCallback((remoteBoard, remoteSymbol, remoteWinner) => {
+    setBoard(remoteBoard);
+    setCurrentSymbol(remoteSymbol);
+    setWinner(remoteWinner);
+  }, []);
+
   const winnerId = winner === mySymbol ? userId : winner === partnerSymbol ? partnerId : null;
 
   return {
     board,
+    currentSymbol,
     isMyTurn,
     winner,
     winnerId,
@@ -106,5 +120,6 @@ export function useTicTacToeLogic({ userId, partnerId, mySymbol }) {
     applyRemoteMove,
     reset,
     forceWinner,
+    syncState,
   };
 }

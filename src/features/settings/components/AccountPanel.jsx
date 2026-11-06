@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { ShieldAlert, Check, Pencil } from 'lucide-react';
+import { ShieldAlert, Check, Pencil, Sparkles } from 'lucide-react';
+import MoodSelector from './MoodSelector';
 import Avatar from '../../../components/Avatar';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 
@@ -37,6 +38,10 @@ export default function AccountPanel({
   saving,
   onSubmit,
   onOpenAvatarPicker,
+  hideProfileStatus = false,
+  onToggleHideProfileStatus,
+  mood = 'happy',
+  onSelectMood,
 }) {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -146,6 +151,20 @@ export default function AccountPanel({
         </div>
       </form>
 
+      {/* Mood & Emotional Presence */}
+      <div className="space-y-3 pt-2 border-t border-surface-border">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            Your Mood & Status
+          </h4>
+          <span className="text-xs font-semibold text-text-muted">
+            Updates live with your partner
+          </span>
+        </div>
+        <MoodSelector currentMood={mood} onSelectMood={onSelectMood} />
+      </div>
+
       {/* Privacy Placeholder */}
       <div className="space-y-4 pt-2">
         <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
@@ -162,11 +181,18 @@ export default function AccountPanel({
           <button
             type="button"
             role="switch"
-            aria-checked={false}
+            aria-checked={hideProfileStatus}
             aria-label="Toggle Hide Profile Status"
-            className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-surface-border"
+            onClick={onToggleHideProfileStatus}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              hideProfileStatus ? 'bg-primary' : 'bg-surface-border'
+            }`}
           >
-            <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out translate-x-0" />
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${
+                hideProfileStatus ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
           </button>
         </div>
       </div>

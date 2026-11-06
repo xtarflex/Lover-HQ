@@ -120,7 +120,8 @@ function MainLayout() {
   const isGamesRoute = location.pathname === '/games';
   const isChatRoute = location.pathname === '/chat';
   const isMusicRoute = location.pathname === '/music';
-  const isFullHeight = isFridgeRoute || isGamesRoute || isChatRoute || isMusicRoute;
+  const isFullHeight =
+    isFridgeRoute || (isGamesRoute && activeGameId) || isChatRoute || isMusicRoute;
 
   // Hide global navigation and mini player inside active games or on the chat screen
   const showGlobalNav = !activeGameId && !isChatRoute;
@@ -246,15 +247,51 @@ export default function App() {
 
   // Apply theme class (dark or light) dynamically to documentElement
   useEffect(() => {
-    if (preferences?.theme) {
-      if (preferences.theme === 'dark') {
+    const applyTheme = (themeValue) => {
+      const active = localStorage.getItem('theme') || themeValue || 'dark';
+      const isDark =
+        active === 'dark' ||
+        (active === 'system' &&
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      if (isDark) {
         document.documentElement.classList.add('dark');
         document.documentElement.classList.remove('light');
       } else {
         document.documentElement.classList.add('light');
         document.documentElement.classList.remove('dark');
       }
+    };
+
+    applyTheme(preferences?.theme);
+
+    const handlePrefEvent = (e) => {
+      if (e.detail?.key === 'theme') {
+        applyTheme(e.detail.value);
+      }
+    };
+    window.addEventListener('preference_change', handlePrefEvent);
+
+    let mqlHandler = null;
+    let mql = null;
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      mql = window.matchMedia('(prefers-color-scheme: dark)');
+      mqlHandler = () => {
+        const currentTheme = localStorage.getItem('theme') || preferences?.theme || 'dark';
+        if (currentTheme === 'system') {
+          applyTheme('system');
+        }
+      };
+      mql.addEventListener('change', mqlHandler);
     }
+
+    return () => {
+      window.removeEventListener('preference_change', handlePrefEvent);
+      if (mql && mqlHandler) {
+        mql.removeEventListener('change', mqlHandler);
+      }
+    };
   }, [preferences?.theme]);
 
   // Capture pairing code from URL if present, store in sessionStorage, then clean the URL
@@ -295,9 +332,13 @@ export default function App() {
             path="/onboarding"
             element={
               user ? (
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <Onboarding />
-                </Suspense>
+                user.onboarding_completed ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Suspense fallback={<LoadingSpinner fullScreen />}>
+                    <Onboarding />
+                  </Suspense>
+                )
               ) : (
                 <Navigate to="/auth" replace />
               )

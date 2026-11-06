@@ -22,7 +22,7 @@ import { NavigatorCarousel } from './components/NavigatorCarousel';
  */
 export default function Home() {
   return (
-    <div className="relative min-h-full pb-28 pt-1 px-1 sm:px-2 max-w-lg mx-auto flex flex-col gap-3.5 sm:gap-4 select-none">
+    <div className="relative min-h-full pb-4 pt-1 px-1 sm:px-2 max-w-lg mx-auto flex flex-col gap-3.5 sm:gap-4 select-none">
       {/* Tactile Diamond Dot Matrix with Double Radial Corner Auras */}
       <svg
         className="fixed inset-0 pointer-events-none w-full h-full z-0 select-none"

@@ -418,11 +418,13 @@ export default function ThreeMensMorris({
       clearTimeout(slideInTimer);
     };
   }, [isMyTurn, winner, partner, bannerDismissed]);
+  const isGameInProgress = board.some((cell) => cell !== null);
+
   const handleBackAction = () => {
     if (rematchStatus === 'sending' || rematchStatus === 'receiving') {
       broadcastMove({ type: 'rematch_decline' });
     }
-    if (!winner && partnerOnline) {
+    if (!winner && isGameInProgress && partnerOnline) {
       setShowForfeitModal(true);
     } else {
       onBack();
@@ -685,9 +687,16 @@ export default function ThreeMensMorris({
                   return (
                     <motion.circle
                       key={piece.id}
+                      id={piece.id}
+                      cx={piece.coords?.x ?? 0}
+                      cy={piece.coords?.y ?? 0}
+                      initial={{
+                        cx: piece.coords?.x ?? 0,
+                        cy: piece.coords?.y ?? 0,
+                      }}
                       animate={{
-                        cx: piece.coords.x,
-                        cy: piece.coords.y,
+                        cx: piece.coords?.x ?? 0,
+                        cy: piece.coords?.y ?? 0,
                         opacity: 1,
                       }}
                       transition={{
@@ -708,6 +717,7 @@ export default function ThreeMensMorris({
                 {NODE_COORDINATES.map((coords, i) => (
                   <circle
                     key={`overlay-${i}`}
+                    id={`morris-node-${i}`}
                     cx={coords.x}
                     cy={coords.y}
                     r="22"
