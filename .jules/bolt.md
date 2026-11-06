@@ -43,3 +43,7 @@
 ## 2026-11-06 - ISO 8601 Timestamp Optimization
 **Learning:** Using `Date.parse()` or `new Date()` inside React render loops or iterative array functions like `.map` or `.filter` adds unnecessary overhead for ISO 8601 strings.
 **Action:** Direct string comparisons should be used for Supabase timestamps in the format `date1 >= date2` for improved performance in render loops.
+
+## 2024-05-18 - Pre-calculate Grid Data for O(1) Lookups in Render Loops
+**Learning:** Performing array searches (e.g., `.find()`, `.some()`) inside nested grid loops (like iterating over a 15x15 Scrabble board) creates an O(N * Rows * Cols) bottleneck. Even for small arrays, this causes unnecessary garbage collection and CPU overhead when called frequently during renders.
+**Action:** Before the render loop, map the linear array data into a 2D grid array (e.g., `grid[r][c] = value`) or a `Map` structure using coordinates as keys. This reduces the per-cell lookup to O(1), significantly improving rendering performance.
