@@ -138,6 +138,7 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
       <div
         className={`${className} flex items-center justify-center bg-slate-900/50 rounded-xl border border-slate-800 p-1`}
         title={`Failed to load: ${alt}`}
+        aria-label={`Failed to load: ${alt}`}
       >
         <AlertTriangle className="w-5 h-5 text-amber-400/80" />
       </div>
@@ -149,6 +150,7 @@ export function AnimatedSticker({ src, alt, char, className = 'w-14 h-14 object-
       ref={containerRef}
       onClick={triggerPlayback}
       title="Tap to replay animation"
+      aria-label="Tap to replay animation"
       className="cursor-pointer select-none flex items-center justify-center relative group active:scale-95 transition-transform"
     >
       {/* Loading Skeleton Placeholder */}

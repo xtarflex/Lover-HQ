@@ -37,3 +37,22 @@
 ## 2026-10-06 - aria-labels for settings search input
 **Learning:** Standalone input fields like the search bar in the Settings feature lacked an explicit `aria-label` attribute or associated `<label>` element, making them unreadable to screen readers.
 **Action:** When creating or modifying standalone inputs without a visual label, always include an explicit `aria-label` attribute to ensure proper accessibility for screen reader users.
+## 2026-09-22 - aria-labels for miscellaneous interactive elements
+**Learning:** Several interactive elements (like the EmojiStickerDrawer drag handle, StickerPlayer containers, and QuickDrawCanvas tool buttons) lacked `aria-label` attributes, relying solely on `title` attributes. Relying solely on `title` is insufficient for robust screen reader support.
+**Action:** When creating or modifying interactive elements (buttons, drag handles, or clickable containers), ensure they always have an explicit, descriptive `aria-label` to guarantee full accessibility, regardless of whether a `title` tooltip is also present.
+
+## 2026-09-24 - Added missing aria-labels to MagnetCommentDrawer emoji buttons
+**Learning:** The emoji reaction buttons generated via mapping `ANIMATED_EMOJIS` in `MagnetCommentDrawer.jsx` lacked explicit `aria-label` attributes, making them inaccessible to screen readers despite having visual icons and `title` attributes.
+**Action:** When creating mapped emoji buttons or interactive elements that rely primarily on icons/titles, always add explicit `aria-label` attributes. Use dynamic values based on interaction state (e.g., `hasReacted ? 'Remove ${emoji.label} reaction' : 'React with ${emoji.label}'`) to provide clear feedback to assistive technologies.
+
+## 2026-09-29 - WCAG 2.5.3 Label in Name
+**Learning:** When adding `aria-label` to buttons that contain visible text, it's easy to accidentally replace the visible text entirely, which breaks voice control software (WCAG 2.5.3).
+**Action:** Always ensure the `aria-label` string includes the exact visible text of the element, e.g., instead of replacing "Clean Fridge" with "Hide Messages", use "Clean Fridge: Hide Messages".
+
+## 2026-10-02 - aria-labels for missing form inputs
+**Learning:** Input fields lacking an associated label (like comment text inputs, hidden file uploads, and playback sliders) fail to provide context to screen readers, making it difficult for users to interact meaningfully.
+**Action:** Always ensure that inputs without a visible label element include a descriptive `aria-label` attribute.
+
+## 2026-10-04 - Accessible Modals
+**Learning:** Icon-only close buttons in modals (like `<X />` in game headers) are completely invisible to screen readers without explicit ARIA labels.
+**Action:** Ensure all icon-only functional buttons, especially those controlling modal state like close, back, or confirm, have descriptive `aria-label`s.
