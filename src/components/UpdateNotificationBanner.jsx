@@ -37,7 +37,6 @@ export function UpdateNotificationBanner({ onApplyUpdate, onDismiss }) {
           <button
             type="button"
             onClick={onApplyUpdate}
-            aria-label="Apply update"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 text-background font-bold text-xs rounded-xl shadow-md transition-all active:scale-95"
           >
             <RefreshCw className="w-3.5 h-3.5" />

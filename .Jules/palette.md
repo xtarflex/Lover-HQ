@@ -56,3 +56,7 @@
 ## 2026-10-04 - Accessible Modals
 **Learning:** Icon-only close buttons in modals (like `<X />` in game headers) are completely invisible to screen readers without explicit ARIA labels.
 **Action:** Ensure all icon-only functional buttons, especially those controlling modal state like close, back, or confirm, have descriptive `aria-label`s.
+
+## 2026-11-08 - Remove redundant aria-label to comply with WCAG 2.5.3
+**Learning:** Buttons with visible text (like 'Update') that also have conflicting `aria-label` attributes (like 'Apply update') violate WCAG 2.5.3 (Label in Name) because the accessible name doesn't contain the visible text.
+**Action:** Remove redundant `aria-label` attributes when visible text is sufficiently descriptive.
