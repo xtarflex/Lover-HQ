@@ -319,17 +319,19 @@ export default function MagnetCommentDrawer({
                   const nextComment = i < comments.length - 1 ? comments[i + 1] : null;
                   const TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
+                  const commentTime = Date.parse(comment.created_at);
+                  const prevTime = prevComment ? Date.parse(prevComment.created_at) : 0;
+                  const nextTime = nextComment ? Date.parse(nextComment.created_at) : 0;
+
                   const isPrevSame =
                     prevComment &&
                     prevComment.user_id === comment.user_id &&
-                    Date.parse(comment.created_at) - Date.parse(prevComment.created_at) <
-                      TIME_THRESHOLD_MS;
+                    commentTime - prevTime < TIME_THRESHOLD_MS;
 
                   const isNextSame =
                     nextComment &&
                     nextComment.user_id === comment.user_id &&
-                    Date.parse(nextComment.created_at) - Date.parse(comment.created_at) <
-                      TIME_THRESHOLD_MS;
+                    nextTime - commentTime < TIME_THRESHOLD_MS;
 
                   const showSenderName = !isPrevSame;
                   const showTimestamp = !isNextSame || comment.isPending;
