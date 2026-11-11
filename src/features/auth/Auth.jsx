@@ -277,7 +277,11 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={async () => {
-                      const devPassword = import.meta.env.VITE_DEV_PASSWORD || 'password123';
+                      const devPassword = import.meta.env.VITE_DEV_PASSWORD;
+                      if (!devPassword) {
+                        setError('Development environment variable VITE_DEV_PASSWORD is required');
+                        return;
+                      }
                       setEmail('player1@lover.hq');
                       setPassword(devPassword);
                       setLoading(true);
@@ -305,7 +309,11 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={async () => {
-                      const devPassword = import.meta.env.VITE_DEV_PASSWORD || 'password123';
+                      const devPassword = import.meta.env.VITE_DEV_PASSWORD;
+                      if (!devPassword) {
+                        setError('Development environment variable VITE_DEV_PASSWORD is required');
+                        return;
+                      }
                       setEmail('player2@lover.hq');
                       setPassword(devPassword);
                       setLoading(true);
