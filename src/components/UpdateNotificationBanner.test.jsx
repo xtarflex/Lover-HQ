@@ -13,7 +13,7 @@ describe('UpdateNotificationBanner', () => {
     expect(screen.getByText('Fresh Update Available')).toBeInTheDocument();
     expect(screen.getByText('A newer version of Lover-HQ is ready.')).toBeInTheDocument();
 
-    const updateBtn = screen.getByRole('button', { name: /apply update/i });
+    const updateBtn = screen.getByRole('button', { name: 'Update' });
     fireEvent.click(updateBtn);
     expect(handleApply).toHaveBeenCalledTimes(1);
 
