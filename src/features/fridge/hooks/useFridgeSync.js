@@ -369,8 +369,7 @@ export function useFridgeSync({ userId, partnerId, pairingStatus, isPartnerInFri
 
         await deleteFridgeItemsBeforeCutoff(userIds, cutOffIso);
 
-        const cutOffTime = cutOffDate.getTime();
-        setItems((prev) => prev.filter((item) => Date.parse(item.created_at) >= cutOffTime));
+        setItems((prev) => prev.filter((item) => item.created_at >= cutOffIso));
       } catch (err) {
         console.error('Auto compaction error:', err);
       }

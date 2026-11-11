@@ -47,3 +47,6 @@
 ## 2024-05-18 - Pre-calculate Grid Data for O(1) Lookups in Render Loops
 **Learning:** Performing array searches (e.g., `.find()`, `.some()`) inside nested grid loops (like iterating over a 15x15 Scrabble board) creates an O(N * Rows * Cols) bottleneck. Even for small arrays, this causes unnecessary garbage collection and CPU overhead when called frequently during renders.
 **Action:** Before the render loop, map the linear array data into a 2D grid array (e.g., `grid[r][c] = value`) or a `Map` structure using coordinates as keys. This reduces the per-cell lookup to O(1), significantly improving rendering performance.
+## 2024-05-24 - Avoid Date Instantiation in Render Loops (Addendum)
+**Learning:** Using `Date.parse()` inside mapping loops for array manipulation inside React components (e.g. `MagnetCommentDrawer.jsx`) causes continuous overhead, especially since React renders multiple times. We can just use `Date.parse` to evaluate strings to numerical values directly, eliminating object allocations but retaining string comparisons for performance.
+**Action:** When comparing ISO 8601 strings, either use standard Javascript string comparisons directly (`date1 > date2`) or parse them explicitly without relying on `Date.parse(comment.created_at)` being evaluated multiple times iteratively over overlapping array states.
