@@ -24,3 +24,8 @@
 **Vulnerability:** Developer bypass logic contained hardcoded passwords for test accounts in the source code.
 **Learning:** Even if conditionally rendered for developers only (`import.meta.env.DEV`), hardcoding secrets in source code risks exposing those credentials if the codebase is made public or accessed by unauthorized individuals, especially if those test accounts are reused elsewhere.
 **Prevention:** Always rely on environment variables (e.g. `import.meta.env.VITE_DEV_PASSWORD`) to inject secrets at build or runtime, rather than committing them directly into the repository.
+
+## 2026-11-11 - Prevent Hardcoded Environment Fallbacks
+**Vulnerability:** Hardcoded fallback password for development environment variable (VITE_DEV_PASSWORD) present in Auth.jsx.
+**Learning:** Providing default passwords as fallbacks for missing environment variables creates a security risk if the code is accidentally exposed or misconfigured. Hardcoded credentials should never be present in source code.
+**Prevention:** Validate the presence of the environment variable and trigger a localized UI error if it is missing, instead of falling back to a hardcoded string.
